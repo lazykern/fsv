@@ -6,18 +6,27 @@
 //! is ignored by default:
 //!
 //! ```text
-//! FSV_PY_PYTHON=/path/to/fsv/.venv/bin/python \
+//! git -C /path/to/fsv archive "$(cat port/UPSTREAM_BASE)" src | tar -x -C /tmp/fsv-pin
+//! FSV_PY_PYTHON=/path/to/fsv/.venv/bin/python FSV_PY_SRC=/tmp/fsv-pin/src \
 //!     cargo test -p fsv-cli --test differential -- --ignored --nocapture
 //! ```
+//!
+//! `FSV_PY_SRC` goes first on the Python side's `PYTHONPATH`, so the pinned
+//! upstream source is what runs even when the checkout has moved on.
 //!
 //! The Python side runs an embedded shim (`PY_SHIM`) that answers httpx
 //! requests from the same `FSV_TEST_ROUTES` file the Rust mock reads, with the
 //! same matching rules, so no `.py` file lives in this repository.
 //!
-//! Known differences are normalised rather than listed: GETs are compared as a
-//! multiset (both sides run independent GETs on threads), and an escaped Python
-//! traceback is compared by its final exception line against the Rust one-line
-//! error. The rest is compared exactly.
+//! Known differences (all in `port/PARITY.md`) are normalised rather than
+//! listed: GETs are compared as a multiset (both sides run independent GETs on
+//! threads); an escaped Python traceback is compared by its final exception
+//! line against the Rust one-line error; Click and clap usage errors are
+//! compared by kind; JSON decoder wording and form-metadata fetch times are
+//! masked. The rest is compared exactly.
+//!
+//! `fixtures/diff_cases.json` is every literal `run_fixture`/`run_files` call
+//! in this crate's tests (except `tui`, `setup`, `login` and installers).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -31,6 +40,15 @@ const DOMAIN: &str = "acme.freshservice.com";
 const PY_SHIM: &str = r#"
 import json, os, sys
 import httpx
+
+if os.environ.get("FSV_TEST_TTY") == "1":
+    import io
+
+    class _Tty(io.TextIOWrapper):
+        def isatty(self):
+            return True
+
+    sys.stdin = _Tty(sys.stdin.detach(), encoding="utf-8")
 
 routes = json.load(open(os.environ["FSV_TEST_ROUTES"]))
 log_path = os.environ.get("FSV_TEST_LOG") or None
@@ -107,23 +125,57 @@ except SystemExit as e:
     sys.exit(code)
 "#;
 
-/// One row of `fixtures/diff_cases.json`: `{"fixture": NAME, "args": [...]}`.
+/// One row of `fixtures/diff_cases.json`:
+/// `{"fixture": NAME, "args": [...], "files"?: DIR, "stdin"?: TEXT,
+///   "pre"?: [[...]], "tty"?: true, "env"?: {K: V}}`.
+/// `pre` commands run first in the same home with empty stdin; `tty` sets
+/// `FSV_TEST_TTY=1`. `@MANIFEST@` in an argument is this crate's directory.
 struct Case {
     fixture: String,
     args: Vec<String>,
+    files: Option<String>,
+    stdin: Option<String>,
+    pre: Vec<Vec<String>>,
+    tty: bool,
+    env: Vec<(String, String)>,
+}
+
+fn strings(v: &Value) -> Vec<String> {
+    v.as_array()
+        .map(|a| {
+            a.iter()
+                .map(|s| {
+                    s.as_str()
+                        .unwrap()
+                        .replace("@MANIFEST@", env!("CARGO_MANIFEST_DIR"))
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn load_cases() -> Vec<Case> {
     let rows: Vec<Value> = serde_json::from_str(include_str!("fixtures/diff_cases.json")).unwrap();
+    let text = |v: &Value| v.as_str().map(str::to_string);
     rows.iter()
         .map(|r| Case {
             fixture: r["fixture"].as_str().unwrap().to_string(),
-            args: r["args"]
+            args: strings(&r["args"]),
+            files: text(&r["files"]),
+            stdin: text(&r["stdin"]),
+            pre: r["pre"]
                 .as_array()
-                .unwrap()
-                .iter()
-                .map(|a| a.as_str().unwrap().to_string())
-                .collect(),
+                .map(|p| p.iter().map(strings).collect())
+                .unwrap_or_default(),
+            tty: r["tty"].as_bool().unwrap_or(false),
+            env: r["env"]
+                .as_object()
+                .map(|m| {
+                    m.iter()
+                        .map(|(k, v)| (k.clone(), v.as_str().unwrap().to_string()))
+                        .collect()
+                })
+                .unwrap_or_default(),
         })
         .collect()
 }
@@ -144,7 +196,8 @@ fn fixture_routes(name: &str) -> PathBuf {
 }
 
 /// Config, session, cwd and routes for one run, in a fresh home.
-fn prepare(home: &Path, fixture: &str) -> PathBuf {
+fn prepare(home: &Path, case: &Case) -> PathBuf {
+    let fixture = case.fixture.as_str();
     let cfg = home.join("config");
     std::fs::create_dir_all(&cfg).unwrap();
     std::fs::write(
@@ -165,30 +218,25 @@ fn prepare(home: &Path, fixture: &str) -> PathBuf {
     let work = home.join("work");
     std::fs::create_dir_all(&work).unwrap();
     std::fs::copy(fixture_routes(fixture), home.join("routes.json")).unwrap();
+    if let Some(files) = &case.files {
+        let src = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/files")
+            .join(files);
+        for entry in std::fs::read_dir(src).unwrap() {
+            let entry = entry.unwrap();
+            std::fs::copy(entry.path(), work.join(entry.file_name())).unwrap();
+        }
+    }
     work
 }
 
-fn run(program: &[&str], home: &Path, work: &Path, args: &[String]) -> Outcome {
-    let mut cmd = Command::new(program[0]);
-    cmd.args(&program[1..])
-        .args(args)
-        .current_dir(work)
-        .env_clear()
-        .env("PATH", "/usr/bin:/bin")
-        .env("HOME", home)
-        .env("FSV_CONFIG_DIR", home.join("config"))
-        .env("FSV_CACHE_DIR", home.join("cache"))
-        .env("XDG_STATE_HOME", home.join("state"))
-        .env("FSV_NO_KEYCHAIN", "1")
-        .env("NO_COLOR", "1")
-        .env("COLUMNS", "200")
-        .env("TZ", "UTC")
-        .env("FSV_TEST_ROUTES", home.join("routes.json"))
-        .env("FSV_TEST_LOG", home.join("requests.log"))
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    let out = cmd.output().unwrap();
+fn run(program: &[&str], home: &Path, work: &Path, case: &Case) -> Outcome {
+    for step in &case.pre {
+        step_output(program, home, work, case, step, "");
+    }
+    let _ = std::fs::remove_file(home.join("requests.log"));
+    let input = case.stdin.clone().unwrap_or_default();
+    let out = step_output(program, home, work, case, &case.args, &input);
     let mut gets = Vec::new();
     let mut writes = Vec::new();
     if let Ok(log) = std::fs::read_to_string(home.join("requests.log")) {
@@ -208,18 +256,115 @@ fn run(program: &[&str], home: &Path, work: &Path, args: &[String]) -> Outcome {
         }
     }
     gets.sort();
+    let mask = |bytes: &[u8]| mask_home(&String::from_utf8_lossy(bytes), home);
     Outcome {
         code: out.status.code().unwrap_or(-1),
-        out: String::from_utf8_lossy(&out.stdout).into_owned(),
-        err: String::from_utf8_lossy(&out.stderr).into_owned(),
+        out: mask_fetched(&mask(&out.stdout)),
+        err: mask(&out.stderr),
         gets,
         writes,
     }
 }
 
+/// Each side runs in its own temporary home.
+fn mask_home(text: &str, home: &Path) -> String {
+    let mut text = text.to_string();
+    let real = home.canonicalize().unwrap_or_else(|_| home.to_path_buf());
+    for h in [real, home.to_path_buf()] {
+        text = text.replace(&*h.to_string_lossy(), "<home>");
+    }
+    text
+}
+
+fn step_output(
+    program: &[&str],
+    home: &Path,
+    work: &Path,
+    case: &Case,
+    args: &[String],
+    input: &str,
+) -> std::process::Output {
+    let mut cmd = Command::new(program[0]);
+    cmd.args(&program[1..])
+        .args(args)
+        .current_dir(work)
+        .env_clear()
+        .env("PATH", "/usr/bin:/bin")
+        .env("HOME", home)
+        .env("FSV_CONFIG_DIR", home.join("config"))
+        .env("FSV_CACHE_DIR", home.join("cache"))
+        .env("XDG_STATE_HOME", home.join("state"))
+        .env("FSV_NO_KEYCHAIN", "1")
+        .env("NO_COLOR", "1")
+        .env("COLUMNS", "200")
+        .env("TZ", "UTC")
+        .env("FSV_TEST_ROUTES", home.join("routes.json"))
+        .env("FSV_TEST_LOG", home.join("requests.log"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    if case.tty {
+        cmd.env("FSV_TEST_TTY", "1");
+    }
+    for (k, v) in &case.env {
+        cmd.env(k, v);
+    }
+    if program.len() > 1
+        && let Ok(src) = std::env::var("FSV_PY_SRC")
+    {
+        cmd.env("PYTHONPATH", src);
+    }
+    let mut child = cmd.spawn().unwrap();
+    let input = input.to_string();
+    let mut pipe = child.stdin.take().unwrap();
+    let writer = std::thread::spawn(move || {
+        use std::io::Write;
+        let _ = pipe.write_all(input.as_bytes());
+    });
+    let out = child.wait_with_output().unwrap();
+    writer.join().unwrap();
+    out
+}
+
+/// Form metadata lines carry the wall-clock fetch time
+/// (`fetched 2026-11-13T05:20:03+00:00`), which can tick between the runs.
+fn mask_fetched(text: &str) -> String {
+    const STAMP: usize = "2026-11-13T05:20:03+00:00".len();
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(i) = rest.find("fetched ") {
+        let start = i + "fetched ".len();
+        out.push_str(&rest[..start]);
+        rest = &rest[start..];
+        let stamp = rest.get(..STAMP).unwrap_or_default();
+        if stamp.as_bytes().get(10) == Some(&b'T') && stamp.ends_with("+00:00") {
+            out.push_str("<time>");
+            rest = &rest[STAMP..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Usage errors exit 2 on both sides. Click draws `Usage: …` and a Rich error
+/// panel; clap prints `error: …` and `For more information, try '--help'.`
+/// (a documented divergence), so only the kind is compared.
+fn is_usage_error(err: &str) -> bool {
+    (err.starts_with("Usage: ") && err.contains("Error"))
+        || err.ends_with("For more information, try '--help'.\n")
+}
+
 /// Python prints an escaped exception as a Rich traceback that ends in
 /// `ExceptionName: message`. Rust prints `error: message`. Compare the message.
 fn normalise_err(err: &str) -> String {
+    if is_usage_error(err) {
+        return "<usage error>\n".into();
+    }
+    // The decoder's own wording follows (CPython `json` vs serde_json).
+    const BAD_JSON: &str = "invalid --query-hash JSON: ";
+    if let Some(i) = err.find(BAD_JSON) {
+        return format!("{}<decoder message>\n", &err[..i + BAD_JSON.len()]);
+    }
     if !err.contains("Traceback") {
         return err.to_string();
     }
@@ -273,22 +418,30 @@ fn python_and_rust_agree_on_canned_routes() {
     let shim = shim.to_string_lossy().into_owned();
     let rust = env!("CARGO_BIN_EXE_fsv");
 
-    let cases = load_cases();
+    // `FSV_DIFF_ONLY=text` runs the cases whose label contains it.
+    let only = std::env::var("FSV_DIFF_ONLY").ok();
+    let cases: Vec<Case> = load_cases()
+        .into_iter()
+        .filter(|c| {
+            only.as_deref()
+                .is_none_or(|o| format!("{}: fsv {}", c.fixture, c.args.join(" ")).contains(o))
+        })
+        .collect();
     let mut failures: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut succeeded = 0;
     for case in &cases {
         let label = format!("{}: fsv {}", case.fixture, case.args.join(" "));
         let py_home = tempfile::tempdir().unwrap();
-        let py_work = prepare(py_home.path(), &case.fixture);
+        let py_work = prepare(py_home.path(), case);
         let py = run(
             &[python.as_str(), shim.as_str()],
             py_home.path(),
             &py_work,
-            &case.args,
+            case,
         );
         let rs_home = tempfile::tempdir().unwrap();
-        let rs_work = prepare(rs_home.path(), &case.fixture);
-        let rs = run(&[rust], rs_home.path(), &rs_work, &case.args);
+        let rs_work = prepare(rs_home.path(), case);
+        let rs = run(&[rust], rs_home.path(), &rs_work, case);
         if py.code == 0 {
             succeeded += 1;
         }
@@ -299,17 +452,17 @@ fn python_and_rust_agree_on_canned_routes() {
     }
     let total = cases.len();
     println!("{succeeded} of {total} cases exit 0 on the Python side");
-    // Guard against two identical failures passing as agreement.
-    assert!(
-        succeeded * 2 >= total,
-        "too few successful cases to mean anything"
-    );
     for (label, diffs) in &failures {
         println!("DIFF {label}");
         for d in diffs {
             println!("  {d}");
         }
     }
+    // Many cases are refusals, but a broken setup fails them all alike.
+    assert!(
+        only.is_some() || succeeded * 3 >= total,
+        "too few successful cases to mean anything"
+    );
     assert!(
         failures.is_empty(),
         "{} of {total} cases differ",

@@ -40,6 +40,10 @@ those stay identical.
 - Concurrent GETs (the parallel loads in `get`, `ls`, `tabs`) can be issued
   in a different order than Python issues them. Writes keep their order.
   `tests/differential.rs` compares GETs as a set.
+- A malformed `--query-hash` keeps Python's `invalid --query-hash JSON: `
+  prefix and exit code; the decoder's detail after it is serde_json's
+  (`EOF while parsing an object at line 1 column 2`), not CPython's
+  (`Expecting property name enclosed in double quotes: ...`).
 - The TUI command palette (`ctrl+p`) is not ported. It is Textual's, not
   an fsv screen. Filter history still uses `ctrl+p` / `ctrl+n`.
 - A failed search toasts the error. In Python the worker's uncaught

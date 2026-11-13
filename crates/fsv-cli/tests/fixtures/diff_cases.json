@@ -1,5 +1,281 @@
 [
  {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "status"
+  ],
+  "pre": [
+   [
+    "auth",
+    "logout",
+    "--yes"
+   ]
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "list"
+  ],
+  "pre": [
+   [
+    "config",
+    "set",
+    "completion.network",
+    "on"
+   ]
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "show"
+  ],
+  "pre": [
+   [
+    "config",
+    "defaults",
+    "set",
+    "tickets",
+    "-w",
+    "status=Open"
+   ]
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "clear",
+   "tickets"
+  ],
+  "pre": [
+   [
+    "config",
+    "defaults",
+    "set",
+    "tickets",
+    "-w",
+    "status=Open"
+   ]
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "pre": [
+   [
+    "cache",
+    "refresh"
+   ]
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "logout"
+  ],
+  "stdin": "y\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "logout"
+  ],
+  "stdin": "n\n",
+  "tty": true
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "auth",
+   "login",
+   "--header",
+   "_x_m=1; _x_d=2; _x_w=3; fw-session-id=4",
+   "--force"
+  ],
+  "stdin": "\n3\n",
+  "tty": true
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "auth",
+   "login",
+   "--header",
+   "_x_m=1; _x_d=2; _x_w=3; fw-session-id=4",
+   "--force"
+  ],
+  "stdin": "\nfile\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "1\nglobex.freshservice.com\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "9\nx\n1\n\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "4\noff\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "4\nmaybe\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "5\nstatus=Open, priority=High\n\n agent=me \n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "5\n\n\n\n",
+  "pre": [
+   [
+    "config",
+    "defaults",
+    "set",
+    "tickets",
+    "-w",
+    "status=Open"
+   ],
+   [
+    "config",
+    "set",
+    "completion.network",
+    "on"
+   ]
+  ],
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "3\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "completion",
+   "show"
+  ],
+  "env": {
+   "SHELL": "/bin/tcsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "completion",
+   "doctor"
+  ],
+  "pre": [
+   [
+    "config",
+    "set",
+    "completion.network",
+    "on"
+   ]
+  ],
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "completion",
+   "show"
+  ],
+  "env": {
+   "SHELL": "/bin/sh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/sh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/opt/FISH"
+  }
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "auth",
+   "login",
+   "--header",
+   "_x_m=1; _x_d=2; _x_w=3; fw-session-id=4",
+   "--force"
+  ],
+  "stdin": "\n9\nfile\n",
+  "tty": true
+ },
+ {
   "fixture": "auth",
   "args": [
    "auth",
@@ -24,8 +300,71 @@
  {
   "fixture": "local",
   "args": [
+   "auth",
+   "login",
+   "--browser",
+   "--header",
+   "x=y"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "login",
+   "--header",
+   "foo=bar",
+   "--store",
+   "file"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "auth",
+   "login",
+   "--header",
+   "-",
+   "--store",
+   "file",
+   "--force"
+  ],
+  "stdin": "_x_m=1; _x_d=2; _x_w=3; fw-session-id=4"
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "login",
+   "--header",
+   "_x_m=1; _x_d=2; _x_w=3; fw-session-id=4",
+   "--store",
+   "file"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
    "config",
    "list"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "set",
+   "completion.network",
+   "maybe"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "set",
+   "completion.network",
+   "off"
   ]
  },
  {
@@ -43,6 +382,19 @@
    "defaults",
    "show",
    "changes"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "set",
+   "changes",
+   "--where",
+   "status=Open",
+   "--where",
+   "priority=High"
   ]
  },
  {
@@ -90,6 +442,13 @@
   "args": [
    "completion",
    "doctor"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "completion",
+   "install"
   ]
  },
  {
@@ -166,10 +525,84 @@
   ]
  },
  {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "printer",
+   "-N",
+   "1",
+   "--sort",
+   "created"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "lookup",
+   "env",
+   "pr",
+   "--refresh"
+  ],
+  "pre": [
+   [
+    "changes",
+    "lookup",
+    "env",
+    "pr"
+   ]
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "lookup",
+   "env",
+   "pr"
+  ],
+  "pre": [
+   [
+    "changes",
+    "lookup",
+    "env",
+    "pr"
+   ]
+  ]
+ },
+ {
   "fixture": "change_fields",
   "args": [
    "changes",
    "fields"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "fields",
+   "stat",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "fields",
+   "--choices",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "fields",
+   "--choices",
+   "s"
   ]
  },
  {
@@ -191,6 +624,17 @@
   ]
  },
  {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "fields",
+   "--choices",
+   "cf_env",
+   "-o",
+   "csv"
+  ]
+ },
+ {
   "fixture": "ticket_reads",
   "args": [
    "tickets",
@@ -201,9 +645,29 @@
  {
   "fixture": "ticket_reads",
   "args": [
+   "tickets",
+   "conversations",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
    "problems",
    "notes",
    "7"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "problems",
+   "notes",
+   "7",
+   "-o",
+   "tsv"
   ]
  },
  {
@@ -227,6 +691,16 @@
   "args": [
    "tickets",
    "approvals",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "approvals",
    "INC-6"
   ]
  },
@@ -243,6 +717,15 @@
   "args": [
    "tickets",
    "associations",
+   "5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "associations",
    "6"
   ]
  },
@@ -252,6 +735,27 @@
    "tickets",
    "download",
    "5"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--all",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--conversations",
+   "--dir",
+   "./out/"
   ]
  },
  {
@@ -271,6 +775,38 @@
   ]
  },
  {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "download",
+   "5",
+   "--all",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "download",
+   "5",
+   "--planning",
+   "Backout plan",
+   "--planning",
+   "rollout"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "download",
+   "5",
+   "--planning",
+   "nope"
+  ]
+ },
+ {
   "fixture": "change_helpers",
   "args": [
    "changes",
@@ -283,7 +819,55 @@
   "args": [
    "changes",
    "approvals",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
+   "5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
    "6"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
+   "5",
+   "--groups"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
+   "5",
+   "--groups",
+   "-o",
+   "tsv"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
+   "6",
+   "--groups"
   ]
  },
  {
@@ -321,6 +905,16 @@
   ]
  },
  {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "state",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
   "fixture": "links",
   "args": [
    "changes",
@@ -335,7 +929,50 @@
    "changes",
    "associations",
    "ls",
+   "5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "ls",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "ls",
    "6"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "search",
+   "5",
+   "disk"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "search",
+   "5",
+   "disk",
+   "-o",
+   "tsv"
   ]
  },
  {
@@ -354,6 +991,51 @@
    "5",
    "--limit",
    "2"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5",
+   "--limit",
+   "-1",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5",
+   "--limit",
+   "1",
+   "--all"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5",
+   "--limit",
+   "2",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5",
+   "--limit",
+   "2",
+   "--json"
   ]
  },
  {
@@ -523,6 +1205,26 @@
   "args": [
    "changes",
    "get",
+   "7",
+   "--stats",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "get",
+   "7",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "get",
    "7"
   ]
  },
@@ -593,6 +1295,18 @@
    "tickets",
    "ls",
    "--where",
+   "Status=Open",
+   "--where",
+   "Status=Resolved",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
    "Status=Open"
   ]
  },
@@ -621,6 +1335,27 @@
   ]
  },
  {
+  "fixture": "ls",
+  "args": [
+   "changes",
+   "ls",
+   "--or",
+   "--where",
+   "Status=Open",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\",\"value\":[2]}]",
+   "--debug"
+  ]
+ },
+ {
   "fixture": "catalog",
   "args": [
    "sr",
@@ -640,7 +1375,28 @@
   "args": [
    "sr",
    "catalog",
+   "--categories",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
    "--popular"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
+   "-c",
+   "Engineering",
+   "-o",
+   "json"
   ]
  },
  {
@@ -735,6 +1491,17 @@
    "sr",
    "get",
    "123",
+   "--attachments",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "123",
    "--download",
    "ref"
   ]
@@ -795,6 +1562,26 @@
    "form",
    "fields",
    "--choices",
+   "Change Type"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "fields",
+   "--choices",
+   "team",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "fields",
+   "--choices",
    "nope"
   ]
  },
@@ -803,6 +1590,25 @@
   "args": [
    "form",
    "explain"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain",
+   "--set",
+   "Change Type=Emergency"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain",
+   "--set",
+   "Team=Labs",
+   "--all"
   ]
  },
  {
@@ -845,7 +1651,49 @@
   "args": [
    "form",
    "diff",
+   "@MANIFEST@/tests/fixtures/files/form_snaps/old.json",
+   "--against",
+   "@MANIFEST@/tests/fixtures/files/form_snaps/new.json"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "diff",
+   "@MANIFEST@/tests/fixtures/files/form_snaps/old.json",
+   "--against",
+   "@MANIFEST@/tests/fixtures/files/form_snaps/new.json",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "diff",
+   "@MANIFEST@/tests/fixtures/files/form_snaps/old.json",
+   "--against",
+   "@MANIFEST@/tests/fixtures/files/form_snaps/same.json"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "diff",
    "missing.json"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "form",
+   "explain",
+   "tickets",
+   "--id",
+   "5"
   ]
  },
  {
@@ -858,12 +1706,86 @@
   ]
  },
  {
+  "fixture": "change_resend",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Low",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate"
+  ],
+  "stdin": "y\nn\n",
+  "tty": true
+ },
+ {
+  "fixture": "change_resend",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Low",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate"
+  ],
+  "stdin": "y\ny\n",
+  "tty": true
+ },
+ {
+  "fixture": "change_resend",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Low",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_partial",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--attach",
+   "@MANIFEST@/tests/fixtures/files/sr/notes.txt",
+   "--yes",
+   "--expect-plan",
+   "2ecbfa2b72bbbb86"
+  ]
+ },
+ {
   "fixture": "watchers",
   "args": [
    "tickets",
    "watchers",
    "list",
    "INC-5"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "changes",
+   "watchers",
+   "list",
+   "CHN-12",
+   "--json"
   ]
  },
  {
@@ -881,7 +1803,93 @@
    "tickets",
    "watchers",
    "list",
+   "7",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "list",
    "CHN-5"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "set",
+   "5",
+   "--watch",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "set",
+   "5",
+   "--watch",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "set",
+   "5",
+   "--watch",
+   "--yes",
+   "--output=json",
+   "--json",
+   "--expect-plan",
+   "3550252fbb8b8eff91ad10123e3af0291e8972d4a3dbb5b734daa9cce18c3a6e"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "changes",
+   "watchers",
+   "set",
+   "CHN-12",
+   "--watch",
+   "--unwatch",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "changes",
+   "watchers",
+   "set",
+   "12",
+   "--unwatch",
+   "--yes",
+   "--expect-plan",
+   "be559b20226d34837e0affd47ed3b1529cfc13a4f09f29983895d421818bbeb2"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "set",
+   "8",
+   "--watch",
+   "--yes",
+   "--expect-plan",
+   "3f67af5e89c7796fcf83001ea60895cb8adb8c42f4ecb184d1cef67fb337cbc3"
   ]
  },
  {
@@ -894,11 +1902,1331 @@
   ]
  },
  {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "01:15",
+   "--executed-at",
+   "2030-01-02T03:00:00+07:00",
+   "--note",
+   "Acme work",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "01:15",
+   "--executed-at",
+   "2030-01-02T03:00:00+07:00",
+   "--note",
+   "Acme work",
+   "--yes",
+   "--expect-plan",
+   "d3ca3bff6a8b0b8e48f8529ad51750fb66e6959b216ee9667cd994c3f1440a52"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "01:15",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1:5",
+   "--executed-at",
+   "2030-01-02T03:00:00+07:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "00:30",
+   "--executed-at",
+   "2030-01-02T03:00:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "5",
+   "start",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "6",
+   "update",
+   "--entry",
+   "41",
+   "--note",
+   "Globex",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "6",
+   "update",
+   "--entry",
+   "41",
+   "--note",
+   "Globex",
+   "--yes",
+   "--json",
+   "--expect-plan",
+   "dd042d69b0381cfce9e840d2757039ef73203ba1cbcd367a49fc391fd74210f6"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "6",
+   "update",
+   "--entry",
+   "42",
+   "--note",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "6",
+   "update",
+   "--entry",
+   "43",
+   "--spent",
+   "00:20",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "6",
+   "delete",
+   "--entry",
+   "44",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "7",
+   "delete",
+   "--entry",
+   "51",
+   "--yes",
+   "--expect-plan",
+   "0d3139b2f9da73285914f8a1556e7f3ba92d618cbd4863393950fdbebc951146"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "write",
+   "7",
+   "delete",
+   "--entry",
+   "51",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "CHN-12",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "<p>Globex rollout</p>",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "acme_plan",
+   "--description",
+   "<p>Globex rollout</p>",
+   "--yes",
+   "--expect-plan",
+   "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "13",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "  ",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "14",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "nope",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "15",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "PRB-7",
+   "--section",
+   "root cause",
+   "--description",
+   "Acme DNS outage",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme DNS outage",
+   "--yes",
+   "--expect-plan",
+   "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Workaround",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "8",
+   "--section",
+   "problem_impact",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Root Cause",
+   "--description",
+   "x"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "125",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "125",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "125",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "125",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--dry-run",
+   "--clear",
+   "--description",
+   "Acme"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--dry-run",
+   "--description",
+   ""
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "mark-known-error",
+   "PRB-7",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "mark-known-error",
+   "7",
+   "--yes",
+   "-o",
+   "json",
+   "--expect-plan",
+   "ac51138eacf22a51e00652581c6c4c83cb6f9235611456543550a85c75bd3102"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "mark-known-error",
+   "9",
+   "--yes",
+   "--expect-plan",
+   "76ed54825bfff7204593f9c86373ade92bcc68ee91eae8126df18bc898df7b12"
+  ]
+ },
+ {
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "mark-known-error",
+   "10",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "thanks",
+   "--bcc",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "thanks",
+   "--bcc",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--yes",
+   "--expect-plan",
+   "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "thanks",
+   "--bcc",
+   "ann@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "thanks",
+   "--cc",
+   "ann@acme.com",
+   "--bcc",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "thanks",
+   "--sender",
+   "Support <support@acme.com>",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "thanks",
+   "--bcc",
+   "Ann <ann@acme.com>",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "INC-5",
+   "see below",
+   "--to",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "5",
+   "see below",
+   "--to",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "5c24fced7a7b4c77e468569a8fa7cbaa16dbda8cb34d184b3fe5daa0188a8263"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "5",
+   "see below",
+   "--to",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "5",
+   "see below",
+   "--to",
+   "Ann <ann@acme.com>",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "5",
+   "see below",
+   "--conversation",
+   "900",
+   "--to",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "5",
+   "see below",
+   "--conversation",
+   "900",
+   "--to",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "ea141a6dc6a011baf0ef52b8cdd432752efab0829be7418249e20d3303194278"
+  ]
+ },
+ {
+  "fixture": "ticket_mail",
+  "args": [
+   "tickets",
+   "forward",
+   "5",
+   "see below",
+   "--conversation",
+   "999",
+   "--to",
+   "ann@acme.com",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "Urgent",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--set",
+   "priority=Low",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--set",
+   "priority",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "problems",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--ack"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "problems",
+   "update",
+   "5",
+   "--ack"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--ack",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--ack",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--expect-plan",
+   "abc"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "7",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "2d1b32c2ff8fff0541e21780bcefc8817ff4150c6a4a7b498d524f09215514ff"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "INC-5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "x",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "Urgent",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_fail",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Title=T",
+   "--set",
+   "Details=D",
+   "--set",
+   "Needed by=2030-01-02",
+   "--set",
+   "1. Expected benefit=Lower cost",
+   "--set",
+   "1.2 Cost target=5",
+   "--set",
+   "Priority=Low - cosmetic, reports",
+   "--set",
+   "Overview deck (.pptx)=/Users/phusit.somb/lab/work/fsv-rust/crates/fsv-cli/tests/fixtures/files/sr/deck.pptx",
+   "--attach",
+   "/Users/phusit.somb/lab/work/fsv-rust/crates/fsv-cli/tests/fixtures/files/sr/notes.txt",
+   "--yes",
+   "--expect-plan",
+   "5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2"
+  ]
+ },
+ {
   "fixture": "asset_picker",
   "args": [
    "changes",
    "asset-picker",
    "12"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "CHN-12",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "Globex",
+   "--page",
+   "2",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--select",
+   "702"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--select",
+   "999"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "empty"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "empty",
+   "--select",
+   "1"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "dup"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "notlist"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "notobj"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "bad"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "dupbad"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "pk"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "pages"
   ]
  },
  {
@@ -926,11 +3254,199 @@
   ]
  },
  {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--search",
+   "boom"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12",
+   "--page",
+   "0"
+  ]
+ },
+ {
   "fixture": "canned",
   "args": [
    "tickets",
    "canned",
    "folders"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "list",
+   "--folder",
+   "702",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "show",
+   "701",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "INC-5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "INC-5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--yes",
+   "--expect-plan",
+   "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/~2",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/body",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/meta",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "705",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "Support <support@acme.com>",
+   "--dry-run"
   ]
  },
  {
@@ -969,11 +3485,447 @@
   ]
  },
  {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "INC-5",
+   "--scenario",
+   "703",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "703",
+   "--yes",
+   "--expect-plan",
+   "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "703",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "704",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "701"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "702",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "709",
+   "create",
+   "--name",
+   "Only",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "rename",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "  ",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "705",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "706",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "707",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "708",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "710",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "711",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "713",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "714",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--yes",
+   "--expect-plan",
+   "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex_renamed",
+   "--yes",
+   "--expect-plan",
+   "2c8884374517a2291e001c5ca542943f754217ea5e94e2f9f26d7d5235b661b5"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b"
+  ]
+ },
+ {
   "fixture": "list_prefs",
   "args": [
    "tickets",
    "columns",
    "list"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes",
+   "--expect-plan",
+   "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes",
+   "--expect-plan",
+   "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32"
   ]
  },
  {
@@ -987,9 +3939,468 @@
  {
   "fixture": "list_prefs",
   "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--yes",
+   "--expect-plan",
+   "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes",
+   "--expect-plan",
+   "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
    "problems",
    "columns",
    "list"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes",
+   "--expect-plan",
+   "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes",
+   "--expect-plan",
+   "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "display_id",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "status",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "ticket_subject",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "nope",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--freeze",
+   "status",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "701",
+   "--field",
+   "owner",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "701",
+   "--field",
+   "subject",
+   "--field",
+   "subject",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "701",
+   "--field",
+   "department_name",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Nope",
+   "--field",
+   "subject",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "702",
+   "--field",
+   "subject",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme",
+   "--field",
+   "subject",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--yes",
+   "--expect-plan",
+   "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--set",
+   "Requester=ann@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Status=Open",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--set",
+   "Nope=1",
+   "--dry-run"
   ]
  },
  {
@@ -998,6 +4409,122 @@
    "problems",
    "create",
    "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "PRB-123",
+   "note",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "task",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "PRB-123",
+   "note",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "task",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "Other",
+   "--yes",
+   "--expect-plan",
+   "ed23c5dca4c8b43cc57f520bb06b700326f8fcc1d156d90d4b80cb4482f635c9"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "comment",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "  ",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "CHN-123",
+   "note",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "124",
+   "note",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "Acme"
   ]
  },
  {
@@ -1012,8 +4539,30 @@
   "fixture": "problem_flows",
   "args": [
    "form",
+   "fields",
+   "problems",
+   "--choices",
+   "Status"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "form",
    "explain",
    "problems"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "explain",
+   "problems",
+   "--id",
+   "PRB-123",
+   "--set",
+   "Status=Open"
   ]
  },
  {
@@ -1036,6 +4585,15 @@
  {
   "fixture": "private_views",
   "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "711"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
    "problems",
    "columns",
    "list"
@@ -1047,6 +4605,33 @@
    "form",
    "dump",
    "problems"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--set",
+   "Subject=Globex",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "list",
+   "5",
+   "--output",
+   "csv"
   ]
  },
  {
@@ -1097,6 +4682,2109 @@
   ]
  },
  {
+  "fixture": "clone_tasks_403",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "clone_assets_409",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "clone_planning_429",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "clone_tasks_500",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "clone_ok",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json",
+   "--dry-run",
+   "--keep-task-owners"
+  ]
+ },
+ {
+  "fixture": "clone_noid",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "clone_ok",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--json",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "resolve",
+   "INC-123",
+   "--note",
+   "Acme fix <safe>",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "resolve",
+   "123",
+   "--note",
+   "Acme fix",
+   "--set",
+   "summary=Globex fix",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "resolve",
+   "123",
+   "--note",
+   "Acme fix <safe>",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "resolve",
+   "123",
+   "--note",
+   "Acme fix <safe>",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "resolve",
+   "INC-123",
+   "--note",
+   "Acme fix <safe>",
+   "--yes",
+   "--expect-plan",
+   "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--yes",
+   "--expect-plan",
+   "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_rewrite",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--yes",
+   "--expect-plan",
+   "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "close",
+   "125",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "close",
+   "126",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "close",
+   "126",
+   "--set",
+   "summary=Globex fix",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "reopen",
+   "127",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "reopen",
+   "127",
+   "--yes",
+   "--expect-plan",
+   "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "status",
+   "123",
+   "pending",
+   "--set",
+   "reason=Waiting on Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "status",
+   "123",
+   "Bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "status",
+   "123",
+   "Pending",
+   "--set",
+   "reason",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "status",
+   "123",
+   "Pending",
+   "--set",
+   "reason=a",
+   "--set",
+   "reason=b",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "status",
+   "123",
+   "Pending",
+   "--set",
+   "status=Open",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "status",
+   "0",
+   "Pending",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "close",
+   "128",
+   "--yes",
+   "--expect-plan",
+   "7c2da2bb62f2da4b14c11139ec37af3b5b224fd2168787ab821ee3fc35eed3c1"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "INC-123",
+   "INC-124",
+   "INC-125",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "124",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--public-primary",
+   "--public-secondary",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "124",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "124",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "INC-123",
+   "INC-124",
+   "INC-125",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--yes",
+   "--expect-plan",
+   "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e"
+  ]
+ },
+ {
+  "fixture": "ticket_merge_unverified",
+  "args": [
+   "tickets",
+   "merge",
+   "INC-123",
+   "INC-124",
+   "INC-125",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--yes",
+   "--expect-plan",
+   "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e"
+  ]
+ },
+ {
+  "fixture": "ticket_merge_500",
+  "args": [
+   "tickets",
+   "merge",
+   "INC-123",
+   "INC-124",
+   "INC-125",
+   "--note-primary",
+   "Primary note",
+   "--note-secondary",
+   "Secondary note",
+   "--yes",
+   "--expect-plan",
+   "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "123",
+   "--note-primary",
+   "A",
+   "--note-secondary",
+   "B",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "124",
+   "INC-124",
+   "--note-primary",
+   "A",
+   "--note-secondary",
+   "B",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "124",
+   "--note-primary",
+   "  ",
+   "--note-secondary",
+   "B",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "0",
+   "124",
+   "--note-primary",
+   "A",
+   "--note-secondary",
+   "B",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_merge",
+  "args": [
+   "tickets",
+   "merge",
+   "123",
+   "126",
+   "--note-primary",
+   "A",
+   "--note-secondary",
+   "B",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "INC-123",
+   "--unassign",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "INC-123",
+   "--unassign",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "INC-123",
+   "--unassign",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "INC-123",
+   "--unassign",
+   "--yes",
+   "--expect-plan",
+   "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "124",
+   "--agent",
+   "agent@example.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "124",
+   "--agent",
+   "agent@example.com",
+   "--yes",
+   "--expect-plan",
+   "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "123",
+   "--group",
+   "Acme Desk",
+   "--agent",
+   "Acme Agent",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "123",
+   "--group",
+   "Globex Desk",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "123",
+   "--agent",
+   "Globex Agent",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "123",
+   "--agent",
+   "Nobody",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "123",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "123",
+   "--unassign",
+   "--agent",
+   "71",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "assign",
+   "126",
+   "--agent",
+   "71",
+   "--yes",
+   "--expect-plan",
+   "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "pick-up",
+   "124",
+   "INC-125",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "pick-up",
+   "124",
+   "INC-125",
+   "--yes",
+   "--expect-plan",
+   "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79"
+  ]
+ },
+ {
+  "fixture": "ticket_assign",
+  "args": [
+   "tickets",
+   "pick-up",
+   "124",
+   "INC-124",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "hi",
+   "--set-status",
+   "Resolved",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "reply",
+   "124",
+   "hi",
+   "--set-status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "reply",
+   "126",
+   "hi",
+   "--set-status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "hi",
+   "--set-status",
+   "Bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "add-note",
+   "123",
+   "--body",
+   "hi",
+   "--set-status",
+   "Resolved",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "add-note",
+   "124",
+   "--body",
+   "hi",
+   "--set-status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle",
+  "args": [
+   "tickets",
+   "add-note",
+   "125",
+   "--body",
+   "hi",
+   "--set-status",
+   "closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_conv",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "hi",
+   "--set-status",
+   "Open",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_conv",
+  "args": [
+   "tickets",
+   "add-note",
+   "5",
+   "--body",
+   "hi",
+   "--set-status",
+   "Open",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_note_send",
+  "args": [
+   "tickets",
+   "add-note",
+   "130",
+   "--body",
+   "Acme fix",
+   "--yes",
+   "--expect-plan",
+   "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6"
+  ]
+ },
+ {
+  "fixture": "ticket_note_send",
+  "args": [
+   "tickets",
+   "add-note",
+   "131",
+   "--body",
+   "Acme fix",
+   "--yes",
+   "--expect-plan",
+   "cb78404c474288d741d0285b54c6e2425be0feb24cc0c206737f533d5f6f376d"
+  ]
+ },
+ {
+  "fixture": "ticket_note_send",
+  "args": [
+   "tickets",
+   "add-note",
+   "130",
+   "--body",
+   "Acme fix",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "INC-123",
+   "501",
+   "--body",
+   "Globex final",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "123",
+   "501",
+   "--body",
+   "Globex final",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "INC-123",
+   "501",
+   "--body",
+   "Globex final",
+   "--yes",
+   "--expect-plan",
+   "707f83252578e90aa650ea3b33aa094594b8d770801a9df450f5f7fd56ac1342"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "126",
+   "503",
+   "--body",
+   "Globex final",
+   "--yes",
+   "--expect-plan",
+   "948873906d5e0dc9eaa2d561ddd56bbd8411e491e182f287765479f2420282e8"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-delete",
+   "124",
+   "502",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-delete",
+   "124",
+   "502",
+   "--yes",
+   "--expect-plan",
+   "816dcf228d810ace5208834b67d161bbb03529168d3056a4556bc5541497cfdc"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "125",
+   "500",
+   "--body",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "125",
+   "599",
+   "--body",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-delete",
+   "124",
+   "0",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_note_mutation",
+  "args": [
+   "tickets",
+   "note-edit",
+   "127",
+   "501",
+   "--body",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "PRB-7",
+   "INC-123",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "7",
+   "123",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "PRB-7",
+   "INC-123",
+   "--yes",
+   "--expect-plan",
+   "1313ae1a94c98a148989cf0be31123d248a904eb1d92b8d60c2a47eb34543ea9"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "9",
+   "123",
+   "--yes",
+   "--expect-plan",
+   "47f71f08a282d72b8d62300d8d4b802d5ef4eab942e4e873419ae6b5bef9a7e5"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "unlink-incident",
+   "8",
+   "INC-124",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "unlink-incident",
+   "8",
+   "INC-124",
+   "--yes",
+   "--expect-plan",
+   "63220f128cd7d0c5dc67c3a9ccb42a8c8e2f22fc40530dc7d2c0911996ed4c5d"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "8",
+   "124",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "unlink-incident",
+   "7",
+   "124",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "7",
+   "SR-125",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "7",
+   "125",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_incidents",
+  "args": [
+   "problems",
+   "link-incident",
+   "0",
+   "123",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "PRB-7",
+   "--to",
+   "Change Requested",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "7",
+   "--to",
+   "Change Requested",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "PRB-7",
+   "--to",
+   "Change Requested",
+   "--yes",
+   "--expect-plan",
+   "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729"
+  ]
+ },
+ {
+  "fixture": "problem_status_rewrite",
+  "args": [
+   "problems",
+   "status",
+   "PRB-7",
+   "--to",
+   "Change Requested",
+   "--yes",
+   "--expect-plan",
+   "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "8",
+   "--to",
+   "closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "8",
+   "--to",
+   "closed",
+   "--yes",
+   "--expect-plan",
+   "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9"
+  ]
+ },
+ {
+  "fixture": "problem_status_rejected",
+  "args": [
+   "problems",
+   "status",
+   "8",
+   "--to",
+   "closed",
+   "--yes",
+   "--expect-plan",
+   "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "9",
+   "--to",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "10",
+   "--to",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "7",
+   "--to",
+   "Bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status",
+  "args": [
+   "problems",
+   "status",
+   "11",
+   "--to",
+   "Change Requested",
+   "--yes",
+   "--expect-plan",
+   "47d0d3046b2d2965292733d0b0bc8e030b2dc88af977c7144d202b6297c5e587"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "PRB-71",
+   "--planned-start",
+   "2030-01-02T09:00:00+00:00",
+   "--planned-end",
+   "2030-01-03T17:00:00Z",
+   "--planned-effort",
+   "1h30m",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-start",
+   "2030-01-02T09:00:00+00:00",
+   "--planned-end",
+   "2030-01-03T17:00:00Z",
+   "--planned-effort",
+   "01:30",
+   "--yes",
+   "--expect-plan",
+   "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "76",
+   "--planned-effort",
+   "2h",
+   "--yes",
+   "--expect-plan",
+   "b0017b921cd5cae4f4c4a882d384729fa20177b302c1529e9aadc4b00134626f"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-start",
+   "2030-01-03T00:00:00Z",
+   "--planned-end",
+   "2030-01-02T00:00:00Z",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "72",
+   "--planned-effort",
+   "2h",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update_rules500",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--planned-effort",
+   "2h",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--status",
+   "Change Requested",
+   "--set",
+   "cf_owner_note=Acme new owner",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "72",
+   "--status",
+   "Closed",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "73",
+   "--set",
+   "cf_owner_note=x",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "problem_flows_rules500",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows_rules500",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--yes",
+   "--expect-plan",
+   "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b"
+  ]
+ },
+ {
+  "fixture": "problem_status_rules500",
+  "args": [
+   "problems",
+   "status",
+   "PRB-7",
+   "--to",
+   "Change Requested",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_status_rules500",
+  "args": [
+   "problems",
+   "status",
+   "7",
+   "--to",
+   "Change Requested",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "list",
+   "INC-125"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "INC-123",
+   "--title",
+   "Acme rollback check",
+   "--set",
+   "Area=Network",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "Acme rollback check",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "INC-123",
+   "--title",
+   "Acme rollback check",
+   "--set",
+   "Area=Network",
+   "--yes",
+   "--expect-plan",
+   "1dd665c08f4fe0f2e426028685bf2ff7708eb86c5556004d5beeab83057496c8"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "Acme tiered",
+   "--status",
+   "In Progress",
+   "--set",
+   "cf_tier=gold",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   " ",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "x",
+   "--set",
+   "Bogus=1",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "x",
+   "--set",
+   "notify_before=Never",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "x",
+   "--set",
+   "Area",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "status",
+   "124",
+   "903",
+   "--to",
+   "Completed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "status",
+   "124",
+   "903",
+   "--to",
+   "Completed",
+   "--yes",
+   "--expect-plan",
+   "8b7801ca1b5d8dc5c32a09ab5649e049e109b6cabf820b278ffba5022b211053"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "status",
+   "124",
+   "903",
+   "--to",
+   "Bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "status",
+   "124",
+   "999",
+   "--to",
+   "Completed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "status",
+   "126",
+   "906",
+   "--to",
+   "Completed",
+   "--yes",
+   "--expect-plan",
+   "71f4b2b9bb701125b126eca4ffe16589fe109e2837872f4ff9e5b8fa90691520"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "delete",
+   "125",
+   "904",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "delete",
+   "125",
+   "904",
+   "--yes",
+   "--expect-plan",
+   "26affb7e686e7643871d6b0f487e23cf224133be2dad8e2c87981d630983117e"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "x",
+   "--set",
+   "cf_tier=platinum",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "127",
+   "--title",
+   "Acme handover",
+   "--owner",
+   "bo@acme.com",
+   "--group",
+   "DBA",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "127",
+   "--title",
+   "Acme handover",
+   "--owner",
+   "bo@acme.com",
+   "--group",
+   "DBA",
+   "--yes",
+   "--expect-plan",
+   "cb1435d6e3ed29a07ad18ae5a6ce0bdf3d89acf17a07636002a5dd41b9025f09"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "127",
+   "--title",
+   "x",
+   "--owner",
+   "zed@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_reviewed",
+  "args": [
+   "tickets",
+   "tasks",
+   "add",
+   "123",
+   "--title",
+   "x",
+   "--owner",
+   "7",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "update",
+   "128",
+   "912",
+   "--title",
+   "Acme new",
+   "--owner",
+   "133",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "update",
+   "128",
+   "912",
+   "--title",
+   "Acme new",
+   "--owner",
+   "bo@acme.com",
+   "--yes",
+   "--expect-plan",
+   "8073b6861a37ce2d25a683279e2cc0854b610d66b31929d4b67ea103b96d131d"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "update",
+   "128",
+   "912",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_tasks_assigned",
+  "args": [
+   "tickets",
+   "tasks",
+   "update",
+   "128",
+   "999",
+   "--title",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status==Open",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "=Open",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status= ",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status='Open",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status!Open",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status=Op\ten",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Note='=x'",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created<=today",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Created<=Last 6 months",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status=Resolved",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Subject=x",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where_type",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "type=Service Request",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where_type",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "type=7402",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where_type",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "type!=Incident",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where_type",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "type=Case",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where_type",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "type=Retired",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where_search_error",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status=Open"
+  ]
+ },
+ {
+  "fixture": "where_search_error",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "status=Open"
+  ]
+ },
+ {
+  "fixture": "where_search_error",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":\"approval_status\",\"operator\":\"is_in\",\"value\":[\"0\"],\"type\":\"default\"}]"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "61",
+   "--owner",
+   "tickets/5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--yes",
+   "--expect-plan",
+   "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "63",
+   "--owner",
+   "tickets/8",
+   "--yes",
+   "--expect-plan",
+   "b543497e0ec2e43bcdcf810686166714f25a5accfd7f8ee13a4badbdeaa831d4"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "61",
+   "--owner",
+   "tickets/5",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "99",
+   "--owner",
+   "tickets/5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "61",
+   "--owner",
+   "assets/5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "61",
+   "--owner",
+   "changes/5",
+   "--child",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "11",
+   "--owner",
+   "tickets/5",
+   "--child",
+   "950",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--device",
+   "702",
+   "--yes",
+   "--expect-plan",
+   "74211ef8d2058797710625fd916d8b3bcccd351a39bed21e6877b0caadaab170",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--device",
+   "703",
+   "--yes",
+   "--expect-plan",
+   "448038f3a4c50b28a4639d947ddb390840d7057d1232ff1b9db4c569dbef1983",
+   "--json"
+  ]
+ },
+ {
   "fixture": "integrated_assets",
   "args": [
    "assets",
@@ -1107,9 +6795,209 @@
  {
   "fixture": "integrated_assets",
   "args": [
+   "assets",
+   "search",
+   "--kind",
+   "services",
+   "--page",
+   "2"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "acme",
+   "--kind",
+   "printers"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "search",
+   "acme"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "list",
+   "INC-123"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "ls",
+   "123",
+   "--kind",
+   "services"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "list",
+   "125"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "sr",
+   "assets",
+   "list",
+   "SR-124"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "list",
+   "CHN-5"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "legacy",
+   "5",
+   "--search",
+   "acme"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
    "changes",
    "assets",
    "5"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "123",
+   "702",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "123",
+   "702",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "123",
+   "702",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "123",
+   "701",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "problems",
+   "assets",
+   "remove",
+   "PRB-7",
+   "701",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "problems",
+   "assets",
+   "remove",
+   "7",
+   "799",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "add",
+   "5",
+   "702",
+   "--yes",
+   "--expect-plan",
+   "6430186e53f16ea8b10248de884c4e2c0b4f057c79ff6f443e7dc34fa9d82ff9"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "add",
+   "5",
+   "702",
+   "--yes",
+   "--expect-plan",
+   "0000"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "list",
+   "INC-151"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "list",
+   "151",
+   "--kind",
+   "services"
   ]
  },
  {
@@ -1124,10 +7012,126 @@
  {
   "fixture": "legacy_assets",
   "args": [
+   "changes",
+   "assets",
+   "list",
+   "CHN-51"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
    "problems",
    "assets",
    "list",
    "61"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "candidates",
+   "151"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "changes",
+   "assets",
+   "candidates",
+   "51",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "sr",
+   "assets",
+   "candidates",
+   "151"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "problems",
+   "assets",
+   "candidates",
+   "61"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "151",
+   "3002",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "151",
+   "3001",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "151",
+   "3999",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "remove",
+   "151",
+   "3001",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "add",
+   "123",
+   "702",
+   "--yes",
+   "--expect-plan",
+   "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "problems",
+   "assets",
+   "remove",
+   "7",
+   "701",
+   "--yes",
+   "--expect-plan",
+   "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43"
   ]
  },
  {
@@ -1137,6 +7141,1812 @@
    "approvals",
    "list",
    "SR-130"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "131",
+   "--name",
+   "Acme release",
+   "--message",
+   "Please review",
+   "--approver",
+   "33",
+   "--approver",
+   "bo@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "131",
+   "--name",
+   "Acme release",
+   "--message",
+   "Please review",
+   "--approver",
+   "old@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "131",
+   "--name",
+   "Acme release",
+   "--message",
+   "Please review",
+   "--approver",
+   "33",
+   "--rule",
+   "most",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "131",
+   "--name",
+   "Acme release",
+   "--message",
+   "Please review",
+   "--approver",
+   "33",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "approve",
+   "132",
+   "401",
+   "--remark",
+   "Acme ok",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "approve",
+   "130",
+   "403",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "reject",
+   "130",
+   "402",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "cancel",
+   "130",
+   "40",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "remind",
+   "133",
+   "402",
+   "--yes",
+   "--expect-plan",
+   "3d6e267ff46e2d5703a73fe6710982d3357f58f0e05388b53963f25163fb61fc"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "approve",
+   "130",
+   "401",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "approve",
+   "130",
+   "999",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver",
+   "9",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver",
+   "9",
+   "--yes",
+   "--expect-plan",
+   "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver",
+   "9",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--model",
+   "legacy",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "9",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "9",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver-group",
+   "Ops",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver",
+   "9",
+   "--rule",
+   "majority",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver",
+   "9",
+   "--model",
+   "flat",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "41",
+   "--approver",
+   "9",
+   "--model",
+   "chains",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-request",
+   "42",
+   "--approver",
+   "9",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-remind",
+   "41",
+   "501",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-remind",
+   "41",
+   "501",
+   "--yes",
+   "--expect-plan",
+   "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-remind",
+   "41",
+   "501",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-remind",
+   "41",
+   "502",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "changes",
+   "approval-remind",
+   "42",
+   "501",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "list",
+   "SR-141"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "141",
+   "--approver",
+   "cy@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "141",
+   "--approver",
+   "cy@acme.com",
+   "--yes",
+   "--expect-plan",
+   "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "141",
+   "--name",
+   "x",
+   "--approver",
+   "34",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "remind",
+   "141",
+   "601",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "remind",
+   "141",
+   "601",
+   "--yes",
+   "--expect-plan",
+   "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763"
+  ]
+ },
+ {
+  "fixture": "legacy_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "approve",
+   "141",
+   "601",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "request",
+   "131",
+   "--name",
+   "Acme release",
+   "--message",
+   "Please review",
+   "--approver",
+   "33",
+   "--approver",
+   "bo@acme.com",
+   "--yes",
+   "--expect-plan",
+   "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "approve",
+   "132",
+   "401",
+   "--remark",
+   "Acme ok",
+   "--yes",
+   "--expect-plan",
+   "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme VPN workaround",
+   "--body",
+   "Restart the Acme VPN client",
+   "--type",
+   "workaround",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme VPN workaround",
+   "--body",
+   "Restart the Acme VPN client",
+   "--type",
+   "workaround",
+   "--yes",
+   "--expect-plan",
+   "ce6bc022fd3be3532758ca1bf35d746d3bb409c40c25237e8f9c876551a85e85"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme fix",
+   "--body",
+   "x",
+   "--type",
+   "permanent",
+   "--category",
+   "Acme KB",
+   "--folder",
+   "Archive",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme fix",
+   "--body",
+   "x",
+   "--type",
+   "permanent",
+   "--category",
+   "202",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme fix",
+   "--body",
+   "x",
+   "--type",
+   "faq",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme fix",
+   "--body",
+   "x",
+   "--type",
+   "permanent",
+   "--category",
+   "Initech",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme fix",
+   "--body",
+   "x",
+   "--type",
+   "permanent",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "solutions",
+   "create",
+   "--title",
+   "Acme fix",
+   "--body",
+   "x",
+   "--type",
+   "permanent",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "problems",
+   "link-solution",
+   "PRB-20",
+   "502",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "problems",
+   "link-solution",
+   "20",
+   "502",
+   "--yes",
+   "--expect-plan",
+   "d9f646dfe17d0790df3f29e696ba7f9d57dc46cdb12c52d654bf2de1382e7dc0"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "problems",
+   "link-solution",
+   "20",
+   "503",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "problems",
+   "link-solution",
+   "21",
+   "504",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "problems",
+   "unlink-solution",
+   "21",
+   "504",
+   "--yes",
+   "--expect-plan",
+   "57eadafdf38f689f9a03c578b6654af28558a515992969206a66d2959f85c2cf"
+  ]
+ },
+ {
+  "fixture": "solutions",
+  "args": [
+   "problems",
+   "unlink-solution",
+   "20",
+   "502",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "INC-141",
+   "140",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "delete",
+   "140",
+   "141",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "unspam",
+   "142",
+   "--yes",
+   "--expect-plan",
+   "957cac4c29003866bda027ba605d9d42b6773d8f8888bf4d7c9e9d440b0b62c4"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "unspam",
+   "146",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "unspam",
+   "146",
+   "--yes",
+   "--expect-plan",
+   "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "unspam",
+   "142",
+   "143",
+   "--yes",
+   "--expect-plan",
+   "824c00188985d037ce4270dadb70f456dc9ed504d6d4abfc455926278a16dd98"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "144",
+   "--yes",
+   "--expect-plan",
+   "0e7b2d024f187c3d8ba57133c5fa23c1597334177cfd98e7db6ef09cce23b6c4"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "144",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "0e7b2d024f187c3d8ba57133c5fa23c1597334177cfd98e7db6ef09cce23b6c4"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "140",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "140",
+   "--yes",
+   "--expect-plan",
+   "0000"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "140",
+   "INC-140",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--select-all",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "archive",
+   "140",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "140",
+   "--agent",
+   "ann@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "140",
+   "--status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "assign",
+   "140",
+   "--agent",
+   "ann@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "merge",
+   "140",
+   "141",
+   "--primary",
+   "142",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "145",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--max-records",
+   "51",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--max-records",
+   "1",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Pending",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "140",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--status",
+   "Open",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--status",
+   "Open",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "delete",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "delete",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--status",
+   "Open",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--status",
+   "Open",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "delete",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "delete",
+   "--where",
+   "Subject=Acme rollout",
+   "--select-all",
+   "--max-records",
+   "5",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--max-records",
+   "0",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Open",
+   "--select-all",
+   "--max-records",
+   "51",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Closed",
+   "--select-all",
+   "--max-records",
+   "50",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter_globex",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "status=Geloest",
+   "--select-all",
+   "--max-records",
+   "50",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk_filter",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "--where",
+   "type=Service Request",
+   "--select-all",
+   "--max-records",
+   "50",
+   "--confirm-destructive",
+   "--dry-run",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "list",
+   "CHN-50",
+   "problem"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "list",
+   "52",
+   "project"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "list",
+   "53",
+   "project"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "list",
+   "50",
+   "assets"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "add",
+   "--item",
+   "71",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "add",
+   "--item",
+   "71",
+   "--yes",
+   "--expect-plan",
+   "9017bd98ac0c051db0977786c203f5a9b82e517982c9e78693f4107a8e295a58"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "add",
+   "--item",
+   "71",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "add",
+   "--item",
+   "70",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "add",
+   "--item",
+   "73",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "51",
+   "problem",
+   "remove",
+   "--item",
+   "72",
+   "--yes",
+   "--expect-plan",
+   "e62edf6bdea38f1a0194c2bfd2bf2f359f226f5c82bc7e27a6365933784b642b"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "add",
+   "--item",
+   "71",
+   "--project-key",
+   "ACME",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "50",
+   "problem",
+   "link",
+   "--item",
+   "71",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "52",
+   "project",
+   "add",
+   "--item",
+   "ACME",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "52",
+   "project",
+   "add",
+   "--project-json",
+   "{\"name\": \"Acme\"}",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "52",
+   "project",
+   "remove",
+   "--item",
+   "ACME",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "52",
+   "project-task",
+   "add",
+   "--item",
+   "ACME-2",
+   "--project-key",
+   "acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "52",
+   "project-task",
+   "add",
+   "--item",
+   "ACME-2",
+   "--project-key",
+   "ACME",
+   "--name",
+   "Acme step 2",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "write",
+   "52",
+   "project-task",
+   "remove",
+   "--item",
+   "ACME-1",
+   "--project-key",
+   "ACME",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_relationships",
+  "args": [
+   "changes",
+   "relationships",
+   "list",
+   "52",
+   "project-task"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "CHN-5",
+   "3",
+   "--title",
+   "Acme patch v2",
+   "--owner",
+   "bo@acme.com",
+   "--group",
+   "DBA",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--title",
+   "Acme patch v2",
+   "--owner",
+   "bo@acme.com",
+   "--group",
+   "DBA",
+   "--yes",
+   "--expect-plan",
+   "672af9e5da98ac2788eae3a8849fe2aed9562537842f4af6c43895787aae8688"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--title",
+   "Acme patch v2",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--title",
+   "Acme patch v2",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "7",
+   "8",
+   "--status",
+   "Completed",
+   "--yes",
+   "--expect-plan",
+   "c8fec8833e1055af4ca3d6c6df1da389d65f636693f5d6fc4af396beb5526adf"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "9",
+   "11",
+   "--notify-before",
+   "15 Minutes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "9",
+   "11",
+   "--system",
+   "SAP",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--status",
+   "Bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "99",
+   "--title",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--due-date",
+   "2030-01-02",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--owner",
+   "zed@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "CHN-6",
+   "5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "6",
+   "5",
+   "--yes",
+   "--expect-plan",
+   "f67db594bc5d443c91f2e42203a723659a171395d40fd7f85f8e757c7db3993b"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "8",
+   "6",
+   "--yes",
+   "--expect-plan",
+   "f0f13f08efd1e1e28dfb44b32fa12ee312a58525e2c9e5933e784e69adb1d452"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "6",
+   "5",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_task_review",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "6",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "CHN-21",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "21",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "22",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "36b8f62c3eb1ab5beb1124cacc8d011a69ea65c0f89516bb71447497f06a1a0c"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "21",
+   "--yes",
+   "--expect-plan",
+   "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "21",
+   "--confirm-destructive",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "21",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "0000"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "23",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "24",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_delete",
+  "args": [
+   "changes",
+   "delete",
+   "INC-21",
+   "--dry-run"
   ]
  },
  {
@@ -1158,12 +8968,1660 @@
   ]
  },
  {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "60",
+   "create",
+   "--spent",
+   "00:45",
+   "--executed-at",
+   "2030-01-02T09:00:00+07:00",
+   "--note",
+   "Acme deploy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "60",
+   "create",
+   "--spent",
+   "00:45",
+   "--executed-at",
+   "2030-01-02T09:00:00+07:00",
+   "--note",
+   "Acme deploy",
+   "--yes",
+   "--expect-plan",
+   "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "60",
+   "create",
+   "--spent",
+   "00:45",
+   "--executed-at",
+   "2030-01-02T09:00:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "60",
+   "create",
+   "--spent",
+   "00:00",
+   "--executed-at",
+   "2030-01-02T09:00:00+07:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "60",
+   "create",
+   "--executed-at",
+   "2030-01-02T09:00:00+07:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "61",
+   "update",
+   "--entry",
+   "72",
+   "--note",
+   "Acme review",
+   "--non-billable",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "61",
+   "update",
+   "--entry",
+   "72",
+   "--note",
+   "Acme review",
+   "--yes",
+   "--expect-plan",
+   "ab6b6ee293e9c28a0421a030f3fa4a4bf6f05313e85e702816d02b89dd2f301e"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "61",
+   "update",
+   "--entry",
+   "74",
+   "--note",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "61",
+   "update",
+   "--entry",
+   "72",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "62",
+   "delete",
+   "--entry",
+   "73",
+   "--yes",
+   "--expect-plan",
+   "7c56146c576256639fef80e94f1999e9d566ec6d4cea4c6442acc3d09a8be45d"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "62",
+   "delete",
+   "--entry",
+   "73",
+   "--note",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "62",
+   "delete",
+   "--entry",
+   "73",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "60",
+   "edit",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "problems",
+   "time",
+   "write",
+   "63",
+   "update",
+   "--entry",
+   "75",
+   "--note",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "problems",
+   "time",
+   "write",
+   "64",
+   "delete",
+   "--entry",
+   "76",
+   "--yes",
+   "--expect-plan",
+   "aca7a27a7ae3e4641728942418f981b0f15927bf50b8b91fbc58fbe0376ee0b1"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "PRB-80",
+   "801",
+   "update",
+   "--title",
+   "Acme fix v2",
+   "--owner",
+   "bo@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--title",
+   "Acme fix v2",
+   "--owner",
+   "bo@acme.com",
+   "--yes",
+   "--expect-plan",
+   "90ee4c7cfaec0e4f0dd87c6dd130580dbbb528f7d093234908ba8bf3f10042e5"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--note",
+   "line 1\nline <2>",
+   "--planned-start",
+   "2030-01-01T10:00:00+07:00",
+   "--planned-end",
+   "2030-01-01T12:00:00+07:00",
+   "--notify-before",
+   "15 Minutes",
+   "--group",
+   "DBA",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--planned-end",
+   "2029-12-31T00:00:00Z",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--owner",
+   "none",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--status",
+   "Bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "81",
+   "811",
+   "complete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "81",
+   "811",
+   "complete",
+   "--yes",
+   "--expect-plan",
+   "67b7a68ee8919303da35a9e07eb2a45989bd0f27788167d0406e8e238bcb0f04"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "81",
+   "811",
+   "complete",
+   "--title",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "81",
+   "811",
+   "update",
+   "--status",
+   "Completed",
+   "--title",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "82",
+   "821",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "82",
+   "821",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "a79cff879815c25fbaa17dd9ad5e80a4aa8a64d108c85a7bdebbc694eaa5fdf9"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "82",
+   "829",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "83",
+   "831",
+   "update",
+   "--title",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "close",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_tasks",
+  "args": [
+   "problems",
+   "task-write",
+   "80",
+   "801",
+   "update",
+   "--title",
+   "x",
+   "--yes"
+  ]
+ },
+ {
   "fixture": "sr_items",
   "args": [
    "sr",
    "items",
    "list",
    "SR-150"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "151",
+   "stage",
+   "--item",
+   "1511",
+   "--stage",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "151",
+   "stage",
+   "--item",
+   "1511",
+   "--stage",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "473b858d16c295019e6a2cdb05c33c6a8244744acff57c0a7285e6033be21248"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "151",
+   "stage",
+   "--item",
+   "1511",
+   "--stage",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "152",
+   "remove",
+   "--item",
+   "1522",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "152",
+   "remove",
+   "--item",
+   "1522",
+   "--yes",
+   "--expect-plan",
+   "cd6e3b885a95d84ee6425a5b9aabec6a80f4627141e6a9cc2bc7646d3d3c14a9"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "150",
+   "remove",
+   "--item",
+   "1501",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "150",
+   "remove",
+   "--item",
+   "1599",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "153",
+   "stage",
+   "--item",
+   "1",
+   "--stage",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "150",
+   "approve",
+   "--item",
+   "1502",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "150",
+   "add",
+   "--catalog-item",
+   "x77",
+   "--answers-json",
+   "{\"title\": \"T\"}",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "150",
+   "edit",
+   "--item",
+   "1502",
+   "--answers-json",
+   "[1]",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "write",
+   "151",
+   "stage",
+   "--item",
+   "1511",
+   "--stage",
+   "2",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "140",
+   "--set",
+   "note=x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "140",
+   "--status",
+   "Open",
+   "--set",
+   "note",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "140",
+   "--status",
+   "Open",
+   "--set",
+   "=x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "140",
+   "--status",
+   "Open",
+   "--set",
+   "note=a",
+   "--set",
+   "note=b",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_bulk",
+  "args": [
+   "tickets",
+   "bulk",
+   "status",
+   "140",
+   "--status",
+   "Open",
+   "--set",
+   "status=Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_ack",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_ack",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--ack",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_ack",
+  "args": [
+   "tickets",
+   "status",
+   "124",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_ack",
+  "args": [
+   "tickets",
+   "status",
+   "124",
+   "Closed",
+   "--ack",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_ack",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--ack",
+   "--yes",
+   "--expect-plan",
+   "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b"
+  ]
+ },
+ {
+  "fixture": "ticket_lifecycle_ack",
+  "args": [
+   "tickets",
+   "close",
+   "124",
+   "--yes",
+   "--expect-plan",
+   "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--yes",
+   "--expect-plan",
+   "34994e2af399fea67e7d2834cd8d3385ab3e6bc3bf277ce91d069910e64b8454"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--attach",
+   "notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--attach",
+   "log.txt",
+   "--max-bytes",
+   "20",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "empty.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--attach",
+   "./notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "nope.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments_unpublished",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments_unpublished",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--yes",
+   "--expect-plan",
+   "ff74547927b7cb83ed7bb20d450c70b1b7e2844487f2dce138b78930f11f8999"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments_unpublished",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "see attached",
+   "--sender",
+   "support@acme.com",
+   "--attach",
+   "notes.txt",
+   "--max-bytes",
+   "100",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "add-note",
+   "5",
+   "--body",
+   "noted",
+   "--attach",
+   "notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "add-note",
+   "5",
+   "--body",
+   "noted",
+   "--attach",
+   "notes.txt",
+   "--yes",
+   "--expect-plan",
+   "50d2e899e389f69d2c04fd7ad1ccac15d9f1ff4d019653980985f27a31ec6802"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "tickets",
+   "add-note",
+   "5",
+   "--body",
+   "noted",
+   "--attach",
+   "notes.txt",
+   "--set-status",
+   "Pending",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "problems",
+   "note",
+   "PRB-7",
+   "--body",
+   "root cause",
+   "--attach",
+   "notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "problems",
+   "note",
+   "7",
+   "--body",
+   "root cause",
+   "--attach",
+   "notes.txt",
+   "--yes",
+   "--expect-plan",
+   "1d9f7771d1f923614728661b050bd5f73adadc40360182c42880543fa7a0d3f1"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--attach",
+   "notes.txt",
+   "--attach-flow",
+   "before-create",
+   "--dry-run",
+   "--json"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--attach",
+   "notes.txt",
+   "--attach-flow",
+   "before-create",
+   "--yes",
+   "--expect-plan",
+   "3b2900d5c89c79c1e08028d062d7e6d0c7fcb8258a6ec0030c8e6652431d2d97",
+   "--json"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--attach",
+   "notes.txt",
+   "--attach-flow",
+   "before-create",
+   "--max-bytes",
+   "5",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--attach",
+   "notes.txt",
+   "--attach-flow",
+   "before-create",
+   "--device",
+   "702",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "change_create_attached",
+  "args": [
+   "changes",
+   "create",
+   "--max-bytes",
+   "100",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "ticket_create_attached",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--attach",
+   "notes.txt",
+   "--dry-run"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "ticket_create_attached",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--attach",
+   "notes.txt",
+   "--yes",
+   "--expect-plan",
+   "af56502cf00bd624eafd8c819fcae7a448a378b50149ed7f1515f271dfe7e9f2"
+  ],
+  "files": "attach"
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created>=2026-01-01",
+   "--where",
+   "created_at<=2026-02-01",
+   "--where",
+   "Agents=me",
+   "--where",
+   "group=(empty)",
+   "--where",
+   "status=Open",
+   "--where",
+   "status=Resolved"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "requester=me",
+   "--where",
+   "Count=5",
+   "--where",
+   "Environment=Prod"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "agent=me",
+   "--where",
+   "requester_id=12"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created>=last 7 days",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Created=Last 6 months",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created<today",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Created>2026-01-01",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created>today",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "created<2026-01-01",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created>=2026-01-01",
+   "--where",
+   "created_at<=2026-02-01",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "updated_at!=2026-01-01",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created~=x",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Due Date>=2026-02-01",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Agents=me",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Assigned to=unassigned",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Agents!=me",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "agent=Bob Ray",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "agent=nouid",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "agent=zed",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "agent=me",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "requester=me",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where_noid",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "requester=me",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Requesters!=sue@acme.com",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "requester=ann",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Groups=DBA",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "group=(empty)",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "department=none",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Departments=-",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Environment=Prod",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "cf_env=empty",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Environment=Nope",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Statuses=Open",
+   "--where",
+   "Prioritys=Low",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Count=5",
+   "--where",
+   "cf_count=x",
+   "--where",
+   "Note=hi",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "requester_id=12",
+   "--where",
+   "group_id!=x",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "requester_id>3",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status>2",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Status~=x",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "bad",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "nosuch=1",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "status=Open",
+   "--where",
+   "Priority!=Low",
+   "--or",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "{\"a\":1}",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "%5B%7B%22condition%22%3A%22status%22%2C%22operator%22%3A%22is_in%22%2C%22type%22%3A%22default%22%2C%22value%22%3A%5B2%5D%7D%5D",
+   "--where",
+   "status=Resolved",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "bogus"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "env=uat",
+   "--set",
+   "approved=yes",
+   "--group",
+   "dba",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--group",
+   "ops",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "4",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "low",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "nope=1"
   ]
  },
  {
@@ -1175,12 +10633,276 @@
   ]
  },
  {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--tag",
+   "a",
+   "--status",
+   "2"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "problems",
+   "update",
+   "5",
+   "--priority",
+   "2",
+   "--set",
+   "cf_env=Prod"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "5",
+   "3",
+   "--yes"
+  ]
+ },
+ {
   "fixture": "downloads",
   "args": [
    "changes",
    "tasks-delete",
    "5",
    "3"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--status",
+   "Old",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--owner",
+   "bob@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-request",
+   "5",
+   "--name",
+   "CAB",
+   "--message",
+   "pls\nok",
+   "--approver",
+   "31",
+   "--approver",
+   "ann@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-request",
+   "5",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "bob@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-request",
+   "5",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "31",
+   "--approver",
+   "31",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-request",
+   "5",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "31",
+   "--rule",
+   "bad",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-request",
+   "5",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "31",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-request",
+   "5",
+   "--name",
+   "CAB",
+   "--message",
+   "hi",
+   "--approver",
+   "31",
+   "--yes",
+   "--expect-plan",
+   "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-respond",
+   "5",
+   "70",
+   "--approve",
+   "--reject"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-respond",
+   "5",
+   "70",
+   "--reject",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-respond",
+   "5",
+   "70",
+   "--approve",
+   "--remark",
+   "ok",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-respond",
+   "5",
+   "70",
+   "--approve",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-respond",
+   "5",
+   "70",
+   "--approve",
+   "--remark",
+   "ok",
+   "--yes",
+   "--expect-plan",
+   "63aa95e626fb54e0d3a8da12d869adb7b273a76df0476cbc2689249f03092baf"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-cancel",
+   "5",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-cancel",
+   "5",
+   "4",
+   "--no-input",
+   "--yes",
+   "--expect-plan",
+   "x"
   ]
  },
  {
@@ -1211,12 +10933,668 @@
   ]
  },
  {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-cancel",
+   "5",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "c9df12f50a2da842b04a3ac0bd10c85133cffd76a4b013c1adf3ada3957bee71"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--title",
+   "New",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--status",
+   "completed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--status",
+   "2",
+   "--group",
+   "DBA",
+   "--agent",
+   "131",
+   "--system",
+   "sap",
+   "--due-date",
+   "2026-01-01",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--system",
+   "nope",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--status",
+   "bogus",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--agent",
+   "ann",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--status",
+   "Completed"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--status",
+   "Completed",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--title",
+   "New",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5",
+   "3",
+   "--edit",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "clone",
+   "7",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "clone",
+   "7",
+   "--no-edit",
+   "--with-tasks"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "clone",
+   "7",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--planning",
+   "Rollout plan",
+   "--description",
+   "hi",
+   "--file",
+   "x.pdf",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--planning",
+   "nope",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--attach",
+   "a.txt",
+   "--dry-run",
+   "--no-input",
+   "--duplicate",
+   "skip"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--attach",
+   "a.txt",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "x",
+   "--planning",
+   "y"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "clone",
+   "7",
+   "--dry-run",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "clone",
+   "7",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "clone",
+   "7",
+   "--no-edit",
+   "--with-assets",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "add",
+   "6",
+   "SR-100",
+   "101",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "add",
+   "6",
+   "disk full",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "add",
+   "6",
+   "disk",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "add",
+   "6",
+   "SR-100",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "add",
+   "6",
+   "SR-100"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "add",
+   "6",
+   "SR-100",
+   "--yes",
+   "--expect-plan",
+   "feb8984cef848da9017d51abf14ee3b152733cfa31239f78bb0a3efc948e6bcd"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "remove",
+   "5",
+   "SR-100",
+   "INC-1",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "remove",
+   "5",
+   "disk full",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "remove",
+   "5",
+   "nope",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "remove",
+   "6",
+   "SR-1",
+   "--dry-run"
+  ]
+ },
+ {
   "fixture": "links",
   "args": [
    "changes",
    "associations",
    "pick",
    "5"
+  ]
+ },
+ {
+  "fixture": "ticket_conv",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "hi",
+   "--cc",
+   "Ann <ann@acme.com>",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_conv",
+  "args": [
+   "tickets",
+   "reply",
+   "5",
+   "hi",
+   "--cc",
+   "bob@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_conv",
+  "args": [
+   "tickets",
+   "add-note",
+   "5",
+   "--body",
+   "hi",
+   "--set-status",
+   "pending",
+   "--read-only"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "7",
+   "--tag",
+   "a"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "7",
+   "--tag",
+   " a"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "7",
+   "--planned-start",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "7",
+   "--planned-start",
+   ""
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "8",
+   "--tag",
+   "a"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "10",
+   "--tag",
+   "a"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "7",
+   "--planned-start",
+   "2026-01-01T10:00:00+07:00"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "problems",
+   "update",
+   "7",
+   "--tag",
+   "a"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "0",
+   "--tag",
+   "a"
+  ]
+ },
+ {
+  "fixture": "ticket_props",
+  "args": [
+   "tickets",
+   "update",
+   "11",
+   "--tag",
+   "a"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--yes",
+   "--expect-plan",
+   "971853ece554e8e5"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--yes",
+   "--expect-plan",
+   "971853ece554e8e5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--yes",
+   "--expect-plan",
+   "deadbeef"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--yes",
+   "--expect-plan",
+   "971853ece554e8e5"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--set",
+   "Priority=Medium",
+   "--requester",
+   "ann@acme.com",
+   "--dry-run"
   ]
  },
  {
@@ -1228,10 +11606,264 @@
   ]
  },
  {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--from",
+   "/nonexistent.yaml",
+   "--dry-run"
+  ]
+ },
+ {
   "fixture": "change_create",
   "args": [
    "changes",
    "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--yes",
+   "--expect-plan",
+   "10df27a1e78a8382"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--yes",
+   "--expect-plan",
+   "10df27a1e78a8382",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "create",
+   "--set",
+   "Subject=Hello",
+   "--requester",
+   "ann@acme.com",
+   "--no-validate",
+   "--yes",
+   "--expect-plan",
+   "0000"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "create",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "update",
+   "12",
+   "--edit",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "update",
+   "12",
+   "--set",
+   "Subject=Renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "update",
+   "12",
+   "--status",
+   "Closed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "update",
+   "13",
+   "--status",
+   "Approval",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "update",
+   "13",
+   "--status",
+   "Planning",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Title=T",
+   "--set",
+   "Details=D",
+   "--set",
+   "Needed by=2030-01-02",
+   "--set",
+   "1. Expected benefit=Lower cost",
+   "--set",
+   "1.2 Cost target=5",
+   "--set",
+   "Priority=Low - cosmetic, reports",
+   "--set",
+   "Overview deck (.pptx)=@MANIFEST@/tests/fixtures/files/sr/deck.pptx",
+   "--attach",
+   "@MANIFEST@/tests/fixtures/files/sr/notes.txt",
+   "--yes",
+   "--expect-plan",
+   "5e0581d3ec26d93d"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Title=T",
+   "--set",
+   "Details=D",
+   "--set",
+   "Needed by=2030-01-02",
+   "--set",
+   "1. Expected benefit=Lower cost",
+   "--set",
+   "1.2 Cost target=5",
+   "--set",
+   "Priority=Low - cosmetic, reports",
+   "--set",
+   "Overview deck (.pptx)=@MANIFEST@/tests/fixtures/files/sr/deck.pptx",
+   "--attach",
+   "@MANIFEST@/tests/fixtures/files/sr/notes.txt",
+   "--yes",
+   "--expect-plan",
+   "5e0581d3ec26d93d",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Title=T",
+   "--set",
+   "Details=D",
+   "--set",
+   "Needed by=2030-01-02",
+   "--set",
+   "1. Expected benefit=Lower cost",
+   "--set",
+   "1.2 Cost target=5",
+   "--set",
+   "Priority=Low - cosmetic, reports",
+   "--set",
+   "Overview deck (.pptx)=@MANIFEST@/tests/fixtures/files/sr/deck.pptx",
+   "--attach",
+   "@MANIFEST@/tests/fixtures/files/sr/notes.txt",
+   "--yes",
+   "--expect-plan",
+   "0000"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Title=T",
+   "--set",
+   "Details=D",
+   "--set",
+   "Needed by=2030-01-02",
+   "--set",
+   "1. Expected benefit=Lower cost",
+   "--set",
+   "1.2 Cost target=5",
+   "--set",
+   "Priority=Low - cosmetic, reports",
+   "--set",
+   "Overview deck (.pptx)=@MANIFEST@/tests/fixtures/files/sr/deck.pptx",
+   "--attach",
+   "@MANIFEST@/tests/fixtures/files/sr/notes.txt",
+   "--cc",
+   "bad"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Title=T",
+   "--set",
+   "Details=D",
+   "--set",
+   "Needed by=2030-01-02",
+   "--set",
+   "1. Expected benefit=Lower cost",
+   "--set",
+   "1.2 Cost target=5",
+   "--set",
+   "Priority=Low - cosmetic, reports",
+   "--set",
+   "Overview deck (.pptx)=@MANIFEST@/tests/fixtures/files/sr/deck.pptx",
+   "--attach",
+   "@MANIFEST@/tests/fixtures/files/sr/notes.txt",
    "--dry-run"
   ]
  },
@@ -1249,8 +11881,112 @@
   "args": [
    "sr",
    "create",
+   "77",
+   "--edit",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--from",
+   "/nope.yaml",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
    "999",
    "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--yes",
+   "--expect-plan",
+   "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--no-input"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--owner",
+   "ann@acme.com",
+   "--group",
+   "Ops",
+   "--status",
+   "in progress",
+   "--note",
+   "a<b",
+   "--planned-start",
+   "2026-01-01T10:00:00+07:00",
+   "--planned-end",
+   "2026-01-01T12:00:00+07:00",
+   "--planned-effort",
+   "1h30m",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it",
+   "--yes",
+   "--expect-plan",
+   "x"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "tasks-add",
+   "5",
+   "--title",
+   "Do it"
   ]
  }
 ]
