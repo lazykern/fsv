@@ -57,6 +57,7 @@ pub mod sr_requested_items;
 pub mod state_flow;
 mod task_status;
 pub mod tasks;
+pub mod templates;
 pub mod ticket_assignment;
 pub mod ticket_bulk;
 pub mod ticket_kind;
