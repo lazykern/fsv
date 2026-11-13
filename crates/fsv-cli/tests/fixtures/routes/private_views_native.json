@@ -1,0 +1,284 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9,
+    "first_name": "Ann",
+    "email": "agent@example.com"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters",
+  "json": {
+   "change_filters": [
+    {
+     "id": 811,
+     "name": "Globex changes",
+     "user_id": 9,
+     "default": false,
+     "advanced": false
+    },
+    {
+     "id": 812,
+     "name": "Globex shared",
+     "user_id": 9,
+     "default": false,
+     "advanced": false
+    },
+    {
+     "id": 813,
+     "name": "Initech",
+     "user_id": 12,
+     "default": false
+    },
+    {
+     "id": "my_open",
+     "name": "System",
+     "default": true
+    }
+   ],
+   "meta": {
+    "editable_filter_ids": [
+     811
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters/811",
+  "json": {
+   "change_filter": {
+    "id": 811,
+    "name": "Globex changes",
+    "default": false,
+    "visibility": 3,
+    "user_id": 9,
+    "group_ids": [],
+    "query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "advanced_query_hash": {
+     "all": [
+      {
+       "condition": "planned_start_date",
+       "operator": "in_the_last",
+       "value": "one_week",
+       "type": "default"
+      },
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "value": 7,
+       "type": "default"
+      }
+     ]
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters/812",
+  "json": {
+   "change_filter": {
+    "id": 812,
+    "name": "Globex shared",
+    "default": false,
+    "visibility": 2,
+    "user_id": 9,
+    "group_ids": [
+     44
+    ],
+    "query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "advanced_query_hash": {
+     "all": [
+      {
+       "condition": "planned_start_date",
+       "operator": "in_the_last",
+       "value": "one_week",
+       "type": "default"
+      },
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "value": 7,
+       "type": "default"
+      }
+     ]
+    }
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/change-filters",
+  "json": {
+   "change_filter": {
+    "id": 900
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters/900",
+  "json": {
+   "change_filter": {
+    "id": 900,
+    "name": "Globex mine",
+    "default": false,
+    "visibility": 3,
+    "user_id": 9,
+    "group_ids": [],
+    "query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "advanced_query_hash": {
+     "all": [
+      {
+       "condition": "planned_start_date",
+       "operator": "in_the_last",
+       "value": "one_week",
+       "type": "default"
+      },
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "value": 7,
+       "type": "default"
+      }
+     ]
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters",
+  "json": {
+   "ticket_filters": [
+    {
+     "id": 801,
+     "name": "Acme queue",
+     "user_id": 9,
+     "default": false,
+     "advanced": false
+    },
+    {
+     "id": "my_open",
+     "name": "System",
+     "default": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/801",
+  "json": {
+   "ticket_filter": {
+    "id": 801,
+    "name": "Acme queue",
+    "default": false,
+    "visibility": 3,
+    "user_id": 9,
+    "group_id": null,
+    "group_ids": [],
+    "advanced_query_hash": null,
+    "advanced": false,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "per_page": 30,
+    "query_hash": [
+     {
+      "condition": "priority",
+      "operator": "is_in",
+      "value": [
+       "3"
+      ],
+      "type": "default"
+     },
+     {
+      "condition": "workspace_id",
+      "operator": "is",
+      "value": "7",
+      "type": "default"
+     }
+    ],
+    "meta": {
+     "workspace_id": [
+      {
+       "id": 7,
+       "name": "Acme IT"
+      }
+     ]
+    }
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/ticket_filters",
+  "status": 201,
+  "json": {
+   "ticket_filter": {
+    "id": 901
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/901",
+  "json": {
+   "ticket_filter": {
+    "id": 901,
+    "name": "Acme mine",
+    "default": false,
+    "visibility": 3,
+    "user_id": 9,
+    "group_id": null,
+    "group_ids": [],
+    "advanced_query_hash": null,
+    "advanced": false,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "per_page": 30,
+    "query_hash": [
+     {
+      "condition": "priority",
+      "operator": "is_in",
+      "value": [
+       "3"
+      ],
+      "type": "default"
+     },
+     {
+      "condition": "workspace_id",
+      "operator": "is",
+      "value": "7",
+      "type": "default"
+     }
+    ],
+    "meta": {
+     "workspace_id": [
+      {
+       "id": 7,
+       "name": "Acme IT"
+      }
+     ]
+    }
+   }
+  }
+ }
+]

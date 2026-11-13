@@ -6,6 +6,17 @@
  },
  {
   "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9,
+    "first_name": "Ann",
+    "email": "agent@example.com"
+   }
+  }
+ },
+ {
+  "method": "GET",
   "path": "/api/_/tickets/headers",
   "once": true,
   "json": {

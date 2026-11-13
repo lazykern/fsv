@@ -150,8 +150,20 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "scenarios list" => native::scenarios_list(parse(m)?),
         "scenarios show" => native::scenarios_show(parse(m)?),
         "scenarios apply" => native::scenarios_apply(parse(m)?),
-        "private-views show" => native::private_views_show(parse(m)?),
-        "private-views write" => native::private_views_write(parse(m)?),
+        // batch views: private views (tickets, changes)
+        "private-views list" => native::private_views_list(res.name),
+        "private-views show" if res.name == "changes" => {
+            native::private_views_show(res.name, parse::<ChangesPrivateViewsShowArgs>(m)?.id_)
+        }
+        "private-views show" => native::private_views_show(res.name, parse::<PositiveIdArgs>(m)?.id_),
+        "private-views write" if res.name == "changes" => native::private_views_write(
+            res.name,
+            parse::<ChangesPrivateViewsWriteArgs>(m)?.into(),
+        ),
+        "private-views write" => native::private_views_write(
+            res.name,
+            parse::<TicketsPrivateViewsWriteArgs>(m)?.into(),
+        ),
         "columns list" => native::columns_list(res, parse(m)?),
         "columns set" => native::columns_set(res, parse(m)?),
         "export" => native::export(res, parse(m)?),

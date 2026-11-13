@@ -368,5 +368,278 @@
    "{HASH}"
   ],
   "fixture": "private_views"
+ },
+ {
+  "name": "pv_list",
+  "args": [
+   "tickets",
+   "private-views",
+   "list"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_show_refused_identity",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "711"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_show_api_error",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "799"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_write_read_failed",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "799",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_rename_dry_run",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "rename",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_native_list",
+  "args": [
+   "tickets",
+   "private-views",
+   "list"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "pv_native_show",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "801"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "pv_native_create_dry_run",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "801",
+   "create",
+   "--name",
+   "Acme mine",
+   "--dry-run"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "pv_native_create_send",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "801",
+   "create",
+   "--name",
+   "Acme mine",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "801",
+   "create",
+   "--name",
+   "Acme mine",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_list",
+  "args": [
+   "changes",
+   "private-views",
+   "list"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_list_json",
+  "args": [
+   "changes",
+   "private-views",
+   "list",
+   "--json"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_show",
+  "args": [
+   "changes",
+   "private-views",
+   "show",
+   "811"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_show_shared",
+  "args": [
+   "changes",
+   "private-views",
+   "show",
+   "812"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_show_missing",
+  "args": [
+   "changes",
+   "private-views",
+   "show",
+   "899"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_create_dry_run",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex mine",
+   "--dry-run"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_create_needs_hash",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex mine",
+   "--yes"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_create_send",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex mine",
+   "--dry-run"
+  ],
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex mine",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_create_shared_refused",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_delete_not_captured",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--dry-run"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_rename_not_captured",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "rename",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views_native"
+ },
+ {
+  "name": "cpv_write_read_failed",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "899",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views_native"
  }
 ]

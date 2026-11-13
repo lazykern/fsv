@@ -1,0 +1,3390 @@
+{
+ "_python": {
+  "commit": "72b4716d470a853a4080698b01a1254db27951dc",
+  "dirty": false
+ },
+ "views": {
+  "ticket_lifecycle": [
+   {
+    "source": 801,
+    "action": "private_view_create",
+    "name": "Acme clone",
+    "plan_calls": [
+     [
+      "GET",
+      "ticket_filters/801",
+      null
+     ]
+    ],
+    "hash": "e42860137ce3d27e6ad331229522f2c84aaf99603848049694b31cfe8c97484d",
+    "review": {
+     "action": "private_view_create",
+     "method": "POST",
+     "path": "/api/_/ticket_filters",
+     "payload": {
+      "advanced_query_hash": null,
+      "name": "Acme clone",
+      "order_by": "created_at",
+      "order_type": "desc",
+      "query_hash": [
+       {
+        "condition": "priority",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "3"
+        ]
+       },
+       {
+        "condition": "workspace_id",
+        "operator": "is",
+        "type": "default",
+        "value": [
+         {
+          "id": 7
+         }
+        ]
+       }
+      ],
+      "visibility": 3,
+      "workspace_id": 7
+     },
+     "plan_hash": "e42860137ce3d27e6ad331229522f2c84aaf99603848049694b31cfe8c97484d",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "target": 801,
+    "method": "POST",
+    "path": "ticket_filters",
+    "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Acme clone\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"priority\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"3\"]}, {\"condition\": \"workspace_id\", \"operator\": \"is\", \"type\": \"default\", \"value\": [{\"id\": 7}]}], \"visibility\": 3, \"workspace_id\": 7}",
+    "context_hash": "c4a6a38b53e98a560dd8bd71935fea2e90b3c8a13a2b3c0d7481583a232c7c16",
+    "source_id": 801,
+    "payload": {
+     "advanced_query_hash": null,
+     "name": "Acme clone",
+     "order_by": "created_at",
+     "order_type": "desc",
+     "query_hash": [
+      {
+       "condition": "priority",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "3"
+       ]
+      },
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "type": "default",
+       "value": [
+        {
+         "id": 7
+        }
+       ]
+      }
+     ],
+     "visibility": 3,
+     "workspace_id": 7
+    },
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "e42860137ce3d27e6ad331229522f2c84aaf99603848049694b31cfe8c97484d",
+      "verified": true,
+      "view_id": 900,
+      "fields": {
+       "visibility": "matched",
+       "workspace_id": "matched",
+       "name": "matched",
+       "order_by": "matched",
+       "order_type": "matched",
+       "conditions": "matched"
+      }
+     },
+     "calls": [
+      [
+       "GET",
+       "ticket_filters/801",
+       null
+      ],
+      [
+       "POST",
+       "ticket_filters",
+       {
+        "advanced_query_hash": null,
+        "name": "Acme clone",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "3"
+          ]
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": [
+           {
+            "id": 7
+           }
+          ]
+         }
+        ],
+        "visibility": 3,
+        "workspace_id": 7
+       }
+      ],
+      [
+       "GET",
+       "ticket_filters/900",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   {
+    "source": 900,
+    "action": "private_view_edit",
+    "name": "Acme renamed",
+    "plan_calls": [
+     [
+      "GET",
+      "ticket_filters/900",
+      null
+     ]
+    ],
+    "hash": "bd8f3f5175b90a8a2a62cb9191b77718f4c690df013a51ad8a39e795f83a97b9",
+    "review": {
+     "action": "private_view_edit",
+     "method": "PUT",
+     "path": "/api/_/ticket_filters/900",
+     "payload": {
+      "advanced_query_hash": null,
+      "name": "Acme renamed",
+      "order_by": "created_at",
+      "order_type": "desc",
+      "query_hash": [
+       {
+        "condition": "priority",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "3"
+        ]
+       },
+       {
+        "condition": "workspace_id",
+        "operator": "is",
+        "type": "default",
+        "value": [
+         {
+          "id": 7
+         }
+        ]
+       }
+      ],
+      "visibility": 3,
+      "workspace_id": 7
+     },
+     "plan_hash": "bd8f3f5175b90a8a2a62cb9191b77718f4c690df013a51ad8a39e795f83a97b9",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "target": 900,
+    "method": "PUT",
+    "path": "ticket_filters/900",
+    "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Acme renamed\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"priority\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"3\"]}, {\"condition\": \"workspace_id\", \"operator\": \"is\", \"type\": \"default\", \"value\": [{\"id\": 7}]}], \"visibility\": 3, \"workspace_id\": 7}",
+    "context_hash": "82781fda83fdb2368e147e9dde062784407748b7ce0a8a2adc26035f11b485a0",
+    "source_id": 900,
+    "payload": {
+     "advanced_query_hash": null,
+     "name": "Acme renamed",
+     "order_by": "created_at",
+     "order_type": "desc",
+     "query_hash": [
+      {
+       "condition": "priority",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "3"
+       ]
+      },
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "type": "default",
+       "value": [
+        {
+         "id": 7
+        }
+       ]
+      }
+     ],
+     "visibility": 3,
+     "workspace_id": 7
+    },
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "bd8f3f5175b90a8a2a62cb9191b77718f4c690df013a51ad8a39e795f83a97b9",
+      "verified": true,
+      "view_id": 900,
+      "fields": {
+       "visibility": "matched",
+       "workspace_id": "matched",
+       "name": "matched",
+       "order_by": "matched",
+       "order_type": "matched",
+       "conditions": "matched"
+      }
+     },
+     "calls": [
+      [
+       "GET",
+       "ticket_filters/900",
+       null
+      ],
+      [
+       "PUT",
+       "ticket_filters/900",
+       {
+        "advanced_query_hash": null,
+        "name": "Acme renamed",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "3"
+          ]
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": [
+           {
+            "id": 7
+           }
+          ]
+         }
+        ],
+        "visibility": 3,
+        "workspace_id": 7
+       }
+      ],
+      [
+       "GET",
+       "ticket_filters/900",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done",
+      "started",
+      "done"
+     ]
+    }
+   },
+   {
+    "source": 900,
+    "action": "private_view_delete",
+    "name": null,
+    "plan_calls": [
+     [
+      "GET",
+      "ticket_filters/900",
+      null
+     ]
+    ],
+    "hash": "8665434cd5d72b21f486ed1ecdea3b049c0f3f27a95676ddeddc6c63ea81cfd5",
+    "review": {
+     "action": "private_view_delete",
+     "method": "DELETE",
+     "path": "/api/_/ticket_filters/900",
+     "payload": null,
+     "plan_hash": "8665434cd5d72b21f486ed1ecdea3b049c0f3f27a95676ddeddc6c63ea81cfd5",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "target": 900,
+    "method": "DELETE",
+    "path": "ticket_filters/900",
+    "payload_json": "null",
+    "context_hash": "4ddb111ab51cc232f43f558dd9f82b73b55042bdde9b3e33e493e8dc3ad1e7be",
+    "source_id": 900,
+    "payload": null,
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "8665434cd5d72b21f486ed1ecdea3b049c0f3f27a95676ddeddc6c63ea81cfd5",
+      "verified": true,
+      "view_id": 900
+     },
+     "calls": [
+      [
+       "GET",
+       "ticket_filters/900",
+       null
+      ],
+      [
+       "DELETE",
+       "ticket_filters/900",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters/900",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done",
+      "started",
+      "done",
+      "started",
+      "done"
+     ]
+    }
+   }
+  ],
+  "change_create": {
+   "plan_calls": [
+    [
+     "GET",
+     "change-filters/811",
+     null
+    ]
+   ],
+   "hash": "1460bbf6ad98c3fcfedf4f562664d30f11cb6ac1a4177c144414bb7012c9e774",
+   "review": {
+    "action": "change_private_view_create",
+    "method": "POST",
+    "path": "/api/_/change-filters",
+    "payload": {
+     "advanced_query_hash": {
+      "all": [
+       {
+        "condition": "planned_start_date",
+        "operator": "in_the_last",
+        "type": "default",
+        "value": "one_week"
+       },
+       {
+        "condition": "workspace_id",
+        "operator": "is",
+        "type": "default",
+        "value": 7
+       }
+      ]
+     },
+     "name": "Globex clone",
+     "order_by": "created_at",
+     "order_type": "desc",
+     "query_hash": null,
+     "visibility": 3,
+     "workspace_id": 7
+    },
+    "plan_hash": "1460bbf6ad98c3fcfedf4f562664d30f11cb6ac1a4177c144414bb7012c9e774",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+   },
+   "action": "change_private_view_create",
+   "target": 811,
+   "method": "POST",
+   "path": "change-filters",
+   "payload_json": "{\"advanced_query_hash\": {\"all\": [{\"condition\": \"planned_start_date\", \"operator\": \"in_the_last\", \"type\": \"default\", \"value\": \"one_week\"}, {\"condition\": \"workspace_id\", \"operator\": \"is\", \"type\": \"default\", \"value\": 7}]}, \"name\": \"Globex clone\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": null, \"visibility\": 3, \"workspace_id\": 7}",
+   "context_hash": "01fc3296957a430c23e0b4e0da5339b82170fc54df78a0851b3c05ba57090b8b",
+   "source_id": 811,
+   "payload": {
+    "advanced_query_hash": {
+     "all": [
+      {
+       "condition": "planned_start_date",
+       "operator": "in_the_last",
+       "type": "default",
+       "value": "one_week"
+      },
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "type": "default",
+       "value": 7
+      }
+     ]
+    },
+    "name": "Globex clone",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": null,
+    "visibility": 3,
+    "workspace_id": 7
+   },
+   "send": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "1460bbf6ad98c3fcfedf4f562664d30f11cb6ac1a4177c144414bb7012c9e774",
+     "verified": true,
+     "view_id": 900,
+     "fields": {
+      "visibility": "matched",
+      "workspace_id": "matched",
+      "name": "matched",
+      "order_by": "matched",
+      "order_type": "matched",
+      "conditions": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "change-filters/811",
+      null
+     ],
+     [
+      "POST",
+      "change-filters",
+      {
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "type": "default",
+          "value": "one_week"
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": 7
+         }
+        ]
+       },
+       "name": "Globex clone",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": null,
+       "visibility": 3,
+       "workspace_id": 7
+      }
+     ],
+     [
+      "GET",
+      "change-filters/900",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  },
+  "change_refusals": [
+   {
+    "action": "rename",
+    "name": "x",
+    "error": "changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI",
+    "type": "ReviewedWriteError",
+    "calls": []
+   },
+   {
+    "action": "delete",
+    "name": null,
+    "error": "changes private-view delete is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI",
+    "type": "ReviewedWriteError",
+    "calls": []
+   },
+   {
+    "action": "edit",
+    "name": "x",
+    "error": "changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI",
+    "type": "ReviewedWriteError",
+    "calls": []
+   },
+   {
+    "action": "bogus",
+    "name": null,
+    "error": "unsupported saved-view action (create | rename | delete)",
+    "type": "ValueError",
+    "calls": []
+   }
+  ],
+  "cases": [
+   {
+    "module": "tickets",
+    "mods": {
+     "visibility": 1
+    },
+    "plan": {
+     "error": "GET /api/_/ticket_filters/801 returns visibility 1 (All agents); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 1,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "GET /api/_/ticket_filters/801 returns visibility 1 (All agents); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "visibility": 2
+    },
+    "plan": {
+     "error": "GET /api/_/ticket_filters/801 returns visibility 2 (Agents in groups); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 2,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "GET /api/_/ticket_filters/801 returns visibility 2 (Agents in groups); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "group_ids": [
+      44
+     ]
+    },
+    "plan": {
+     "error": "the view is shared with groups; only views visible to you alone are supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [
+        44
+       ],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "the view is shared with groups; only views visible to you alone are supported",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "group_ids": null
+    },
+    "plan": {
+     "error": "GET /api/_/ticket_filters/801 returns visibility 3 (Myself) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "GET /api/_/ticket_filters/801 returns visibility 3 (Myself) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "user_id": 906
+    },
+    "plan": {
+     "error": "only self-owned, explicitly non-default private views are supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 906,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "only self-owned, explicitly non-default private views are supported",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "default": true
+    },
+    "plan": {
+     "error": "only self-owned, explicitly non-default private views are supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": true,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "only self-owned, explicitly non-default private views are supported",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "group_id": 5
+    },
+    "plan": {
+     "error": "the view is shared with groups; only views visible to you alone are supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": 5,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "the view is shared with groups; only views visible to you alone are supported",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "visibility": "3"
+    },
+    "plan": {
+     "error": "GET /api/_/ticket_filters/801 returns visibility unreadable (unreadable); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": "3",
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "GET /api/_/ticket_filters/801 returns visibility unreadable (unreadable); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "visibility": true
+    },
+    "plan": {
+     "error": "GET /api/_/ticket_filters/801 returns visibility unreadable (unreadable); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": true,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "GET /api/_/ticket_filters/801 returns visibility unreadable (unreadable); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "visibility_name": "Myself "
+    },
+    "plan": {
+     "ok": {
+      "hash": "b3a587ae347d08608e2d105372386c5755f3b92812eff7ccb257de485829db7d",
+      "review": {
+       "action": "private_view_create",
+       "method": "POST",
+       "path": "/api/_/ticket_filters",
+       "payload": {
+        "advanced_query_hash": null,
+        "name": "Acme",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "3"
+          ]
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": [
+           {
+            "id": 7
+           }
+          ]
+         }
+        ],
+        "visibility": 3,
+        "workspace_id": 7
+       },
+       "plan_hash": "b3a587ae347d08608e2d105372386c5755f3b92812eff7ccb257de485829db7d",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "private_view_create",
+      "target": 801,
+      "method": "POST",
+      "path": "ticket_filters",
+      "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Acme\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"priority\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"3\"]}, {\"condition\": \"workspace_id\", \"operator\": \"is\", \"type\": \"default\", \"value\": [{\"id\": 7}]}], \"visibility\": 3, \"workspace_id\": 7}",
+      "context_hash": "56cd1afe57ab5a71eb74b8a16045e08a0527d478460b537b059c8a76b3d8cd5f",
+      "source_id": 801,
+      "payload": {
+       "advanced_query_hash": null,
+       "name": "Acme",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "3"
+         ]
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "type": "default",
+         "value": [
+          {
+           "id": 7
+          }
+         ]
+        }
+       ],
+       "visibility": 3,
+       "workspace_id": 7
+      }
+     }
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       },
+       "visibility_name": "Myself "
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "visibility_name": "Everyone"
+    },
+    "plan": {
+     "error": "view visibility is 'Everyone', not private; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       },
+       "visibility_name": "Everyone"
+      },
+      "private": false,
+      "reason": "view visibility is 'Everyone', not private; nothing was sent",
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "meta": {
+      "workspace_id": [
+       {
+        "id": 8
+       }
+      ]
+     }
+    },
+    "plan": {
+     "error": "the view's workspace is missing or ambiguous in its read; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 8
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": null,
+      "reason": "the view's workspace is missing or ambiguous in its read; nothing was sent"
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "meta": null,
+     "query_hash": [
+      {
+       "condition": "priority",
+       "operator": "is_in",
+       "value": [
+        "3"
+       ],
+       "type": "default"
+      }
+     ]
+    },
+    "plan": {
+     "error": "the view's workspace is missing or ambiguous in its read; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        }
+       ]
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": null,
+      "reason": "the view's workspace is missing or ambiguous in its read; nothing was sent"
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "workspace_id": 7
+    },
+    "plan": {
+     "ok": {
+      "hash": "d7e8110164f265f85ded926ecd6028e372c20bfb6c676f3462d080afb3310f1b",
+      "review": {
+       "action": "private_view_create",
+       "method": "POST",
+       "path": "/api/_/ticket_filters",
+       "payload": {
+        "advanced_query_hash": null,
+        "name": "Acme",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "3"
+          ]
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": [
+           {
+            "id": 7
+           }
+          ]
+         }
+        ],
+        "visibility": 3,
+        "workspace_id": 7
+       },
+       "plan_hash": "d7e8110164f265f85ded926ecd6028e372c20bfb6c676f3462d080afb3310f1b",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "private_view_create",
+      "target": 801,
+      "method": "POST",
+      "path": "ticket_filters",
+      "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Acme\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"priority\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"3\"]}, {\"condition\": \"workspace_id\", \"operator\": \"is\", \"type\": \"default\", \"value\": [{\"id\": 7}]}], \"visibility\": 3, \"workspace_id\": 7}",
+      "context_hash": "5623d1d7685a8366ec920aa2924cbe274dc6a0c5e41823f53247675b89d38d57",
+      "source_id": 801,
+      "payload": {
+       "advanced_query_hash": null,
+       "name": "Acme",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "3"
+         ]
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "type": "default",
+         "value": [
+          {
+           "id": 7
+          }
+         ]
+        }
+       ],
+       "visibility": 3,
+       "workspace_id": 7
+      }
+     }
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       },
+       "workspace_id": 7
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "workspace_id": "x"
+    },
+    "plan": {
+     "error": "the view's workspace is unreadable; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       },
+       "workspace_id": "x"
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": null,
+      "reason": "the view's workspace is unreadable; nothing was sent"
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "meta": {
+      "workspace_id": {
+       "id": 7
+      }
+     }
+    },
+    "plan": {
+     "ok": {
+      "hash": "6217b87fcbcb470f6f999b6f9bcc38629c14f15e50010896c3a26e74ea7c8d0b",
+      "review": {
+       "action": "private_view_create",
+       "method": "POST",
+       "path": "/api/_/ticket_filters",
+       "payload": {
+        "advanced_query_hash": null,
+        "name": "Acme",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "3"
+          ]
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": [
+           {
+            "id": 7
+           }
+          ]
+         }
+        ],
+        "visibility": 3,
+        "workspace_id": 7
+       },
+       "plan_hash": "6217b87fcbcb470f6f999b6f9bcc38629c14f15e50010896c3a26e74ea7c8d0b",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "private_view_create",
+      "target": 801,
+      "method": "POST",
+      "path": "ticket_filters",
+      "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Acme\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"priority\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"3\"]}, {\"condition\": \"workspace_id\", \"operator\": \"is\", \"type\": \"default\", \"value\": [{\"id\": 7}]}], \"visibility\": 3, \"workspace_id\": 7}",
+      "context_hash": "e9636cd2d673240a9b2cdaaf970c2e970248248531d73c8ef8ae4d3c2ef99e1d",
+      "source_id": 801,
+      "payload": {
+       "advanced_query_hash": null,
+       "name": "Acme",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "3"
+         ]
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "type": "default",
+         "value": [
+          {
+           "id": 7
+          }
+         ]
+        }
+       ],
+       "visibility": 3,
+       "workspace_id": 7
+      }
+     }
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": {
+         "id": 7
+        }
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "query_hash": [
+      {
+       "condition": "workspace_id",
+       "operator": "is_not",
+       "value": "7"
+      }
+     ]
+    },
+    "plan": {
+     "error": "unsupported workspace condition operator",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "workspace_id",
+         "operator": "is_not",
+         "value": "7"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "query_hash": [
+      "x",
+      {
+       "condition": "workspace_id",
+       "operator": "is",
+       "value": "7"
+      }
+     ]
+    },
+    "plan": {
+     "error": "unreadable view condition",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        "x",
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "order_by": "updated_at"
+    },
+    "plan": {
+     "error": "only captured created-at descending views are supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "updated_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "tickets",
+    "mods": {
+     "advanced_query_hash": {
+      "all": []
+     }
+    },
+    "plan": {
+     "error": "only the captured ordinary query-hash subset is supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": {
+        "all": []
+       },
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "changes",
+    "mods": {
+     "query_hash": []
+    },
+    "plan": {
+     "error": "the view's workspace is missing or ambiguous in its read; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 811,
+       "name": "Globex changes",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_ids": [],
+       "query_hash": [],
+       "order_by": "created_at",
+       "order_type": "desc",
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "value": "one_week",
+          "type": "default"
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "value": 7,
+          "type": "default"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": null,
+      "reason": "the view's workspace is missing or ambiguous in its read; nothing was sent"
+     }
+    }
+   },
+   {
+    "module": "changes",
+    "mods": {
+     "advanced_query_hash": {
+      "all": [],
+      "any": []
+     }
+    },
+    "plan": {
+     "error": "the view's workspace is missing or ambiguous in its read; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 811,
+       "name": "Globex changes",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_ids": [],
+       "query_hash": null,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "advanced_query_hash": {
+        "all": [],
+        "any": []
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": null,
+      "reason": "the view's workspace is missing or ambiguous in its read; nothing was sent"
+     }
+    }
+   },
+   {
+    "module": "changes",
+    "mods": {
+     "advanced_query_hash": {
+      "all": [
+       {
+        "condition": "workspace_id",
+        "operator": "is_in",
+        "value": [
+         7
+        ]
+       }
+      ]
+     }
+    },
+    "plan": {
+     "ok": {
+      "hash": "df821e805a73a6f665c07e7258d9ae7706bbfd86b913ea17a5cdf7dd95721a43",
+      "review": {
+       "action": "change_private_view_create",
+       "method": "POST",
+       "path": "/api/_/change-filters",
+       "payload": {
+        "advanced_query_hash": {
+         "all": [
+          {
+           "condition": "workspace_id",
+           "operator": "is_in",
+           "value": 7
+          }
+         ]
+        },
+        "name": "Acme",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": null,
+        "visibility": 3,
+        "workspace_id": 7
+       },
+       "plan_hash": "df821e805a73a6f665c07e7258d9ae7706bbfd86b913ea17a5cdf7dd95721a43",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "change_private_view_create",
+      "target": 811,
+      "method": "POST",
+      "path": "change-filters",
+      "payload_json": "{\"advanced_query_hash\": {\"all\": [{\"condition\": \"workspace_id\", \"operator\": \"is_in\", \"value\": 7}]}, \"name\": \"Acme\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": null, \"visibility\": 3, \"workspace_id\": 7}",
+      "context_hash": "1d0fed7f03e2ac9d96431b06fefbaa4a1d02697ea0d5c3f717d87371d30b8615",
+      "source_id": 811,
+      "payload": {
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "workspace_id",
+          "operator": "is_in",
+          "value": 7
+         }
+        ]
+       },
+       "name": "Acme",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": null,
+       "visibility": 3,
+       "workspace_id": 7
+      }
+     }
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 811,
+       "name": "Globex changes",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_ids": [],
+       "query_hash": null,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "workspace_id",
+          "operator": "is_in",
+          "value": [
+           7
+          ]
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    }
+   },
+   {
+    "module": "changes",
+    "mods": {
+     "advanced_query_hash": {
+      "all": [
+       {
+        "condition": "workspace_id",
+        "operator": "is",
+        "value": [
+         {
+          "id": 7
+         },
+         {
+          "id": 9
+         }
+        ]
+       }
+      ]
+     }
+    },
+    "plan": {
+     "error": "the view's workspace is missing or ambiguous in its read; nothing was sent",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 811,
+       "name": "Globex changes",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_ids": [],
+       "query_hash": null,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "value": [
+           {
+            "id": 7
+           },
+           {
+            "id": 9
+           }
+          ]
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": null,
+      "reason": "the view's workspace is missing or ambiguous in its read; nothing was sent"
+     }
+    }
+   },
+   {
+    "module": "changes",
+    "mods": {
+     "visibility": 1,
+     "group_ids": [
+      3
+     ]
+    },
+    "plan": {
+     "error": "the view is shared with groups; only views visible to you alone are supported",
+     "type": "ReviewedWriteError"
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 811,
+       "name": "Globex changes",
+       "default": false,
+       "visibility": 1,
+       "user_id": 905,
+       "group_ids": [
+        3
+       ],
+       "query_hash": null,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "value": "one_week",
+          "type": "default"
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "value": 7,
+          "type": "default"
+         }
+        ]
+       }
+      },
+      "private": false,
+      "reason": "the view is shared with groups; only views visible to you alone are supported",
+      "workspace_id": 7
+     }
+    }
+   }
+  ],
+  "reads": {
+   "tickets": {
+    "own_views": {
+     "ok": {
+      "views": [
+       {
+        "id": 801,
+        "name": "Acme queue",
+        "editable": true
+       }
+      ],
+      "note": "the list carries no visibility; run show ID to see whether a view is private"
+     }
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 801,
+       "name": "Acme queue",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_id": null,
+       "group_ids": [],
+       "advanced_query_hash": null,
+       "advanced": false,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "per_page": 30,
+       "query_hash": [
+        {
+         "condition": "priority",
+         "operator": "is_in",
+         "value": [
+          "3"
+         ],
+         "type": "default"
+        },
+        {
+         "condition": "workspace_id",
+         "operator": "is",
+         "value": "7",
+         "type": "default"
+        }
+       ],
+       "meta": {
+        "workspace_id": [
+         {
+          "id": 7,
+          "name": "Acme IT"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    },
+    "missing": {
+     "error": "HTTP 404 fetching ticket filter: synthetic",
+     "type": "APIError"
+    },
+    "calls": [
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters/801",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters/999",
+      null
+     ]
+    ]
+   },
+   "changes": {
+    "own_views": {
+     "ok": {
+      "views": [
+       {
+        "id": 811,
+        "name": "Globex changes",
+        "editable": true
+       }
+      ],
+      "note": "the list carries no visibility; run show ID to see whether a view is private"
+     }
+    },
+    "assess": {
+     "ok": {
+      "view": {
+       "id": 811,
+       "name": "Globex changes",
+       "default": false,
+       "visibility": 3,
+       "user_id": 905,
+       "group_ids": [],
+       "query_hash": null,
+       "order_by": "created_at",
+       "order_type": "desc",
+       "advanced_query_hash": {
+        "all": [
+         {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "value": "one_week",
+          "type": "default"
+         },
+         {
+          "condition": "workspace_id",
+          "operator": "is",
+          "value": 7,
+          "type": "default"
+         }
+        ]
+       }
+      },
+      "visibility": "Myself",
+      "private": true,
+      "workspace_id": 7
+     }
+    },
+    "missing": {
+     "error": "HTTP 404 fetching change-filter: synthetic",
+     "type": "APIError"
+    },
+    "calls": [
+     [
+      "GET",
+      "change-filters",
+      null
+     ],
+     [
+      "GET",
+      "change-filters/811",
+      null
+     ],
+     [
+      "GET",
+      "change-filters/999",
+      null
+     ]
+    ]
+   }
+  },
+  "own_views_shapes": [
+   {
+    "raw": [
+     {
+      "id": 5,
+      "user_id": 905,
+      "default": false,
+      "name": "A"
+     }
+    ],
+    "ok": {
+     "views": [
+      {
+       "id": 5,
+       "name": "A",
+       "editable": null
+      }
+     ],
+     "note": "the list carries no visibility; run show ID to see whether a view is private"
+    }
+   },
+   {
+    "raw": {
+     "ticket_filters": [
+      {
+       "id": 5,
+       "user_id": "905",
+       "default": false
+      }
+     ],
+     "meta": {
+      "editable_filter_ids": []
+     }
+    },
+    "ok": {
+     "views": [
+      {
+       "id": 5,
+       "name": null,
+       "editable": null
+      }
+     ],
+     "note": "the list carries no visibility; run show ID to see whether a view is private"
+    }
+   },
+   {
+    "raw": {
+     "ticket_filters": [],
+     "views": []
+    },
+    "error": "saved-view list shape is unreadable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "raw": {
+     "x": []
+    },
+    "error": "saved-view list shape is unreadable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "raw": "nope",
+    "error": "saved-view list shape is unreadable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "raw": {
+     "my_views": [
+      {
+       "id": 5,
+       "user_id": 905,
+       "default": false
+      },
+      {
+       "id": 6,
+       "user_id": 905
+      },
+      {
+       "id": 7,
+       "user_id": 904,
+       "default": false
+      },
+      "x"
+     ],
+     "meta": {
+      "editable_filter_ids": [
+       "6",
+       7
+      ]
+     }
+    },
+    "ok": {
+     "views": [
+      {
+       "id": 5,
+       "name": null,
+       "editable": false
+      }
+     ],
+     "note": "the list carries no visibility; run show ID to see whether a view is private"
+    }
+   }
+  ],
+  "private_visibility": [
+   {
+    "mods": {
+     "visibility": 1
+    },
+    "error": "GET /api/_/ticket_filters/801 returns visibility 1 (All agents); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility": null
+    },
+    "error": "GET /api/_/ticket_filters/801 returns visibility unreadable (unreadable); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "group_ids": null
+    },
+    "error": "GET /api/_/ticket_filters/801 returns visibility 3 (Myself) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility_name": "Only Me"
+    },
+    "ok": 3
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 3,
+      "label": "Myself"
+     }
+    },
+    "ok": 3
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 3
+     }
+    },
+    "ok": 3
+   },
+   {
+    "mods": {
+     "id": null,
+     "visibility": 9
+    },
+    "error": "GET /api/_/ticket_filters/None returns visibility 9 (unknown); only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
+    "type": "ReviewedWriteError"
+   }
+  ]
+ },
+ "recipient": [
+  {
+   "module": "tickets",
+   "me": {
+    "id": 9000001,
+    "email": "agent@example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/tickets/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+     },
+     "ticket_state_filter": "created_at"
+    },
+    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "agent@example.com",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+     "source": "signed-in agent profile (GET /api/v2/agents/me)"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "selected_filter_view",
+     "ticket_state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "recipient_json": "{\"mailbox\": \"agent@example.com\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back\", \"source\": \"signed-in agent profile (GET /api/v2/agents/me)\"}"
+  },
+  {
+   "module": "tickets",
+   "me": "403",
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/tickets/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+     },
+     "ticket_state_filter": "created_at"
+    },
+    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "selected_filter_view",
+     "ticket_state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "tickets",
+   "me": {
+    "id": 9000001
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/tickets/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+     },
+     "ticket_state_filter": "created_at"
+    },
+    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "selected_filter_view",
+     "ticket_state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "tickets",
+   "me": {
+    "email": " agent@example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/tickets/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+     },
+     "ticket_state_filter": "created_at"
+    },
+    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "selected_filter_view",
+     "ticket_state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "tickets",
+   "me": {
+    "email": "agent.example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/tickets/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+     },
+     "ticket_state_filter": "created_at"
+    },
+    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "selected_filter_view",
+     "ticket_state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "tickets",
+   "me": null,
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/tickets/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+     },
+     "ticket_state_filter": "created_at"
+    },
+    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "selected_filter_view",
+     "ticket_state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "changes",
+   "me": {
+    "id": 9000001,
+    "email": "agent@example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/changes/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "agent@example.com",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+     "source": "signed-in agent profile (GET /api/v2/agents/me)"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "recipient_json": "{\"mailbox\": \"agent@example.com\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back\", \"source\": \"signed-in agent profile (GET /api/v2/agents/me)\"}"
+  },
+  {
+   "module": "changes",
+   "me": "403",
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/changes/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "changes",
+   "me": {
+    "id": 9000001
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/changes/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "changes",
+   "me": {
+    "email": " agent@example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/changes/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "changes",
+   "me": {
+    "email": "agent.example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/changes/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "changes",
+   "me": null,
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/changes/export",
+    "payload": {
+     "advanced_data_hash": null,
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "advanced_data_hash",
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "problems",
+   "me": {
+    "id": 9000001,
+    "email": "agent@example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/problems/export",
+    "payload": {
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "agent@example.com",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+     "source": "signed-in agent profile (GET /api/v2/agents/me)"
+    },
+    "body_keys": [
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "recipient_json": "{\"mailbox\": \"agent@example.com\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back\", \"source\": \"signed-in agent profile (GET /api/v2/agents/me)\"}"
+  },
+  {
+   "module": "problems",
+   "me": "403",
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/problems/export",
+    "payload": {
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "problems",
+   "me": {
+    "id": 9000001
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/problems/export",
+    "payload": {
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "problems",
+   "me": {
+    "email": " agent@example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/problems/export",
+    "payload": {
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "problems",
+   "me": {
+    "email": "agent.example.com"
+   },
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/problems/export",
+    "payload": {
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  },
+  {
+   "module": "problems",
+   "me": null,
+   "review": {
+    "action": "list_export",
+    "method": "POST",
+    "path": "/api/_/problems/export",
+    "payload": {
+     "custom_fields": {},
+     "data_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "47"
+       ]
+      }
+     ],
+     "date_filter": 30,
+     "export_fields": {
+      "subject": "Acme subject"
+     },
+     "format": "csv",
+     "state_filter": "created_at"
+    },
+    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "recipient": {
+     "mailbox": "unavailable",
+     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+     "source": "signed-in agent profile could not be read"
+    },
+    "body_keys": [
+     "custom_fields",
+     "data_hash",
+     "date_filter",
+     "export_fields",
+     "format",
+     "state_filter"
+    ],
+    "review_only": true,
+    "delivery": "unknown"
+   },
+   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
+  }
+ ]
+}

@@ -1,5 +1,5 @@
 //! Native reviewed workflows with JSON-only output: canned replies and
-//! scenarios (`canned_cli`), private ticket views (`private_view_cli`), list
+//! scenarios (`canned_cli`), private ticket and change views (`private_view_cli`), list
 //! columns and exports (`list_preferences_cli`), problem create and child
 //! writes (`problem_cli`).
 
@@ -18,7 +18,7 @@ use fsv_flows::drafts::resolve_draft;
 
 use crate::cmd::reviewed::{dumps, print_dry_run, refusal, require_review};
 use crate::generated::*;
-use crate::util::{CmdResult, client, uncaught};
+use crate::util::{CmdResult, client, plain_fail, uncaught};
 
 /// A read with no `try` in Python: any failure is a traceback (exit 1),
 /// including fsv-api refusals, which carry exit 2.
@@ -125,15 +125,74 @@ pub fn scenarios_apply(a: TicketsScenariosApplyArgs) -> CmdResult {
     run().map_err(refusal)
 }
 
-pub fn private_views_show(a: PositiveIdArgs) -> CmdResult {
-    show(|c| private_views::detail(c, a.id_).map(Value::Object))
+/// `private_view_cli._fail` for `list`/`show`: a refusal or an API error
+/// is its text on stderr, exit 2; anything else is uncaught.
+fn view_read_fail(e: Error) -> Error {
+    match e {
+        Error::Api(_) => plain_fail(&e.to_string(), 2),
+        Error::Exit { code: 2, message } if !message.is_empty() => plain_fail(&message, 2),
+        other => uncaught(other),
+    }
 }
 
-pub fn private_views_write(a: TicketsPrivateViewsWriteArgs) -> CmdResult {
+fn private_views_read(read: impl FnOnce(&dyn Api) -> Result<Value>) -> CmdResult {
+    let c = client()?;
+    let v = read(c.as_ref()).map_err(view_read_fail)?;
+    println!("{}", dumps(&v));
+    Ok(())
+}
+
+pub fn private_views_list(module: &str) -> CmdResult {
+    let k = private_views::kind(module);
+    private_views_read(|c| private_views::own_views(c, k))
+}
+
+pub fn private_views_show(module: &str, id: i64) -> CmdResult {
+    let k = private_views::kind(module);
+    private_views_read(|c| private_views::assess(c, id, k).map(Value::Object))
+}
+
+pub struct PrivateViewWrite {
+    pub id_: i64,
+    pub action: String,
+    pub name: Option<String>,
+    pub dry_run: bool,
+    pub yes: bool,
+    pub expect_plan: Option<String>,
+}
+
+impl From<TicketsPrivateViewsWriteArgs> for PrivateViewWrite {
+    fn from(a: TicketsPrivateViewsWriteArgs) -> Self {
+        Self {
+            id_: a.id_,
+            action: a.action,
+            name: a.name,
+            dry_run: a.dry_run,
+            yes: a.yes,
+            expect_plan: a.expect_plan,
+        }
+    }
+}
+
+impl From<ChangesPrivateViewsWriteArgs> for PrivateViewWrite {
+    fn from(a: ChangesPrivateViewsWriteArgs) -> Self {
+        Self {
+            id_: a.id_,
+            action: a.action,
+            name: a.name,
+            dry_run: a.dry_run,
+            yes: a.yes,
+            expect_plan: a.expect_plan,
+        }
+    }
+}
+
+pub fn private_views_write(module: &str, a: PrivateViewWrite) -> CmdResult {
+    let k = private_views::kind(module);
     let run = || -> Result<()> {
         let c = client()?;
         let plan =
-            private_views::build_plan(c.as_ref(), &json!(a.id_), &a.action, a.name.as_deref())?;
+            private_views::build_plan(c.as_ref(), &json!(a.id_), &a.action, a.name.as_deref(), k)?;
         if a.dry_run {
             print_dry_run(plan.review());
             return Ok(());
@@ -144,7 +203,10 @@ pub fn private_views_write(a: TicketsPrivateViewsWriteArgs) -> CmdResult {
         println!("{}", dumps(&result));
         Ok(())
     };
-    run().map_err(refusal)
+    run().map_err(|e| match e.status() {
+        Some(status) => plain_fail(&format!("read failed (HTTP {status}); nothing was sent"), 2),
+        None => refusal(e),
+    })
 }
 
 pub fn columns_list(res: &'static Resource, _: JsonOnlyArgs) -> CmdResult {
@@ -181,11 +243,20 @@ pub fn columns_set(res: &'static Resource, a: ColumnsSetArgs) -> CmdResult {
     run().map_err(refusal)
 }
 
+/// Export is review-only: `--yes`/`--expect-plan` are refused before any
+/// read, and the review is printed with or without `--dry-run`.
 pub fn export(res: &'static Resource, a: ResExportArgs) -> CmdResult {
     let run = || -> Result<()> {
+        if a.yes || a.expect_plan.is_some() {
+            return Err(Error::exit(
+                2,
+                "export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export",
+            ));
+        }
         let c = client()?;
         let plan = list_preferences::export_plan(c.as_ref(), res.name, &a.view, &a.field)?;
-        finish_list(c.as_ref(), plan, a.dry_run, a.yes, a.expect_plan.as_deref())
+        print_dry_run(plan.review());
+        Ok(())
     };
     run().map_err(refusal)
 }
