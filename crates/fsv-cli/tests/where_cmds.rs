@@ -1226,3 +1226,95 @@ fn where_ticket_only_dates_refuse() {
         "error: closed_at is not a date in the changes advanced filter builder; nothing was sent\n"
     );
 }
+
+/// Python `f081c97` (`test_cli_change_where_approval_status_uses_the_proven_wire`).
+#[test]
+fn where_change_approval_status_uses_the_proven_wire() {
+    for (expr, operator, value) in [
+        ("approval_status=0", "is_in", "0"),
+        ("approval_status=1", "is_in", "1"),
+        ("approval_status=3", "is_in", "3"),
+        ("Approval Status!=0", "is_not_in", "0"),
+    ] {
+        let r = run_fixture(
+            "where",
+            &["changes", "ls", "--where", expr, "--debug"],
+            None,
+        );
+        assert_eq!(r.code, 0, "{expr}: {}", r.err);
+        assert!(
+            r.out.contains(&format!(
+                "│ approval_status │ approval_status │ {operator} "
+            )),
+            "{expr}: {}",
+            r.out
+        );
+        assert!(r.out.contains(&format!(" │ default │ {value}     │")), "{}", r.out);
+        assert_eq!(r.err, "");
+    }
+}
+
+/// Python `f081c97` (`test_cli_ticket_where_approval_status_names_the_real_reason`).
+#[test]
+fn where_ticket_approval_status_names_the_real_reason() {
+    let r = run_fixture(
+        "where",
+        &["tickets", "ls", "--where", "approval_status=1"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(
+        r.err,
+        "error: approval_status is not a tickets list filter (the server ignores it and returns unfiltered rows); read approval_status per record instead (e.g. `get`)\n"
+    );
+    assert!(sent(&r, "tickets").0.is_empty());
+}
+
+/// Python `f081c97` (`test_cli_raw_query_hash_bad_shapes_refuse_cleanly`), plus
+/// the other `validate_raw_query` refusals; messages from the Python run.
+#[test]
+fn query_hash_bad_shapes_refuse_cleanly() {
+    for (raw, msg) in [
+        (
+            r#"[{"condition":"status","operator":"is_in","value":2,"type":"default"}]"#,
+            r#"--query-hash item 1 (status): operator is_in takes a JSON list value, e.g. "value": [2]; nothing was sent"#,
+        ),
+        (
+            r#"[{"condition":"status","operator":"is_not_in","value":"2","type":"default"}]"#,
+            r#"--query-hash item 1 (status): operator is_not_in takes a JSON list value, e.g. "value": ["2"]; nothing was sent"#,
+        ),
+        (
+            "[2]",
+            "--query-hash item 1 must be a JSON object with condition/operator/value; nothing was sent",
+        ),
+        (
+            r#"[{"any":[{"condition":"status","operator":"is_in","value":2}]}]"#,
+            r#"--query-hash item 1 any item 1 (status): operator is_in takes a JSON list value, e.g. "value": [2]; nothing was sent"#,
+        ),
+        (
+            r#"[{"condition":"approval_status","operator":"is_in","value":["1"],"type":"default"}]"#,
+            "approval_status is not a tickets list filter (the server ignores it and returns unfiltered rows); read approval_status per record instead (e.g. `get`)",
+        ),
+        (
+            r#"[{"any":3}]"#,
+            "--query-hash item 1: 'any' must be a JSON list of conditions; nothing was sent",
+        ),
+        (
+            r#"[{"operator":"is"}]"#,
+            "--query-hash item 1 has no condition; nothing was sent",
+        ),
+        (
+            r#"[{"condition":1,"operator":"is"}]"#,
+            "--query-hash item 1: condition and operator must be strings; nothing was sent",
+        ),
+        (
+            r#"[{"condition":"x","operator":"is_in","value":{"a":"é"}}]"#,
+            r#"--query-hash item 1 (x): operator is_in takes a JSON list value, e.g. "value": [{"a": "\u00e9"}]; nothing was sent"#,
+        ),
+    ] {
+        let r = run_fixture("where", &["tickets", "ls", "--query-hash", raw], None);
+        assert_eq!(r.code, 2, "{raw}: {}", r.err);
+        assert_eq!(r.err, format!("error: {msg}\n"), "{raw}");
+        assert!(r.calls().is_empty(), "{raw}: {:?}", r.calls());
+    }
+}

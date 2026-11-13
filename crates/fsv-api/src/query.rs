@@ -664,7 +664,8 @@ fn refuse_unsupported_filter(resource: &str, condition: &str) -> Result<(), Quer
     Ok(())
 }
 
-fn check_raw_query(resource: &str, items: &Value) -> Result<(), QueryError> {
+/// `_check_raw_query`: refuse raw conditions the list ignores.
+pub fn check_raw_query(resource: &str, items: &Value) -> Result<(), QueryError> {
     let rows = items
         .as_array()
         .map(|a| a.as_slice())
@@ -875,19 +876,23 @@ pub fn resolve_where(
 }
 
 /// Port of fsv.cli._merge_same_conditions: one `is_in` / `is_not_in`
-/// item per (condition, operator, type), values concatenated in order.
+/// item per (condition, operator, type), list values concatenated in order;
+/// an item whose value is not a list passes through unchanged.
 pub fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
     let mut seen: Vec<([Value; 3], usize)> = Vec::new();
     let mut out: Vec<Value> = Vec::new();
     for item in query {
         let field = |k: &str| item.get(k).cloned().unwrap_or(Value::Null);
         let op = field("operator");
+        let Some(values) = item.get("value").and_then(Value::as_array).cloned() else {
+            out.push(item);
+            continue;
+        };
         if op != "is_in" && op != "is_not_in" {
             out.push(item);
             continue;
         }
         let key = [field("condition"), op, field("type")];
-        let values = py_list(item.get("value"));
         match seen.iter().find(|(k, _)| *k == key) {
             Some(&(_, at)) => {
                 if let Some(Value::Array(merged)) = out[at].get_mut("value") {
@@ -895,29 +900,65 @@ pub fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
                 }
             }
             None => {
-                let mut merged = item;
-                if let Value::Object(m) = &mut merged {
-                    m.insert("value".into(), Value::Array(values));
-                }
                 seen.push((key, out.len()));
-                out.push(merged);
+                out.push(item);
             }
         }
     }
     out
 }
 
-/// `list(value or [])`: strings split into code points, objects into keys;
-/// a truthy scalar (a `TypeError` in Python) becomes a one-item list.
-fn py_list(value: Option<&Value>) -> Vec<Value> {
-    match value {
-        None => Vec::new(),
-        Some(v) if !fsv_py::truthy(v) => Vec::new(),
-        Some(Value::Array(a)) => a.clone(),
-        Some(Value::String(s)) => s.chars().map(|c| Value::String(c.into())).collect(),
-        Some(Value::Object(m)) => m.keys().map(|k| Value::String(k.clone())).collect(),
-        Some(other) => vec![other.clone()],
+const LIST_OPERATORS: &[&str] = &["is_in", "is_not_in"];
+
+/// `validate_raw_query`: refuse raw query-hash shapes fsv cannot pass on
+/// faithfully (no wrapping: the wire is sent exactly as given).
+pub fn validate_raw_query(items: &Value, at: &str) -> Result<(), QueryError> {
+    let rows = items
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or(std::slice::from_ref(items));
+    for (n, item) in rows.iter().enumerate() {
+        let label = format!("{at} item {}", n + 1);
+        let Some(obj) = item.as_object() else {
+            return Err(QueryError(format!(
+                "{label} must be a JSON object with condition/operator/value; nothing was sent"
+            )));
+        };
+        for key in ["any", "all"] {
+            if let Some(nested) = obj.get(key) {
+                if !nested.is_array() {
+                    return Err(QueryError(format!(
+                        "{label}: '{key}' must be a JSON list of conditions; nothing was sent"
+                    )));
+                }
+                validate_raw_query(nested, &format!("{label} {key}"))?;
+            }
+        }
+        let Some(condition) = obj.get("condition") else {
+            if !obj.contains_key("any") && !obj.contains_key("all") {
+                return Err(QueryError(format!(
+                    "{label} has no condition; nothing was sent"
+                )));
+            }
+            continue;
+        };
+        let (Some(condition), Some(operator)) = (
+            condition.as_str(),
+            obj.get("operator").and_then(Value::as_str),
+        ) else {
+            return Err(QueryError(format!(
+                "{label}: condition and operator must be strings; nothing was sent"
+            )));
+        };
+        let value = obj.get("value").unwrap_or(&Value::Null);
+        if LIST_OPERATORS.contains(&operator) && !value.is_array() {
+            return Err(QueryError(format!(
+                "{label} ({condition}): operator {operator} takes a JSON list value, e.g. \"value\": [{}]; nothing was sent",
+                fsv_py::dumps(value, &fsv_py::Dumps::default())
+            )));
+        }
     }
+    Ok(())
 }
 
 pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
@@ -928,10 +969,11 @@ pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
     };
     let loaded: Value = serde_json::from_str(&text)
         .map_err(|e| QueryError(format!("invalid query-hash JSON: {e}")))?;
-    loaded
-        .as_array()
-        .cloned()
-        .ok_or_else(|| QueryError("query-hash must be a JSON array".into()))
+    let Value::Array(items) = loaded else {
+        return Err(QueryError("query-hash must be a JSON array".into()));
+    };
+    validate_raw_query(&Value::Array(items.clone()), "query-hash")?;
+    Ok(items)
 }
 
 fn query_item(

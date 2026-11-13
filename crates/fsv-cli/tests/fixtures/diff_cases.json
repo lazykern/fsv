@@ -12140,5 +12140,135 @@
    "Closed<=2030-01-06",
    "--debug"
   ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "approval_status=0",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "approval_status=1",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "approval_status=3",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "Approval Status!=0",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "approval_status=1"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":\"status\",\"operator\":\"is_in\",\"value\":2,\"type\":\"default\"}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":\"status\",\"operator\":\"is_not_in\",\"value\":\"2\",\"type\":\"default\"}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[2]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"any\":[{\"condition\":\"status\",\"operator\":\"is_in\",\"value\":2}]}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":\"approval_status\",\"operator\":\"is_in\",\"value\":[\"1\"],\"type\":\"default\"}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"any\":3}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"operator\":\"is\"}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":1,\"operator\":\"is\"}]"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--query-hash",
+   "[{\"condition\":\"x\",\"operator\":\"is_in\",\"value\":{\"a\":\"é\"}}]"
+  ]
  }
 ]

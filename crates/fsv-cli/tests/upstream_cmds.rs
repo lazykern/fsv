@@ -12570,6 +12570,7 @@ fn where_changes_search_error() {
     );
 }
 
+/// Python `f081c97`: the raw query hash is checked before any request.
 #[test]
 fn where_tickets_raw_search_error() {
     let r = run_fixture(
@@ -12586,7 +12587,7 @@ fn where_tickets_raw_search_error() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: the tickets list rejected the filter (search_error) and returned unfiltered rows; nothing shown
+        r#"error: approval_status is not a tickets list filter (the server ignores it and returns unfiltered rows); read approval_status per record instead (e.g. `get`)
 "#
     );
 }

@@ -347,3 +347,16 @@ fn due_range_is_merged_in_the_advanced_builder_without_erasing_other_fields() {
         ]
     );
 }
+
+/// Python `f081c97` (`test_shared_raw_query_hash_loader_refuses_scalars`).
+#[test]
+fn shared_raw_query_hash_loader_refuses_scalars() {
+    for raw in [
+        r#"[{"condition":"status","operator":"is_in","value":2,"type":"default"}]"#,
+        "[2]",
+    ] {
+        let err = build_query_hash(None, "tickets", None, &[], Some(raw), false).unwrap_err();
+        assert!(err.0.contains("nothing was sent"), "{raw}: {}", err.0);
+        assert!(err.0.starts_with("query-hash item 1"), "{raw}: {}", err.0);
+    }
+}

@@ -43,39 +43,10 @@ fn where_field(expr: &str) -> String {
         .to_string()
 }
 
-/// `_merge_same_conditions`: one `is_in`/`is_not_in` per condition, operator and type.
+/// `_merge_same_conditions`: one `is_in`/`is_not_in` per condition, operator
+/// and type; a non-list value passes through (`query::merge_same_conditions`).
 fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
-    let mut out: Vec<Value> = Vec::new();
-    let mut seen: Vec<((Value, Value, Value), usize)> = Vec::new();
-    for item in query {
-        let op = item.get("operator").cloned().unwrap_or(Value::Null);
-        if !matches!(op.as_str(), Some("is_in" | "is_not_in")) {
-            out.push(item);
-            continue;
-        }
-        let field = |k: &str| item.get(k).cloned().unwrap_or(Value::Null);
-        let key = (field("condition"), op, field("type"));
-        let values: Vec<Value> = item
-            .get("value")
-            .filter(|v| fsv_py::truthy(v))
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        match seen.iter().find(|(k, _)| *k == key) {
-            Some((_, at)) => {
-                if let Some(Value::Array(v)) = out[*at].get_mut("value") {
-                    v.extend(values);
-                }
-            }
-            None => {
-                let mut merged = item.as_object().cloned().unwrap_or_default();
-                merged.insert("value".into(), Value::Array(values));
-                seen.push((key, out.len()));
-                out.push(Value::Object(merged));
-            }
-        }
-    }
-    out
+    fsv_api::merge_same_conditions(query)
 }
 
 /// `_build_query_hash`: `(payload, conditions, explanation)`.
@@ -89,7 +60,10 @@ fn build_query_hash(
     let mut query = Vec::new();
     let mut explain = Vec::new();
     if let Some(raw) = raw.filter(|s| !s.is_empty()) {
-        query.extend(filters::load_query_hash(raw)?);
+        let loaded = filters::load_query_hash(raw)?;
+        fsv_api::check_raw_query(res.name, &Value::Array(loaded.clone()))
+            .map_err(|e| crate::util::usage(&e.0))?;
+        query.extend(loaded);
         explain.push(fsv_api::Explain {
             field: "query_hash".into(),
             condition: "raw".into(),
@@ -1773,7 +1747,7 @@ mod tests {
                 {"condition": "status", "operator": "is_in", "type": "default", "value": [2, 4]},
                 {"condition": "d", "operator": "custom_date", "type": "default", "value": {"from": "x"}},
                 {"condition": "status", "operator": "is_not_in", "type": "default", "value": [5]},
-                {"condition": "status", "operator": "is_in", "type": "custom_field", "value": []},
+                {"condition": "status", "operator": "is_in", "type": "custom_field", "value": null},
             ])
         );
     }
