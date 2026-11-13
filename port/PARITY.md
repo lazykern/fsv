@@ -171,6 +171,13 @@ those stay identical.
 - `filter_proof.contradictions` skips a row that is not an object.
 - Service list readers (`list_items`, activities, notes, tasks, approvals,
   assets) treat a null or non-list body as no rows.
+- CLI choice values: a digit string beyond `i64`, or a superscript digit
+  that `int()` rejects, stays text. Python's `_choice_value` raises.
+- CLI error lines: an exception with a blank message prints `Error`.
+  Python's `_err_exc` prints the exception class name.
+- `form explain` with a bad `--id` exits 1 with the message. Python prints
+  a traceback. A requester lookup that fails with something other than a
+  value error (change and SR create) also exits with the message.
 
 ## fsv-app
 

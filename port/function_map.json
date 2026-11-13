@@ -13,25 +13,28 @@
    "module": "__init__.py",
    "name": "main",
    "line": 8,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/main.rs",
-   "rust_item": "main"
+   "rust_item": "main",
+   "note": "Imports the CLI and runs it; on Unix a SIGINT handler exits 130 with no message and SIGPIPE is left at the default."
   },
   {
    "module": "_complete.py",
    "name": "_completions",
    "line": 21,
-   "status": "matched",
-   "rust": "crates/fsv-completion/src/emit.rs",
-   "rust_item": "completions"
+   "status": "reviewed",
+   "rust": "crates/fsv-completion/src/dynamic.rs",
+   "rust_item": "complete",
+   "note": "Same flag tables, agent and group special cases, and fish value-tab-help lines; emit.rs completions only builds a shell script."
   },
   {
    "module": "_complete.py",
    "name": "_extract_flag",
    "line": 85,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "extract_flag"
+   "rust_item": "extract_flag",
+   "note": "Reads a bare flag or flag=value the same way, including the last matching token."
   },
   {
    "module": "_complete.py",
@@ -53,9 +56,10 @@
    "module": "_complete.py",
    "name": "main",
    "line": 100,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/main.rs",
-   "rust_item": "main"
+   "status": "reviewed",
+   "rust": "crates/fsv-completion/src/dynamic.rs",
+   "rust_item": "run",
+   "note": "Needs four argv slots, swallows every error, and skips an empty value or a value equal to the token; main.rs main is the process entry, not this helper."
   },
   {
    "module": "agent_lookup.py",
@@ -384,9 +388,10 @@
    "module": "attachments_cli.py",
    "name": "finish",
    "line": 13,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/attachments.rs",
-   "rust_item": "finish"
+   "rust_item": "finish",
+   "note": "Dry-run prints the review JSON, a write needs --yes and the full plan hash, and an unverified readback exits 4 with no extra line."
   },
   {
    "module": "attachments_cli.py",
@@ -1449,36 +1454,36 @@
    "module": "change_cli.py",
    "name": "_emit",
    "line": 21,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "emit"
+   "status": "idiom",
+   "note": "Defined and never called; spec.rs emit walks a form field tree and is a different function."
   },
   {
    "module": "change_cli.py",
    "name": "_print_plan",
    "line": 25,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
    "rust_item": "print_change_plan",
-   "note": "Python callers always use to_stdout=True; Rust prints only that branch (incl. 'PUT changes/None' for a missing target)."
+   "note": "JSON uses indent 2 and ensure_ascii false; the text path prints the review, payload, and the 16-character expect-plan hint."
   },
   {
    "module": "change_cli.py",
    "name": "_pick",
    "line": 45,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "pick"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
+   "rust_item": "pick_one",
+   "note": "Shows the first 20 candidates unescaped, prompts an int defaulting to 0, and exits 2 with no requester chosen; combo.rs pick is the form widget."
   },
   {
    "module": "change_cli.py",
    "name": "_Requester",
    "line": 56,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
    "rust_item": "Requester",
-   "note": "Requester::new (config defaults.requester); value/ask/resolve mapped separately."
+   "note": "Flag, then draft requester, then a prompt, then defaults.requester; the sr constructor uses defaults.sr_requester instead."
   },
   {
    "module": "change_cli.py",
@@ -1493,92 +1498,102 @@
    "name": "value",
    "class": "_Requester",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
-   "rust_item": "value"
+   "rust_item": "value",
+   "note": "Same precedence, and a falsy config default becomes absent rather than the string None."
   },
   {
    "module": "change_cli.py",
    "name": "ask",
    "class": "_Requester",
    "line": 74,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
-   "rust_item": "ask"
+   "rust_item": "ask",
+   "note": "Prompts Requester (email) with an empty default and keeps a non-empty answer without stripping it."
   },
   {
    "module": "change_cli.py",
    "name": "resolve",
    "class": "_Requester",
    "line": 77,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
-   "rust_item": "resolve"
+   "rust_item": "resolve",
+   "note": "DIVERGENCE: a ValueError becomes the problem string, and any other lookup failure exits with that message instead of a traceback."
   },
   {
    "module": "change_cli.py",
    "name": "_menu",
    "line": 89,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
-   "rust_item": "menu"
+   "rust_item": "menu",
+   "note": "Strips, lowercases, and accepts the first character when it is y, e, s, or n, defaulting to n with the default hidden."
   },
   {
    "module": "change_cli.py",
    "name": "_abort_editor",
    "line": 96,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
    "rust_item": "editor_abort",
-   "note": "EditorAbort -> FlowExit(1, message)."
+   "note": "Turns an editor abort into exit 1 whose message is the abort text."
   },
   {
    "module": "change_cli.py",
    "name": "_ack_blocking",
    "line": 100,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
-   "rust_item": "ack_blocking"
+   "rust_item": "ack_blocking",
+   "note": "Prints blocking messages without markup escaping and returns whether the user acknowledged them."
   },
   {
    "module": "change_cli.py",
    "name": "_confirm_loop",
    "line": 109,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
-   "rust_item": "confirm_loop"
+   "rust_item": "confirm_loop",
+   "note": "Same edit, save, send, and cancel replies, including the cancelled-nothing-was-sent exit."
   },
   {
    "module": "change_cli.py",
    "name": "form_tty",
    "line": 148,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
-   "rust_item": "form_tty"
+   "rust_item": "form_tty",
+   "note": "Requires a tty on stdin and stdout, and turns the form off when FSV_NO_FORM is non-empty or TERM is dumb."
   },
   {
    "module": "change_cli.py",
    "name": "_run_form",
    "line": 155,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
-   "rust_item": "run_form"
+   "rust_item": "run_form",
+   "note": "A saved draft exits 0 with the path, and leaving without submit exits 1 with cancelled; nothing was sent."
   },
   {
    "module": "change_cli.py",
    "name": "_send",
    "line": 168,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
-   "rust_item": "send_plan"
+   "rust_item": "send_plan",
+   "note": "Same duplicate, freshen, and metadata-changed text, and exit 4 when the plan hash changes, including the incomplete placeholder."
   },
   {
    "module": "change_cli.py",
    "name": "_report_partial",
    "line": 192,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-app/src/form.rs",
-   "rust_item": "report_partial"
+   "rust_item": "report_partial",
+   "note": "Prints the written id, the later error, and each uploaded step, then exits 5 with partial failure and that id."
   },
   {
    "module": "change_cli.py",
@@ -1593,9 +1608,10 @@
    "module": "change_cli.py",
    "name": "_report_created",
    "line": 378,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/changes.rs",
-   "rust_item": "report_created"
+   "rust_item": "report_created",
+   "note": "JSON dumps the result; the text path prints the portal url and the new id."
   },
   {
    "module": "change_cli.py",
@@ -2477,17 +2493,19 @@
    "module": "cli.py",
    "name": "_option_arity",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/app.rs",
-   "rust_item": "option_arity"
+   "rust_item": "option_arity",
+   "note": "A flag or an --opt=value token consumes nothing further, and a value option consumes one argument."
   },
   {
    "module": "cli.py",
    "name": "_reorder_root_flags",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/app.rs",
-   "rust_item": "rewrite"
+   "rust_item": "rewrite",
+   "note": "Moves -v and --verbose in front of the subcommand, leaving their following values in place."
   },
   {
    "module": "cli.py",
@@ -2541,10 +2559,10 @@
    "name": "parse_args",
    "class": "FSVGroup",
    "line": 123,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/app.rs",
    "rust_item": "rewrite",
-   "note": "`_reorder_root_flags` (+ `option_arity` for `_option_arity`) runs once over the whole argv before clap parsing; called from `run`."
+   "note": "Reorders root verbose flags before clap parses the command."
   },
   {
    "module": "cli.py",
@@ -2559,26 +2577,28 @@
    "name": "parse_args",
    "class": "ChangeLegacyGroup",
    "line": 128,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/app.rs",
    "rust_item": "rewrite",
-   "note": "Legacy ID routing for `<module> assets` and `changes associations` is inlined in `rewrite`; the associations deprecation notice (Python's group callback reading fsv_legacy_nested) is returned and printed by `run`. Fixed: a root -v/--verbose between the group and the ID no longer consumes the legacy check (Python moves it out first)."
+   "note": "A leading change id that is not a subcommand is routed to legacy, and the associations deprecation notice is printed."
   },
   {
    "module": "cli.py",
    "name": "_no_input",
    "line": 167,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "no_input"
+   "rust_item": "no_input",
+   "note": "True when the command passed --no-input or the process env says so."
   },
   {
    "module": "cli.py",
    "name": "_shell_from_env",
    "line": 173,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/completion.rs",
-   "rust_item": "shell_from_env"
+   "rust_item": "shell_from_env",
+   "note": "Casefolds the SHELL basename and maps sh to bash."
   },
   {
    "module": "cli.py",
@@ -2591,101 +2611,112 @@
    "module": "cli.py",
    "name": "main",
    "line": 227,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/main.rs",
-   "rust_item": "main"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/app.rs",
+   "rust_item": "run",
+   "note": "No subcommand prints help, and -V/--version prints fsv 2026.11.12; main.rs main only installs signals and then calls this."
   },
   {
    "module": "cli.py",
    "name": "OutputFormat",
    "line": 252,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/types.rs",
-   "rust_item": "OutputFormat"
+   "rust_item": "OutputFormat",
+   "note": "Same table, json, csv, and tsv values, and --json still forces json."
   },
   {
    "module": "cli.py",
    "name": "SearchSort",
    "line": 259,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/types.rs",
-   "rust_item": "SearchSort"
+   "rust_item": "SearchSort",
+   "note": "Same relevance, created, and modified values."
   },
   {
    "module": "cli.py",
    "name": "SortOrder",
    "line": 265,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/types.rs",
-   "rust_item": "SortOrder"
+   "rust_item": "SortOrder",
+   "note": "Same asc and desc values."
   },
   {
    "module": "cli.py",
    "name": "_err",
    "line": 270,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/task_status.rs",
-   "rust_item": "err"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/util.rs",
+   "rust_item": "fail",
+   "note": "Prints the markup error line and exits with the given code, defaulting to 2; task_status.rs err builds a query error and does not print."
   },
   {
    "module": "cli.py",
    "name": "_err_exc",
    "line": 276,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
    "rust_item": "fail_exc",
-   "note": "Abort -> 'Aborted.' exit 1; collapsed message escaped, + api detail when verbose; exit code from Error::exit_code (Python exit_code_for). Empty-message fallback is 'Error' since Rust errors carry no Python class name."
+   "note": "DIVERGENCE: Abort prints Aborted. and exits 1, other messages are collapsed and escaped with the stable code and a verbose API detail, and a blank message prints Error rather than the Python class name."
   },
   {
    "module": "cli.py",
    "name": "_flow_exit",
    "line": 289,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "flow_exit"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/util.rs",
+   "rust_item": "report",
+   "note": "A nonempty message is escaped, prefixed with the error mark only when the code is nonzero, and an empty message prints nothing; catalog.rs flow_exit only constructs the error."
   },
   {
    "module": "cli.py",
    "name": "_api",
    "line": 297,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/module_time.rs",
-   "rust_item": "api"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/util.rs",
+   "rust_item": "fail_exc",
+   "note": "Session, API, and value failures are mapped with fail_exc at the call site; module_time.rs api is an unrelated test double."
   },
   {
    "module": "cli.py",
    "name": "_client",
    "line": 304,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "client"
+   "rust_item": "client",
+   "note": "No session prints the login hint and exits 3; a session error exits 3 and any other client failure exits 1."
   },
   {
    "module": "cli.py",
    "name": "_edit_body",
    "line": 317,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "edit_body"
+   "rust_item": "edit_body",
+   "note": "Opens the same editor flow and returns the edited object, refusing input when --no-input is set."
   },
   {
    "module": "cli.py",
    "name": "_choose_store",
    "line": 329,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/auth.rs",
-   "rust_item": "choose_store"
+   "rust_item": "choose_store",
+   "note": "Same keyring-or-file prompt and the same stored-backend names."
   },
   {
    "module": "cli.py",
    "name": "_cid",
    "line": 364,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "cid"
+   "rust_item": "cid",
+   "note": "Parses a display id for the resource and surfaces a bad id as a usage error."
   },
   {
    "module": "cli.py",
@@ -2707,81 +2738,89 @@
    "module": "cli.py",
    "name": "_emit_items",
    "line": 388,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "emit_fmt"
+   "status": "idiom",
+   "note": "Defined and never called; list tables are rendered inside list_resource, and emit_fmt is the other helper."
   },
   {
    "module": "cli.py",
    "name": "_emit_fmt",
    "line": 404,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "emit_fmt"
+   "rust_item": "emit_fmt",
+   "note": "JSON, csv, and tsv emit and return true; table returns false so the caller prints the table."
   },
   {
    "module": "cli.py",
    "name": "_field_scope",
    "line": 419,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/lookup.rs",
-   "rust_item": "field_scope"
+   "rust_item": "field_scope",
+   "note": "Same default, custom, and planning scopes from the field object."
   },
   {
    "module": "cli.py",
    "name": "_field_api_type",
    "line": 423,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "field_api_type"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "field_api_type",
+   "note": "Same four type names from the field; the query.rs copy is the engine's parallel helper."
   },
   {
    "module": "cli.py",
    "name": "_field_matches",
    "line": 427,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/lookup.rs",
-   "rust_item": "field_matches"
+   "rust_item": "field_matches",
+   "note": "Casefold substring match on the field label and name."
   },
   {
    "module": "cli.py",
    "name": "_format_field_ref",
    "line": 432,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/lookup.rs",
-   "rust_item": "format_field_ref"
+   "rust_item": "format_field_ref",
+   "note": "Same scope, name, and label text used in the ambiguous-field list."
   },
   {
    "module": "cli.py",
    "name": "_schema_field_matches",
    "line": 436,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "schema_field_matches"
+   "rust_item": "schema_field_matches",
+   "note": "Same scope filter and casefold contains; the CLI inlines that check again inside lookup.rs find_schema_field."
   },
   {
    "module": "cli.py",
    "name": "_find_schema_field",
    "line": 445,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "find_schema_field"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "find_schema_field",
+   "note": "Ambiguous text is ambiguous field plus up to 10 format_field_ref lines; query.rs find_schema_field joins five names with commas."
   },
   {
    "module": "cli.py",
    "name": "_show_fields_table",
    "line": 472,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "fields"
+   "rust_item": "fields",
+   "note": "The fields command prints this table, including the same columns and empty-schema text."
   },
   {
    "module": "cli.py",
    "name": "fields_resource",
    "line": 493,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "fields"
+   "rust_item": "fields",
+   "note": "Loads the schema and prints the fields table or JSON with the same columns."
   },
   {
    "module": "cli.py",
@@ -2803,41 +2842,46 @@
    "module": "cli.py",
    "name": "_interactive",
    "line": 579,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "interactive"
+   "rust_item": "interactive",
+   "note": "False under --no-input or when stdin is not a tty, matching the units cases."
   },
   {
    "module": "cli.py",
    "name": "_candidate_label",
    "line": 583,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/lookup.rs",
-   "rust_item": "candidate_label"
+   "rust_item": "candidate_label",
+   "note": "Same name, email, and id fallback used in the picker list."
   },
   {
    "module": "cli.py",
    "name": "_pick_lookup",
    "line": 589,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "pick_lookup"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "pick_lookup",
+   "note": "Exact NFC match only, and it never accepts a single non-exact hit; query.rs pick_lookup does that silent accept and casefolds."
   },
   {
    "module": "cli.py",
    "name": "_resolve_requester",
    "line": 615,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "resolve_requester"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "resolve_requester",
+   "note": "Same id, email, and picker messages; formmeta.rs resolve_requester is the form-engine picker and returns a LookupValue."
   },
   {
    "module": "cli.py",
    "name": "_resolve_agent",
    "line": 627,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "resolve_agent"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "resolve_agent",
+   "note": "Digits short-circuit, an email uses the exact active id, and a failed autocomplete says lookup unavailable; query.rs resolve_agent is a different resolver."
   },
   {
    "module": "cli.py",
@@ -2851,9 +2895,10 @@
    "module": "cli.py",
    "name": "_resolve_group",
    "line": 673,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "resolve_group"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "resolve_group",
+   "note": "Same exact and picker messages; query.rs resolve_group is the engine copy with different errors."
   },
   {
    "module": "cli.py",
@@ -2867,26 +2912,28 @@
    "module": "cli.py",
    "name": "_status_label",
    "line": 709,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "status_label"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "status_label",
+   "note": "Looks up the choice label for a status id and falls back to the raw value; tasks.rs status_label validates a nonempty runtime label."
   },
   {
    "module": "cli.py",
    "name": "_is_terminal_status",
    "line": 715,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
    "rust_item": "is_terminal_label",
-   "note": "Python wrapper over safety.is_terminal_label; the wrapper itself has no callers at 406ca71."
+   "note": "Same NFC, casefold, and collapsed-whitespace test against the terminal status words."
   },
   {
    "module": "cli.py",
    "name": "_confirm_writes",
    "line": 720,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "confirm_writes"
+   "rust_item": "confirm_writes",
+   "note": "Same --yes and terminal confirm gate before a write."
   },
   {
    "module": "cli.py",
@@ -2915,41 +2962,46 @@
    "module": "cli.py",
    "name": "_emit_dry_run",
    "line": 761,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "emit_dry_run"
+   "rust_item": "emit_dry_run",
+   "note": "Prints the action, id, body, and risks without sending."
   },
   {
    "module": "cli.py",
    "name": "_strip_quotes",
    "line": 772,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/filters.rs",
-   "rust_item": "strip_quotes"
+   "rust_item": "strip_quotes",
+   "note": "Strips one pair of matching ASCII quotes and leaves other text unchanged."
   },
   {
    "module": "cli.py",
    "name": "_parse_where",
    "line": 779,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/filters.rs",
-   "rust_item": "parse_where"
+   "rust_item": "parse_where",
+   "note": "Splits field, operator, and value, including the quoted-value and missing-operator errors."
   },
   {
    "module": "cli.py",
    "name": "_where_field",
    "line": 787,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "where_field"
+   "rust_item": "where_field",
+   "note": "Returns the field text before the operator, with the same quote handling."
   },
   {
    "module": "cli.py",
    "name": "_choice_value",
    "line": 792,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "choice_value"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/lookup.rs",
+   "rust_item": "choice_value",
+   "note": "DIVERGENCE: id and casefold label matching, the custom-field value, and the 12-choice error match; a digit string that does not fit i64 stays text, and a superscript isdigit() accepts but int() rejects stays text instead of raising."
   },
   {
    "module": "cli.py",
@@ -2977,33 +3029,37 @@
    "module": "cli.py",
    "name": "_where_operator",
    "line": 912,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/filters.rs",
-   "rust_item": "where_operator"
+   "rust_item": "where_operator",
+   "note": "Same operator aliases and the same unknown-operator message."
   },
   {
    "module": "cli.py",
    "name": "_query_item",
    "line": 924,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/filters.rs",
-   "rust_item": "query_item"
+   "rust_item": "query_item",
+   "note": "Builds the same condition object, including date values and empty-string handling."
   },
   {
    "module": "cli.py",
    "name": "_date_condition",
    "line": 951,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/filters.rs",
-   "rust_item": "date_condition"
+   "rust_item": "date_condition",
+   "note": "Same today, yesterday, and rolling periods, including problems Created=today only."
   },
   {
    "module": "cli.py",
    "name": "_where_schema_field",
    "line": 968,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/filters.rs",
-   "rust_item": "where_schema_field"
+   "rust_item": "where_schema_field",
+   "note": "Resolves an alias, then cuts a trailing s and es from the original field text."
   },
   {
    "module": "cli.py",
@@ -3025,9 +3081,10 @@
    "module": "cli.py",
    "name": "_merge_same_conditions",
    "line": 1075,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "merge_same_conditions"
+   "rust_item": "merge_same_conditions",
+   "note": "Merges repeated conditions on the same field in the same order as the Python helper."
   },
   {
    "module": "cli.py",
@@ -3081,73 +3138,82 @@
    "module": "cli.py",
    "name": "_local_dt",
    "line": 1349,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "local_dt"
+   "rust_item": "local_dt",
+   "note": "Parses the activity timestamp into a local zoned time and returns none when it is missing."
   },
   {
    "module": "cli.py",
    "name": "_activity_day",
    "line": 1359,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "activity_day"
+   "rust_item": "activity_day",
+   "note": "Same local calendar day label, including the missing-timestamp case."
   },
   {
    "module": "cli.py",
    "name": "_activity_text",
    "line": 1371,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "activity_text"
+   "rust_item": "activity_text",
+   "note": "Same collapsed activity sentence, and a missing actor name prints ?."
   },
   {
    "module": "cli.py",
    "name": "_truncation_notice",
    "line": 1375,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "truncation_notice"
+   "rust_item": "truncation_notice",
+   "note": "Same shown-of-total and partial-page wording."
   },
   {
    "module": "cli.py",
    "name": "activity_resource",
    "line": 1384,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "activity"
+   "rust_item": "activity",
+   "note": "Same day grouping, text, and truncation notice for the activity list."
   },
   {
    "module": "cli.py",
    "name": "tasks_resource",
    "line": 1415,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "tasks"
+   "rust_item": "tasks",
+   "note": "Titles are cut at 60 characters, and a missing actor name prints ? while a present null stays None."
   },
   {
    "module": "cli.py",
    "name": "_prefixed_value",
    "line": 1464,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/links.rs",
-   "rust_item": "prefixed_value"
+   "rust_item": "prefixed_value",
+   "note": "Prefers the ci type key when that id is truthy, and a missing or falsy id does not build a prefixed 0 or None."
   },
   {
    "module": "cli.py",
    "name": "_asset_display",
    "line": 1479,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/links.rs",
-   "rust_item": "asset_display"
+   "rust_item": "asset_display",
+   "note": "Same display name, type, and id fallbacks, with falsy fields left blank."
   },
   {
    "module": "cli.py",
    "name": "_fetch_asset_categories",
    "line": 1492,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/links.rs",
-   "rust_item": "fetch_asset_categories"
+   "rust_item": "fetch_asset_categories",
+   "note": "Loads the category list in API order and keeps the same id and name fields."
   },
   {
    "module": "cli.py",
@@ -3398,9 +3464,10 @@
    "module": "cli.py",
    "name": "_print_tickets",
    "line": 2255,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/links.rs",
-   "rust_item": "print_tickets"
+   "rust_item": "print_tickets",
+   "note": "A missing subject prints -, and a missing human display id falls through to the numeric id."
   },
   {
    "module": "cli.py",
@@ -3495,41 +3562,46 @@
    "module": "cli.py",
    "name": "_search_clean",
    "line": 2555,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/misc.rs",
-   "rust_item": "search_clean"
+   "rust_item": "search_clean",
+   "note": "Strips tags, unescapes entities, and collapses whitespace."
   },
   {
    "module": "cli.py",
    "name": "_search_extract",
    "line": 2561,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/misc.rs",
-   "rust_item": "search_extract"
+   "rust_item": "search_extract",
+   "note": "Same type label, id, cleaned title, status, and group columns."
   },
   {
    "module": "cli.py",
    "name": "global_search",
    "line": 2575,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/misc.rs",
-   "rust_item": "search"
+   "rust_item": "search",
+   "note": "Same page size of 30, progress line, type columns, and a 70-character title; an empty csv or tsv prints a carriage-return newline."
   },
   {
    "module": "cli.py",
    "name": "url_resource",
    "line": 2624,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "url"
+   "rust_item": "url",
+   "note": "Prints https://{domain}/a/{api_path}/{id}, including an empty domain."
   },
   {
    "module": "cli.py",
    "name": "_problem_planning_update",
    "line": 2629,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "problem_planning_update"
+   "rust_item": "problem_planning_update",
+   "note": "Dry-run JSON is indent 2, the write requires the full plan hash, and an unverified readback exits 4 with no extra line."
   },
   {
    "module": "cli.py",
@@ -3559,17 +3631,19 @@
    "module": "cli.py",
    "name": "_resolve_domain",
    "line": 2786,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/auth.rs",
-   "rust_item": "resolve_domain"
+   "rust_item": "resolve_domain",
+   "note": "Same prompt, saved domain, and the exit codes when the domain is missing in non-interactive mode."
   },
   {
    "module": "cli.py",
    "name": "_validate_new_cookies",
    "line": 2803,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/auth.rs",
-   "rust_item": "validate_new_cookies"
+   "rust_item": "validate_new_cookies",
+   "note": "Same cookie checks, with a bad session exiting 3 and other failures exiting 1."
   },
   {
    "module": "cli.py",
@@ -3607,17 +3681,19 @@
    "module": "cli.py",
    "name": "_refresh_cache",
    "line": 2980,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/cache.rs",
-   "rust_item": "refresh_background"
+   "rust_item": "refresh",
+   "note": "The blocking path prints the cache refresh table and drops failed tasks; blocking false is refresh_background and prints nothing."
   },
   {
    "module": "cli.py",
    "name": "_completion_shell",
    "line": 3064,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/completion.rs",
-   "rust_item": "completion_shell"
+   "rust_item": "completion_shell",
+   "note": "An explicit shell name is case-sensitive, and a missing name uses the casefolded SHELL basename."
   },
   {
    "module": "cli.py",
@@ -3639,10 +3715,10 @@
    "module": "cli.py",
    "name": "completion_refresh",
    "line": 3127,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/cache.rs",
    "rust_item": "refresh",
-   "note": "Alias: cmd/mod.rs dispatches \"completion refresh\" | \"cache refresh\" to cache::refresh (Python calls cache_refresh())."
+   "note": "Alias of cache refresh: the same blocking table and the same dropped failures."
   },
   {
    "module": "cli.py",
@@ -3712,50 +3788,55 @@
    "module": "cli.py",
    "name": "cache_refresh",
    "line": 3321,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/cache.rs",
-   "rust_item": "refresh"
+   "rust_item": "refresh",
+   "note": "Prints the cache refresh table in completion order and skips a task that fails."
   },
   {
    "module": "cli.py",
    "name": "cache_clear",
    "line": 3327,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/cache.rs",
-   "rust_item": "clear"
+   "rust_item": "clear",
+   "note": "Rejects a bad target with choose schema|views|groups|all, and filters clears the views cache with that same message."
   },
   {
    "module": "cli.py",
    "name": "_journal_rows",
    "line": 3363,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/journal.rs",
    "rust_item": "rows_out",
-   "note": "Fixed alongside: `journal tail -n N` with negative N now slices rows[-N:] like journal.read(limit) (was: all rows); shared `tail_slice` pinned by tail_slice_matches_python."
+   "note": "JSON lines keep unicode, and the text path prints ok or FAIL plus the 12-character plan hash."
   },
   {
    "module": "cli.py",
    "name": "journal_ls",
    "line": 3384,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/journal.rs",
-   "rust_item": "ls"
+   "rust_item": "ls",
+   "note": "Default limit 0 returns every row, and --failed keeps the same failed subset."
   },
   {
    "module": "cli.py",
    "name": "journal_tail",
    "line": 3396,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/journal.rs",
-   "rust_item": "tail"
+   "rust_item": "tail",
+   "note": "Default limit 10, and a negative limit uses the same Python slice, including the full list when the limit is zero."
   },
   {
    "module": "cli.py",
    "name": "journal_path_cmd",
    "line": 3406,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/journal.rs",
-   "rust_item": "path"
+   "rust_item": "path",
+   "note": "Prints the journal file path and nothing else."
   },
   {
    "module": "cli.py",
@@ -3782,17 +3863,17 @@
    "module": "cli.py",
    "name": "_resolve",
    "line": 4834,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/approval_recipients.rs",
-   "rust_item": "resolve"
+   "status": "idiom",
+   "note": "Defined and never called; it lowercases, strips one trailing s, and raises BadParameter, which is not config.rs check_resource."
   },
   {
    "module": "cli.py",
    "name": "global_search_cmd",
    "line": 4845,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/misc.rs",
-   "rust_item": "search"
+   "rust_item": "search",
+   "note": "Session, API, and other failures reach fail_exc, so they exit with the collapsed message instead of a traceback."
   },
   {
    "module": "cli.py",
@@ -3862,42 +3943,46 @@
    "module": "cli_sr.py",
    "name": "_client",
    "line": 57,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "client"
+   "rust_item": "client",
+   "note": "Same missing-session exit 3 and the same session-versus-other split as the main client helper."
   },
   {
    "module": "cli_sr.py",
    "name": "_fail",
    "line": 63,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "fail"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/util.rs",
+   "rust_item": "fail",
+   "note": "Prints the escaped error line and exits with the caller's code; associations.rs fail only builds a value error."
   },
   {
    "module": "cli_sr.py",
    "name": "_guard",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
-   "rust_item": "guard"
+   "rust_item": "guard",
+   "note": "DIVERGENCE: a flow exit keeps its text and adds the error prefix only when the code is nonzero, session API and value errors are collapsed, and a FormError is collapsed too because it shares the value variant."
   },
   {
    "module": "cli_sr.py",
    "name": "_json",
    "line": 83,
-   "status": "matched",
-   "rust": "crates/fsv-core/src/client/transport.rs",
-   "rust_item": "json"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "print_json",
+   "note": "Dumps with indent 2 and ensure_ascii false; transport.rs json is the HTTP body encoder."
   },
   {
    "module": "cli_sr.py",
    "name": "catalog_cmd",
    "line": 95,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
    "rust_item": "catalog",
-   "note": "Tables, JSON shape, last-wins category names, sort key and the stderr footers all match."
+   "note": "Same category lookup, last duplicate name wins, and the same empty-catalog text."
   },
   {
    "module": "cli_sr.py",
@@ -3911,9 +3996,10 @@
    "module": "cli_sr.py",
    "name": "_attachment_rule",
    "line": 157,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
-   "rust_item": "attachment_rule"
+   "rust_item": "attachment_rule",
+   "note": "Same required, optional, and forbidden attachment wording from the item."
   },
   {
    "module": "cli_sr.py",
@@ -3977,10 +4063,10 @@
    "name": "_Requester",
    "line": 459,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
    "rust_item": "Requester",
-   "note": "Requester::sr (config defaults.sr_requester) with ask_sr (strip; empty -> FlowExit 2)."
+   "note": "The sr constructor reads defaults.sr_requester and otherwise matches the change requester."
   },
   {
    "module": "cli_sr.py",
@@ -3995,94 +4081,102 @@
    "name": "value",
    "class": "_Requester",
    "line": 470,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/formflow.rs",
-   "rust_item": "value"
+   "rust_item": "value",
+   "note": "Flag, draft, prompt, then defaults.sr_requester, with a falsy default treated as absent."
   },
   {
    "module": "cli_sr.py",
    "name": "ask",
    "class": "_Requester",
    "line": 476,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "ask"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
+   "rust_item": "ask_sr",
+   "note": "Strips the manager-routing prompt and exits 2 with no requester given when the answer is empty; create.rs ask is unrelated."
   },
   {
    "module": "cli_sr.py",
    "name": "resolve",
    "class": "_Requester",
    "line": 482,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/approval_recipients.rs",
-   "rust_item": "resolve"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
+   "rust_item": "resolve",
+   "note": "DIVERGENCE: a ValueError becomes the problem string, and any other lookup failure exits with that message instead of a traceback."
   },
   {
    "module": "cli_sr.py",
    "name": "_print_plan",
    "line": 497,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
-   "rust_item": "sr_print_plan"
+   "rust_item": "sr_print_plan",
+   "note": "JSON or the review plus the safety warning and the place-request path."
   },
   {
    "module": "cli_sr.py",
    "name": "_confirm",
    "line": 514,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/cmd/review.rs",
-   "rust_item": "confirm"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "sr_confirm",
+   "note": "Escapes blocking messages, aborts the editor the same way, and a save exits 0 after the saved line; review.rs confirm is the generic yes/no prompt."
   },
   {
    "module": "cli_sr.py",
    "name": "_send",
    "line": 558,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "send"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "sr_send",
+   "note": "Exit 4 when recipient identities change, the same freshen text, and the confirm reads Place the updated request?; approvals.rs send is a different call."
   },
   {
    "module": "cli_sr.py",
    "name": "create_command",
    "line": 600,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
    "rust_item": "sr_create",
-   "note": "Mode checks are in sr::create. Fixed: the --cc exact-email check used to_lowercase; Python uses casefold (the email regex admits non-ASCII). Now same_email -> pystr::casefold; test cc_exact_match_casefolds_like_python."
+   "note": "Same nothing-to-request, requested-for, cc, and edit-needs-a-terminal exits, then the review and expect-plan send."
   },
   {
    "module": "cli_sr.py",
    "name": "create_cmd",
    "line": 768,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
    "rust_item": "create",
-   "note": "clap handler: as_json = output == json, raw --no-input, errors through guard/report (FlowExit printing matches _guard)."
+   "note": "Applies the tty and --no-input choice, then runs create through the service-request guard."
   },
   {
    "module": "cli_sr.py",
    "name": "_attachment_rows",
    "line": 798,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
-   "rust_item": "attachment_rows"
+   "rust_item": "attachment_rows",
+   "note": "Keeps blank values, including 0, and formats a size only for an int, so a bool prints as 1 or 0."
   },
   {
    "module": "cli_sr.py",
    "name": "_download",
    "line": 837,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/downloads.rs",
-   "rust_item": "download"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "download_one",
+   "note": "A download path that starts with a dash is a bad parameter; downloads.rs download is the HTTP helper."
   },
   {
    "module": "cli_sr.py",
    "name": "get_cmd",
    "line": 870,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/sr.rs",
    "rust_item": "get",
-   "note": "Fixed: 'Saved to DIR' now uses print_soft (Python soft_wrap=True) instead of a wrapping print; test read_cmds::sr_get_download_long_dir_not_wrapped."
+   "note": "Same field layout, thousands separators, and the attachment size rule that treats a bool as an int."
   },
   {
    "module": "client.py",
@@ -6178,97 +6272,109 @@
    "module": "form_cli.py",
    "name": "_client",
    "line": 43,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/util.rs",
-   "rust_item": "client"
+   "rust_item": "client",
+   "note": "Same missing-session exit 3 and the same session-versus-other split."
   },
   {
    "module": "form_cli.py",
    "name": "_fail",
    "line": 49,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "fail"
+   "status": "reviewed",
+   "rust": "crates/fsv-cli/src/cmd/form.rs",
+   "rust_item": "form_fail",
+   "note": "Escapes the message and exits 2; every direct caller uses that default, and associations.rs fail does not print."
   },
   {
    "module": "form_cli.py",
    "name": "_module",
    "line": 54,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "module"
+   "rust_item": "module",
+   "note": "Resolves the module name and exits 2 with the escaped value error."
   },
   {
    "module": "form_cli.py",
    "name": "_guard",
    "line": 62,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "guard"
+   "rust_item": "guard",
+   "note": "Prints the escaped message with no whitespace collapse; form and value errors exit 2, and session and API errors use their stable codes."
   },
   {
    "module": "form_cli.py",
    "name": "_note_rules",
    "line": 71,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "note_rules"
+   "rust_item": "note_rules",
+   "note": "Prints the dim escaped rules note only when one is present."
   },
   {
    "module": "form_cli.py",
    "name": "_one_line",
    "line": 77,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "one_line"
+   "rust_item": "one_line",
+   "note": "Collapses whitespace and cuts at the limit with an ellipsis, defaulting to 100 characters."
   },
   {
    "module": "form_cli.py",
    "name": "explain",
    "line": 86,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "explain"
+   "rust_item": "explain",
+   "note": "DIVERGENCE: the visibility table matches, and a bad --id exits 1 with the message instead of a traceback."
   },
   {
    "module": "form_cli.py",
    "name": "fields",
    "line": 162,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "fields"
+   "rust_item": "fields",
+   "note": "Same columns, one-line truncation, and the upper-level-first error."
   },
   {
    "module": "form_cli.py",
    "name": "dump",
    "line": 230,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "dump"
+   "rust_item": "dump",
+   "note": "Snapshot version is 1 and taken_at uses the same local offset timestamp format."
   },
   {
    "module": "form_cli.py",
    "name": "_choice_labels",
    "line": 253,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "choice_labels"
+   "rust_item": "choice_labels",
+   "note": "Uses value, then label, then name, then id, and an empty value becomes the string None."
   },
   {
    "module": "form_cli.py",
    "name": "diff_snapshots",
    "line": 263,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "diff_snapshots"
+   "rust_item": "diff_snapshots",
+   "note": "Added and removed fields stay in snapshot order, changed names are sorted, and choices and rules use the same added, removed, and reordered text."
   },
   {
    "module": "form_cli.py",
    "name": "diff",
    "line": 306,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/form.rs",
-   "rust_item": "diff"
+   "rust_item": "diff",
+   "note": "Same snapshot read error, the not-a-snapshot message, no changes, and the signed lines."
   },
   {
    "module": "formmeta.py",
@@ -11525,17 +11631,19 @@
    "module": "integrated_assets_cli.py",
    "name": "finish",
    "line": 12,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/inventory.rs",
-   "rust_item": "finish"
+   "rust_item": "finish",
+   "note": "Dry-run prints JSON, read-only says no write was attempted, and a write needs --yes plus the full plan hash."
   },
   {
    "module": "integrated_assets_cli.py",
    "name": "guard",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/inventory.rs",
-   "rust_item": "guard"
+   "rust_item": "guard",
+   "note": "Value, reviewed-write, API, and session errors are echoed plain to stderr and exit 2."
   },
   {
    "module": "integrated_assets_cli.py",
@@ -13266,9 +13374,10 @@
    "name": "ReviewOutput",
    "line": 5,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/types.rs",
-   "rust_item": "ReviewOutput"
+   "rust_item": "ReviewOutput",
+   "note": "The only value is json."
   },
   {
    "module": "reviewed_inventory.py",
@@ -14587,18 +14696,19 @@
    "module": "ticket_cli.py",
    "name": "print_plan",
    "line": 16,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/tickets.rs",
-   "rust_item": "ticket_print_plan"
+   "rust_item": "ticket_print_plan",
+   "note": "JSON or the review, the POST payload, and the 16-character expect-plan line; a failed plan says there is no payload."
   },
   {
    "module": "ticket_cli.py",
    "name": "create_command",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/tickets.rs",
    "rust_item": "ticket_create",
-   "note": "Mode checks are in tickets::create. Attach transaction, confirm/--yes/--expect-plan gates, compact JSON output and the warning on stderr match."
+   "note": "Same --from, attach, cc, and edit-needs-a-terminal exits, then the dry-run, confirm, and expect-plan send, with created printed in green."
   },
   {
    "module": "ticket_conversation.py",
