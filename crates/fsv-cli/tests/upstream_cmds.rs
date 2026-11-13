@@ -15551,7 +15551,7 @@ fn changes_approval_remind_chains_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"approval-remind: no change reminder wire was captured on the approval chains model; use the web UI
+        r#"approval-remind is not available on the approval-chains model: the only reminder accepted on a chains tenant is the service-request one (`fsv sr approvals remind`, bodyless PUT tickets/<id>/approvals/<approval id>/resend). The same web constant would build changes/<id>/approvals/<approval id>/resend, but no change reminder was ever accepted (the legacy change capture was aborted unsent), so fsv does not guess it; nothing was sent. Use the web UI: change > Approvals > the approval row menu > Send reminder
 "#
     );
 }

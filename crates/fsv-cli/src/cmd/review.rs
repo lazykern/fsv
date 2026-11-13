@@ -331,15 +331,15 @@ fn legacy_request(c: &LazyApi, a: &ChangesApprovalRequestArgs) -> CmdResult {
     crate::cmd::reviewed::print_verified(&result)
 }
 
+const CHAINS_REMIND_GAP: &str = "approval-remind is not available on the approval-chains model: the only reminder accepted on a chains tenant is the service-request one (`fsv sr approvals remind`, bodyless PUT tickets/<id>/approvals/<approval id>/resend). The same web constant would build changes/<id>/approvals/<approval id>/resend, but no change reminder was ever accepted (the legacy change capture was aborted unsent), so fsv does not guess it; nothing was sent. Use the web UI: change > Approvals > the approval row menu > Send reminder";
+
 /// `changes approval-remind CHANGE_ID APPROVAL_ID` (legacy flat approvals).
 pub fn approval_remind(a: ChangesApprovalRemindArgs) -> CmdResult {
     let run = || -> CmdResult {
         let c = LazyApi::default();
         let cid = parse_id(&a.id_, &CHANGES)?;
         if approval_model(&c, cid, &a.model)? != LEGACY {
-            return Err(value(
-                "approval-remind: no change reminder wire was captured on the approval chains model; use the web UI",
-            ));
+            return Err(value(CHAINS_REMIND_GAP));
         }
         let plan = legacy_approvals::build_remind(&c, "changes", cid, a.approval_id)?;
         if a.dry_run {
