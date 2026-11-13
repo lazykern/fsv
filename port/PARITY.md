@@ -40,6 +40,10 @@ those stay identical.
 - Concurrent GETs (the parallel loads in `get`, `ls`, `tabs`) can be issued
   in a different order than Python issues them. Writes keep their order.
   `tests/differential.rs` compares GETs as a set.
+- YAML drafts resolve scalars like PyYAML's safe loader (non-specific `!`,
+  `0b`/`0x`/`0o`/leading-zero and base-60 ints, base-60 floats). Values a
+  JSON draft cannot hold (`.nan`, `.inf`, timestamps, `!!binary`, `!!set`)
+  are an error instead of a Python object.
 - A number filter proof (`filter_proof::number_matches`) compares finite
   ASCII decimals. Python's `Decimal` also reads non-ASCII digits, `_`
   separators, infinities and NaN; Rust treats those row values as

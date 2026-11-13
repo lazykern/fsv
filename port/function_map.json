@@ -37,7 +37,8 @@
    "name": "_MockCtx",
    "line": 95,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "Only carried ctx.params['kind'] into complete_lookup_query; Rust passes the --kind value as a plain `kind: &str` argument to complete_lookup_query in crates/fsv-completion/src/dynamic.rs."
   },
   {
    "module": "_complete.py",
@@ -4277,7 +4278,8 @@
    "module": "completion.py",
    "name": "_schema_path",
    "line": 66,
-   "status": "open"
+   "status": "idiom",
+   "note": "Dead code at 406ca71 (never called); a one-line wrapper over config.schema_cache_path, which Rust has as schema_cache_path in crates/fsv-core/src/config.rs. Completion reads schema_cache_candidates instead, as Python's _cached_fields does."
   },
   {
    "module": "completion.py",
@@ -4331,7 +4333,10 @@
    "module": "completion.py",
    "name": "_match",
    "line": 109,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-completion/src/dynamic.rs",
+   "rust_item": "matches",
+   "note": "casefold(text).startswith(casefold(incomplete)) via fsv_core::pystr::casefold (full Unicode case folding); tested in dynamic/units.rs match_casefolds_prefix_like_python."
   },
   {
    "module": "completion.py",
@@ -4593,26 +4598,34 @@
    "module": "completion_gen.py",
    "name": "_is_bool_annotation",
    "line": 69,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-completion/src/model.rs",
+   "rust_item": "is_boolean",
+   "note": "clap ArgAction (SetTrue/SetFalse/Count) stands in for bool / Optional[bool]; OptionHint.value_flag marks string annotations Python reads as non-boolean. Tested by is_boolean_follows_action_and_value_flag."
   },
   {
    "module": "completion_gen.py",
    "name": "_completer_name",
    "line": 78,
-   "status": "open"
+   "status": "idiom",
+   "note": "Python recovers the completer name from the autocompletion callable's __qualname__ at runtime; Rust records it statically as OptionHint.completer (crates/fsv-completion/src/model.rs), consumed by param_for."
   },
   {
    "module": "completion_gen.py",
    "name": "_resource_from_closure",
    "line": 90,
-   "status": "open"
+   "status": "idiom",
+   "note": "Python reads `res` from the factory closure's nonlocals; Rust records it statically as OptionHint.resource (crates/fsv-completion/src/model.rs), consumed by param_for (None -> '-' in the emitters)."
   },
   {
    "module": "completion_gen.py",
    "name": "_Param",
    "line": 102,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-completion/src/model.rs",
+   "rust_item": "Param",
+   "note": "flags + kind; Kind enum folds kind/completer/resource/static_values (Boolean | Static(values) | Dynamic{completer, resource, field} | Freeform)."
   },
   {
    "module": "completion_gen.py",
@@ -4627,7 +4640,10 @@
    "name": "_Command",
    "line": 120,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-completion/src/model.rs",
+   "rust_item": "Node",
+   "note": "Same fields: path, help, params, subcommands."
   },
   {
    "module": "completion_gen.py",
@@ -4689,13 +4705,17 @@
    "module": "completion_gen.py",
    "name": "_bash_escape",
    "line": 333,
-   "status": "open"
+   "status": "idiom",
+   "note": "Dead code at 406ca71: defined but never called by _emit_bash or anything else, so the generated bash script never escapes; Rust's emit_bash (crates/fsv-completion/src/emit.rs) likewise emits words unescaped."
   },
   {
    "module": "completion_gen.py",
    "name": "_collect_bash",
    "line": 337,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-completion/src/emit.rs",
+   "rust_item": "collect",
+   "note": "Pre-order walk keyed by ' '.join(path[1:]); subcommand/flag lists come from `completions` at emit time. sorted_cases uses a stable sort by descending word count like Python's sorted(key=-len). Tested by collect_and_completions_match_python_cases and the full-script golden tests."
   },
   {
    "module": "completion_gen.py",
@@ -4709,7 +4729,10 @@
    "module": "completion_gen.py",
    "name": "_collect_zsh",
    "line": 434,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-completion/src/emit.rs",
+   "rust_item": "collect",
+   "note": "Identical walk to _collect_bash; shared `collect` serves emit_zsh."
   },
   {
    "module": "completion_gen.py",
@@ -6171,7 +6194,10 @@
    "module": "formmeta.py",
    "name": "_email",
    "line": 559,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-api/src/formmeta.rs",
+   "rust_item": "email_of",
+   "note": "First of email/details/primary_email that is a string containing '@'."
   },
   {
    "module": "formmeta.py",
@@ -7302,14 +7328,20 @@
    "name": "_Skip",
    "line": 1349,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-forms/src/rules.rs",
+   "rust_item": "Skip",
+   "note": "Exception -> Err(Skip(msg)) in parse_group/parse_actions; caught per rule like Python's except _Skip."
   },
   {
    "module": "forms/rules.py",
    "name": "_State",
    "line": 1354,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-forms/src/rules.rs",
+   "rust_item": "State",
+   "note": "Same fields; reg dict -> [IndexMap;3] (visible/required/disabled) keeping first-touch order; touch() ported. vis/req are HashMaps but are only looked up, never iterated."
   },
   {
    "module": "forms/rules.py",
@@ -8077,7 +8109,10 @@
    "module": "forms/state.py",
    "name": "_offset",
    "line": 678,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-forms/src/pydt.rs",
+   "rust_item": "offset_text",
+   "note": "+-HH:MM with minutes floored (div_euclid, like total_seconds() // 60) for negative sub-minute offsets; DateTimeValue::offset_text delegates. Tested against Python in tz/py_tests.rs off_and_offset_match_python."
   },
   {
    "module": "forms/tz.py",
@@ -8107,7 +8142,10 @@
    "module": "forms/tz.py",
    "name": "_off",
    "line": 219,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-forms/src/pydt.rs",
+   "rust_item": "offset_text",
+   "note": "Same body as state._offset; one Rust fn serves both, tested by off_and_offset_match_python."
   },
   {
    "module": "forms/tz.py",
@@ -8328,7 +8366,10 @@
    "module": "formui/screens.py",
    "name": "review_text",
    "line": 28,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-formui/src/screen/review.rs",
+   "rust_item": "review_lines",
+   "note": "Re-renders Review.render (rule title, rows table, changes table with — / →, sections with styles, metadata, plan) at max(40, width) as styled ratatui lines instead of ANSI round-trip. Tested by review_text_keeps_the_cli_layout_and_the_cyan_labels."
   },
   {
    "module": "formui/screens.py",
@@ -9088,7 +9129,10 @@
    "module": "formui/session.py",
    "name": "_max_bytes",
    "line": 165,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-formui/src/files.rs",
+   "rust_item": "max_file_bytes",
+   "note": "FIXED: Rust dropped negative limits (returned None = no limit); Python keeps int(float(v)*1e6) even when negative, so every non-empty file is rejected. Now Option<i64> (FileRules.max_bytes and session fields too); test values computed with pinned Python."
   },
   {
    "module": "formui/session.py",
@@ -9440,7 +9484,10 @@
    "module": "formui/session.py",
    "name": "open_session",
    "line": 804,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-formui/src/backend.rs",
+   "rust_item": "FormKind",
+   "note": "FormKind::parse holds the kind aliases (change/changes, sr/service_request, ticket/tickets/incident) and the exact error text; fsv-app's change_session/sr_session/ticket_session (crates/fsv-app/src/form.rs) are the dispatch targets. Tested by fsv-formui/tests/session.rs kind_aliases."
   },
   {
    "module": "formui/when.py",
@@ -9536,7 +9583,10 @@
    "module": "formui/when.py",
    "name": "_no_dst_doubt",
    "line": 208,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-forms/src/when.rs",
+   "rust_item": "to_text",
+   "note": "Inlined as `localize(l, tz).is_ok_and(|x| x.offset == v.offset)`. Same result as Python's fold-offset check plus _no_dst_doubt: when localize succeeds the wall time is unambiguous, so fold doesn't matter."
   },
   {
    "module": "formui/when.py",
@@ -12012,7 +12062,8 @@
    "name": "_LazyModule",
    "line": 33,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "Lazy-import shim for fsv.schema to cut startup time; Rust links schema code statically (fsv-views calls the schema helpers directly), so nothing replaces it."
   },
   {
    "module": "render.py",
@@ -12146,7 +12197,10 @@
    "module": "render.py",
    "name": "_requested_item_field_defs",
    "line": 242,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-views/src/render.rs",
+   "rust_item": "field_defs",
+   "note": "Field then nested_fields depth-first. Tested by render/coverage.rs requested_item_field_defs_depth_first and requested_item_rows_active_section_and_nested."
   },
   {
    "module": "render.py",
@@ -14301,13 +14355,19 @@
    "module": "tui/app.py",
    "name": "_resource_for_entity",
    "line": 56,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-tui/src/app.rs",
+   "rust_item": "resource_for",
+   "note": "Folds in the callers' `or TICKETS` fallback; the entity is always one of ENTITY_TABS, so Python's None case (which would raise AttributeError at its unguarded caller) can't happen."
   },
   {
    "module": "tui/app.py",
    "name": "_form_session",
    "line": 60,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-app/src/tui/forms.rs",
+   "rust_item": "session",
+   "note": "new -> change_session(New); edit -> record (loaded page record else row, built in fsv-tui app/forms.rs) minus _resource, target = display_id (if truthy) else id. Python's open_new_change/open_edit_change getattr fallback has no use because Rust formui always provides change_session."
   },
   {
    "module": "tui/app.py",
@@ -14321,7 +14381,10 @@
    "module": "tui/app.py",
    "name": "_markup",
    "line": 86,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-tui/src/format.rs",
+   "rust_item": "mv",
+   "note": "escape(str(value)), None/null -> ''. Tested by formatters_escape_markup."
   },
   {
    "module": "tui/app.py",
@@ -17042,7 +17105,10 @@
    "name": "_Loader",
    "line": 17,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/yaml.rs",
+   "rust_item": "resolve_scalar",
+   "note": "Plain-scalar resolvers (null ~/null/Null/NULL/empty, bool true/false x3) ported. FIXED: explicit tags now follow PyYAML SafeConstructor: the non-specific '!' tag resolves like a plain scalar (even quoted); !!int accepts 0b/0x/0o/leading-0 octal and base-60 (1:30), signs, underscores; !!float accepts base-60 and signs. Pinned by explicit_tags_construct_like_python (expected values from pinned Python). Remaining inherent gap: !!float .nan/.inf, !!timestamp, !!binary, !!set can't be represented in serde_json::Value and error instead."
   },
   {
    "module": "yamlio.py",

@@ -378,7 +378,7 @@ pub struct SessionInit {
     pub requester_note: String,
     pub dry_run: bool,
     /// `forms.max_file_mb` in bytes (see [`crate::files::max_file_bytes`]).
-    pub max_file_bytes: Option<u64>,
+    pub max_file_bytes: Option<i64>,
     /// `None`: the process environment.
     pub tz_env: Option<TzEnv>,
     /// Where `~` and relative paths (files, drafts) point.
@@ -411,7 +411,7 @@ pub struct FormSession {
     pub load_notes: Vec<String>,
     pub paths: Paths,
     existing: Values,
-    max_file_bytes: Option<u64>,
+    max_file_bytes: Option<i64>,
     desc_prefill: String,
     desc_md: Option<String>,
     by_key: HashMap<String, usize>,

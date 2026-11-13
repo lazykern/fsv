@@ -105,7 +105,7 @@ fn split_raw(raw: &Value) -> Vec<String> {
 pub struct FileRules<'a> {
     pub allowed: &'a [String],
     pub max_files: Option<i64>,
-    pub max_bytes: Option<u64>,
+    pub max_bytes: Option<i64>,
 }
 
 /// Paths from `a.pdf; b.png` (or a list) -> (absolute paths, error).
@@ -158,7 +158,7 @@ pub fn check_files(raw: &Value, rules: &FileRules<'_>, where_: &Paths) -> (Vec<S
             return (strs, format!("{name}: the file is empty"));
         }
         if let Some(max) = rules.max_bytes
-            && size > max
+            && i128::from(size) > i128::from(max)
         {
             return (
                 strs,
@@ -210,8 +210,9 @@ pub fn human_size(n: u64) -> String {
     unreachable!("GB is the last unit")
 }
 
-/// `_max_bytes`: `forms.max_file_mb` from the config, in bytes.
-pub fn max_file_bytes(config: &Map<String, Json>) -> Option<u64> {
+/// `_max_bytes`: `forms.max_file_mb` from the config, in bytes. A negative
+/// limit is kept, so every non-empty file is over it.
+pub fn max_file_bytes(config: &Map<String, Json>) -> Option<i64> {
     let v = config.get("forms")?.get("max_file_mb")?;
     let mb = match v {
         Json::Number(n) => n.as_f64()?,
@@ -220,7 +221,7 @@ pub fn max_file_bytes(config: &Map<String, Json>) -> Option<u64> {
         _ => return None,
     };
     let bytes = (mb * 1_000_000.0).trunc();
-    (bytes.is_finite() && bytes >= 0.0).then_some(bytes as u64)
+    bytes.is_finite().then_some(bytes as i64)
 }
 
 /// Complete the last path of `a.pdf; b.pn` from the file system: the
@@ -410,6 +411,37 @@ mod tests {
             serde_json::from_str(r#"{"forms": {"max_file_mb": "lots"}}"#).expect("json");
         assert_eq!(max_file_bytes(&cfg), None);
         assert_eq!(max_file_bytes(&Map::new()), None);
+        // `_max_bytes()` with each `max_file_mb` in the config.
+        for (raw, want) in [
+            (r#""-1""#, Some(-1_000_000)),
+            ("-0.0000001", Some(0)),
+            (r#""0""#, Some(0)),
+            ("true", Some(1_000_000)),
+            (r#"" 2.5 ""#, Some(2_500_000)),
+            (r#""nan""#, None),
+            ("[1]", None),
+            ("1.9999999", Some(1_999_999)),
+        ] {
+            let cfg: Map<String, Json> =
+                serde_json::from_str(&format!(r#"{{"forms": {{"max_file_mb": {raw}}}}}"#))
+                    .expect("json");
+            assert_eq!(max_file_bytes(&cfg), want, "{raw}");
+        }
+    }
+
+    #[test]
+    fn negative_size_limit_rejects_every_file() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let one = dir.path().join("one.txt");
+        std::fs::write(&one, b"x").expect("write");
+        let rules = FileRules {
+            max_bytes: Some(-1_000_000),
+            ..Default::default()
+        };
+        assert_eq!(
+            check(&s(&one.to_string_lossy()), &rules).1,
+            "one.txt: 0.0 MB is over the -1 MB limit"
+        );
     }
 
     #[test]

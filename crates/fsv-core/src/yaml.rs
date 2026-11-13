@@ -52,12 +52,65 @@ fn tag_text(tag: &Tag) -> String {
     }
 }
 
+/// `(sign, digits)` with `_` dropped and a leading `+`/`-` taken off.
+fn signed(text: &str) -> (i64, String) {
+    let v = text.replace('_', "");
+    match v.strip_prefix('-') {
+        Some(rest) => (-1, rest.to_string()),
+        None => (1, v.strip_prefix('+').unwrap_or(&v).to_string()),
+    }
+}
+
+/// `SafeConstructor.construct_yaml_int`: `0b`/`0x`/leading-`0` octal and
+/// base-60 `1:30` forms.
+fn construct_int(text: &str) -> Option<i64> {
+    let (sign, v) = signed(text);
+    let n = if v == "0" {
+        0
+    } else if let Some(b) = v.strip_prefix("0b") {
+        i64::from_str_radix(b, 2).ok()?
+    } else if let Some(h) = v.strip_prefix("0x") {
+        i64::from_str_radix(h, 16).ok()?
+    } else if v.starts_with('0') {
+        let o = v
+            .strip_prefix("0o")
+            .or_else(|| v.strip_prefix("0O"))
+            .unwrap_or(&v);
+        i64::from_str_radix(o, 8).ok()?
+    } else if v.contains(':') {
+        v.split(':').try_fold(0i64, |acc, part| {
+            acc.checked_mul(60)?.checked_add(part.parse::<i64>().ok()?)
+        })?
+    } else {
+        v.parse::<i64>().ok()?
+    };
+    n.checked_mul(sign)
+}
+
+/// `SafeConstructor.construct_yaml_float`, including base-60 `1:30.5`.
+fn construct_float(text: &str) -> Option<f64> {
+    let (sign, v) = signed(&text.to_lowercase());
+    let f = match v.as_str() {
+        ".inf" => f64::INFINITY,
+        ".nan" => return Some(f64::NAN),
+        s if s.contains(':') => s.split(':').try_fold(0.0, |acc, part| {
+            part.parse::<f64>().ok().map(|d| acc * 60.0 + d)
+        })?,
+        s => s.parse::<f64>().ok()?,
+    };
+    Some(sign as f64 * f)
+}
+
 fn resolve_scalar(
     text: String,
     style: TScalarStyle,
     tag: &Option<Tag>,
 ) -> std::result::Result<Value, String> {
-    if let Some(t) = tag {
+    // the non-specific `!` tag resolves like a plain scalar, even when quoted
+    let non_specific = tag
+        .as_ref()
+        .is_some_and(|t| format!("{}{}", t.handle, t.suffix) == "!");
+    if let Some(t) = tag.as_ref().filter(|_| !non_specific) {
         return match tag_suffix(tag) {
             Some("str") => Ok(Value::String(text)),
             Some("null") => Ok(Value::Null),
@@ -66,32 +119,20 @@ fn resolve_scalar(
                 "false" | "no" | "off" => Ok(Value::Bool(false)),
                 _ => Err(format!("invalid boolean value {text:?}")),
             },
-            Some("int") => {
-                let cleaned = text.replace('_', "");
-                cleaned
-                    .parse::<i64>()
-                    .map(Value::from)
-                    .map_err(|_| format!("invalid int value {text:?}"))
-            }
-            Some("float") => {
-                let cleaned = text.replace('_', "").to_lowercase();
-                let f = match cleaned.as_str() {
-                    ".inf" | "+.inf" => Some(f64::INFINITY),
-                    "-.inf" => Some(f64::NEG_INFINITY),
-                    ".nan" => Some(f64::NAN),
-                    s => s.parse::<f64>().ok(),
-                };
-                f.and_then(serde_json::Number::from_f64)
-                    .map(Value::Number)
-                    .ok_or_else(|| format!("invalid float value {text:?}"))
-            }
+            Some("int") => construct_int(&text)
+                .map(Value::from)
+                .ok_or_else(|| format!("invalid int value {text:?}")),
+            Some("float") => construct_float(&text)
+                .and_then(serde_json::Number::from_f64)
+                .map(Value::Number)
+                .ok_or_else(|| format!("invalid float value {text:?}")),
             _ => Err(format!(
                 "could not determine a constructor for the tag '{}'",
                 tag_text(t)
             )),
         };
     }
-    if matches!(style, TScalarStyle::Plain) {
+    if non_specific || matches!(style, TScalarStyle::Plain) {
         if NULL_RE.is_match(&text) {
             return Ok(Value::Null);
         }
@@ -333,6 +374,33 @@ mod tests {
                 json!({"a": {"False": "x", "None": "y"}}),
             ),
             ("true: 1\nTrue: 2\n\"True\": 3", json!({"True": "3"})),
+        ] {
+            assert_eq!(loads(text).unwrap(), want, "{text:?}");
+        }
+    }
+
+    /// `yamlio.loads` on explicitly tagged scalars (PyYAML `SafeConstructor`).
+    #[test]
+    fn explicit_tags_construct_like_python() {
+        for (text, want) in [
+            ("a: ! true", json!({"a": true})),
+            ("a: ! 'null'", json!({"a": null})),
+            ("a: ! x", json!({"a": "x"})),
+            ("a: !!str 5", json!({"a": "5"})),
+            ("a: !!int 0x1F", json!({"a": 31})),
+            ("a: !!int -0b101", json!({"a": -5})),
+            ("a: !!int 017", json!({"a": 15})),
+            ("a: !!int 0o17", json!({"a": 15})),
+            ("a: !!int 0", json!({"a": 0})),
+            ("a: !!int 1_000", json!({"a": 1000})),
+            ("a: !!int +5", json!({"a": 5})),
+            ("a: !!int -1:30", json!({"a": -90})),
+            ("a: !!float 1e3", json!({"a": 1000.0})),
+            ("a: !!float 1", json!({"a": 1.0})),
+            ("a: !!float 1:30", json!({"a": 90.0})),
+            ("a: !!float -1:30.5", json!({"a": -90.5})),
+            ("a: !!bool yes", json!({"a": true})),
+            ("a: !!null x", json!({"a": null})),
         ] {
             assert_eq!(loads(text).unwrap(), want, "{text:?}");
         }
