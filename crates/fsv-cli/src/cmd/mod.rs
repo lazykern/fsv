@@ -18,6 +18,7 @@ pub mod resource;
 pub mod review;
 pub mod reviewed;
 pub mod sr;
+pub mod ticket_links;
 pub mod tickets;
 
 use clap::{ArgMatches, FromArgMatches};
@@ -85,6 +86,12 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
 
 fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdResult {
     if let Some(r) = inventory::dispatch(res.name, sub, m) {
+        return r;
+    }
+    // batch links: tickets problems|changes|children list|candidates|link|unlink
+    if res.name == "tickets"
+        && let Some(r) = ticket_links::dispatch(sub, m)
+    {
         return r;
     }
     match sub {

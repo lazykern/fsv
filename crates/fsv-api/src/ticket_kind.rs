@@ -187,7 +187,7 @@ mod tests {
     }
 
     fn prefixes(custom: &[(&str, &str)]) -> Vec<(String, String)> {
-        let mut out: Vec<(String, String)> = [
+        [
             ("INC", "incident"),
             ("SR", "service request"),
             ("CHN", "change"),
@@ -196,8 +196,7 @@ mod tests {
         .iter()
         .chain(custom)
         .map(|(p, k)| (p.to_string(), k.to_string()))
-        .collect();
-        out
+        .collect()
     }
 
     fn kind_of(record: &Value, custom: &[(&str, &str)]) -> Option<String> {

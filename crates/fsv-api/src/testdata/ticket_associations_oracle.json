@@ -1,0 +1,457 @@
+{
+ "list_problem_empty": {
+  "ticket_id": 41,
+  "problems": [],
+  "complete": true
+ },
+ "problem_link": {
+  "review": {
+   "action": "ticket_link_problem",
+   "method": "PUT",
+   "path": "/api/_/tickets/41/problems/7",
+   "payload": {
+    "type": "link"
+   },
+   "plan_hash": "32d357dbb1bc856142713758d0560be5be5ca0ea8a1363a60af89c9a031c3465",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "problem",
+   "item_id": 7
+  },
+  "hash": "32d357dbb1bc856142713758d0560be5be5ca0ea8a1363a60af89c9a031c3465",
+  "context": "246627c3821221c3b9f5eea1048087f4ff51de33b969eeb57a20382046b23d5f"
+ },
+ "problem_link_sent": {
+  "status": "submitted",
+  "plan_hash": "32d357dbb1bc856142713758d0560be5be5ca0ea8a1363a60af89c9a031c3465",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 7,
+  "kind": "problem",
+  "linked": true
+ },
+ "list_problem": {
+  "ticket_id": 41,
+  "problems": [
+   {
+    "id": 7,
+    "human_display_id": "PRB-7"
+   }
+  ],
+  "complete": true
+ },
+ "problem_unlink": {
+  "review": {
+   "action": "ticket_unlink_problem",
+   "method": "PUT",
+   "path": "/api/_/tickets/41/problems/7",
+   "payload": {
+    "type": "unlink"
+   },
+   "plan_hash": "f4819958dc5115fe4ed1c6a3beb47696269da522255a434e21a3311d529b7d18",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "problem",
+   "item_id": 7
+  },
+  "hash": "f4819958dc5115fe4ed1c6a3beb47696269da522255a434e21a3311d529b7d18",
+  "context": "e6fcfbbbdb6862d227542825c17228cfca9b9b50051a63dc86bccf1f5da0b404"
+ },
+ "problem_unlink_sent": {
+  "status": "submitted",
+  "plan_hash": "f4819958dc5115fe4ed1c6a3beb47696269da522255a434e21a3311d529b7d18",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 7,
+  "kind": "problem",
+  "linked": false
+ },
+ "change_link_initiating": {
+  "review": {
+   "action": "ticket_link_change",
+   "method": "PUT",
+   "path": "/api/_/tickets/41/changes/associate",
+   "payload": {
+    "change_type": "change_cause",
+    "item_ids": [
+     9
+    ],
+    "type": "link"
+   },
+   "plan_hash": "15884744c77bded385afb95b6bae1a6b0a6473915b38d811bd482f4ab5cc7bb2",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "change",
+   "item_id": 9,
+   "change_type": "change_cause",
+   "meaning": "change initiating this ticket"
+  },
+  "hash": "15884744c77bded385afb95b6bae1a6b0a6473915b38d811bd482f4ab5cc7bb2",
+  "context": "7127e893d561edbe1f9d1d132b94dcb2516b8168068845876a4e1e336da85e58"
+ },
+ "change_link_initiating_sent": {
+  "status": "submitted",
+  "plan_hash": "15884744c77bded385afb95b6bae1a6b0a6473915b38d811bd482f4ab5cc7bb2",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 9,
+  "kind": "change",
+  "change_type": "change_cause",
+  "linked": true
+ },
+ "list_change_initiating": {
+  "ticket_id": 41,
+  "change_type": "change_cause",
+  "meaning": "change initiating this ticket",
+  "changes": [
+   {
+    "id": 9
+   }
+  ],
+  "complete": true
+ },
+ "change_unlink_initiating": {
+  "review": {
+   "action": "ticket_unlink_change",
+   "method": "PUT",
+   "path": "/api/_/tickets/41/changes/9",
+   "payload": {
+    "change_type": "change_cause",
+    "type": "unlink"
+   },
+   "plan_hash": "24d1fa70f21ae81b377e784c76cdee5d9edfb9eb9cc2ff48a9597b8f1f05acdd",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "change",
+   "item_id": 9,
+   "change_type": "change_cause",
+   "meaning": "change initiating this ticket"
+  },
+  "hash": "24d1fa70f21ae81b377e784c76cdee5d9edfb9eb9cc2ff48a9597b8f1f05acdd",
+  "context": "194479bc3735cf432fe0c33c2615d163ee200c0ac7dc448612d0f6f795497de7"
+ },
+ "change_unlink_initiating_sent": {
+  "status": "submitted",
+  "plan_hash": "24d1fa70f21ae81b377e784c76cdee5d9edfb9eb9cc2ff48a9597b8f1f05acdd",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 9,
+  "kind": "change",
+  "change_type": "change_cause",
+  "linked": false
+ },
+ "change_link_initiated-by": {
+  "review": {
+   "action": "ticket_link_change",
+   "method": "PUT",
+   "path": "/api/_/tickets/41/changes/associate",
+   "payload": {
+    "change_type": "change",
+    "item_ids": [
+     9
+    ],
+    "type": "link"
+   },
+   "plan_hash": "19b0dc52e99b550c821125b4795c77ae960a4891d8a0d91d460ea65c7aaaa5ff",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "change",
+   "item_id": 9,
+   "change_type": "change",
+   "meaning": "change initiated by this ticket"
+  },
+  "hash": "19b0dc52e99b550c821125b4795c77ae960a4891d8a0d91d460ea65c7aaaa5ff",
+  "context": "7127e893d561edbe1f9d1d132b94dcb2516b8168068845876a4e1e336da85e58"
+ },
+ "change_link_initiated-by_sent": {
+  "status": "submitted",
+  "plan_hash": "19b0dc52e99b550c821125b4795c77ae960a4891d8a0d91d460ea65c7aaaa5ff",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 9,
+  "kind": "change",
+  "change_type": "change",
+  "linked": true
+ },
+ "list_change_initiated-by": {
+  "ticket_id": 41,
+  "change_type": "change",
+  "meaning": "change initiated by this ticket",
+  "changes": [
+   {
+    "id": 9
+   }
+  ],
+  "complete": true
+ },
+ "change_unlink_initiated-by": {
+  "review": {
+   "action": "ticket_unlink_change",
+   "method": "PUT",
+   "path": "/api/_/tickets/41/changes/9",
+   "payload": {
+    "change_type": "change",
+    "type": "unlink"
+   },
+   "plan_hash": "9c1d0f559cedb81ef9eb993cde74d36e3a364e2decd2aea278bb2b58a4cef0b5",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "change",
+   "item_id": 9,
+   "change_type": "change",
+   "meaning": "change initiated by this ticket"
+  },
+  "hash": "9c1d0f559cedb81ef9eb993cde74d36e3a364e2decd2aea278bb2b58a4cef0b5",
+  "context": "194479bc3735cf432fe0c33c2615d163ee200c0ac7dc448612d0f6f795497de7"
+ },
+ "change_unlink_initiated-by_sent": {
+  "status": "submitted",
+  "plan_hash": "9c1d0f559cedb81ef9eb993cde74d36e3a364e2decd2aea278bb2b58a4cef0b5",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 9,
+  "kind": "change",
+  "change_type": "change",
+  "linked": false
+ },
+ "list_child_empty": {
+  "ticket_id": 41,
+  "hierarchy": "none",
+  "child_tickets": [],
+  "complete": true,
+  "note": "active children only (type=active)"
+ },
+ "child_link": {
+  "review": {
+   "action": "ticket_link_child",
+   "method": "POST",
+   "path": "/api/_/tickets/41/associate-child-tickets",
+   "payload": {
+    "ticket_ids": [
+     42
+    ]
+   },
+   "plan_hash": "5f816b48067b1095f18cdb2afe9eece01a139b1486b1d9abc22471e249596d49",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "child",
+   "item_id": 42
+  },
+  "hash": "5f816b48067b1095f18cdb2afe9eece01a139b1486b1d9abc22471e249596d49",
+  "context": "cd02bf16e4c8dda12604ac30b675ff85bf52c1791eaa5e1b2c677261667b2689"
+ },
+ "child_link_sent": {
+  "status": "submitted",
+  "plan_hash": "5f816b48067b1095f18cdb2afe9eece01a139b1486b1d9abc22471e249596d49",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 42,
+  "kind": "child",
+  "child_hierarchy": "child",
+  "linked": true
+ },
+ "list_child": {
+  "ticket_id": 41,
+  "hierarchy": "parent",
+  "child_tickets": [
+   {
+    "id": 42,
+    "deleted": false,
+    "spam": false
+   }
+  ],
+  "complete": true,
+  "note": "active children only (type=active)"
+ },
+ "child_unlink": {
+  "review": {
+   "action": "ticket_unlink_child",
+   "method": "DELETE",
+   "path": "/api/_/tickets/41/remove_child?ticket_id=42",
+   "payload": null,
+   "plan_hash": "3a244dd0c19f84b6c321b9b642706d4fd7c03562515982fcfb3fc069de2d985a",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+   "ticket_id": 41,
+   "kind": "child",
+   "item_id": 42
+  },
+  "hash": "3a244dd0c19f84b6c321b9b642706d4fd7c03562515982fcfb3fc069de2d985a",
+  "context": "e4b76e74e50ea8438e54b2b762e3104d390365deedb8f0e9f5c57ca7a0c253ea"
+ },
+ "child_unlink_sent": {
+  "status": "submitted",
+  "plan_hash": "3a244dd0c19f84b6c321b9b642706d4fd7c03562515982fcfb3fc069de2d985a",
+  "verified": true,
+  "ticket_id": 41,
+  "item_id": 42,
+  "kind": "child",
+  "child_hierarchy": "none",
+  "linked": false
+ },
+ "cand_child_search": {
+  "ticket_id": 41,
+  "kind": "child",
+  "search": "printer",
+  "candidates": [
+   {
+    "id": 42,
+    "subject": "Acme printer"
+   }
+  ],
+  "scope": "one picker page or search result; not a complete inventory",
+  "mutation": "none"
+ },
+ "cand_child": {
+  "ticket_id": 41,
+  "kind": "child",
+  "search": null,
+  "candidates": [
+   {
+    "id": 42,
+    "subject": "Acme printer"
+   },
+   {
+    "id": 44,
+    "subject": "Globex laptop"
+   }
+  ],
+  "scope": "one picker page or search result; not a complete inventory",
+  "mutation": "none"
+ },
+ "cand_problem_search": {
+  "ticket_id": 41,
+  "kind": "problem",
+  "search": "acme",
+  "candidates": [
+   {
+    "id": 7,
+    "subject": "Acme outage",
+    "status": 1
+   }
+  ],
+  "scope": "one picker page or search result; not a complete inventory",
+  "mutation": "none",
+  "note": "search is token based; records created in the last minute may not be indexed yet"
+ },
+ "cand_change": {
+  "ticket_id": 41,
+  "kind": "change",
+  "search": null,
+  "candidates": [
+   {
+    "id": 9,
+    "subject": "Globex patch"
+   }
+  ],
+  "scope": "one picker page or search result; not a complete inventory",
+  "mutation": "none"
+ },
+ "errors": {
+  "sr_problem": [
+   "ReviewedWriteError",
+   "problems associate with incidents only; this ticket is not a verified incident"
+  ],
+  "missing_problem": [
+   "ReviewedWriteError",
+   "problem 99 not found (HTTP 404); nothing was sent"
+  ],
+  "self_child": [
+   "ValueError",
+   "a ticket cannot be its own child"
+  ],
+  "bad_ctype": [
+   "ValueError",
+   "--kind must be initiating (change_cause) or initiated-by (change)"
+  ],
+  "problem_not_linked": [
+   "ReviewedWriteError",
+   "problem 7 is not associated with ticket 41; nothing was sent"
+  ],
+  "change_not_linked": [
+   "ReviewedWriteError",
+   "change 9 is not associated with ticket 41 as change initiating this ticket; nothing was sent"
+  ],
+  "child_not_linked": [
+   "ReviewedWriteError",
+   "child 42 is not associated with ticket 41; nothing was sent"
+  ]
+ },
+ "writes": [
+  [
+   "PUT",
+   "tickets/41/problems/7",
+   {
+    "type": "link"
+   },
+   {}
+  ],
+  [
+   "PUT",
+   "tickets/41/problems/7",
+   {
+    "type": "unlink"
+   },
+   {}
+  ],
+  [
+   "PUT",
+   "tickets/41/changes/associate",
+   {
+    "change_type": "change_cause",
+    "item_ids": [
+     9
+    ],
+    "type": "link"
+   },
+   {}
+  ],
+  [
+   "PUT",
+   "tickets/41/changes/9",
+   {
+    "change_type": "change_cause",
+    "type": "unlink"
+   },
+   {}
+  ],
+  [
+   "PUT",
+   "tickets/41/changes/associate",
+   {
+    "change_type": "change",
+    "item_ids": [
+     9
+    ],
+    "type": "link"
+   },
+   {}
+  ],
+  [
+   "PUT",
+   "tickets/41/changes/9",
+   {
+    "change_type": "change",
+    "type": "unlink"
+   },
+   {}
+  ],
+  [
+   "POST",
+   "tickets/41/associate-child-tickets",
+   {
+    "ticket_ids": [
+     42
+    ]
+   },
+   {}
+  ],
+  [
+   "DELETE",
+   "tickets/41/remove_child",
+   null,
+   {
+    "ticket_id": "42"
+   }
+  ]
+ ]
+}

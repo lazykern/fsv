@@ -132,3 +132,238 @@ fn caused_incident_proof_uses_configured_prefix() {
     assert_eq!(r.json()["path"], "/api/_/changes/123/tickets/associate");
     assert!(r.writes().is_empty());
 }
+
+/// Python output of the same commands on the `tenant` fake of
+/// tests/test_ticket_associations.py (domain acme.freshservice.com).
+fn golden(name: &str) -> Value {
+    let all: Value = serde_json::from_str(include_str!("golden/ticket_links_cli.json")).unwrap();
+    all[name].clone()
+}
+
+fn assert_golden(r: &common::Run, name: &str) {
+    let want = golden(name);
+    assert_eq!(
+        r.code,
+        want["code"].as_i64().unwrap() as i32,
+        "{name}: {}",
+        r.err
+    );
+    assert_eq!(r.out, want["stdout"].as_str().unwrap(), "{name}");
+    assert_eq!(r.err, want["stderr"].as_str().unwrap(), "{name}");
+}
+
+fn ticket(t: i64, kind: &str, prefix: &str) -> Value {
+    get(
+        &format!("tickets/{t}"),
+        json!({"ticket": {"id": t, "type": kind, "subject": format!("Acme {t}"),
+                          "human_display_id": format!("{prefix}-{t}")}}),
+    )
+}
+
+fn changes_list(ids: &[i64], once: bool) -> Value {
+    let rows: Vec<Value> = ids.iter().map(|i| json!({"id": i})).collect();
+    let mut r = get(
+        "tickets/41/changes",
+        json!({"changes": rows, "meta": {"has_next": false}}),
+    );
+    r["query"] = json!({"change_type": "change"});
+    r["once"] = json!(once);
+    r
+}
+
+/// The `tenant` routes before any write.
+fn ticket_routes() -> Vec<Value> {
+    let mut picker = get(
+        "tickets/41/changes",
+        json!({"changes": [{"id": 9, "subject": "Globex patch"}], "meta": {"has_next": false}}),
+    );
+    picker["query"] = json!({"filter": "list"});
+    let mut dashboard = common::route("GET", "/a/dashboard", 200, Value::Null);
+    dashboard["text"] =
+        json!(r#"<html><head><meta name="csrf-token" content="synthetic-token"></head></html>"#);
+    vec![
+        dashboard,
+        ticket(41, "Incident", "INC"),
+        ticket(43, "Service Request", "SR"),
+        get(
+            "problems/7",
+            json!({"problem": {"id": 7, "subject": "Acme outage"}}),
+        ),
+        get(
+            "changes/9",
+            json!({"change": {"id": 9, "subject": "Globex patch"}}),
+        ),
+        picker,
+        get(
+            "tickets/41/suggest_child_tickets",
+            json!({"tickets": [{"id": 42, "subject": "Acme printer"},
+                               {"id": 44, "subject": "Globex laptop"}]}),
+        ),
+        get(
+            "problems/search",
+            json!({"problems": [{"id": 7, "subject": "Acme outage", "status": 1}]}),
+        ),
+    ]
+}
+
+/// tests/test_ticket_associations.py::test_cli_candidates_review_gate_and_kind_required
+#[test]
+fn ticket_links_cli_candidates_review_gate_and_kind_required() {
+    let mut routes = ticket_routes();
+    routes.push(changes_list(&[], false));
+    let env = Env::new(routes);
+    let r = env.run(&[
+        "tickets",
+        "children",
+        "candidates",
+        "INC-41",
+        "--search",
+        "printer",
+    ]);
+    assert_golden(&r, "cand_child");
+    let ids: Vec<Value> = r.json()["candidates"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|x| x["id"].clone())
+        .collect();
+    assert_eq!(ids, [json!(42)]);
+    let r = env.run(&[
+        "tickets",
+        "problems",
+        "candidates",
+        "INC-41",
+        "--search",
+        "acme",
+    ]);
+    assert_eq!(r.json()["candidates"][0]["id"], 7);
+    let r = env.run(&[
+        "tickets",
+        "changes",
+        "candidates",
+        "INC-41",
+        "--kind",
+        "initiating",
+    ]);
+    assert_eq!(r.json()["candidates"][0]["id"], 9);
+    let r = env.run(&["tickets", "changes", "candidates", "INC-41"]);
+    assert_golden(&r, "cand_no_kind");
+    assert_golden(
+        &env.run(&["tickets", "changes", "link", "INC-41", "CHN-9", "--dry-run"]),
+        "no_kind",
+    );
+    assert_golden(
+        &env.run(&["tickets", "changes", "list", "INC-41"]),
+        "list_no_kind",
+    );
+    assert_golden(
+        &env.run(&[
+            "tickets",
+            "problems",
+            "link",
+            "INC-41",
+            "PRB-7",
+            "--kind",
+            "initiating",
+        ]),
+        "kind_on_problem",
+    );
+    let args = [
+        "tickets",
+        "changes",
+        "link",
+        "INC-41",
+        "CHN-9",
+        "--kind",
+        "initiated-by",
+    ];
+    let review = env.run(&[&args[..], &["--dry-run"]].concat());
+    assert_golden(&review, "dry");
+    let digest = review.json()["plan_hash"].as_str().unwrap().to_string();
+    let gate = env.run(&[&args[..], &["--yes"]].concat());
+    assert_golden(&gate, "gate");
+    assert!(gate.writes().is_empty());
+    let missing = env.run(&[
+        "tickets",
+        "problems",
+        "link",
+        "INC-41",
+        "PRB-77",
+        "--dry-run",
+    ]);
+    assert_golden(&missing, "missing");
+    assert_eq!(missing.err.trim().lines().count(), 1);
+
+    let mut routes = ticket_routes();
+    routes.extend([
+        changes_list(&[], true),
+        changes_list(&[], true),
+        changes_list(&[9], false),
+    ]);
+    routes.push(common::route(
+        "PUT",
+        "/api/_/tickets/41/changes/associate",
+        200,
+        json!({}),
+    ));
+    let done = Env::new(routes).run(&[&args[..], &["--yes", "--expect-plan", &digest]].concat());
+    assert_golden(&done, "send");
+    assert_eq!(
+        done.writes(),
+        [(
+            "PUT".to_string(),
+            "/api/_/tickets/41/changes/associate".to_string(),
+            json!({"change_type": "change", "item_ids": [9], "type": "link"}),
+        )]
+    );
+
+    let mut routes = ticket_routes();
+    routes.push(changes_list(&[9], false));
+    let listed = Env::new(routes).run(&[
+        "tickets",
+        "changes",
+        "list",
+        "INC-41",
+        "--kind",
+        "initiated-by",
+    ]);
+    assert_golden(&listed, "list");
+}
+
+#[test]
+fn ticket_links_cli_problem_link_refuses_service_request_and_read_failures() {
+    let mut routes = ticket_routes();
+    routes.push(common::route(
+        "GET",
+        "/api/_/tickets/41/problems",
+        403,
+        json!({}),
+    ));
+    let env = Env::new(routes);
+    let r = env.run(&["tickets", "problems", "link", "SR-43", "PRB-7", "--dry-run"]);
+    assert_eq!(r.code, 2);
+    assert_eq!(
+        r.err,
+        "problems associate with incidents only; this ticket is not a verified incident\n"
+    );
+    let r = env.run(&["tickets", "problems", "list", "INC-41"]);
+    assert_eq!(r.code, 2);
+    assert_eq!(
+        r.err,
+        "complete associated problems list unavailable; nothing was sent\n"
+    );
+    let r = env.run(&["tickets", "problems", "candidates", "INC-41"]);
+    assert_eq!(r.code, 2);
+    assert_eq!(r.err, "read failed (HTTP 403); nothing was sent\n");
+    let r = env.run(&[
+        "tickets",
+        "children",
+        "link",
+        "INC-41",
+        "INC-41",
+        "--dry-run",
+    ]);
+    assert_eq!(r.code, 2);
+    assert_eq!(r.err, "a ticket cannot be its own child\n");
+    assert!(r.writes().is_empty());
+}
