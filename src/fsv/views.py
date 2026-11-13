@@ -446,7 +446,7 @@ def choice_name(schema: Mapping[str, Any] | None, field_name: str, value: Any) -
             continue
         for ch in f.get("choices") or []:
             if str(ch.get("id")) == str(value) or str(ch.get("value")) == str(value):
-                return html.unescape(str(ch.get("value") or ch.get("name") or ch.get("label") or value))
+                return schema_mod.humanize_key(html.unescape(str(ch.get("value") or ch.get("name") or ch.get("label") or value)))
     return ""
 
 
@@ -461,8 +461,9 @@ def status_name(item: Mapping[str, Any], schema: Mapping[str, Any] | None) -> st
 
 def priority_name(item: Mapping[str, Any], schema: Mapping[str, Any] | None) -> str:
     v = item.get("priority")
+    # runtime choices first; the static platform labels only without them
     return (str(item.get("priority_name") or "") or choice_name(schema, "priority", v)
-            or schema_mod.PRIORITY.get(v, "") or ("" if v is None else str(v)))
+            or schema_mod.display_label("priority", v, dict(schema) if isinstance(schema, Mapping) else None, ""))
 
 
 def department_name(item: Mapping[str, Any], schema: Mapping[str, Any] | None) -> str:
@@ -1102,7 +1103,13 @@ def source_name(record: Mapping[str, Any], schema: Mapping[str, Any] | None) -> 
     v = record.get("source")
     if v in (None, ""):
         return ""
-    return choice_name(schema, "source", v) or SOURCES.get(v, str(v))
+    named = choice_name(schema, "source", v)
+    if named:
+        return named
+    # SOURCES is a fallback only for a form without source choices: with
+    # runtime choices an unknown (custom) source id is shown as the id.
+    has_choices = any(f.get("name") == "source" and f.get("choices") for f in (schema or {}).get("fields") or [])
+    return str(v) if has_choices else SOURCES.get(v, str(v))
 
 
 def status_badge(res: Resource, record: Mapping[str, Any], schema: Mapping[str, Any] | None) -> str:

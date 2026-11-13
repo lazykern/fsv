@@ -135,7 +135,7 @@ def list_rows(items: list[dict], resource: Resource, schema: dict[str, Any]) -> 
             "id": format_id(x, resource),
             "status": _resolve_status_name(x, sid, schema),
             "status_id": sid,
-            "priority": schema_mod.PRIORITY.get(x.get("priority") or 0, "-"),
+            "priority": schema_mod.display_label("priority", x.get("priority"), schema),
             "subject": x.get("subject") or "",
             "requester": ((x.get("requester") or {}).get("name") if isinstance(x.get("requester"), dict) else "") or "",
         }
@@ -178,7 +178,7 @@ def list_table(items: list[dict], resource: Resource, schema: dict[str, Any]) ->
         elif resource.name == "changes":
             row.append(schema_mod.choice_label("change_type", x.get("change_type"), schema) or "-")
         row += [
-            schema_mod.PRIORITY.get(x.get("priority") or 0, "-"),
+            schema_mod.display_label("priority", x.get("priority"), schema),
             x.get("subject") or "",
             ((x.get("requester") or {}).get("name") if isinstance(x.get("requester"), dict) else "-") or "-",
         ]
@@ -318,15 +318,15 @@ def detail_panel(item: dict, resource: Resource, schema: dict[str, Any]) -> None
         from fsv import state_flow as _state_flow
         _state_flow.render_state_diagram(item, console)
         console.print(f"type      {schema_mod.choice_label('change_type', item.get('change_type'), schema)}")
-        console.print(f"risk      {schema_mod.RISK.get(item.get('risk'), '-')}")
+        console.print(f"risk      {schema_mod.display_label('risk', item.get('risk'), schema)}")
     if resource.name == "tickets":
         console.print(f"type      {item.get('type', '-')}")
         dept = item.get("department") or {}
         if dept.get("name"):
             console.print(f"department {dept['name']}")
-    console.print(f"priority  {schema_mod.PRIORITY.get(item.get('priority'), '-')}")
+    console.print(f"priority  {schema_mod.display_label('priority', item.get('priority'), schema)}")
     if item.get("impact") is not None:
-        console.print(f"impact    {schema_mod.IMPACT.get(item.get('impact'), '-')}")
+        console.print(f"impact    {schema_mod.display_label('impact', item.get('impact'), schema)}")
     if item.get("planned_start_date") or item.get("planned_end_date"):
         console.print(f"planned   {fmt_dt(item.get('planned_start_date'))}  →  {fmt_dt(item.get('planned_end_date'))}")
     if item.get("created_at") or item.get("updated_at"):

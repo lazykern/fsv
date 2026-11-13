@@ -498,8 +498,8 @@ def resolve_status(item: dict, resource: Resource, schema: dict) -> str:
     )
 
 
-def resolve_priority(item: dict) -> str:
-    return schema_mod.PRIORITY.get(item.get("priority") or 0, "-")
+def resolve_priority(item: dict, schema: dict | None = None) -> str:
+    return schema_mod.display_label("priority", item.get("priority"), schema)
 
 
 def item_url(resource: Resource, item_id: int) -> str:

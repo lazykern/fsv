@@ -791,6 +791,7 @@ def _where_field(expr: str) -> str:
 
 
 def _choice_value(field: dict[str, Any], raw: str, type_: str) -> Any:
+    from fsv.schema import humanize_key
     choices = field.get("choices") or []
     if not choices:
         return int(raw) if raw.isdigit() else raw
@@ -798,7 +799,8 @@ def _choice_value(field: dict[str, Any], raw: str, type_: str) -> Any:
     for c in choices:
         if str(c.get("id") or "") == raw:
             return c.get("value", c.get("id")) if type_ == "custom_field" else c.get("id")
-        labels = (c.get("value"), c.get("name"), c.get("label"), c.get("requester_display_value"))
+        labels = (c.get("value"), c.get("name"), c.get("label"), c.get("requester_display_value"),
+                  humanize_key(c.get("value")))
         if any(str(x or "").casefold() == folded for x in labels):
             return c.get("value", c.get("id")) if type_ == "custom_field" else c.get("id", c.get("value", raw))
     shown = ", ".join(str(c.get("value") or c.get("name") or c.get("id")) for c in choices[:12])
@@ -2452,7 +2454,7 @@ def ticket_associations_resource(id_: str, format_: OutputFormat | str = "table"
             "id": str(item.get("human_display_id") or format_id(item, res_ref)),
             "subject": item.get("subject") or "-",
             "status": item.get("status_name") or str(item.get("status", "-")),
-            "priority": item.get("priority_name") or schema_mod.PRIORITY.get(item.get("priority") or 0, "-"),
+            "priority": item.get("priority_name") or schema_mod.display_label("priority", item.get("priority"), None),
         }
     flat_rows = [_flat(k, x) for k, items in payload.items() for x in items]
     if _emit_fmt(payload, flat_rows, format_, json_out):
@@ -2467,7 +2469,7 @@ def ticket_associations_resource(id_: str, format_: OutputFormat | str = "table"
         t.add_column("Status")
         t.add_column("Priority")
         for item in changes:
-            t.add_row(str(item.get("human_display_id") or format_id(item, CHANGES)), item.get("subject") or "-", item.get("status_name") or str(item.get("status", "-")), item.get("priority_name") or schema_mod.PRIORITY.get(item.get("priority") or 0, "-"))
+            t.add_row(str(item.get("human_display_id") or format_id(item, CHANGES)), item.get("subject") or "-", item.get("status_name") or str(item.get("status", "-")), item.get("priority_name") or schema_mod.display_label("priority", item.get("priority"), None))
         console.print(t)
     if change_causes:
         t = Table(title="Caused by changes")
@@ -2476,7 +2478,7 @@ def ticket_associations_resource(id_: str, format_: OutputFormat | str = "table"
         t.add_column("Status")
         t.add_column("Priority")
         for item in change_causes:
-            t.add_row(str(item.get("human_display_id") or format_id(item, CHANGES)), item.get("subject") or "-", item.get("status_name") or str(item.get("status", "-")), item.get("priority_name") or schema_mod.PRIORITY.get(item.get("priority") or 0, "-"))
+            t.add_row(str(item.get("human_display_id") or format_id(item, CHANGES)), item.get("subject") or "-", item.get("status_name") or str(item.get("status", "-")), item.get("priority_name") or schema_mod.display_label("priority", item.get("priority"), None))
         console.print(t)
     if problems:
         t = Table(title="Problems")

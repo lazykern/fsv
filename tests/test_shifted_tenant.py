@@ -234,3 +234,38 @@ def test_ticket_kind_comes_from_the_records_own_prefix_and_type(monkeypatch, tmp
     assert tk.ticket_kind({"display_id": 7, "type": "Service Request", "human_display_id": "INC-7"}) is None
     # a prefix that does not match the record's own number is not evidence
     assert tk.ticket_kind({"display_id": 8, "type": "Fault", "human_display_id": "IT-9"}) is None
+
+
+# --- display labels from runtime choices; static maps only as fallback ------
+
+SHIFTED_SCHEMA = {"fields": [
+    {"name": "priority", "choices": [{"id": 1, "value": "P4"}, {"id": 2, "value": "P3"}, {"id": 3, "value": "P2"},
+                                     {"id": 4, "value": "P1"}]},
+    {"name": "impact", "choices": [{"id": 1, "value": "Gering"}, {"id": 3, "value": "Hoch"}]},
+    {"name": "source", "label": "Source", "choices": [{"id": 2, "value": "portal_key"}, {"id": 20, "value": "Slack"},
+                                                      {"id": 5, "value": "feedback_widget_key"}]},
+    {"name": "status", "choices": copy.deepcopy(TICKET_STATUSES)}]}
+
+
+def test_priority_impact_labels_come_from_runtime_choices():
+    from fsv import render, schema, views
+    from fsv.resources import TICKETS
+    assert schema.display_label("priority", 4, SHIFTED_SCHEMA) == "P1"
+    assert schema.display_label("impact", 3, SHIFTED_SCHEMA) == "Hoch"
+    assert schema.display_label("impact", 2, SHIFTED_SCHEMA) == "2"  # never relabelled by the static map
+    assert schema.display_label("priority", 4, {"fields": []}) == "Urgent"  # documented fallback
+    assert views.priority_name({"priority": 4}, SHIFTED_SCHEMA) == "P1"
+    row = render.list_rows([{"id": 7, "display_id": 7, "human_display_id": "IT-7", "status": 4, "priority": 1,
+                             "subject": "Globex"}], TICKETS, SHIFTED_SCHEMA)[0]
+    assert row["priority"] == "P4" and row["id"] == "IT-7" and row["status"] == "Gelöst"
+
+
+def test_source_labels_translate_raw_i18n_keys_and_filter_by_them():
+    from fsv import query, views
+    assert views.source_name({"source": 2}, SHIFTED_SCHEMA) == "Portal"
+    assert views.source_name({"source": 5}, SHIFTED_SCHEMA) == "Feedback Widget"
+    assert views.source_name({"source": 20}, SHIFTED_SCHEMA) == "Slack"
+    assert views.source_name({"source": 11}, SHIFTED_SCHEMA) == "11"  # custom id: no static guess
+    source = SHIFTED_SCHEMA["fields"][2]
+    assert query._choice_value(source, "Portal", "default") == 2
+    assert query._choice_value(source, "portal_key", "default") == 2

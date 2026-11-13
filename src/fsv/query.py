@@ -137,6 +137,7 @@ def _resolve_group(c: Any, value: str) -> str:
 
 
 def _choice_value(field: dict[str, Any], raw: str, type_: str) -> Any:
+    from fsv.schema import humanize_key
     choices = field.get("choices") or []
     if not choices:
         return int(raw) if _isdigit(raw) else raw
@@ -144,7 +145,8 @@ def _choice_value(field: dict[str, Any], raw: str, type_: str) -> Any:
     for c in choices:
         if str(c.get("id") or "") == raw:
             return c.get("value", c.get("id")) if type_ == "custom_field" else c.get("id")
-        labels = (c.get("value"), c.get("name"), c.get("label"), c.get("requester_display_value"))
+        labels = (c.get("value"), c.get("name"), c.get("label"), c.get("requester_display_value"),
+                  humanize_key(c.get("value")))
         if any(str(x or "").casefold() == folded for x in labels):
             return c.get("value", c.get("id")) if type_ == "custom_field" else c.get("id", c.get("value", raw))
     shown = ", ".join(str(c.get("value") or c.get("name") or c.get("id")) for c in choices[:12])
@@ -337,12 +339,13 @@ def typed_condition(res_name: str, f: dict[str, Any], op: str, raw: str, explain
             raise ValueError(f"operator {op!r} not supported for multi-select {label!r}; use = or !=")
         if res_name not in ADVANCED_MODULES:
             raise ValueError("multi-select filters exist only in the tickets/changes advanced filter; nothing was sent")
+        from fsv.schema import humanize_key
         folded = raw.strip().casefold()
         found = []
         for ch in f.get("choices") or []:
             if not isinstance(ch, dict):
                 continue
-            labels = (ch.get("value"), ch.get("name"), ch.get("label"))
+            labels = (ch.get("value"), ch.get("name"), ch.get("label"), humanize_key(ch.get("value")))
             if str(ch.get("id")) == raw.strip() or any(str(x or "").strip().casefold() == folded for x in labels):
                 found.append(ch)
         ids = {_int_choice_id(ch.get("id")) for ch in found}

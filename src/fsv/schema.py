@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import json
 import math
 import sys
@@ -208,17 +210,49 @@ def field(name: str, schema: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
+_I18N_KEY = re.compile(r"[a-z][a-z0-9]*(?:_[a-z0-9]+)*_key")
+
+
+def humanize_key(text: Any) -> str:
+    """Some tenants' choice metadata carries untranslated i18n keys as labels
+    (``portal_key``, ``feedback_widget_key``). Show them as words (``Portal``,
+    ``Feedback Widget``); any other label is returned unchanged."""
+    s = "" if text is None else str(text)
+    if not _I18N_KEY.fullmatch(s):
+        return s
+    return " ".join(w.capitalize() for w in s[: -len("_key")].split("_"))
+
+
 def choice_label(field_name: str, val: Any, schema: dict[str, Any]) -> str:
     f = field(field_name, schema)
     if not f or val in (None, ""):
         return "" if val is None else str(val)
     for c in f.get("choices") or []:
         if c.get("id") == val or c.get("value") == val:
-            return c.get("value") or c.get("name") or str(val)
+            return humanize_key(c.get("value") or c.get("name") or str(val))
     return str(val)
 
 
-# Hardcoded defaults used as fallback (also unchanged across tenants for OOTB fields)
+# Static labels for the platform's default priority/impact/risk ids. These are
+# ONLY a documented fallback when no runtime schema is loaded (or the schema
+# has no choices for the field): tenants rename and re-label these choices,
+# so `display_label` always prefers the field's own runtime choices.
 PRIORITY = {1: "Low", 2: "Medium", 3: "High", 4: "Urgent"}
 IMPACT = {1: "Low", 2: "Medium", 3: "High"}
 RISK = {1: "Low", 2: "Medium", 3: "High", 4: "Very High"}
+STATIC_LABELS = {"priority": PRIORITY, "impact": IMPACT, "risk": RISK}
+
+
+def display_label(field_name: str, val: Any, schema: dict[str, Any] | None, default: str = "-") -> str:
+    """Label of a choice field value: the runtime schema's choices first, the
+    static platform map only when the schema has no choices for the field."""
+    if val in (None, ""):
+        return default
+    f = field(field_name, schema) if isinstance(schema, dict) and isinstance(schema.get("fields"), list) else None
+    choices = (f or {}).get("choices") or []
+    if choices:
+        for c in choices:
+            if isinstance(c, dict) and (str(c.get("id")) == str(val) or c.get("value") == val):
+                return humanize_key(c.get("value") or c.get("name") or c.get("label") or val)
+        return str(val)  # a runtime value the static map must not relabel
+    return STATIC_LABELS.get(field_name, {}).get(val, str(val))
