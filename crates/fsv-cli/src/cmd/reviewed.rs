@@ -982,6 +982,61 @@ pub fn problems_time_write(a: ProblemsTimeWriteArgs) -> CmdResult {
     })
 }
 
+/// Port of fsv.module_time_cli's `update`: `time write ID update --entry`
+/// without `--executed-at` or a billable flag.
+#[allow(clippy::too_many_arguments)]
+fn module_time_update(
+    module: &str,
+    id_: &str,
+    entry: i64,
+    spent: Option<&str>,
+    note: Option<&str>,
+    dry_run: bool,
+    yes: bool,
+    expect_plan: Option<&str>,
+) -> CmdResult {
+    module_time_write(ModuleTimeWrite {
+        module,
+        id_,
+        action: "update",
+        entry: Some(entry),
+        spent,
+        executed_at: None,
+        note,
+        billable: false,
+        non_billable: false,
+        dry_run,
+        yes,
+        expect_plan,
+    })
+}
+
+pub fn changes_time_update(a: ChangesTimeUpdateArgs) -> CmdResult {
+    module_time_update(
+        "changes",
+        &a.id_,
+        a.entry,
+        a.spent.as_deref(),
+        a.note.as_deref(),
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+pub fn problems_time_update(a: ProblemsTimeUpdateArgs) -> CmdResult {
+    module_time_update(
+        "problems",
+        &a.id_,
+        a.entry,
+        a.spent.as_deref(),
+        a.note.as_deref(),
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
 const TASK_SIDE_EFFECTS: &str =
     "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible.";
 

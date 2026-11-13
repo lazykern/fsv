@@ -19381,6 +19381,7 @@ fn problems_time_update_refused() {
             "75",
             "--note",
             "x",
+            "--billable",
             "--dry-run",
         ],
         None,
@@ -19389,7 +19390,7 @@ fn problems_time_update_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"problem time update has no captured accepted wire; only create/delete
+        r#"problem time update covers --spent and --note only; billable is not a captured update field
 "#
     );
 }

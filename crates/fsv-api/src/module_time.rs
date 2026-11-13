@@ -65,9 +65,13 @@ pub fn build_plan(
     if !matches!(action, "create" | "update" | "delete") {
         return Err(Error::value("unsupported time-entry action"));
     }
-    if !matches!(module, "changes" | "problems") || (module == "problems" && action == "update") {
+    if !matches!(module, "changes" | "problems") {
+        return Err(Error::value("unsupported time-entry module"));
+    }
+    if module == "problems" && action == "update" && args.billable.is_some() {
+        // The captured problem update sends only time_spent and note.
         return Err(Error::value(
-            "problem time update has no captured accepted wire; only create/delete",
+            "problem time update covers --spent and --note only; billable is not a captured update field",
         ));
     }
     let kind = if module == "changes" {
@@ -499,6 +503,54 @@ pub(crate) mod tests {
             }
             assert_eq!(json!(state.lock().unwrap().writes), want["writes"], "{key}");
         }
+    }
+
+    /// `test_self_time_crud_exact_wires[problems]`: the captured problem
+    /// update sends only time_spent and note; billable is refused.
+    #[test]
+    fn problem_time_update_sends_spent_and_note_only() {
+        let state = Arc::new(Mutex::new(world()));
+        let c = api(Arc::clone(&state));
+        let journal = MemJournal::default();
+        let p = build_plan(&c, "problems", "123", &create()).unwrap();
+        send(&p, &c, &journal, Some(&p.hash())).unwrap();
+        let err = build_plan(
+            &c,
+            "problems",
+            "123",
+            &TimeArgs {
+                action: "update",
+                entry_id: Some(456),
+                note: Some("x"),
+                billable: Some(false),
+                ..TimeArgs::default()
+            },
+        )
+        .unwrap_err();
+        assert!(matches!(err, Error::Value(_)) && err.to_string().contains("billable"));
+        let q = build_plan(
+            &c,
+            "problems",
+            "123",
+            &TimeArgs {
+                action: "update",
+                entry_id: Some(456),
+                spent: Some("00:30"),
+                note: Some("Acme edited"),
+                ..TimeArgs::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(
+            (q.method.as_str(), q.path.as_str(), q.payload()),
+            (
+                "PUT",
+                "problems/123/time_entries/456",
+                json!({"time_spent": "00:30", "note": "Acme edited"})
+            )
+        );
+        assert_eq!(send(&q, &c, &journal, Some(&q.hash())).unwrap()["verified"], true);
+        assert_eq!(state.lock().unwrap().entries[0]["time_spent"], "00:30");
     }
 
     #[test]
