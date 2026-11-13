@@ -30,12 +30,22 @@ fn compact(v: &Value) -> String {
     serde_json::to_string(v).unwrap()
 }
 
-const TASK_HASH: &str = "4006c935db19ef56dffb5214360286bf26ec442442ad0b5a7647cc9ec2a48cbc";
+const TASK_HASH: &str = "32a66139d15637d1734c5a41cfbf2ed6281f4c269c334b0aa3319d2b19703291";
 const LINK_HASH: &str = "e0106201862cb1f3c6b8a02df97718fa086c768edd9a6070c54534bfce138fea";
 const UNLINK_HASH: &str = "6c735e98775a076ee990b4dfe474d1404cb2df23c2e3c1a005e5349ca884e3d7";
 
 fn status_fields() -> Value {
-    json!({"change_task_fields": [{"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "In Progress"}, {"id": 3, "value": "Completed"}]}]})
+    json!({"change_task_fields": [
+        {"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "In Progress"}, {"id": 3, "value": "Completed"}]},
+        {"name": "notify_before", "choices": [
+            {"id": 0, "value": "Never"},
+            {"id": 900, "value": "15 Minutes"},
+            {"id": 1800, "value": "30 Minutes"},
+            {"id": 2700, "value": "45 Minutes"},
+            {"id": 3600, "value": "1 Hour"},
+            {"id": 7200, "value": "2 Hours"}
+        ]}
+    ]})
 }
 
 fn task_tenant() -> Tenant {
@@ -98,6 +108,7 @@ fn change_tasks_resolve_owner_group_and_status_then_post_once() {
         t.lines(),
         [
             "GET /search/autocomplete/agents?q=ann@example.com&qf=value",
+            "GET /api/_/change_task_fields?include_deleted_choices=true",
             "GET /api/_/bootstrap/agents_groups",
             "GET /api/_/change_task_fields?include_deleted_choices=true",
         ]
@@ -105,28 +116,29 @@ fn change_tasks_resolve_owner_group_and_status_then_post_once() {
 
     let out = b.send_change_task(&plan, false).unwrap();
     let calls = t.calls();
-    let sent: Vec<String> = calls[3..].iter().map(Call::line).collect();
+    let sent: Vec<String> = calls[4..].iter().map(Call::line).collect();
     assert_eq!(
         sent,
         [
+            "GET /api/_/change_task_fields?include_deleted_choices=true",
             "GET /api/_/changes/5/tasks?page=1&per_page=100",
             "POST /api/_/changes/5/tasks",
             "GET /api/_/changes/5/tasks?page=1&per_page=100",
         ]
     );
     assert_eq!(
-        calls[4].body.as_deref(),
+        calls[6].body.as_deref(),
         Some(
             r#"{"title": "Deploy", "status": 2, "notify_before": 3600, "description": "<div><p>n</p></div>", "group_id": 4, "planned_effort": "1h 30m", "owner_id": 11}"#
         )
     );
     assert_eq!(
         compact(&out),
-        r#"{"status":"submitted","change_id":5,"task_id":9,"verified":true,"identity_verified":true,"fields_verified":true,"verified_fields":["title","status","notify_before","description","group_id","planned_effort","owner_id"],"unverified_fields":[],"mismatched_fields":[],"readback":{"id":9,"title":"Deploy","owner_id":11,"group_id":4,"status":2,"notify_before":3600,"description":"<div><p>n</p></div>","planned_effort":"1h 30m"},"plan_hash":"4006c935db19ef56dffb5214360286bf26ec442442ad0b5a7647cc9ec2a48cbc"}"#
+        r#"{"status":"submitted","change_id":5,"task_id":9,"verified":true,"identity_verified":true,"fields_verified":true,"verified_fields":["title","status","notify_before","description","group_id","planned_effort","owner_id"],"unverified_fields":[],"mismatched_fields":[],"readback":{"id":9,"title":"Deploy","owner_id":11,"group_id":4,"status":2,"notify_before":3600,"description":"<div><p>n</p></div>","planned_effort":"1h 30m"},"plan_hash":"32a66139d15637d1734c5a41cfbf2ed6281f4c269c334b0aa3319d2b19703291"}"#
     );
     let again = b.send_change_task(&plan, false).unwrap_err();
     assert!(again.to_string().contains("do not resubmit"), "{again}");
-    assert_eq!(t.calls().len(), 6);
+    assert_eq!(t.calls().len(), 8);
 }
 
 #[test]
@@ -167,6 +179,53 @@ fn change_task_plans_validate_before_any_lookup() {
             false
         )
         .is_err()
+    );
+}
+
+#[test]
+fn omitted_task_options_use_the_first_runtime_choice() {
+    let t = tenant(move |c| match (c.method.as_str(), api(c)) {
+        ("GET", "change_task_fields") => ok(json!({"change_task_fields": [
+            {"name": "status", "choices": [{"id": 7, "value": "Todo"}, {"id": 8, "value": "Doing"}]},
+            {"name": "notify_before", "choices": [{"id": 0, "value": "None"}, {"id": 600, "value": "10 Min"}]}
+        ]})),
+        _ => None,
+    });
+    let b = backend(&t);
+    assert_eq!(
+        b.task_create_choices("status").unwrap(),
+        vec!["Todo", "Doing"]
+    );
+    assert_eq!(
+        b.task_create_choices("notify_before").unwrap(),
+        vec!["None", "10 Min"]
+    );
+    let plan = b.change_task_plan(&json!(5), "Deploy", None, &[]).unwrap();
+    assert_eq!(plan.review["status_label"], json!("Todo"));
+    assert_eq!(plan.review["reminder"], json!("None"));
+    assert_eq!(plan.review["payload"]["status"], json!(7));
+    assert_eq!(plan.review["payload"]["notify_before"], json!(0));
+    let picked = [
+        ("status".into(), "Doing".into()),
+        ("notify_before".into(), "10 Min".into()),
+    ];
+    let plan = b
+        .change_task_plan(&json!(5), "Deploy", None, &picked)
+        .unwrap();
+    assert_eq!(plan.review["payload"]["status"], json!(8));
+    assert_eq!(plan.review["payload"]["notify_before"], json!(600));
+    let err = b
+        .change_task_plan(
+            &json!(5),
+            "Deploy",
+            None,
+            &[("notify_before".into(), "Never".into())],
+        )
+        .unwrap_err()
+        .to_string();
+    assert!(
+        err.contains("notify before must be one of the runtime choices: None, 10 Min"),
+        "{err}"
     );
 }
 

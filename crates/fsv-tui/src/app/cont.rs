@@ -110,22 +110,7 @@ impl App {
                     "review" => self.prepare_change_task(item, title, owner, values),
                     "clear" => self.change_task_options(item, title, owner, Vec::new()),
                     "status" | "notify_before" => {
-                        let (labels, t) = if key == "status" {
-                            (TASK_STATUS_LABELS, "Task status")
-                        } else {
-                            (TASK_NOTIFY_BEFORE, "Notify Before")
-                        };
-                        let choices = labels.iter().map(|l| (json!(l), l.to_string())).collect();
-                        self.push(
-                            Modal::choices(t, choices),
-                            Cont::TaskOptionValue {
-                                item,
-                                title,
-                                owner,
-                                values,
-                                key,
-                            },
-                        );
+                        self.load_task_create_choices(item, title, owner, values, key);
                     }
                     _ => {
                         let label = TASK_FIELDS

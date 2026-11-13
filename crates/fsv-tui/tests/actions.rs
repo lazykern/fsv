@@ -311,7 +311,7 @@ fn add_task(a: &mut App) {
     a.press("enter");
     let s = screen(a);
     assert!(
-        s.contains("Task optional fields — defaults Open / Never"),
+        s.contains("defaults: the form's first status"),
         "{s}"
     );
     a.press("enter");

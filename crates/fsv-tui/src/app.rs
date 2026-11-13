@@ -24,8 +24,7 @@ use serde_json::{Map, Value, json};
 use crate::actions;
 use crate::backend::{
     Backend, DetailPage, Failure, FormExit, FormRequest, FormSend, FormView, Item, ListRequest,
-    Missing, Pages, Res, ReviewPlan, SearchResult, TASK_NOTIFY_BEFORE, TASK_STATUS_LABELS, TabData,
-    View,
+    Missing, Pages, Res, ReviewPlan, SearchResult, TabData, View,
 };
 use crate::filter::{self, FilterState, Lookup, LookupRequest, Source};
 use crate::format::{self, clip, cut, resolve_priority, resolve_status};

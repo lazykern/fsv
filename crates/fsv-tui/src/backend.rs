@@ -429,6 +429,11 @@ pub trait Backend: Send + Sync {
         owner: Option<&str>,
         options: &[(String, String)],
     ) -> BResult<ReviewPlan>;
+    /// `_change_task_choices`: runtime status or reminder labels.
+    /// `key` is `status` or `notify_before`.
+    fn task_create_choices(&self, _key: &str) -> BResult<Vec<String>> {
+        Err(Failure::unavailable("task choices"))
+    }
     fn send_change_task(&self, plan: &ReviewPlan, read_only: bool) -> BResult<Value>;
     fn search_change_tickets(&self, query: &str) -> BResult<Vec<Value>>;
     /// `actions.download_choices` → `(rows, warnings)`.
@@ -728,6 +733,9 @@ impl<B: Backend> Backend for ReadOnly<B> {
         options: &[(String, String)],
     ) -> BResult<ReviewPlan> {
         self.0.change_task_plan(change_id, title, owner, options)
+    }
+    fn task_create_choices(&self, key: &str) -> BResult<Vec<String>> {
+        self.0.task_create_choices(key)
     }
     fn send_change_task(&self, _plan: &ReviewPlan, _read_only: bool) -> BResult<Value> {
         Err(Failure::read_only("change tasks"))

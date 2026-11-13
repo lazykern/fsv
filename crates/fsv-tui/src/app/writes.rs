@@ -452,6 +452,46 @@ impl App {
         self.confirm_action("download".into(), item, target, body);
     }
 
+    /// `_change_task_choices`: exclusive `task-create-choices` worker.
+    pub(super) fn load_task_create_choices(
+        &mut self,
+        item: Item,
+        title: String,
+        owner: Option<String>,
+        options: Vec<(String, String)>,
+        key: String,
+    ) {
+        if self.read_only {
+            return;
+        }
+        let screen = if key == "status" {
+            "Task status"
+        } else {
+            "Notify Before"
+        };
+        self.spawn_group("task-create-choices", true, move |b| {
+            match b.task_create_choices(&key) {
+                Ok(labels) => {
+                    let choices = labels
+                        .into_iter()
+                        .map(|label| (Value::String(label.clone()), label))
+                        .collect();
+                    Msg::Ui(vec![Ui::Push(
+                        Box::new(Modal::choices(screen, choices)),
+                        Cont::TaskOptionValue {
+                            item,
+                            title,
+                            owner,
+                            values: options,
+                            key,
+                        },
+                    )])
+                }
+                Err(e) => Msg::Ui(vec![Ui::Failure(actions::failure_detail(&e))]),
+            }
+        });
+    }
+
     pub(super) fn change_task_options(
         &mut self,
         item: Item,
@@ -473,7 +513,7 @@ impl App {
         choices.push((json!("clear"), "Clear optional fields".into()));
         self.push(
             Modal::choices(
-                "Task optional fields — defaults Open / Never; others omitted",
+                "Task optional fields — defaults: the form's first status / reminder; others omitted",
                 choices,
             ),
             Cont::TaskOptions {

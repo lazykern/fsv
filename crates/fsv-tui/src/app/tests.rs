@@ -8,7 +8,7 @@ use fsv_core::Error;
 use fsv_core::resource::Resource;
 
 use super::*;
-use crate::backend::{BResult, Failure, TabInfo};
+use crate::backend::{BResult, Failure, TASK_NOTIFY_BEFORE, TASK_STATUS_LABELS, TabInfo};
 use crate::modals::{ConfirmModal, FailureModal, ModalResult};
 
 /// `views.list_meta({"meta": {"total_count": 3}}, 3 items, 1, 100)` is
@@ -33,6 +33,10 @@ struct Mock {
     search_rows: usize,
     task_result: Option<Value>,
     open_ok: bool,
+    /// Empty means the platform stand-in (`TASK_STATUS_LABELS`).
+    status_labels: Vec<String>,
+    /// Empty means the platform stand-in (`TASK_NOTIFY_BEFORE`).
+    notify_labels: Vec<String>,
 }
 
 impl Mock {
@@ -260,6 +264,24 @@ impl Backend for Mock {
         ));
         self.fail("task-plan")?;
         Ok(plan(json!({"title": title})))
+    }
+    fn task_create_choices(&self, key: &str) -> BResult<Vec<String>> {
+        self.log(format!("task-choices {key}"));
+        self.fail("task-choices")?;
+        let custom = if key == "status" {
+            &self.status_labels
+        } else {
+            &self.notify_labels
+        };
+        if !custom.is_empty() {
+            return Ok(custom.clone());
+        }
+        let labels: &[&str] = if key == "status" {
+            TASK_STATUS_LABELS
+        } else {
+            TASK_NOTIFY_BEFORE
+        };
+        Ok(labels.iter().map(|s| (*s).to_string()).collect())
     }
     fn send_change_task(&self, p: &ReviewPlan, read_only: bool) -> BResult<Value> {
         self.log(format!("task-send {} {read_only}", p.hash));
@@ -1662,7 +1684,7 @@ fn change_task_options_prepare_review_and_send() {
     let (title, labels) = picker_labels(&a);
     assert_eq!(
         title,
-        "Task optional fields — defaults Open / Never; others omitted"
+        "Task optional fields — defaults: the form's first status / reminder; others omitted"
     );
     assert_eq!(
         labels,
@@ -1706,6 +1728,35 @@ fn change_task_options_prepare_review_and_send() {
     answer(&mut a, ModalResult::Bool(true));
     assert_eq!(m.calls("task-send").len(), 1);
     assert_eq!(last_toast(&a), "Task 501 verified");
+}
+
+#[test]
+fn change_task_status_picker_uses_runtime_labels() {
+    let mock = Mock {
+        status_labels: vec!["Todo".into(), "Doing".into(), "Done".into()],
+        notify_labels: vec!["None".into(), "10 Min".into()],
+        ..Mock::new(1)
+    };
+    let (mut a, m) = on_change(mock);
+    let c = a.selected.clone().unwrap();
+    a.compose_change_task(c);
+    answer(&mut a, ModalResult::Text("Acme task".into()));
+    answer(&mut a, ModalResult::Choice(json!("none")));
+    answer(&mut a, ModalResult::Choice(json!("status")));
+    assert_eq!(
+        picker_labels(&a),
+        (
+            "Task status".into(),
+            vec!["Todo".into(), "Doing".into(), "Done".into()]
+        )
+    );
+    assert_eq!(m.calls("task-choices"), vec!["task-choices status"]);
+    answer(&mut a, ModalResult::Choice(json!("Todo")));
+    answer(&mut a, ModalResult::Choice(json!("notify_before")));
+    assert_eq!(
+        picker_labels(&a).1,
+        vec!["None".to_string(), "10 Min".to_string()]
+    );
 }
 
 #[test]

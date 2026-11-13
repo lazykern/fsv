@@ -503,6 +503,16 @@ fn write_plan(raw: &Value, action: impl Fn(&str) -> bool) -> BResult<WritePlan> 
     })
 }
 
+/// `change_tasks.runtime_fields`: one `change_task_fields` read.
+fn load_task_fields(api: &dyn Api) -> BResult<Vec<Value>> {
+    let data = api.int_get(
+        "change_task_fields",
+        Some(obj(json!({"include_deleted_choices": "true"}))),
+    )?;
+    fsv_api::fields_from_payload(&data)
+        .map_err(|_| Failure::value("unreadable runtime task-status metadata"))
+}
+
 /// `TaskPlan` fields as [`ReviewPlan::raw`] carries them.
 fn task_raw(p: &TaskPlan) -> Value {
     json!({"kind": "change_task", "change_id": p.change_id, "title": p.title, "owner_id": p.owner_id,
@@ -1198,15 +1208,18 @@ impl Backend for LiveBackend {
             values.insert(k.as_str(), v.as_str());
         }
         let group = values.shift_remove("group");
-        let status = values.shift_remove("status").unwrap_or("Open");
-        let mut args = TaskArgs::default();
+        let status_given = values.shift_remove("status");
+        let notify_given = values.shift_remove("notify_before");
+        let mut note = None;
+        let mut planned_start = None;
+        let mut planned_end = None;
+        let mut planned_effort = None;
         for (k, v) in &values {
             match *k {
-                "note" => args.note = Some(v),
-                "notify_before" => args.notify_before = v,
-                "planned_start" => args.planned_start = Some(v),
-                "planned_end" => args.planned_end = Some(v),
-                "planned_effort" => args.planned_effort = Some(v),
+                "note" => note = Some(*v),
+                "planned_start" => planned_start = Some(*v),
+                "planned_end" => planned_end = Some(*v),
+                "planned_effort" => planned_effort = Some(*v),
                 other => {
                     return Err(Failure::value(format!(
                         "build_plan() got an unexpected keyword argument '{other}'"
@@ -1216,28 +1229,48 @@ impl Backend for LiveBackend {
         }
         let cid = s(change_id);
         let tenant = self.domain();
-        tasks::status_label(status)?;
+        // Local checks only. Status and reminder come from runtime metadata
+        // after this, so a renamed tenant choice is not rejected as "Open".
+        if let Some(status) = status_given {
+            tasks::status_label(status)?;
+        }
         tasks::build_plan(
             &cid,
             title,
             &TaskArgs {
                 status_id: Some(1),
-                ..args.clone()
+                note,
+                planned_start,
+                planned_end,
+                planned_effort,
+                ..TaskArgs::default()
             },
             &tenant,
         )?;
         let owner_id = tasks::resolve_owner(self.api(), owner)?;
+        let fields = load_task_fields(self.api())?;
+        let status_owned = match status_given {
+            Some(status) => status.to_string(),
+            None => tasks::default_status(&fields)?,
+        };
+        let notify_owned = tasks::runtime_reminder_label(notify_given, &fields)?;
         let group_id = tasks::resolve_group(self.api(), group)?;
-        let status_id = tasks::resolve_status(self.api(), status)?;
+        let status_id = tasks::resolve_status(self.api(), &status_owned)?;
         let p = tasks::build_plan(
             &cid,
             title,
             &TaskArgs {
                 owner_id,
                 group_id,
-                status,
+                status: &status_owned,
                 status_id: Some(status_id),
-                ..args
+                note,
+                notify_before: &notify_owned,
+                planned_start,
+                planned_end,
+                planned_effort,
+                fields: Some(&fields),
+                ..TaskArgs::default()
             },
             &tenant,
         )?;
@@ -1248,6 +1281,19 @@ impl Backend for LiveBackend {
             target_id: json!(p.change_id),
             raw: task_raw(&p),
         })
+    }
+
+    /// `_change_task_choices`.
+    fn task_create_choices(&self, key: &str) -> BResult<Vec<String>> {
+        let fields = load_task_fields(self.api())?;
+        if key == "status" {
+            Ok(tasks::status_choices(&fields)?)
+        } else {
+            Ok(tasks::reminder_choices(&fields)?
+                .into_iter()
+                .map(|(_, label)| label)
+                .collect())
+        }
     }
 
     /// `change_tasks.send(plan, reviewed_hash=plan.hash, read_only=...)`.
