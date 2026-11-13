@@ -7341,7 +7341,7 @@ fn form_fields_problems() {
 │ Impact      │ impact      │ dropdown (1) │ visible, required │      │
 │ Acme count  │ acme_count  │ number       │ visible           │      │
 └─────────────┴─────────────┴──────────────┴───────────────────┴──────┘
-choices: fsv form fields changes --choices LABEL
+choices: fsv form fields problems --choices LABEL
 "#
     );
     assert_eq!(r.err, r#""#);

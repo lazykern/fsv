@@ -1,0 +1,118 @@
+{
+  "fsv_form_snapshot": 1,
+  "module": "service_request",
+  "form_type": "new_form",
+  "workspace_id": 3,
+  "taken_at": "2026-01-01T00:00:00+0000",
+  "fields": [
+    {
+      "id": "v-reason",
+      "name": "reason_200",
+      "type": 1001,
+      "position": 1,
+      "label": "Reason",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "parent_id": null
+    },
+    {
+      "id": "v-level",
+      "name": "access_level",
+      "type": 1003,
+      "position": 2,
+      "label": "Access level",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+        {
+          "id": "l1",
+          "value": "Read only",
+          "label": "Read only",
+          "position": 1
+        },
+        {
+          "id": "l2",
+          "value": "Read  write",
+          "label": "Read  write",
+          "position": 2
+        },
+        {
+          "id": "l3",
+          "value": "Admin",
+          "label": "Admin",
+          "position": 3
+        }
+      ],
+      "parent_id": null
+    },
+    {
+      "id": "v-why",
+      "name": "justification",
+      "type": 1008,
+      "position": 3,
+      "label": "Justification",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "parent_id": null
+    }
+  ],
+  "business_rules": [
+    {
+      "id": 9100001,
+      "name": "Admin needs a justification",
+      "workspace_id": 3,
+      "module_type": "service_request",
+      "item_id": 4400002,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+        "all": [
+          {
+            "name": "customField.sr_access_level",
+            "operator": "is",
+            "value": [
+              "Admin"
+            ],
+            "evaluate_on": "change"
+          }
+        ]
+      },
+      "action_data": {
+        "action": [
+          {
+            "name": [
+              "customField.sr_justification"
+            ],
+            "property": "show"
+          },
+          {
+            "name": [
+              "customField.sr_justification"
+            ],
+            "property": "mandate"
+          }
+        ]
+      },
+      "is_reversible": true,
+      "is_validation": false
+    }
+  ]
+}

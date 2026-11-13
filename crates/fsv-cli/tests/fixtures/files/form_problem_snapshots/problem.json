@@ -1,0 +1,76 @@
+{
+  "fsv_form_snapshot": 1,
+  "module": "problem",
+  "form_type": "new_form",
+  "workspace_id": null,
+  "taken_at": "2026-01-01T00:00:00+0000",
+  "fields": [
+    {
+      "id": 501,
+      "name": "subject",
+      "label": "Subject",
+      "field_type": "default_subject",
+      "required": true,
+      "position": 1
+    },
+    {
+      "id": 502,
+      "name": "description",
+      "label": "Description",
+      "field_type": "default_description",
+      "required": true,
+      "position": 2
+    },
+    {
+      "id": 503,
+      "name": "requester",
+      "label": "Requester",
+      "field_type": "default_requester",
+      "required": true,
+      "position": 3
+    },
+    {
+      "id": 510,
+      "name": "status",
+      "label": "Status",
+      "field_type": "default_status",
+      "required": true,
+      "choices": [
+        {
+          "id": 41,
+          "value": "Open"
+        }
+      ],
+      "position": 4
+    },
+    {
+      "id": 511,
+      "name": "priority",
+      "label": "Priority",
+      "field_type": "default_priority",
+      "required": true,
+      "choices": [
+        {
+          "id": 42,
+          "value": "Low"
+        }
+      ],
+      "position": 5
+    },
+    {
+      "id": 512,
+      "name": "impact",
+      "label": "Impact",
+      "field_type": "default_impact",
+      "required": true,
+      "choices": [
+        {
+          "id": 43,
+          "value": "Low"
+        }
+      ],
+      "position": 6
+    }
+  ],
+  "business_rules": []
+}

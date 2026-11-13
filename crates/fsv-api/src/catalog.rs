@@ -521,6 +521,48 @@ impl ItemMeta {
         metadata_fingerprint(None, Some(&self.rules), Some(&self.item))
     }
 
+    /// `raw_fields`: the item's fields flattened in web order; children name
+    /// their parent (the `FormMeta` surface `fsv form` reads).
+    pub fn raw_fields(&self) -> Vec<Json> {
+        fn walk(rows: Option<&Json>, parent: Option<&Json>, out: &mut Vec<Json>) {
+            for row in rows.and_then(Json::as_array).into_iter().flatten() {
+                let Some(m) = row.as_object() else { continue };
+                if m.get("deleted").is_some_and(truthy) {
+                    continue;
+                }
+                let mut flat: Map<String, Json> = m
+                    .iter()
+                    .filter(|(k, _)| *k != "fields")
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect();
+                if let Some(p) = parent.filter(|p| !p.is_null()) {
+                    flat.insert("parent".into(), p.clone());
+                }
+                out.push(Json::Object(flat));
+                walk(m.get("fields"), m.get("name"), out);
+            }
+        }
+        let si = self.item.get("service_item").unwrap_or(&self.item);
+        let mut out = Vec::new();
+        walk(si.get("custom_fields"), None, &mut out);
+        out
+    }
+
+    /// `FormState(meta.spec, meta.engine(), mode=..., resolver=..., existing=...)`.
+    pub fn state(
+        &self,
+        mode: &str,
+        resolver: Option<Arc<dyn fsv_forms::LookupResolver>>,
+        existing: Option<fsv_forms::Values>,
+    ) -> Result<FormState> {
+        let opts = fsv_forms::StateOptions {
+            resolver,
+            existing,
+            ..fsv_forms::StateOptions::default()
+        };
+        FormState::new(self.spec.clone(), Some(self.engine()?), mode, None, opts).map_err(form_err)
+    }
+
     pub fn as_of(&self) -> Map<String, Json> {
         let fp = self.fingerprint();
         let fetched = jiff::Timestamp::from_second(self.fetched_at.trunc() as i64)
@@ -3190,5 +3232,29 @@ mod tests {
                 )
             );
         }
+    }
+
+    /// `ItemMeta.raw_fields` (cc81f93): web order, children name their
+    /// parent, deleted rows and their children are skipped.
+    #[test]
+    fn item_raw_fields_flatten_like_python() {
+        let item = json!({"service_item": {"display_id": 5, "custom_fields": [
+            {"name": "a", "label": "A", "fields": [{"name": "a1", "label": "A1"},
+                                                   {"name": "gone", "deleted": true}, "junk"]},
+            {"name": "d", "deleted": true, "fields": [{"name": "hidden"}]},
+            {"label": "nameless", "parent": "x", "fields": [{"name": "orphan"}]}]}});
+        let m = ItemMeta {
+            item,
+            rules: json!({}),
+            workspace_id: Json::Null,
+            fetched_at: 0.0,
+            source: "fixture".into(),
+            spec: Arc::new(FormSpec::from_service_item(&json!({"custom_fields": []})).unwrap()),
+        };
+        assert_eq!(
+            Json::Array(m.raw_fields()),
+            json!([{"name": "a", "label": "A"}, {"name": "a1", "label": "A1", "parent": "a"},
+                   {"label": "nameless", "parent": "x"}, {"name": "orphan"}])
+        );
     }
 }

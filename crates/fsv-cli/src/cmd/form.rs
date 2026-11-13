@@ -20,9 +20,86 @@ fn form_fail(msg: &str) -> Error {
     fail(&escape(msg), 2)
 }
 
+const SR_ALIASES: [&str; 7] = [
+    "sr",
+    "srs",
+    "service_request",
+    "service_requests",
+    "service-request",
+    "service-requests",
+    "catalog",
+];
+const SR: &str = "service_request";
+
 /// `form_cli._module`.
 fn module(text: &str) -> Result<String> {
+    if SR_ALIASES.contains(&fsv_core::pystr::strip(text).to_lowercase().as_str()) {
+        return Ok(SR.into());
+    }
     formmeta::module_name(text).map_err(|e| form_fail(&e.to_string()))
+}
+
+/// What `fsv form` reads: a module's form, or a catalog item's form (`sr`).
+enum Meta {
+    Form(Box<formmeta::FormMeta>),
+    Item(Box<fsv_api::catalog::ItemMeta>),
+}
+
+impl Meta {
+    fn rules(&self) -> &Value {
+        match self {
+            Meta::Form(m) => &m.rules,
+            Meta::Item(m) => &m.rules,
+        }
+    }
+    fn spec(&self) -> Arc<fsv_forms::FormSpec> {
+        match self {
+            Meta::Form(m) => m.spec(),
+            Meta::Item(m) => m.spec(),
+        }
+    }
+    fn state(
+        &self,
+        mode: &str,
+        resolver: Option<Arc<dyn fsv_forms::LookupResolver>>,
+        existing: Option<fsv_forms::Values>,
+    ) -> Result<fsv_forms::FormState> {
+        match self {
+            Meta::Form(m) => m.state(mode, resolver, existing),
+            Meta::Item(m) => m.state(mode, resolver, existing),
+        }
+    }
+    fn raw_fields(&self) -> Vec<Value> {
+        match self {
+            Meta::Form(m) => m.raw_fields(),
+            Meta::Item(m) => m.raw_fields(),
+        }
+    }
+    /// An item form is always a new form.
+    fn form_type(&self) -> &str {
+        match self {
+            Meta::Form(m) => &m.form_type,
+            Meta::Item(_) => "new_form",
+        }
+    }
+    fn workspace_id(&self) -> &Value {
+        match self {
+            Meta::Form(m) => &m.workspace_id,
+            Meta::Item(m) => &m.workspace_id,
+        }
+    }
+    fn as_of(&self) -> Map<String, Value> {
+        match self {
+            Meta::Form(m) => m.as_of(),
+            Meta::Item(m) => m.as_of(),
+        }
+    }
+    fn form_notes(&self) -> Vec<String> {
+        match self {
+            Meta::Form(m) => m.form_notes(),
+            Meta::Item(_) => Vec::new(),
+        }
+    }
 }
 
 pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
@@ -42,17 +119,34 @@ fn dump(a: FormDumpArgs) -> CmdResult {
         return Err(form_fail("--mode must be new or edit"));
     }
     let c = client()?;
-    let meta = load(&c, &module, &a.mode, true, &Value::Null, &Value::Null)?;
-    let snap = json!({
-        "fsv_form_snapshot": SNAPSHOT_VERSION,
-        "module": module,
-        "form_type": meta.form_type,
-        "workspace_id": meta.workspace_id,
-        "taken_at": jiff::Zoned::now().strftime("%Y-%m-%dT%H:%M:%S%z").to_string(),
-        "fields": meta.raw_fields(),
-        "business_rules": rule_list(&meta.rules),
-    });
-    print_json(&snap);
+    let meta = load(
+        &c,
+        &module,
+        a.item.as_deref(),
+        &a.mode,
+        true,
+        &Value::Null,
+        &Value::Null,
+    )?;
+    let mut snap = Map::new();
+    snap.insert("fsv_form_snapshot".into(), json!(SNAPSHOT_VERSION));
+    snap.insert("module".into(), json!(module));
+    if let Meta::Item(m) = &meta {
+        snap.insert("item".into(), m.display_id());
+    }
+    snap.insert("form_type".into(), json!(meta.form_type()));
+    snap.insert("workspace_id".into(), meta.workspace_id().clone());
+    snap.insert(
+        "taken_at".into(),
+        json!(
+            jiff::Zoned::now()
+                .strftime("%Y-%m-%dT%H:%M:%S%z")
+                .to_string()
+        ),
+    );
+    snap.insert("fields".into(), Value::Array(meta.raw_fields()));
+    snap.insert("business_rules".into(), rule_list(meta.rules()));
+    print_json(&Value::Object(snap));
     Ok(())
 }
 
@@ -68,12 +162,31 @@ fn diff(a: FormDiffArgs) -> CmdResult {
         } else {
             "new"
         };
-        let module = old
-            .get("module")
-            .filter(|v| fsv_py::truthy(v))
-            .map_or_else(|| "change".to_string(), fsv_py::py_str);
-        let meta = load(&c, &module, mode, true, &Value::Null, &Value::Null)?;
-        json!({"fields": meta.raw_fields(), "business_rules": rule_list(&meta.rules)})
+        let module = module(
+            &old.get("module")
+                .filter(|v| fsv_py::truthy(v))
+                .map_or_else(|| "change".to_string(), fsv_py::py_str),
+        )?;
+        let item = old
+            .get("item")
+            .filter(|v| module == SR && !v.is_null())
+            .map(fsv_py::py_str);
+        if module == SR && item.is_none() {
+            return Err(form_fail(&format!(
+                "{} is an sr snapshot without its catalog item; dump it again with --item",
+                a.snapshot
+            )));
+        }
+        let meta = load(
+            &c,
+            &module,
+            item.as_deref(),
+            mode,
+            module != SR,
+            &Value::Null,
+            &Value::Null,
+        )?;
+        json!({"fields": meta.raw_fields(), "business_rules": rule_list(meta.rules())})
     };
     let changes = diff_snapshots(&old, &new);
     if a.output == "json" {
@@ -141,22 +254,46 @@ fn rule_list(rules: &Value) -> Value {
         .unwrap_or_else(|| json!([]))
 }
 
+/// `_load`: form metadata for a module, or a catalog item's form for `sr`
+/// (the same item form and rules `fsv sr fields` uses).
+#[allow(clippy::too_many_arguments)]
 fn load(
     c: &Arc<fsv_core::Client>,
     module: &str,
+    item: Option<&str>,
     mode: &str,
     fresh: bool,
     module_id: &Value,
     record: &Value,
-) -> Result<formmeta::FormMeta> {
+) -> Result<Meta> {
     let store = formmeta::DiskStore::current();
+    let item = item.filter(|s| !s.is_empty());
+    if module == SR {
+        let Some(item) = item else {
+            return Err(form_fail(
+                "sr forms are per catalog item: pass --item ID (the display id or exact name)",
+            ));
+        };
+        if mode != "new" || !record.is_null() {
+            return Err(form_fail(
+                "sr item forms have no edit form here; use --item without --id/--mode edit",
+            ));
+        }
+        return fsv_api::catalog::load_item_meta(c.as_ref(), &store, item, None)
+            .map(|m| Meta::Item(Box::new(m)))
+            .map_err(guard);
+    }
+    if item.is_some() {
+        return Err(form_fail("--item applies to sr forms only"));
+    }
     formmeta::load_meta_for_record(c.as_ref(), &store, module, mode, fresh, module_id, record)
+        .map(|m| Meta::Form(Box::new(m)))
         .map_err(guard)
 }
 
 /// `_note_rules`.
-fn note_rules(meta: &formmeta::FormMeta) {
-    if let Some(note) = formmeta::rules_note(&meta.rules) {
+fn note_rules(meta: &Meta) {
+    if let Some(note) = formmeta::rules_note(meta.rules()) {
         err().print(&format!("[dim]{}[/dim]", escape(&note)));
     }
     for form_note in meta.form_notes() {
@@ -192,6 +329,11 @@ fn explain(a: FormExplainArgs) -> CmdResult {
     let module = module(&a.module)?;
     let c = client()?;
     let mut record: Option<Map<String, Value>> = None;
+    if a.id_.as_deref().is_some_and(|s| !s.is_empty()) && module == SR {
+        return Err(form_fail(
+            "--id does not apply to sr item forms; use --item",
+        ));
+    }
     if let Some(id) = a.id_.as_deref().filter(|s| !s.is_empty()) {
         let res = fsv_core::resource::lookup(&format!("{module}s"))
             .ok_or_else(|| Error::other(format!("unknown form resource: {module}")))?;
@@ -216,6 +358,7 @@ fn explain(a: FormExplainArgs) -> CmdResult {
     let meta = load(
         &c,
         &module,
+        a.item.as_deref(),
         if edit { "edit" } else { "new" },
         false,
         &module_id,
@@ -354,7 +497,15 @@ fn explain(a: FormExplainArgs) -> CmdResult {
 fn fields(a: FormFieldsArgs) -> CmdResult {
     let module = module(&a.module)?;
     let c = client()?;
-    let meta = load(&c, &module, "new", false, &Value::Null, &Value::Null)?;
+    let meta = load(
+        &c,
+        &module,
+        a.item.as_deref(),
+        "new",
+        false,
+        &Value::Null,
+        &Value::Null,
+    )?;
     note_rules(&meta);
     let spec = meta.spec();
     let state = meta.state("new", None, None).map_err(guard)?;
@@ -501,7 +652,15 @@ fn fields(a: FormFieldsArgs) -> CmdResult {
             escape(&shown.join("; "))
         ));
     }
-    out().print("[dim]choices: fsv form fields changes --choices LABEL[/dim]");
+    let hint = if module == SR {
+        format!("sr --item {}", a.item.as_deref().unwrap_or(""))
+    } else {
+        format!("{module}s")
+    };
+    out().print(&format!(
+        "[dim]choices: fsv form fields {} --choices LABEL[/dim]",
+        escape(&hint)
+    ));
     Ok(())
 }
 
