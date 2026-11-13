@@ -48,5 +48,25 @@
   "code": 0,
   "stdout": "{\n  \"ticket_id\": 41,\n  \"change_type\": \"change\",\n  \"meaning\": \"change initiated by this ticket\",\n  \"changes\": [\n    {\n      \"id\": 9\n    }\n  ],\n  \"complete\": true\n}\n",
   "stderr": ""
+ },
+ "child_link_dry": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"dry_run\",\n  \"action\": \"ticket_link_child\",\n  \"method\": \"POST\",\n  \"path\": \"/api/_/tickets/41/associate-child-tickets\",\n  \"payload\": {\n    \"ticket_ids\": [\n      42\n    ]\n  },\n  \"plan_hash\": \"eb138edc529494338e941fcb501628f5156881920bf025778b5441a363841a10\",\n  \"warning\": \"Single-attempt write. Unknown outcomes must be inspected, never automatically resent.\",\n  \"ticket_id\": 41,\n  \"kind\": \"child\",\n  \"item_id\": 42\n}\n",
+  "stderr": ""
+ },
+ "child_link_send": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"submitted\",\n  \"plan_hash\": \"eb138edc529494338e941fcb501628f5156881920bf025778b5441a363841a10\",\n  \"verified\": true,\n  \"ticket_id\": 41,\n  \"item_id\": 42,\n  \"kind\": \"child\",\n  \"child_hierarchy\": \"child\",\n  \"linked\": true\n}\n",
+  "stderr": ""
+ },
+ "child_unlink_dry": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"dry_run\",\n  \"action\": \"ticket_unlink_child\",\n  \"method\": \"DELETE\",\n  \"path\": \"/api/_/tickets/41/remove_child?ticket_id=42\",\n  \"payload\": null,\n  \"plan_hash\": \"583f4ed8a1c68c72ef44fe1a2d7cdd1a76fc978689a58118250e04722da52923\",\n  \"warning\": \"Single-attempt write. Unknown outcomes must be inspected, never automatically resent.\",\n  \"ticket_id\": 41,\n  \"kind\": \"child\",\n  \"item_id\": 42\n}\n",
+  "stderr": ""
+ },
+ "child_unlink_send": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"submitted\",\n  \"plan_hash\": \"583f4ed8a1c68c72ef44fe1a2d7cdd1a76fc978689a58118250e04722da52923\",\n  \"verified\": true,\n  \"ticket_id\": 41,\n  \"item_id\": 42,\n  \"kind\": \"child\",\n  \"child_hierarchy\": \"none\",\n  \"linked\": false\n}\n",
+  "stderr": ""
  }
 }

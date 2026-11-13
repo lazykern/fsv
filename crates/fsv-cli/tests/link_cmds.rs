@@ -367,3 +367,83 @@ fn ticket_links_cli_problem_link_refuses_service_request_and_read_failures() {
     assert_eq!(r.err, "a ticket cannot be its own child\n");
     assert!(r.writes().is_empty());
 }
+
+fn tabs(t: i64, level: i64, times: usize) -> Vec<Value> {
+    let mut r = get(
+        &format!("tickets/{t}/tabs"),
+        json!([{"name": "related_tickets", "count": 0, "hierarchy": level},
+               {"name": "associations", "count": 0}]),
+    );
+    if times == 0 {
+        return vec![r];
+    }
+    r["once"] = json!(true);
+    vec![r; times]
+}
+
+fn child_routes(levels: &[(i64, i64, usize)], children: &[i64]) -> Vec<Value> {
+    let mut routes = ticket_routes();
+    routes.push(ticket(42, "Incident", "INC"));
+    for (t, level, times) in levels {
+        routes.extend(tabs(*t, *level, *times));
+    }
+    let rows: Vec<Value> = children
+        .iter()
+        .map(|c| json!({"id": c, "deleted": false, "spam": false}))
+        .collect();
+    let mut list = get(
+        "tickets/41/child-tickets",
+        json!({"child_tickets": rows, "meta": {"has_next": false}}),
+    );
+    list["query"] = json!({"type": "active"});
+    routes.push(list);
+    routes
+}
+
+/// tests/test_ticket_associations.py::test_child_link_unlink_hierarchy_and_404_free_readback
+/// through the real client: POST link, then DELETE with a query string, no
+/// body and a 204 answer.
+#[test]
+fn ticket_links_cli_child_link_unlink_wires() {
+    let args = ["tickets", "children", "link", "INC-41", "INC-42"];
+    let mut routes = child_routes(&[(41, 0, 4), (41, 2, 0), (42, 0, 2), (42, 1, 0)], &[42]);
+    routes.push(common::route(
+        "POST",
+        "/api/_/tickets/41/associate-child-tickets",
+        200,
+        json!({"success": true}),
+    ));
+    let env = Env::new(routes);
+    let dry = env.run(&[&args[..], &["--dry-run"]].concat());
+    assert_golden(&dry, "child_link_dry");
+    let digest = dry.json()["plan_hash"].as_str().unwrap().to_string();
+    let done = env.run(&[&args[..], &["--yes", "--expect-plan", &digest]].concat());
+    assert_golden(&done, "child_link_send");
+    assert_eq!(
+        done.writes(),
+        [(
+            "POST".to_string(),
+            "/api/_/tickets/41/associate-child-tickets".to_string(),
+            json!({"ticket_ids": [42]}),
+        )]
+    );
+
+    let args = ["tickets", "children", "unlink", "INC-41", "INC-42"];
+    let mut routes = child_routes(&[(41, 2, 4), (41, 0, 0), (42, 1, 2), (42, 0, 0)], &[42]);
+    let mut delete = common::route("DELETE", "/api/_/tickets/41/remove_child", 204, Value::Null);
+    delete["query"] = json!({"ticket_id": "42"});
+    routes.push(delete);
+    let env = Env::new(routes);
+    let dry = env.run(&[&args[..], &["--dry-run"]].concat());
+    assert_golden(&dry, "child_unlink_dry");
+    let digest = dry.json()["plan_hash"].as_str().unwrap().to_string();
+    let done = env.run(&[&args[..], &["--yes", "--expect-plan", &digest]].concat());
+    assert_golden(&done, "child_unlink_send");
+    let writes = done.writes();
+    assert_eq!(writes.len(), 1);
+    assert_eq!(
+        (writes[0].0.as_str(), writes[0].1.as_str()),
+        ("DELETE", "/api/_/tickets/41/remove_child?ticket_id=42")
+    );
+    assert!(writes[0].2.is_null(), "{:?}", writes[0].2);
+}
