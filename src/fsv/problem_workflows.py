@@ -27,7 +27,14 @@ class ProblemPlan(WritePlan):
         warnings = json.loads(self.warnings_json)
         if warnings:
             out["warnings"] = warnings
+        if self.action == "problem_create":
+            out["readback_note"] = EMAIL_NOTE
         return out
+
+
+EMAIL_NOTE = ("Problem reads do not expose the requester email; the readback proves the requester by identity "
+              "(requester id or nested requester) instead.")
+EMAIL_NOT_EXPOSED = "not exposed by the server"
 
 
 def record(client: Any, target: int) -> dict[str, Any]:
@@ -195,11 +202,16 @@ def send(plan: ProblemPlan, client: Any, *, reviewed_hash: str | None) -> dict[s
         exempt = set()
         if create and row is not None and fields.get("email") == "unavailable":
             # Native problem reads omit the requester email; prove the
-            # requester by identity instead. Email stays "unavailable".
+            # requester by identity instead. Email is reported as not exposed
+            # only once the identity matched; otherwise it stays "unavailable".
             fields["requester"] = _requester_identity(client, row, inputs["requester"], plan.payload["email"])
             if fields["requester"] == "matched":
+                fields["email"] = EMAIL_NOT_EXPOSED
                 exempt.add("email")
-        return {key + "_id": exact_id, "fields": fields,
-                "verified": row is not None and all(v == "matched" for k, v in fields.items() if k not in exempt)}
+        out = {key + "_id": exact_id, "fields": fields,
+               "verified": row is not None and all(v == "matched" for k, v in fields.items() if k not in exempt)}
+        if "email" in exempt:
+            out["readback_note"] = EMAIL_NOTE
+        return out
 
     return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)

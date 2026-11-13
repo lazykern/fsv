@@ -291,7 +291,11 @@ def test_create_requester_identity_when_email_is_not_read_back(wire, readback, e
         row.update(readback)
     wire["normalize"] = normalize
     result = flow.send(plan, wire["client"], reviewed_hash=plan.hash)
-    assert result["fields"]["email"] == "unavailable"  # never reported as mismatched
+    # never reported as mismatched; "not exposed" only once the identity matched
+    assert result["fields"]["email"] == ("not exposed by the server" if verified else "unavailable")
+    assert ("readback_note" in result) is verified
+    assert ("unavailable" in json.dumps(result["fields"])) is not verified
+    assert "requester email" in plan.review()["readback_note"]
     assert result["fields"]["requester"] == expected
     assert result["verified"] is verified
     assert len(wire["writes"]) == 1
