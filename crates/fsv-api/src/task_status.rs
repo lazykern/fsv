@@ -93,14 +93,18 @@ pub fn fields_from_payload(data: &Value) -> Result<Vec<Value>, QueryError> {
 /// `display`. Unknown values render as `3 (unknown)` rather than a guessed label.
 pub fn display(value: &Value, fields: Option<&[Value]>) -> String {
     if let Some(obj) = value.as_object() {
-        let picked = ["name", "label", "value", "id"]
-            .iter()
-            .find_map(|k| obj.get(*k).filter(|v| !v.is_null()));
-        return match picked {
-            Some(Value::String(s)) => s.clone(),
-            Some(other) => other.to_string(),
-            None => "None".to_string(),
-        };
+        // `name or label or value or id`: the first truthy value, else
+        // `str` of `id` (`"None"` when that key is missing, `"0"` when it is 0).
+        let mut result = Value::Null;
+        for key in ["name", "label", "value", "id"] {
+            let v = obj.get(key).cloned().unwrap_or(Value::Null);
+            let stop = truthy(Some(&v));
+            result = v;
+            if stop {
+                break;
+            }
+        }
+        return scalar(&result);
     }
     match fields.and_then(|f| resolve(&scalar(value), f).ok()) {
         Some((_, label)) => label,
@@ -223,5 +227,19 @@ mod tests {
         assert_eq!(display(&json!(false), None), "False (unknown)");
         assert_eq!(display(&json!(1.5), None), "1.5 (unknown)");
         assert_eq!(display(&json!("Open"), None), "Open (unknown)");
+    }
+
+    #[test]
+    fn display_dict_uses_python_or_chain() {
+        assert_eq!(display(&json!({"name": "", "label": "Open"}), None), "Open");
+        assert_eq!(display(&json!({"name": ""}), None), "None");
+        assert_eq!(display(&json!({"id": 0}), None), "0");
+        assert_eq!(display(&json!({"id": ""}), None), "");
+        assert_eq!(display(&json!({"name": false, "id": 5}), None), "5");
+        assert_eq!(display(&json!({"name": true}), None), "True");
+        assert_eq!(display(&json!({"id": true}), None), "True");
+        assert_eq!(display(&json!({}), None), "None");
+        assert_eq!(display(&json!({"value": 0, "id": "7"}), None), "7");
+        assert_eq!(display(&json!({"label": "  x  "}), None), "  x  ");
     }
 }

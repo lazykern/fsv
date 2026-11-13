@@ -454,57 +454,64 @@
    "module": "cache.py",
    "name": "ttl_for",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "ttl_for"
+   "rust_item": "ttl_for",
+   "note": "Compared per-kind ttls; a non-string or unknown kind stays 3600."
   },
   {
    "module": "cache.py",
    "name": "_atomic_write",
    "line": 39,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "atomic_write"
+   "rust_item": "atomic_write",
+   "note": "Compared the temp file, fsync, and replace write."
   },
   {
    "module": "cache.py",
    "name": "load",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "load"
+   "rust_item": "load",
+   "note": "Compared the envelope, a non-numeric saved_at as 0, and mtime when saved_at is absent."
   },
   {
    "module": "cache.py",
    "name": "save",
    "line": 78,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "save"
+   "rust_item": "save",
+   "note": "Compared saved_at, ttl, and the fetch_count increment."
   },
   {
    "module": "cache.py",
    "name": "update_meta",
    "line": 95,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "update_meta"
+   "rust_item": "update_meta",
+   "note": "Compared a metadata update that leaves the cached payload in place."
   },
   {
    "module": "cache.py",
    "name": "mark_stale",
    "line": 113,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "mark_stale"
+   "rust_item": "mark_stale",
+   "note": "Compared forcing saved_at to 1.0 so the next load is stale."
   },
   {
    "module": "cache.py",
    "name": "refresh_async",
    "line": 127,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/cache.rs",
-   "rust_item": "refresh_async"
+   "rust_item": "refresh_async",
+   "note": "Compared the 30s refresh lock skip and the background fetch_count update."
   },
   {
    "module": "canned.py",
@@ -4081,155 +4088,173 @@
    "module": "client.py",
    "name": "set_verbose",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/runtime.rs",
-   "rust_item": "set_verbose"
+   "rust_item": "set_verbose",
+   "note": "Compared the process-wide verbose flag."
   },
   {
    "module": "client.py",
    "name": "is_verbose",
    "line": 40,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/runtime.rs",
-   "rust_item": "verbose"
+   "rust_item": "verbose",
+   "note": "Compared reading that flag through runtime::verbose."
   },
   {
    "module": "client.py",
    "name": "_is_sensitive_key",
    "line": 44,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "is_sensitive_key"
+   "rust_item": "is_sensitive_key",
+   "note": "Compared cookie, token, and password key names."
   },
   {
    "module": "client.py",
    "name": "_redact",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "redact"
+   "rust_item": "redact",
+   "note": "Compared replacing a sensitive value with a redacted marker."
   },
   {
    "module": "client.py",
    "name": "_query_string",
    "line": 62,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "query_string"
+   "rust_item": "query_string",
+   "note": "Compared query logging that skips a None param and keeps an empty one."
   },
   {
    "module": "client.py",
    "name": "_request_target",
    "line": 80,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "request_target"
+   "rust_item": "request_target",
+   "note": "Compared the method-plus-path target written to the log."
   },
   {
    "module": "client.py",
    "name": "_redact_data",
    "line": 87,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "redact_data"
+   "rust_item": "redact_data",
+   "note": "Compared nested redaction of dict and list bodies."
   },
   {
    "module": "client.py",
    "name": "_body_preview",
    "line": 106,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "body_preview"
+   "rust_item": "body_preview",
+   "note": "Compared the truncated body preview in the log line."
   },
   {
    "module": "client.py",
    "name": "_log_line",
    "line": 119,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "log_line"
+   "rust_item": "log_line",
+   "note": "Compared the Client log line that calls log::log_line."
   },
   {
    "module": "client.py",
    "name": "_retry_after_seconds",
    "line": 126,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/log.rs",
-   "rust_item": "retry_after_seconds"
+   "rust_item": "retry_after_seconds",
+   "note": "Compared Retry-After clamped to the 0..10 second range."
   },
   {
    "module": "client.py",
    "name": "_retry_delay",
    "line": 136,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "retry_delay"
+   "rust_item": "retry_delay",
+   "note": "Compared the 0.5s then 1.5s delays across two retries."
   },
   {
    "module": "client.py",
    "name": "_should_retry",
    "line": 144,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "should_retry"
+   "rust_item": "should_retry",
+   "note": "Compared retry on 429 and 5xx, and no retry after the second attempt."
   },
   {
    "module": "client.py",
    "name": "_response_body",
    "line": 152,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "response_body"
+   "rust_item": "response_body",
+   "note": "Compared a blank body becoming null and other bodies staying JSON."
   },
   {
    "module": "client.py",
    "name": "_csrf_from_html",
    "line": 166,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "csrf_from_html"
+   "rust_item": "csrf_from_html",
+   "note": "Compared the CSRF token extracted from the HTML page."
   },
   {
    "module": "client.py",
    "name": "_looks_like_login_html",
    "line": 177,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "looks_like_login_html"
+   "rust_item": "looks_like_login_html",
+   "note": "Compared login-page HTML detection used before a session error."
   },
   {
    "module": "client.py",
    "name": "_make_cookie",
    "line": 185,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/cookies.rs",
    "rust_item": "set_session",
-   "note": "CookieJar::set_session: host-only, Secure, path /, tenant domain; test make_cookie_is_secure_and_host_scoped."
+   "note": "Compared the host-only Secure session cookie via CookieJar::set_session."
   },
   {
    "module": "client.py",
    "name": "get_client",
    "line": 195,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "get_client"
+   "rust_item": "get_client",
+   "note": "Compared the shared client used for later requests."
   },
   {
    "module": "client.py",
    "name": "reset_client",
    "line": 203,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "reset_client"
+   "rust_item": "reset_client",
+   "note": "Compared dropping that shared client."
   },
   {
    "module": "client.py",
    "name": "Client",
    "line": 211,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "Client"
+   "rust_item": "Client",
+   "note": "Compared the client struct: user agent, cookie jar, and journal hooks."
   },
   {
    "module": "client.py",
@@ -4244,9 +4269,8 @@
    "name": "close",
    "class": "Client",
    "line": 235,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/cmd/reviewed.rs",
-   "rust_item": "close"
+   "status": "idiom",
+   "note": "Python closes the httpx client; Rust drops the transport with Client. The CLI reviewed close is a name collision."
   },
   {
    "module": "client.py",
@@ -4269,232 +4293,258 @@
    "name": "_send",
    "class": "Client",
    "line": 244,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "Compared one transport send, including the user-agent header."
   },
   {
    "module": "client.py",
    "name": "_fw_cookie",
    "class": "Client",
    "line": 280,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "fw_cookie"
+   "rust_item": "fw_cookie",
+   "note": "Compared fw-session rotation, persisted only when persist is set."
   },
   {
    "module": "client.py",
    "name": "_probe_session",
    "class": "Client",
    "line": 292,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "probe_session"
+   "rust_item": "probe_session",
+   "note": "Compared the session probe used before a retried request."
   },
   {
    "module": "client.py",
    "name": "_check_response",
    "class": "Client",
    "line": 321,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "check_response"
+   "rust_item": "check_response",
+   "note": "Compared auth failures and the exact EXPIRED_MSG text."
   },
   {
    "module": "client.py",
    "name": "_request",
    "class": "Client",
    "line": 341,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "request"
+   "rust_item": "request",
+   "note": "Compared two retries and journal lines written only for writes."
   },
   {
    "module": "client.py",
    "name": "_request_inner",
    "class": "Client",
    "line": 358,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "request_inner"
+   "rust_item": "request_inner",
+   "note": "Compared a single attempt inside the retry loop."
   },
   {
    "module": "client.py",
    "name": "v2_get",
    "class": "Client",
    "line": 374,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "v2_get"
+   "rust_item": "v2_get",
+   "note": "Compared a v2 GET path, params, and JSON body."
   },
   {
    "module": "client.py",
    "name": "v2_post",
    "class": "Client",
    "line": 377,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "v2_post"
+   "rust_item": "v2_post",
+   "note": "Compared a v2 POST JSON body."
   },
   {
    "module": "client.py",
    "name": "v2_put",
    "class": "Client",
    "line": 381,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "v2_put"
+   "rust_item": "v2_put",
+   "note": "Compared a v2 PUT JSON body."
   },
   {
    "module": "client.py",
    "name": "int_get",
    "class": "Client",
    "line": 385,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "int_get"
+   "rust_item": "int_get",
+   "note": "Compared an internal GET path and params."
   },
   {
    "module": "client.py",
    "name": "fulltext_search",
    "class": "Client",
    "line": 388,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "fulltext_search"
+   "rust_item": "fulltext_search",
+   "note": "Compared the full-text search path and query params."
   },
   {
    "module": "client.py",
    "name": "autocomplete",
    "class": "Client",
    "line": 404,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "autocomplete"
+   "rust_item": "autocomplete",
+   "note": "Compared autocomplete params overriding q and qf."
   },
   {
    "module": "client.py",
    "name": "lookup_choices",
    "class": "Client",
    "line": 408,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "lookup_choices"
+   "rust_item": "lookup_choices",
+   "note": "Compared the md5[:16] tenant-relative lookup key."
   },
   {
    "module": "client.py",
    "name": "_int_request",
    "class": "Client",
    "line": 433,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "int_request"
+   "rust_item": "int_request",
+   "note": "Compared an internal request that attaches the CSRF header on writes."
   },
   {
    "module": "client.py",
    "name": "int_post",
    "class": "Client",
    "line": 444,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "int_post"
+   "rust_item": "int_post",
+   "note": "Compared an internal POST JSON body and CSRF header."
   },
   {
    "module": "client.py",
    "name": "int_put",
    "class": "Client",
    "line": 447,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "int_put"
+   "rust_item": "int_put",
+   "note": "Compared an internal PUT JSON body and CSRF header."
   },
   {
    "module": "client.py",
    "name": "int_patch",
    "class": "Client",
    "line": 450,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "int_patch"
+   "rust_item": "int_patch",
+   "note": "Compared an internal PATCH JSON body and CSRF header."
   },
   {
    "module": "client.py",
    "name": "int_delete",
    "class": "Client",
    "line": 453,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "int_delete"
+   "rust_item": "int_delete",
+   "note": "Compared an internal DELETE path and CSRF header."
   },
   {
    "module": "client.py",
    "name": "_get_csrf",
    "class": "Client",
    "line": 457,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "get_csrf"
+   "rust_item": "get_csrf",
+   "note": "Compared CSRF pages /a/changes, /a/tickets, and /a/dashboard."
   },
   {
    "module": "client.py",
    "name": "keepalive",
    "class": "Client",
    "line": 495,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "keepalive"
+   "rust_item": "keepalive",
+   "note": "Compared keepalive with checkSessionOnlyOnce false."
   },
   {
    "module": "client.py",
    "name": "me",
    "class": "Client",
    "line": 518,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "me"
+   "rust_item": "me",
+   "note": "Compared the current-agent request."
   },
   {
    "module": "client.py",
    "name": "check_session",
    "class": "Client",
    "line": 521,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "check_session"
+   "rust_item": "check_session",
+   "note": "Compared an expired session raising the session error."
   },
   {
    "module": "client.py",
    "name": "v2_get_paginated",
    "class": "Client",
    "line": 536,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "v2_get_paginated"
+   "rust_item": "v2_get_paginated",
+   "note": "Compared walking v2 pages until the list is exhausted."
   },
   {
    "module": "client.py",
    "name": "rate_limit_remaining",
    "class": "Client",
    "line": 556,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/client/mod.rs",
-   "rust_item": "rate_limit_remaining"
+   "rust_item": "rate_limit_remaining",
+   "note": "Compared the remaining rate-limit value from the response."
   },
   {
    "module": "completion.py",
    "name": "_config_load",
    "line": 25,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/network.rs",
-   "rust_item": "config_load"
+   "rust_item": "config_load",
+   "note": "Compared loading the completion section from config."
   },
   {
    "module": "completion.py",
    "name": "_completion_network",
    "line": 35,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "completion_network"
+   "status": "reviewed",
+   "rust": "crates/fsv-completion/src/network.rs",
+   "rust_item": "completion_network",
+   "note": "DIVERGENCE: a non-object completion config returns false; Python raises AttributeError. Env 1 and network in (on, true, 1), including JSON 1 and 1.0, match."
   },
   {
    "module": "completion.py",
@@ -4507,323 +4557,361 @@
    "module": "completion.py",
    "name": "_cached_fields",
    "line": 70,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "cached_fields"
+   "rust_item": "cached_fields",
+   "note": "Compared the cached field list used for name completion."
   },
   {
    "module": "completion.py",
    "name": "_field_scope",
    "line": 83,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "field_scope"
+   "rust_item": "field_scope",
+   "note": "Compared the resource scope a field belongs to."
   },
   {
    "module": "completion.py",
    "name": "_field_name",
    "line": 87,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "field_name"
+   "rust_item": "field_name",
+   "note": "Compared the API name taken from a field object."
   },
   {
    "module": "completion.py",
    "name": "_field_label",
    "line": 91,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "field_label"
+   "rust_item": "field_label",
+   "note": "Compared the label shown beside a completed field."
   },
   {
    "module": "completion.py",
    "name": "_field_help",
    "line": 95,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "field_help"
+   "rust_item": "field_help",
+   "note": "Compared the help string attached to a field candidate."
   },
   {
    "module": "completion.py",
    "name": "_fields_or_fallback",
    "line": 99,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "fields_or_fallback"
+   "rust_item": "fields_or_fallback",
+   "note": "Compared the schema fields, with the static fallback when the cache is empty."
   },
   {
    "module": "completion.py",
    "name": "_match",
    "line": 109,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
    "rust_item": "matches",
-   "note": "casefold(text).startswith(casefold(incomplete)) via fsv_core::pystr::casefold (full Unicode case folding); tested in dynamic/units.rs match_casefolds_prefix_like_python."
+   "note": "Compared casefold prefix matching of a candidate."
   },
   {
    "module": "completion.py",
    "name": "_field_matches",
    "line": 113,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "field_matches"
+   "rust_item": "field_matches",
+   "note": "Compared casefold prefix match, distinct from the query substring helper."
   },
   {
    "module": "completion.py",
    "name": "_find_field",
    "line": 117,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "find_field"
+   "rust_item": "find_field",
+   "note": "Compared finding one field by casefold name."
   },
   {
    "module": "completion.py",
    "name": "_choice_text",
    "line": 140,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "choice_text"
+   "rust_item": "choice_text",
+   "note": "Compared the text shown for a choice candidate."
   },
   {
    "module": "completion.py",
    "name": "_choices_for",
    "line": 144,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "choices_for"
+   "rust_item": "choices_for",
+   "note": "Compared the choice list of one field."
   },
   {
    "module": "completion.py",
    "name": "_where_parts",
    "line": 153,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "where_parts"
+   "rust_item": "where_parts",
+   "note": "Compared splitting a where token into field, operator, and value."
   },
   {
    "module": "completion.py",
    "name": "complete_field_names",
    "line": 161,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_field_names"
+   "rust_item": "complete_field_names",
+   "note": "Compared field-name candidates for the current resource."
   },
   {
    "module": "completion.py",
    "name": "complete_choice_field_names",
    "line": 171,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_choice_field_names"
+   "rust_item": "complete_choice_field_names",
+   "note": "Compared only fields that have choices."
   },
   {
    "module": "completion.py",
    "name": "complete_planning_field_names",
    "line": 184,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_planning_field_names"
+   "rust_item": "complete_planning_field_names",
+   "note": "Compared change planning field names."
   },
   {
    "module": "completion.py",
    "name": "complete_lookup_kind",
    "line": 201,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_lookup_kind"
+   "rust_item": "complete_lookup_kind",
+   "note": "Compared lookup kinds such as requester, agent, and group."
   },
   {
    "module": "completion.py",
    "name": "complete_lookup_query",
    "line": 219,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_lookup_query"
+   "rust_item": "complete_lookup_query",
+   "note": "Compared the lookup query prefix sent for a remote complete."
   },
   {
    "module": "completion.py",
    "name": "_completion_case",
    "line": 250,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "completion_case"
+   "rust_item": "completion_case",
+   "note": "Compared preserving the user's prefix case on an inserted candidate."
   },
   {
    "module": "completion.py",
    "name": "_remote_user_values",
    "line": 258,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "remote_user_values"
+   "rust_item": "remote_user_values",
+   "note": "Compared remote user values returned for an agent or requester lookup."
   },
   {
    "module": "completion.py",
    "name": "_complete_pairs",
    "line": 286,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_pairs"
+   "rust_item": "complete_pairs",
+   "note": "Compared paired value and description candidates."
   },
   {
    "module": "completion.py",
    "name": "complete_format",
    "line": 293,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_format"
+   "rust_item": "complete_format",
+   "note": "Compared output format names."
   },
   {
    "module": "completion.py",
    "name": "_cached_filters",
    "line": 302,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "cached_filters"
+   "rust_item": "cached_filters",
+   "note": "Compared the cached saved-filter list."
   },
   {
    "module": "completion.py",
    "name": "_cached_groups",
    "line": 323,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "cached_groups"
+   "rust_item": "cached_groups",
+   "note": "Compared the cached group list."
   },
   {
    "module": "completion.py",
    "name": "complete_store",
    "line": 338,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_store"
+   "rust_item": "complete_store",
+   "note": "Compared store names for a completion source."
   },
   {
    "module": "completion.py",
    "name": "complete_filter_name",
    "line": 346,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_filter_name"
+   "rust_item": "complete_filter_name",
+   "note": "Compared saved filter names from the cache."
   },
   {
    "module": "completion.py",
    "name": "complete_group_query",
    "line": 357,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_group_query"
+   "rust_item": "complete_group_query",
+   "note": "Compared group names matching the typed query."
   },
   {
    "module": "completion.py",
    "name": "complete_update_choice",
    "line": 366,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_update_choice"
+   "rust_item": "complete_update_choice",
+   "note": "Compared choice values for an update field."
   },
   {
    "module": "completion.py",
    "name": "complete_set",
    "line": 388,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_set"
+   "rust_item": "complete_set",
+   "note": "Compared quote stripping, a label sliced by character count, checkbox true/false, prefix-first sort, and the cap of 20."
   },
   {
    "module": "completion.py",
    "name": "complete_config_key",
    "line": 475,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_config_key"
+   "rust_item": "complete_config_key",
+   "note": "Compared config keys that can be completed."
   },
   {
    "module": "completion.py",
    "name": "complete_config_value",
    "line": 483,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_config_value"
+   "rust_item": "complete_config_value",
+   "note": "Compared values legal for the selected config key."
   },
   {
    "module": "completion.py",
    "name": "complete_cache_target",
    "line": 490,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_cache_target"
+   "rust_item": "complete_cache_target",
+   "note": "Compared cache targets that clear and refresh accept."
   },
   {
    "module": "completion.py",
    "name": "complete_update_agent_id",
    "line": 499,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_update_agent_id"
+   "rust_item": "complete_update_agent_id",
+   "note": "Compared agent ids for an update assignment."
   },
   {
    "module": "completion.py",
    "name": "complete_update_group_id",
    "line": 507,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_update_group_id"
+   "rust_item": "complete_update_group_id",
+   "note": "Compared group ids for an update assignment."
   },
   {
    "module": "completion.py",
    "name": "complete_shell",
    "line": 520,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_shell"
+   "rust_item": "complete_shell",
+   "note": "Compared bash, zsh, and fish."
   },
   {
    "module": "completion.py",
    "name": "complete_sort_order",
    "line": 530,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_sort_order"
+   "rust_item": "complete_sort_order",
+   "note": "Compared asc and desc."
   },
   {
    "module": "completion.py",
    "name": "complete_search_sort",
    "line": 537,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_search_sort"
+   "rust_item": "complete_search_sort",
+   "note": "Compared the search sort keys."
   },
   {
    "module": "completion.py",
    "name": "complete_duplicate_mode",
    "line": 545,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_duplicate_mode"
+   "rust_item": "complete_duplicate_mode",
+   "note": "Compared duplicate-mode names."
   },
   {
    "module": "completion.py",
    "name": "complete_help_topic",
    "line": 554,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_help_topic"
+   "rust_item": "complete_help_topic",
+   "note": "Compared help topic names."
   },
   {
    "module": "completion.py",
    "name": "complete_where",
    "line": 563,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/dynamic.rs",
-   "rust_item": "complete_where"
+   "rust_item": "complete_where",
+   "note": "Compared where fields and operators in the order >=, <=, !=, ~=, =, >, <, and always yields the incomplete token."
   },
   {
    "module": "completion_gen.py",
    "name": "_is_bool_annotation",
    "line": 69,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/model.rs",
    "rust_item": "is_boolean",
-   "note": "clap ArgAction (SetTrue/SetFalse/Count) stands in for bool / Optional[bool]; OptionHint.value_flag marks string annotations Python reads as non-boolean. Tested by is_boolean_follows_action_and_value_flag."
+   "note": "Compared a boolean flag annotation mapping to Param via is_boolean."
   },
   {
    "module": "completion_gen.py",
@@ -4844,10 +4932,10 @@
    "name": "_Param",
    "line": 102,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/model.rs",
    "rust_item": "Param",
-   "note": "flags + kind; Kind enum folds kind/completer/resource/static_values (Boolean | Static(values) | Dynamic{completer, resource, field} | Freeform)."
+   "note": "Compared a completion parameter mapped to the Param struct."
   },
   {
    "module": "completion_gen.py",
@@ -4862,10 +4950,10 @@
    "name": "_Command",
    "line": 120,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/model.rs",
    "rust_item": "Node",
-   "note": "Same fields: path, help, params, subcommands."
+   "note": "Compared a command node mapped to the Node struct."
   },
   {
    "module": "completion_gen.py",
@@ -4879,49 +4967,55 @@
    "module": "completion_gen.py",
    "name": "_filter_params_by_flags",
    "line": 136,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/model.rs",
-   "rust_item": "filter_params_by_flags"
+   "rust_item": "filter_params_by_flags",
+   "note": "Compared dropping params excluded by the active flags."
   },
   {
    "module": "completion_gen.py",
    "name": "_walk",
    "line": 142,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/model.rs",
-   "rust_item": "walk"
+   "rust_item": "walk",
+   "note": "Compared walking the command tree in definition order."
   },
   {
    "module": "completion_gen.py",
    "name": "_extract_params",
    "line": 186,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/model.rs",
-   "rust_item": "extract_params"
+   "rust_item": "extract_params",
+   "note": "Compared positional and option params taken from one command."
   },
   {
    "module": "completion_gen.py",
    "name": "_fish_cond",
    "line": 231,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
-   "rust_item": "fish_cond"
+   "rust_item": "fish_cond",
+   "note": "Compared the fish condition that gates one completion line."
   },
   {
    "module": "completion_gen.py",
    "name": "_fish_lines",
    "line": 238,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
-   "rust_item": "fish_lines"
+   "rust_item": "fish_lines",
+   "note": "Compared one fish complete line per command and option."
   },
   {
    "module": "completion_gen.py",
    "name": "_emit_fish",
    "line": 315,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
-   "rust_item": "emit_fish"
+   "rust_item": "emit_fish",
+   "note": "Compared the full fish script."
   },
   {
    "module": "completion_gen.py",
@@ -4934,236 +5028,262 @@
    "module": "completion_gen.py",
    "name": "_collect_bash",
    "line": 337,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
    "rust_item": "collect",
-   "note": "Pre-order walk keyed by ' '.join(path[1:]); subcommand/flag lists come from `completions` at emit time. sorted_cases uses a stable sort by descending word count like Python's sorted(key=-len). Tested by collect_and_completions_match_python_cases and the full-script golden tests."
+   "note": "Compared bash command and option words collected for one node."
   },
   {
    "module": "completion_gen.py",
    "name": "_emit_bash",
    "line": 356,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
-   "rust_item": "emit_bash"
+   "rust_item": "emit_bash",
+   "note": "Compared the bash completion function and its option flags."
   },
   {
    "module": "completion_gen.py",
    "name": "_collect_zsh",
    "line": 434,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
    "rust_item": "collect",
-   "note": "Identical walk to _collect_bash; shared `collect` serves emit_zsh."
+   "note": "Compared zsh words collected for one node."
   },
   {
    "module": "completion_gen.py",
    "name": "_emit_zsh",
    "line": 447,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-completion/src/emit.rs",
-   "rust_item": "emit_zsh"
+   "rust_item": "emit_zsh",
+   "note": "Compared the zsh compdef script."
   },
   {
    "module": "completion_gen.py",
    "name": "build_script",
    "line": 525,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/completion.rs",
-   "rust_item": "build_script"
+   "rust_item": "build_script",
+   "note": "Compared the CLI build_script that walks the clap tree and calls the completion emitter."
   },
   {
    "module": "config.py",
    "name": "refresh_paths",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
    "rust_item": "from_env",
-   "note": "Paths::from_env (empty env var falls back like `or`); config::reload installs it; test refresh_paths_follow_env."
+   "note": "Compared from_env rereading FSV_CONFIG_DIR and the domain."
   },
   {
    "module": "config.py",
    "name": "display_path",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "display_path"
+   "rust_item": "display_path",
+   "note": "Compared the path printed for the active config file."
   },
   {
    "module": "config.py",
    "name": "atomic_write_text",
    "line": 44,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "atomic_write_text"
+   "rust_item": "atomic_write_text",
+   "note": "Compared the temp-file replace used for config text."
   },
   {
    "module": "config.py",
    "name": "ensure_dirs",
    "line": 61,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "ensure_dirs"
+   "rust_item": "ensure_dirs",
+   "note": "Compared creating the config directory before a write."
   },
   {
    "module": "config.py",
    "name": "load_config",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "load_config"
+   "rust_item": "load_config",
+   "note": "Compared a missing file as {} and invalid JSON as an error."
   },
   {
    "module": "config.py",
    "name": "save_config",
    "line": 89,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "save_config"
+   "rust_item": "save_config",
+   "note": "Compared the atomic write of the config object."
   },
   {
    "module": "config.py",
    "name": "normalize_domain",
    "line": 94,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "normalize_domain"
+   "rust_item": "normalize_domain",
+   "note": "Compared stripping and lowercasing a domain."
   },
   {
    "module": "config.py",
    "name": "_configured_domain",
    "line": 115,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "configured_domain_at"
+   "rust_item": "configured_domain_at",
+   "note": "Compared the domain stored at a config path."
   },
   {
    "module": "config.py",
    "name": "_urls",
    "line": 125,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "urls"
+   "rust_item": "urls",
+   "note": "Compared portal and API urls derived from the domain."
   },
   {
    "module": "config.py",
    "name": "set_domain",
    "line": 135,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "set_domain"
+   "rust_item": "set_domain",
+   "note": "Compared writing the domain and stripping it."
   },
   {
    "module": "config.py",
    "name": "require_domain",
    "line": 146,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "require_domain"
+   "rust_item": "require_domain",
+   "note": "Compared refusing to continue when no domain is set."
   },
   {
    "module": "config.py",
    "name": "cache_domain_key",
    "line": 152,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "cache_domain_key"
+   "rust_item": "cache_domain_key",
+   "note": "Compared the domain segment of a cache path."
   },
   {
    "module": "config.py",
    "name": "cache_workspace_key",
    "line": 162,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "cache_workspace_key"
+   "rust_item": "cache_workspace_key",
+   "note": "fixed: str(workspace_id) so 0, True, and False become ws0, wsTrue, and wsFalse. DIVERGENCE: a non-dict forms value is wsauto; Python raises AttributeError."
   },
   {
    "module": "config.py",
    "name": "cache_scope_key",
    "line": 172,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "cache_scope_key"
+   "rust_item": "cache_scope_key",
+   "note": "Compared the scope segment, stripped and lowercased, with the default for a blank scope."
   },
   {
    "module": "config.py",
    "name": "schema_cache_path",
    "line": 178,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "schema_cache_path"
+   "rust_item": "schema_cache_path",
+   "note": "Compared the schema cache file for the active domain and workspace."
   },
   {
    "module": "config.py",
    "name": "schema_cache_candidates",
    "line": 182,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "schema_cache_candidates"
+   "rust_item": "schema_cache_candidates",
+   "note": "Compared the candidate schema files searched before a fetch."
   },
   {
    "module": "config.py",
    "name": "filters_cache_path",
    "line": 186,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "filters_cache_path"
+   "rust_item": "filters_cache_path",
+   "note": "Compared the filters cache file path."
   },
   {
    "module": "config.py",
    "name": "filters_cache_candidates",
    "line": 190,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "filters_cache_candidates"
+   "rust_item": "filters_cache_candidates",
+   "note": "Compared the candidate filter files searched before a fetch."
   },
   {
    "module": "config.py",
    "name": "get_default_where",
    "line": 194,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "get_default_where"
+   "rust_item": "get_default_where",
+   "note": "DIVERGENCE: a where that is neither list, str, nor dict becomes []; Python list() raises TypeError. A string still splits into characters and a dict still becomes its keys."
   },
   {
    "module": "config.py",
    "name": "set_default_where",
    "line": 198,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "set_default_where"
+   "rust_item": "set_default_where",
+   "note": "Compared storing the default where list for one resource."
   },
   {
    "module": "config.py",
    "name": "clear_default_where",
    "line": 204,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "clear_default_where"
+   "rust_item": "clear_default_where",
+   "note": "Compared removing that stored where list."
   },
   {
    "module": "config.py",
    "name": "groups_cache_path",
    "line": 210,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "groups_cache_path"
+   "rust_item": "groups_cache_path",
+   "note": "Compared the groups cache file path."
   },
   {
    "module": "config.py",
    "name": "groups_cache_candidates",
    "line": 214,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "groups_cache_candidates"
+   "rust_item": "groups_cache_candidates",
+   "note": "Compared the candidate group files searched before a fetch."
   },
   {
    "module": "config.py",
    "name": "reload",
    "line": 218,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "reload"
+   "rust_item": "reload",
+   "note": "Compared rereading config from disk into the process."
   },
   {
    "module": "create.py",
@@ -5845,10 +5965,10 @@
    "module": "editor.py",
    "name": "_editor",
    "line": 15,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
    "rust_item": "editor_command",
-   "note": "$VISUAL, else $EDITOR (empty skipped), else vi; shlex split."
+   "note": "Compared VISUAL, then EDITOR, then vi."
   },
   {
    "module": "editor.py",
@@ -5862,73 +5982,82 @@
    "module": "editor.py",
    "name": "_digest",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
-   "rust_item": "digest"
+   "rust_item": "digest",
+   "note": "Compared the sha256 used to detect an unchanged buffer."
   },
   {
    "module": "editor.py",
    "name": "_strip_error_header",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
-   "rust_item": "strip_error_header"
+   "rust_item": "strip_error_header",
+   "note": "Compared removing the error header lines before parsing the edit."
   },
   {
    "module": "editor.py",
    "name": "edit_text",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
-   "rust_item": "edit_text"
+   "rust_item": "edit_text",
+   "note": "Compared up to 20 editor rounds and aborting when the digest is unchanged."
   },
   {
    "module": "editor.py",
    "name": "edit_json",
    "line": 83,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
-   "rust_item": "edit_json"
+   "rust_item": "edit_json",
+   "note": "Compared a JSON edit, the unchanged-file abort message, and exit 1 when the editor is missing."
   },
   {
    "module": "editor.py",
    "name": "_parse_json_text",
    "line": 99,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
-   "rust_item": "parse_json_text"
+   "rust_item": "parse_json_text",
+   "note": "Compared a JSON parse error returned above the payload."
   },
   {
    "module": "editor.py",
    "name": "_read_json_file",
    "line": 111,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/editor.rs",
-   "rust_item": "read_json_file"
+   "rust_item": "read_json_file",
+   "note": "Compared reading the edited file as JSON with indent 2 and a trailing newline on the way out."
   },
   {
    "module": "errors.py",
    "name": "_strip_tags",
    "line": 4,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/error.rs",
-   "rust_item": "strip_tags"
+   "rust_item": "strip_tags",
+   "note": "Compared stripping HTML tags before a server message is shown."
   },
   {
    "module": "errors.py",
    "name": "server_message",
    "line": 12,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/error.rs",
-   "rust_item": "server_message"
+   "rust_item": "server_message",
+   "note": "Compared truthy message keys, the field prefix, an errors-plus-description parenthesis, and truncation to limit-1 plus an ellipsis."
   },
   {
    "module": "errors.py",
    "name": "_describe_request",
    "line": 37,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/error.rs",
-   "rust_item": "describe_request"
+   "rust_item": "describe_request",
+   "note": "Compared GET listing versus fetching, one trailing s, and POST keeping a plural noun only when it is not an item."
   },
   {
    "module": "errors.py",
@@ -5951,9 +6080,10 @@
    "name": "detail",
    "class": "APIError",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/error.rs",
-   "rust_item": "detail"
+   "rust_item": "detail",
+   "note": "Compared status, method, and target, including None rendered as the text None, and a 0 status whose head is Error."
   },
   {
    "module": "errors.py",
@@ -5976,66 +6106,73 @@
    "name": "SessionError",
    "line": 83,
    "kind": "class",
-   "status": "matched",
-   "rust": "crates/fsv-views/src/source.rs",
-   "rust_item": "SessionError"
+   "status": "reviewed",
+   "rust": "crates/fsv-core/src/error.rs",
+   "rust_item": "Error",
+   "note": "Session variant of Error, exit 3. The views SessionError type is a name collision."
   },
   {
    "module": "errors.py",
    "name": "exit_code_for",
    "line": 98,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/error.rs",
    "rust_item": "exit_code",
-   "note": "Error::exit_code plus ApiError::exit_code (409 / 400|422 duplicate regex); Context follows only Api|Session causes; test exit_code_for_matches_python."
+   "note": "Compared a duplicate 400 or 422 body to exit 4, 409 to 4, other API errors to 5, usage to 2, and walking an API or session cause."
   },
   {
    "module": "filter_proof.py",
    "name": "require_filterable_field",
    "line": 7,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/filter_proof.rs",
-   "rust_item": "require_filterable_field"
+   "rust_item": "require_filterable_field",
+   "note": "Compared refusing a field the schema does not mark filterable."
   },
   {
    "module": "filter_proof.py",
    "name": "name_valued_choice",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/filter_proof.rs",
-   "rust_item": "name_valued_choice"
+   "rust_item": "name_valued_choice",
+   "note": "Compared a choice whose stored value is the name rather than an id."
   },
   {
    "module": "filter_proof.py",
    "name": "_scalar",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/filter_proof.rs",
-   "rust_item": "scalar"
+   "rust_item": "scalar",
+   "note": "Compared the scalar used when a row cell is a nested object."
   },
   {
    "module": "filter_proof.py",
    "name": "_number_matches",
    "line": 62,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/filter_proof.rs",
-   "rust_item": "number_matches"
+   "rust_item": "number_matches",
+   "note": "Compared numeric equality, including a whole-number float."
   },
   {
    "module": "filter_proof.py",
    "name": "matches",
    "line": 79,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/filter_proof.rs",
-   "rust_item": "matches"
+   "rust_item": "matches",
+   "note": "Compared a row matching every active filter clause."
   },
   {
    "module": "filter_proof.py",
    "name": "contradictions",
    "line": 116,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/filter_proof.rs",
-   "rust_item": "contradictions"
+   "rust_item": "contradictions",
+   "note": "DIVERGENCE: a non-dict row is skipped; Python raises AttributeError. A proven mismatch still returns the row id, or unknown when the id is missing."
   },
   {
    "module": "form_cli.py",
@@ -11418,113 +11555,127 @@
    "module": "journal.py",
    "name": "journal_path",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "journal_path"
+   "rust_item": "journal_path",
+   "note": "Compared the journal file path under the config dir."
   },
   {
    "module": "journal.py",
    "name": "plan_hash",
    "line": 37,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "plan_hash"
+   "rust_item": "plan_hash",
+   "note": "Compared the canonical JSON hash of a plan body."
   },
   {
    "module": "journal.py",
    "name": "snapshot_hash",
    "line": 45,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "snapshot_hash"
+   "rust_item": "snapshot_hash",
+   "note": "Compared the hash stored for a reviewed snapshot."
   },
   {
    "module": "journal.py",
    "name": "_split_path",
    "line": 52,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "split_path"
+   "rust_item": "split_path",
+   "note": "Compared redacting unknown path segments and keeping a numeric id segment."
   },
   {
    "module": "journal.py",
    "name": "_classify",
    "line": 58,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "classify"
+   "rust_item": "classify",
+   "note": "Compared classifying a write as create, update, or delete."
   },
   {
    "module": "journal.py",
    "name": "_created_id",
    "line": 78,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "created_id"
+   "rust_item": "created_id",
+   "note": "Compared the id taken from a create response."
   },
   {
    "module": "journal.py",
    "name": "_safe_id",
    "line": 89,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "safe_id"
+   "rust_item": "safe_id",
+   "note": "Compared a numeric-only id, with anything else redacted."
   },
   {
    "module": "journal.py",
    "name": "_safe_target",
    "line": 98,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "safe_target"
+   "rust_item": "safe_target",
+   "note": "Compared the redacted target written on a journal line."
   },
   {
    "module": "journal.py",
    "name": "_command",
    "line": 104,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "command"
+   "rust_item": "command",
+   "note": "Compared the command text stored on a journal line."
   },
   {
    "module": "journal.py",
    "name": "record",
    "line": 116,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "record"
+   "rust_item": "record",
+   "note": "Compared appending one JSON journal line."
   },
   {
    "module": "journal.py",
    "name": "read",
    "line": 146,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "read"
+   "rust_item": "read",
+   "note": "Compared reading every line and skipping a corrupt line."
   },
   {
    "module": "journal.py",
    "name": "_append",
    "line": 171,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "append"
+   "rust_item": "append",
+   "note": "Compared the append that record and record_plan share."
   },
   {
    "module": "journal.py",
    "name": "record_plan",
    "line": 181,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "record_plan"
+   "rust_item": "record_plan",
+   "note": "Compared a plan line with its hash, and a failed plan staying retryable."
   },
   {
    "module": "journal.py",
    "name": "recent_plan",
    "line": 210,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/journal.rs",
-   "rust_item": "recent_plan"
+   "rust_item": "recent_plan",
+   "note": "Compared the latest done row, else a started row with no later outcome; a falsy limit returns every row."
   },
   {
    "module": "legacy_approvals.py",
@@ -11687,17 +11838,19 @@
    "module": "mdlite.py",
    "name": "_inline",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/mdlite.rs",
-   "rust_item": "inline"
+   "rust_item": "inline",
+   "note": "Compared escape-first inline markup, code stashing, and links."
   },
   {
    "module": "mdlite.py",
    "name": "to_html",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/mdlite.rs",
-   "rust_item": "to_html"
+   "rust_item": "to_html",
+   "note": "Compared paragraphs and lists, with links limited to http, https, and mailto."
   },
   {
    "module": "module_time.py",
@@ -12514,249 +12667,280 @@
    "module": "query.py",
    "name": "_isdigit",
    "line": 10,
-   "status": "matched",
-   "rust": "crates/fsv-core/src/pystr/mod.rs",
-   "rust_item": "is_digit"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/query.rs",
+   "rust_item": "ascii_digits",
+   "note": "ASCII-only digits via ascii_digits. pystr::is_digit is Unicode str.isdigit and is the wrong pointer."
   },
   {
    "module": "query.py",
    "name": "_strip_quotes",
    "line": 15,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "strip_quotes"
+   "rust_item": "strip_quotes",
+   "note": "Compared stripping one pair of matching quotes from a where value."
   },
   {
    "module": "query.py",
    "name": "_parse_where",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "parse_where"
+   "rust_item": "parse_where",
+   "note": "Compared where-clause splitting, operators, and quote handling."
   },
   {
    "module": "query.py",
    "name": "_field_api_type",
    "line": 40,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "field_api_type"
+   "rust_item": "field_api_type",
+   "note": "Compared the schema type used to type a where value."
   },
   {
    "module": "query.py",
    "name": "_field_matches",
    "line": 44,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/lookup.rs",
-   "rust_item": "field_matches"
+   "rust_item": "field_matches",
+   "note": "Compared casefold substring match. The completion helper is a prefix match and is a different function."
   },
   {
    "module": "query.py",
    "name": "_schema_field_matches",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "schema_field_matches"
+   "rust_item": "schema_field_matches",
+   "note": "Compared the same substring match inlined for schema fields."
   },
   {
    "module": "query.py",
    "name": "_find_schema_field",
    "line": 58,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "find_schema_field"
+   "rust_item": "find_schema_field",
+   "note": "Compared finding a schema field by that substring match."
   },
   {
    "module": "query.py",
    "name": "_pick_lookup",
    "line": 85,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "pick_lookup"
+   "rust_item": "pick_lookup",
+   "note": "Compared choosing requester, agent, or group lookup for a field."
   },
   {
    "module": "query.py",
    "name": "_resolve_requester",
    "line": 98,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "resolve_requester"
+   "rust_item": "resolve_requester",
+   "note": "Compared resolving a requester where value to an id."
   },
   {
    "module": "query.py",
    "name": "_resolve_agent",
    "line": 110,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "resolve_agent"
+   "rust_item": "resolve_agent",
+   "note": "Compared resolving an agent where value to an id, with no fallback to the wrong id."
   },
   {
    "module": "query.py",
    "name": "_resolve_group",
    "line": 123,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "resolve_group"
+   "rust_item": "resolve_group",
+   "note": "Compared resolving a group where value to an id."
   },
   {
    "module": "query.py",
    "name": "_choice_value",
    "line": 139,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "choice_value"
+   "rust_item": "choice_value",
+   "note": "Compared a choice label resolved to its stored value."
   },
   {
    "module": "query.py",
    "name": "_where_operator",
    "line": 154,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "where_operator"
+   "rust_item": "where_operator",
+   "note": "Compared operator spellings and the default equality operator."
   },
   {
    "module": "query.py",
    "name": "_query_item",
    "line": 166,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "query_item"
+   "rust_item": "query_item",
+   "note": "Compared one where clause turned into a query-hash item."
   },
   {
    "module": "query.py",
    "name": "_advanced",
    "line": 215,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "advanced"
+   "rust_item": "advanced",
+   "note": "Compared any and all grouping of advanced clauses."
   },
   {
    "module": "query.py",
    "name": "is_text_field",
    "line": 220,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "is_text_field"
+   "rust_item": "is_text_field",
+   "note": "Compared a text field that cannot be a structured filter."
   },
   {
    "module": "query.py",
    "name": "text_filter_refusal",
    "line": 225,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "text_filter_refusal"
+   "rust_item": "text_filter_refusal",
+   "note": "Compared the refusal message for a text-field filter."
   },
   {
    "module": "query.py",
    "name": "date_condition",
    "line": 232,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "date_condition"
+   "rust_item": "date_condition",
+   "note": "Compared on:, last:, next:, an ISO day, and > as from the next day."
   },
   {
    "module": "query.py",
    "name": "_int_choice_id",
    "line": 281,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "int_choice_id"
+   "rust_item": "int_choice_id",
+   "note": "Compared an integer choice id, and raw digits left as-is for changes approval_status."
   },
   {
    "module": "query.py",
    "name": "typed_condition",
    "line": 289,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "typed_condition"
+   "rust_item": "typed_condition",
+   "note": "Compared number and multi-select typed values."
   },
   {
    "module": "query.py",
    "name": "merge_date_ranges",
    "line": 332,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "merge_date_ranges"
+   "rust_item": "merge_date_ranges",
+   "note": "Compared merging both ends of two date ranges."
   },
   {
    "module": "query.py",
    "name": "workspace_item",
    "line": 362,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "workspace_item"
+   "rust_item": "workspace_item",
+   "note": "Compared the workspace clause added to a query hash."
   },
   {
    "module": "query.py",
    "name": "runtime_workspace",
    "line": 371,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "runtime_workspace"
+   "rust_item": "runtime_workspace",
+   "note": "Compared the workspace id taken from the running config."
   },
   {
    "module": "query.py",
    "name": "serialize",
    "line": 376,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "serialize"
+   "rust_item": "serialize",
+   "note": "Compared advanced any/all serialization and key order."
   },
   {
    "module": "query.py",
    "name": "refuse_unsupported_filter",
    "line": 400,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "refuse_unsupported_filter"
+   "rust_item": "refuse_unsupported_filter",
+   "note": "Compared tickets refusing approval_status."
   },
   {
    "module": "query.py",
    "name": "_check_raw_query",
    "line": 406,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "check_raw_query"
+   "rust_item": "check_raw_query",
+   "note": "Compared a raw query string rejected when the schema cannot type it."
   },
   {
    "module": "query.py",
    "name": "_resolve_where",
    "line": 416,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "resolve_where"
+   "rust_item": "resolve_where",
+   "note": "Compared resolving every where clause before the hash is built."
   },
   {
    "module": "query.py",
    "name": "_load_query_hash",
    "line": 482,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "load_query_hash"
+   "rust_item": "load_query_hash",
+   "note": "Compared loading a stored query hash for a named filter."
   },
   {
    "module": "query.py",
    "name": "build_query_hash_from_schema",
    "line": 496,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "build_query_hash_from_schema"
+   "rust_item": "build_query_hash_from_schema",
+   "note": "Compared building the hash from schema-typed clauses."
   },
   {
    "module": "query.py",
    "name": "build_query_hash",
    "line": 519,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "build_query_hash"
+   "rust_item": "build_query_hash",
+   "note": "Compared the public hash builder, including an empty filter skipped later by the list call."
   },
   {
    "module": "query.py",
    "name": "_adv_needed",
    "line": 550,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/query.rs",
-   "rust_item": "adv_needed"
+   "rust_item": "adv_needed",
+   "note": "Compared when a where list must be sent as an advanced query hash."
   },
   {
    "module": "readback.py",
@@ -13004,70 +13188,78 @@
    "name": "Resource",
    "line": 8,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/resource.rs",
-   "rust_item": "Resource"
+   "rust_item": "Resource",
+   "note": "Compared the resource table: path, list key, and noun."
   },
   {
    "module": "resources.py",
    "name": "portal_url",
    "class": "Resource",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/resource.rs",
-   "rust_item": "portal_url"
+   "rust_item": "portal_url",
+   "note": "Compared the portal URL for one resource id."
   },
   {
    "module": "resources.py",
    "name": "parse_id",
    "line": 70,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/resource.rs",
-   "rust_item": "parse_id"
+   "rust_item": "parse_id",
+   "note": "DIVERGENCE: a Unicode digit run returns the integer; Python int() raises ValueError. ASCII prefix messages match, including an invalid prefix."
   },
   {
    "module": "resources.py",
    "name": "format_id",
    "line": 84,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/resource.rs",
-   "rust_item": "format_id"
+   "rust_item": "format_id",
+   "note": "Compared a truthy human_display_id, else display_id or id, with a missing id rendered as the text None."
   },
   {
    "module": "review.py",
    "name": "Review",
    "line": 14,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/review.rs",
-   "rust_item": "Review"
+   "rust_item": "Review",
+   "note": "Compared the review struct and the NO_PAYLOAD constant used when there is no body."
   },
   {
    "module": "review.py",
    "name": "to_dict",
    "class": "Review",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/review.rs",
-   "rust_item": "to_dict"
+   "rust_item": "to_dict",
+   "note": "Compared the review dict, including the sha256 prefix of 16 hex characters."
   },
   {
    "module": "review.py",
    "name": "blocking_unacked",
    "class": "Review",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/review.rs",
-   "rust_item": "blocking_unacked"
+   "rust_item": "blocking_unacked",
+   "note": "Compared the unacked blocking-tag text."
   },
   {
    "module": "review.py",
    "name": "render",
    "class": "Review",
    "line": 39,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/review.rs",
-   "rust_item": "render"
+   "rust_item": "render",
+   "note": "Compared the review text: an em dash for an empty cell, thousands separators, and the as-of metadata line."
   },
   {
    "module": "reviewed_cli.py",
@@ -13100,17 +13292,19 @@
    "module": "reviewed_snapshot.py",
    "name": "_stable_url",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/reviewed_snapshot.rs",
-   "rust_item": "stable_url"
+   "rust_item": "stable_url",
+   "note": "Compared the URL with volatile query params removed before hashing."
   },
   {
    "module": "reviewed_snapshot.py",
    "name": "stable_snapshot",
    "line": 34,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/reviewed_snapshot.rs",
-   "rust_item": "stable_snapshot"
+   "rust_item": "stable_snapshot",
+   "note": "Compared the snapshot body and its stable hash."
   },
   {
    "module": "reviewed_write.py",
@@ -13173,81 +13367,91 @@
    "module": "safety.py",
    "name": "norm",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "norm"
+   "rust_item": "norm",
+   "note": "Compared NFC casefold used for label compares."
   },
   {
    "module": "safety.py",
    "name": "is_terminal_label",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "is_terminal_label"
+   "rust_item": "is_terminal_label",
+   "note": "Compared a status label that closes the item."
   },
   {
    "module": "safety.py",
    "name": "is_open_label",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "is_open_label"
+   "rust_item": "is_open_label",
+   "note": "Compared a status label that leaves the item open."
   },
   {
    "module": "safety.py",
    "name": "status_closes",
    "line": 41,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "status_closes"
+   "rust_item": "status_closes",
+   "note": "Compared a status change that moves into a terminal label."
   },
   {
    "module": "safety.py",
    "name": "_plain",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "plain"
+   "rust_item": "plain",
+   "note": "Compared plain text with one trailing s removed, not every trailing s."
   },
   {
    "module": "safety.py",
    "name": "_same",
    "line": 57,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "same"
+   "rust_item": "same",
+   "note": "Compared two labels equal after norm."
   },
   {
    "module": "safety.py",
    "name": "write_risks",
    "line": 61,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "write_risks"
+   "rust_item": "write_risks",
+   "note": "Compared skipping an unchanged status, assignee, or group when the current value is known."
   },
   {
    "module": "safety.py",
    "name": "note_risks",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "note_risks"
+   "rust_item": "note_risks",
+   "note": "Compared risks on a public or private note."
   },
   {
    "module": "safety.py",
    "name": "reply_risks",
    "line": 105,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "reply_risks"
+   "rust_item": "reply_risks",
+   "note": "Compared risks on a reply body."
   },
   {
    "module": "safety.py",
    "name": "clone_risks",
    "line": 109,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/safety.rs",
-   "rust_item": "clone_risks"
+   "rust_item": "clone_risks",
+   "note": "Compared risks copied onto a cloned item."
   },
   {
    "module": "scenarios.py",
@@ -13367,457 +13571,514 @@
    "module": "service.py",
    "name": "list_page",
    "line": 15,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "list_page"
+   "rust_item": "list_page",
+   "note": "fixed: an empty query_hash is not a filter even when meta.search_error is set. A non-dict body becomes {} and an empty order_type stays desc."
   },
   {
    "module": "service.py",
    "name": "_list_params",
    "line": 43,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "list_params"
+   "rust_item": "list_params",
+   "note": "Compared an empty filter, order, or query skipped, and or_grouping using advanced_query_hash."
   },
   {
    "module": "service.py",
    "name": "list_items",
    "line": 67,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "list_items"
+   "rust_item": "list_items",
+   "note": "fixed: an empty query_hash is not a filter, an empty order_type is kept, and a falsy total_count falls through to total or the row count. DIVERGENCE: a null or non-list list key becomes [] instead of a value that crashes iteration."
   },
   {
    "module": "service.py",
    "name": "_normalize_search_result",
    "line": 117,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "normalize_search_result"
+   "rust_item": "normalize_search_result",
+   "note": "Compared ticket versus itil search rows, including the id taken from the path tail."
   },
   {
    "module": "service.py",
    "name": "search_items",
    "line": 153,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "search_items"
+   "rust_item": "search_items",
+   "note": "Compared search totals kept from the server, with a failed entity skipped."
   },
   {
    "module": "service.py",
    "name": "list_work_items",
    "line": 199,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "list_work_items"
+   "rust_item": "list_work_items",
+   "note": "Compared tickets, changes, and problems ordered by newest updated_at."
   },
   {
    "module": "service.py",
    "name": "get_item",
    "line": 228,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_item"
+   "rust_item": "get_item",
+   "note": "Compared one item fetched by id and tagged with its resource."
   },
   {
    "module": "service.py",
    "name": "get_activities",
    "line": 252,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_activities"
+   "rust_item": "get_activities",
+   "note": "DIVERGENCE: a null or non-list activities body becomes [] instead of a value that crashes iteration."
   },
   {
    "module": "service.py",
    "name": "get_notes",
    "line": 260,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_notes"
+   "rust_item": "get_notes",
+   "note": "DIVERGENCE: a null or non-list notes body becomes []."
   },
   {
    "module": "service.py",
    "name": "get_tasks",
    "line": 277,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_tasks"
+   "rust_item": "get_tasks",
+   "note": "DIVERGENCE: a null or non-list tasks body becomes []."
   },
   {
    "module": "service.py",
    "name": "get_approvals",
    "line": 285,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_approvals"
+   "rust_item": "get_approvals",
+   "note": "DIVERGENCE: a null or non-list approvals body becomes []."
   },
   {
    "module": "service.py",
    "name": "get_ticket_approvals",
    "line": 293,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_ticket_approvals"
+   "rust_item": "get_ticket_approvals",
+   "note": "DIVERGENCE: a null or non-list ticket-approvals body becomes []."
   },
   {
    "module": "service.py",
    "name": "get_assets",
    "line": 301,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_assets"
+   "rust_item": "get_assets",
+   "note": "DIVERGENCE: a null or non-list assets body on a non-change path becomes []."
   },
   {
    "module": "service.py",
    "name": "get_associations",
    "line": 315,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_associations"
+   "rust_item": "get_associations",
+   "note": "Compared association rows returned for an item."
   },
   {
    "module": "service.py",
    "name": "get_requested_items",
    "line": 353,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_requested_items"
+   "rust_item": "get_requested_items",
+   "note": "Compared requested-item rows for a ticket."
   },
   {
    "module": "service.py",
    "name": "get_change_planning_field_definitions",
    "line": 388,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_change_planning_field_definitions"
+   "rust_item": "get_change_planning_field_definitions",
+   "note": "Compared planning field definitions for a change."
   },
   {
    "module": "service.py",
    "name": "get_change_planning_fields",
    "line": 397,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_change_planning_fields"
+   "rust_item": "get_change_planning_fields",
+   "note": "Compared planning field values for a change."
   },
   {
    "module": "service.py",
    "name": "planning_fields_by_name",
    "line": 405,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "planning_fields_by_name"
+   "rust_item": "planning_fields_by_name",
+   "note": "Compared those values keyed by field name."
   },
   {
    "module": "service.py",
    "name": "extract_description_attachment_urls",
    "line": 409,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "extract_description_attachment_urls"
+   "rust_item": "extract_description_attachment_urls",
+   "note": "Compared attachment URLs pulled out of a description body."
   },
   {
    "module": "service.py",
    "name": "get_change_evidence",
    "line": 421,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "get_change_evidence"
+   "rust_item": "get_change_evidence",
+   "note": "Compared evidence rows for a change."
   },
   {
    "module": "service.py",
    "name": "update_item",
    "line": 436,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "update_item"
+   "rust_item": "update_item",
+   "note": "Compared the update body and the write-risk check before the PUT."
   },
   {
    "module": "service.py",
    "name": "add_note",
    "line": 447,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "add_note"
+   "rust_item": "add_note",
+   "note": "Compared changes and problems sending private equal to not public; tickets omit private."
   },
   {
    "module": "service.py",
    "name": "add_reply",
    "line": 462,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "add_reply"
+   "rust_item": "add_reply",
+   "note": "Compared a reply body posted on a ticket."
   },
   {
    "module": "service.py",
    "name": "resolve_status",
    "line": 473,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "resolve_status"
+   "rust_item": "resolve_status",
+   "note": "Compared status_name, then a nested name, then a choice label, then str(status)."
   },
   {
    "module": "service.py",
    "name": "resolve_priority",
    "line": 485,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "resolve_priority"
+   "rust_item": "resolve_priority",
+   "note": "Compared a falsy or missing priority as key 0, True as 1, and an unknown key as a dash."
   },
   {
    "module": "service.py",
    "name": "item_url",
    "line": 489,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "item_url"
+   "rust_item": "item_url",
+   "note": "Compared the portal URL for one item id."
   },
   {
    "module": "session.py",
    "name": "_store_pref_file",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "store_pref_file"
+   "rust_item": "store_pref_file",
+   "note": "Compared the file that records file versus keychain storage."
   },
   {
    "module": "session.py",
    "name": "_session_file",
    "line": 40,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/config.rs",
-   "rust_item": "session_file"
+   "rust_item": "session_file",
+   "note": "Compared the session file path under the config dir."
   },
   {
    "module": "session.py",
    "name": "current_backend",
    "line": 47,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "current_backend"
+   "rust_item": "current_backend",
+   "note": "Compared the active session backend."
   },
   {
    "module": "session.py",
    "name": "set_backend",
    "line": 59,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "set_backend"
+   "rust_item": "set_backend",
+   "note": "Compared switching the stored backend."
   },
   {
    "module": "session.py",
    "name": "_keychain_available",
    "line": 67,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "keychain_available"
+   "rust_item": "keychain_available",
+   "note": "Compared whether the OS keychain can be used."
   },
   {
    "module": "session.py",
    "name": "_keychain_write",
    "line": 73,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "keychain_write"
+   "rust_item": "keychain_write",
+   "note": "Compared writing the session blob to the keychain."
   },
   {
    "module": "session.py",
    "name": "_keychain_decode",
    "line": 91,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "keychain_decode"
+   "rust_item": "keychain_decode",
+   "note": "Compared decoding a keychain blob back to cookies."
   },
   {
    "module": "session.py",
    "name": "_keychain_read",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "keychain_read"
+   "rust_item": "keychain_read",
+   "note": "Compared reading the session blob from the keychain."
   },
   {
    "module": "session.py",
    "name": "_keychain_delete",
    "line": 114,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "keychain_delete"
+   "rust_item": "keychain_delete",
+   "note": "Compared deleting the keychain session item."
   },
   {
    "module": "session.py",
    "name": "_b64e",
    "line": 127,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "b64e"
+   "rust_item": "b64e",
+   "note": "Compared standard base64 encoding of a session blob."
   },
   {
    "module": "session.py",
    "name": "_b64d",
    "line": 131,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "b64d"
+   "rust_item": "b64d",
+   "note": "Compared standard base64 decoding of a session blob."
   },
   {
    "module": "session.py",
    "name": "_derive_key",
    "line": 135,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "derive_key"
+   "rust_item": "derive_key",
+   "note": "Compared the key derived for the file-session cipher."
   },
   {
    "module": "session.py",
    "name": "_passphrase",
    "line": 147,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "passphrase"
+   "rust_item": "passphrase",
+   "note": "Compared the passphrase mixed into that key."
   },
   {
    "module": "session.py",
    "name": "_argon_encrypt",
    "line": 158,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "argon_encrypt"
+   "rust_item": "argon_encrypt",
+   "note": "Compared encrypting the session file with that key."
   },
   {
    "module": "session.py",
    "name": "_argon_decrypt",
    "line": 176,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "argon_decrypt"
+   "rust_item": "argon_decrypt",
+   "note": "Compared decrypting the session file, and a bad blob as no session."
   },
   {
    "module": "session.py",
    "name": "_read_file_session",
    "line": 196,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "read_file_session"
+   "rust_item": "read_file_session",
+   "note": "Compared reading cookies from the encrypted session file."
   },
   {
    "module": "session.py",
    "name": "load_cookies",
    "line": 208,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "load_cookies"
+   "rust_item": "load_cookies",
+   "note": "Compared loading cookies from the active backend."
   },
   {
    "module": "session.py",
    "name": "save_cookies",
    "line": 222,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "save_cookies"
+   "rust_item": "save_cookies",
+   "note": "Compared saving cookies to the active backend."
   },
   {
    "module": "session.py",
    "name": "update_cookie",
    "line": 240,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "update_cookie"
+   "rust_item": "update_cookie",
+   "note": "Compared replacing one cookie and persisting it only when persist is set."
   },
   {
    "module": "session.py",
    "name": "logout",
    "line": 262,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "logout"
+   "rust_item": "logout",
+   "note": "Compared clearing the session cookie and the persisted file."
   },
   {
    "module": "session.py",
    "name": "cookie_header",
    "line": 270,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "cookie_header"
+   "rust_item": "cookie_header",
+   "note": "Compared the Cookie header built from the loaded jar."
   },
   {
    "module": "session.py",
    "name": "session_age_hours",
    "line": 274,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "session_age_hours"
+   "rust_item": "session_age_hours",
+   "note": "Compared age in hours from the cookie timestamp, and none when it is absent."
   },
   {
    "module": "session.py",
    "name": "parse_cookie_header",
    "line": 288,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/paste.rs",
-   "rust_item": "parse_cookie_header"
+   "rust_item": "parse_cookie_header",
+   "note": "Compared splitting one Cookie header into name and value pairs."
   },
   {
    "module": "session.py",
    "name": "validate",
    "line": 299,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/mod.rs",
-   "rust_item": "validate"
+   "rust_item": "validate",
+   "note": "Compared checkSessionOnlyOnce false and the expired-session error."
   },
   {
    "module": "session.py",
    "name": "_read_secret",
    "line": 305,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/paste.rs",
-   "rust_item": "read_secret"
+   "rust_item": "read_secret",
+   "note": "Compared reading a pasted secret without echoing it."
   },
   {
    "module": "session.py",
    "name": "_extract_cookie_from_input",
    "line": 365,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/paste.rs",
-   "rust_item": "extract_cookie_from_input"
+   "rust_item": "extract_cookie_from_input",
+   "note": "Compared pulling the session cookie out of pasted text."
   },
   {
    "module": "session.py",
    "name": "login_interactive",
    "line": 416,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/paste.rs",
-   "rust_item": "login_interactive"
+   "rust_item": "login_interactive",
+   "note": "Compared the paste login path and the persist flag."
   },
   {
    "module": "session.py",
    "name": "_browser_executable",
    "line": 433,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "browser_executable"
+   "rust_item": "browser_executable",
+   "note": "Compared the browser binary used for a browser login."
   },
   {
    "module": "session.py",
    "name": "_http_json",
    "line": 454,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "http_json"
+   "rust_item": "http_json",
+   "note": "Compared the DevTools HTTP JSON helper."
   },
   {
    "module": "session.py",
    "name": "_devtools_port",
    "line": 459,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "devtools_port"
+   "rust_item": "devtools_port",
+   "note": "Compared the DevTools port the browser login connects to."
   },
   {
    "module": "session.py",
    "name": "_page_ws_url",
    "line": 471,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "page_ws_url"
+   "rust_item": "page_ws_url",
+   "note": "Compared the page WebSocket URL taken from the DevTools list."
   },
   {
    "module": "session.py",
@@ -13844,25 +14105,28 @@
    "module": "session.py",
    "name": "_cdp_call",
    "line": 531,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "cdp_call"
+   "rust_item": "cdp_call",
+   "note": "Compared one CDP call used to read browser cookies."
   },
   {
    "module": "session.py",
    "name": "_direct_browser_cookies",
    "line": 564,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "direct_browser_cookies"
+   "rust_item": "direct_browser_cookies",
+   "note": "Compared cookies read directly from the browser profile."
   },
   {
    "module": "session.py",
    "name": "login_browser",
    "line": 584,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/session/browser.rs",
-   "rust_item": "login_browser"
+   "rust_item": "login_browser",
+   "note": "Compared the browser login that stores the captured session."
   },
   {
    "module": "solutions.py",
@@ -14132,33 +14396,37 @@
    "module": "task_status.py",
    "name": "active_choices",
    "line": 6,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/task_status.rs",
-   "rust_item": "active_choices"
+   "rust_item": "active_choices",
+   "note": "Compared open choices, excluding deleted ones unless requested."
   },
   {
    "module": "task_status.py",
    "name": "resolve",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/task_status.rs",
-   "rust_item": "resolve"
+   "rust_item": "resolve",
+   "note": "Compared a status id resolved through the choice list."
   },
   {
    "module": "task_status.py",
    "name": "fields_from",
    "line": 34,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "fields_from"
+   "rust_item": "fields_from",
+   "note": "Compared int_get of change_task_fields with include_deleted_choices, then fields_from_payload."
   },
   {
    "module": "task_status.py",
    "name": "display",
    "line": 42,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/task_status.rs",
-   "rust_item": "display"
+   "rust_item": "display",
+   "note": "fixed: the dict path is name or label or value or id, so a missing id is None, 0 is 0, and True is True."
   },
   {
    "module": "ticket_assignment.py",
@@ -18023,58 +18291,64 @@
    "name": "_Loader",
    "line": 17,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
    "rust_item": "resolve_scalar",
-   "note": "Plain-scalar resolvers (null ~/null/Null/NULL/empty, bool true/false x3) ported. FIXED: explicit tags now follow PyYAML SafeConstructor: the non-specific '!' tag resolves like a plain scalar (even quoted); !!int accepts 0b/0x/0o/leading-0 octal and base-60 (1:30), signs, underscores; !!float accepts base-60 and signs. Pinned by explicit_tags_construct_like_python (expected values from pinned Python). Remaining inherent gap: !!float .nan/.inf, !!timestamp, !!binary, !!set can't be represented in serde_json::Value and error instead."
+   "note": "Compared resolve_scalar: plain scalars stay strings except null, tilde, and booleans, and No stays a label."
   },
   {
    "module": "yamlio.py",
    "name": "loads",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
-   "rust_item": "loads"
+   "rust_item": "loads",
+   "note": "Compared the YAML subset of maps, lists, and those scalar rules."
   },
   {
    "module": "yamlio.py",
    "name": "load_file",
    "line": 39,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
-   "rust_item": "load_file"
+   "rust_item": "load_file",
+   "note": "Compared loading that subset from a file."
   },
   {
    "module": "yamlio.py",
    "name": "scalar",
    "line": 48,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
-   "rust_item": "scalar"
+   "rust_item": "scalar",
+   "note": "Compared a dumped scalar, quoted when it would be reread as another type."
   },
   {
    "module": "yamlio.py",
    "name": "key",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
-   "rust_item": "key"
+   "rust_item": "key",
+   "note": "Compared a bare key versus a quoted key."
   },
   {
    "module": "yamlio.py",
    "name": "flow_list",
    "line": 76,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
-   "rust_item": "flow_list"
+   "rust_item": "flow_list",
+   "note": "Compared an inline flow sequence."
   },
   {
    "module": "yamlio.py",
    "name": "block",
    "line": 85,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/yaml.rs",
-   "rust_item": "block"
+   "rust_item": "block",
+   "note": "Compared an indented block map or list, preserving key order."
   }
  ],
  "no_defs": [

@@ -163,6 +163,14 @@ those stay identical.
   `ticket_assignment._positive` raises `ValueError` from `int()`.
 - SR recipient readback: a submitted address that is not text is a value
   error. Python's `recipient_fields` raises `AttributeError`.
+- Config of the wrong type falls back instead of crashing: a non-object
+  `completion` table turns network completion off, a non-object `forms`
+  table gives cache key `wsauto`, and a default where that is not a list,
+  string or object is `[]`.
+- `resources.parse_id` reads a run of Unicode decimal digits as the number.
+- `filter_proof.contradictions` skips a row that is not an object.
+- Service list readers (`list_items`, activities, notes, tasks, approvals,
+  assets) treat a null or non-list body as no rows.
 
 ## fsv-app
 

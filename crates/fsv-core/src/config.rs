@@ -369,13 +369,14 @@ pub fn cache_domain_key(domain: Option<&str>) -> String {
 /// `forms.workspace_id` override, else `wsauto`.
 pub fn cache_workspace_key() -> String {
     let config = load_config();
+    // `str(workspace_id).strip()` when the value is neither null nor `""`.
+    // A non-object `forms` is `wsauto` (Python raises AttributeError).
     let raw = config
         .get("forms")
         .and_then(|f| f.get("workspace_id"))
         .filter(|v| !v.is_null() && v.as_str() != Some(""));
     let text = match raw {
-        Some(serde_json::Value::String(s)) => s.trim().to_string(),
-        Some(other) => other.to_string(),
+        Some(v) => crate::pystr::strip(&fsv_py::py_str(v)).to_string(),
         None => String::new(),
     };
     if !text.is_empty() && text.is_ascii() && text.chars().all(|c| c.is_ascii_alphanumeric()) {
@@ -673,6 +674,22 @@ mod tests {
         );
         assert_eq!(cache_domain_key(Some("bad host/x")), "bad host-x");
         assert_eq!(cache_domain_key(Some("  ")), "default");
+        for (id, want) in [
+            (json!("12"), "ws12"),
+            (json!(" 12 "), "ws12"),
+            (json!(12), "ws12"),
+            (json!(0), "ws0"),
+            (json!(true), "wsTrue"),
+            (json!(false), "wsFalse"),
+            (json!(1.5), "wsauto"),
+            (json!(""), "wsauto"),
+            (json!("  "), "wsauto"),
+            (json!(null), "wsauto"),
+        ] {
+            let mut cfg = json!({"forms": {"workspace_id": id}});
+            save_config(cfg.as_object_mut().unwrap()).unwrap();
+            assert_eq!(cache_workspace_key(), want);
+        }
         let env = env.with_domain("acme.freshservice.com");
         assert_eq!(cache_domain_key(None), "acme.freshservice.com");
         assert_eq!(

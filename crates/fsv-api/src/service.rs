@@ -649,7 +649,8 @@ fn list_params(resource: &Resource, a: &ListArgs<'_>, fallback_desc: bool) -> Ma
 }
 
 fn search_error(resource: &Resource, args: &ListArgs<'_>, data: &Value) -> Result<()> {
-    let rejected = args.query_hash.is_some()
+    // `if query_hash` is falsy for `""`, so a blank hash is not a filter.
+    let rejected = args.query_hash.is_some_and(|q| !q.is_empty())
         && data
             .get("meta")
             .and_then(Value::as_object)
@@ -1965,6 +1966,31 @@ mod tests {
         .unwrap();
         assert_eq!(total, 1);
         assert_eq!(get_calls(&api)[0][2]["order_type"], "asc");
+        let body = json!({"tickets": [{"id": 1}], "meta": {"search_error": "ignored"}});
+        let api = FakeApi::new().ok("GET tickets", body.clone());
+        assert!(
+            list_items(
+                &api,
+                &TICKETS,
+                &ListArgs {
+                    query_hash: Some(""),
+                    ..Default::default()
+                },
+            )
+            .is_ok(),
+            "empty query_hash is not a filter"
+        );
+        let api = FakeApi::new().ok("GET tickets", body);
+        let err = list_items(
+            &api,
+            &TICKETS,
+            &ListArgs {
+                query_hash: Some("[q]"),
+                ..Default::default()
+            },
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("search_error"));
     }
 
     #[test]
