@@ -113,7 +113,11 @@ def catalog_cmd(
             t.add_row(str(x.get("id")), escape(str(x.get("name") or "")), escape(_one_line(x.get("description") or "")))
         console.print(t)
         return
-    items = _guard(lambda: cat.list_items(c, popular=popular))
+    listing: dict[str, Any] = {}
+    items = _guard(lambda: cat.list_items(c, popular=popular, info=listing))
+    cut = cat.truncation_notice(listing)
+    if cut:
+        err.print(f"[yellow]warning[/yellow]: {escape(cut)}", highlight=False)
     ids = None
     if category:
         picked = _guard(lambda: cat.resolve_category(cats, category))
@@ -124,9 +128,13 @@ def catalog_cmd(
         r.setdefault("category_name", names.get(r.get("category_id"), ""))
     rows.sort(key=lambda r: (cat.norm(r.get("category_name") or ""), cat.norm(r.get("name") or "")))
     if output == "json":
-        _json([{"display_id": r.get("display_id"), "id": r.get("id"), "name": r.get("name"),
-                "short_description": r.get("short_description"), "category_id": r.get("category_id"),
-                "category": r.get("category_name")} for r in rows])
+        data = [{"display_id": r.get("display_id"), "id": r.get("id"), "name": r.get("name"),
+                 "short_description": r.get("short_description"), "category_id": r.get("category_id"),
+                 "category": r.get("category_name")} for r in rows]
+        # A complete list stays a plain array; a truncated one becomes an
+        # object so consumers cannot mistake it for the whole catalog.
+        _json({"items": data, "truncated": True, "notice": cut, **{k: listing[k] for k in
+               ("pages_read", "per_page", "max_pages", "total_pages") if k in listing}} if cut else data)
         return
     t = Table(title="Service catalog" + (" (frequently requested)" if popular else ""))
     for col in ("ID", "Item", "Category", "Short description"):

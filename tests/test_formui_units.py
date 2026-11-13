@@ -145,3 +145,11 @@ def test_bad_typed_value_is_an_inline_error(acme):
     out = s.set("services", ["Billing", "Nope"])
     assert "not a valid choice" in out.error and "not a valid choice" in s.view("services").error
     assert any(p.startswith("Services:") for p in s.problems())
+
+
+def test_effects_preview_limit_is_announced(acme, monkeypatch):
+    import fsv.formui.session as session_mod
+    _c, s = acme
+    monkeypatch.setattr(session_mod, "MAX_EFFECT_CHOICES", 1)
+    eff = s.effects("cloud_only")
+    assert eff and "not previewed" in eff[-1] and "first 1 were checked" in eff[-1]

@@ -135,3 +135,18 @@ def test_resolve_category_and_filter_units():
         cat.resolve_category(cats, "e")
     got = cat.filter_items(A.ITEMS, search="ci build", categories=cats)
     assert [g["display_id"] for g in got] == [80]
+
+
+def test_catalog_page_limit_is_reported_not_silently_cut(fake, monkeypatch):
+    import functools
+    monkeypatch.setattr(cat, "list_items", functools.partial(cat.list_items, max_pages=1))
+    r = runner.invoke(cli_sr.app, ["catalog", "-o", "json"])
+    assert r.exit_code == 0, r.output
+    body = json.loads(r.stdout)
+    assert body["truncated"] is True and body["pages_read"] == 1 and "more items exist" in body["notice"]
+    assert {x["display_id"] for x in body["items"]} < {77, 78, 79, 80}
+    assert "catalog list truncated" in " ".join(r.stderr.split())
+    table = runner.invoke(cli_sr.app, ["catalog"])
+    assert "catalog list truncated" in " ".join(table.stderr.split())
+    with pytest.raises(ValueError, match="catalog list truncated"):
+        cat.find_item(fake.client(), "no such item anywhere")

@@ -98,9 +98,15 @@ def list_categories(client: Any) -> list[dict[str, Any]]:
     return out
 
 
-def list_items(client: Any, *, popular: bool = False, max_pages: int = MAX_PAGES) -> list[dict[str, Any]]:
+def list_items(client: Any, *, popular: bool = False, max_pages: int = MAX_PAGES,
+               info: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     """Every catalog item the agent can request (all pages), or the
-    frequently requested ones."""
+    frequently requested ones. Reading stops after ``max_pages`` pages; then
+    ``info`` (when given) gets ``truncated: True`` with the pages read and
+    per-page size, so callers can say the list is incomplete instead of
+    silently cutting it."""
+    if info is not None:
+        info.update(truncated=False, pages_read=0, per_page=PER_PAGE, max_pages=max_pages)
     if popular:
         return _rows(client.int_get("catalog/service-items", {"filter": "frequently_requested"}), "service_items")
     out: list[dict[str, Any]] = []
@@ -116,9 +122,25 @@ def list_items(client: Any, *, popular: bool = False, max_pages: int = MAX_PAGES
                 out.append(r)
         meta = data.get("meta") if isinstance(data, Mapping) else None
         total = (meta or {}).get("total_pages")
+        if info is not None:
+            info["pages_read"] = page
         if not rows or (isinstance(total, int) and page >= total) or (total is None and len(rows) < PER_PAGE):
             break
+    else:
+        if info is not None:
+            info["truncated"] = True
+            if isinstance(total, int):
+                info["total_pages"] = total
     return out
+
+
+def truncation_notice(info: Mapping[str, Any]) -> str | None:
+    """One line when :func:`list_items` stopped before the last page."""
+    if not info.get("truncated"):
+        return None
+    more = f" of {info['total_pages']}" if isinstance(info.get("total_pages"), int) else ""
+    return (f"catalog list truncated: read {info.get('pages_read')}{more} pages of {info.get('per_page')} items "
+            f"(limit {info.get('max_pages')} pages); more items exist and are not shown or searched")
 
 
 def resolve_category(categories: Sequence[Mapping[str, Any]], text: str) -> list[dict[str, Any]]:
@@ -185,13 +207,16 @@ def find_item(client: Any, ref: Any) -> dict[str, Any]:
         raise ValueError("catalog item is empty")
     if s.isdigit():
         return get_item(client, int(s))
-    items = list_items(client)
+    info: dict[str, Any] = {}
+    items = list_items(client, info=info)
     exact = [i for i in items if norm(i.get("name", "")) == norm(s)]
     hits = exact or filter_items(items, search=s)
     if len(hits) == 1:
         return get_item(client, hits[0].get("display_id"))
     if not hits:
-        raise ValueError(f"no catalog item matches {s!r}; list them with `fsv sr catalog --search TEXT`")
+        cut = truncation_notice(info)
+        raise ValueError(f"no catalog item matches {s!r}; list them with `fsv sr catalog --search TEXT`"
+                         + (f" ({cut}; use the item's display id)" if cut else ""))
     shown = "; ".join(f"#{i.get('display_id')} {i.get('name')}" for i in hits[:10])
     raise ValueError(f"{len(hits)} catalog items match {s!r}: {shown}. Use the item id.")
 

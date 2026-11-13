@@ -455,7 +455,8 @@ class FormSession:
         if it.widget == "checkbox":
             options = [("ticked", True), ("unticked", False)]
         else:
-            options = [(c.label, c.value) for c in self._pool(it)[:MAX_EFFECT_CHOICES]]
+            pool = self._pool(it)
+            options = [(c.label, c.value) for c in pool[:MAX_EFFECT_CHOICES]]
         current = self.state.evaluated.values.get(f.api_name)
         out = []
         for label, value in options:
@@ -470,6 +471,10 @@ class FormSession:
             if parts:
                 verb = "Ticking" if value is True else "Unticking" if value is False else f"Picking {label}"
                 out.append(f"{verb} will " + "; ".join(parts))
+        if it.widget != "checkbox" and len(pool) > MAX_EFFECT_CHOICES:
+            # say the preview is partial instead of silently cutting it
+            out.append(f"(effects of the other {len(pool) - MAX_EFFECT_CHOICES} choices are not previewed; "
+                       f"only the first {MAX_EFFECT_CHOICES} were checked)")
         self._effects[cache_key] = out
         return out
 
