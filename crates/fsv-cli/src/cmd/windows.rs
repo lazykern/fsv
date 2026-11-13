@@ -121,7 +121,13 @@ pub fn windows_create(a: ChangesWindowsCreateArgs) -> CmdResult {
         if let Some(v) = me.get() {
             return Ok(Value::clone(v));
         }
-        let v = crate::cmd::resource::current_user(api)?;
+        // `views.current_user`: a session error propagates, anything else
+        // unreadable is `{}`.
+        let v = match api.me() {
+            Ok(v) if v.is_object() => v,
+            Err(e @ Error::Session(_)) => return Err(e),
+            _ => json!({}),
+        };
         Ok(me.get_or_init(|| v).clone())
     };
     let schema = || fsv_api::schema::load(&CHANGES, &c, false);

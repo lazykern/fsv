@@ -712,7 +712,7 @@ fn template_prefill(name: &str) -> Result<(fsv_flows::drafts::Draft, Vec<String>
     let c = client()?;
     let row = fsv_api::templates::show(c.as_ref(), name).map_err(|e| match e {
         Error::Value(m) => Error::exit(2, m),
-        other => other,
+        other => fail_exc(other),
     })?;
     let p = fsv_api::templates::to_draft(&row);
     let shown = row

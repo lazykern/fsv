@@ -408,6 +408,11 @@ fn windows_create_dry_run_send_and_allow_overlap() {
     assert_eq!(r.code, 0, "{}", r.err);
     let doc = r.json();
     assert_eq!(doc["status"], "dry_run");
+    // Plan hashes from the Python CLI dry-run on the same routes.
+    assert_eq!(
+        doc["plan_hash"],
+        "edf7333c8c77daa4b935168a015ec06a60599dec24e7164dd7037ad305313187"
+    );
     assert_eq!(
         doc["end"],
         json!({"input": "2030-11-14 17:00 Asia/Bangkok (+07:00)",
@@ -430,7 +435,14 @@ fn windows_create_dry_run_send_and_allow_overlap() {
         &create_args(&["--dry-run", "--allow-overlap"]),
     )
     .json();
-    assert_ne!(plain["plan_hash"], allowed["plan_hash"]);
+    assert_eq!(
+        plain["plan_hash"],
+        "a44a756d708a1e2b64260099282adce0827ea3acf569642c42409fd60d604d13"
+    );
+    assert_eq!(
+        allowed["plan_hash"],
+        "810e45410cc40db30fafc182fddae7615e5512028b19b4adfeeeb9dc503a4a94"
+    );
     assert_eq!(
         (&plain["allow_overlap"], &allowed["allow_overlap"]),
         (&json!(false), &json!(true))
