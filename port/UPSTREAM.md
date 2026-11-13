@@ -2406,16 +2406,13 @@ The partial is the workspace version, named below.
 | `98acb71` | 11-12 19:25 | Refresh README for release | ported | none |
 | `0d7d929` | 11-12 19:25 | Add documentation index | ported | none |
 | `365f1a4` | 11-12 19:25 | Add command cheat sheet | ported | none |
-| `7b7f5d2` | 11-12 19:25 | Bump release version | partial | workspace version follow-up |
+| `7b7f5d2` | 11-12 19:25 | Bump release version | ported | workspace version |
 
 Python `pyproject.toml` moves from `2026.05.29` to `2026.11.12`.
-The Rust workspace stays `2026.5.29`. `Cargo.lock` is not edited here.
 
-### Version follow-up
-
-Missing: `Cargo.toml:6` `[workspace.package] version` is still
-`2026.5.29`; Python `pyproject.toml:3` is `2026.11.12`. Bump it together
-with `Cargo.lock`. `fsv --version` prints `2026.5.29` until then.
+Done: `Cargo.toml` `[workspace.package] version` and `Cargo.lock` are
+`2026.11.12`, so `fsv --version` prints `fsv 2026.11.12`
+(`fsv-cli/src/app.rs` `run_matches_python_main`).
 
 Still not triaged: `6ead7c9` and later.
 

@@ -299,12 +299,12 @@ mod tests {
     use super::*;
 
     /// Python `cli.main` (the root callback): `--version`/`-V` prints
-    /// `fsv 2026.5.29` (the fsv 3432bea package version) and exits 0.
+    /// `fsv 2026.11.12` (the pinned fsv package version) and exits 0.
     #[test]
     fn run_matches_python_main() {
         for flag in ["--version", "-V"] {
             let (code, text) = fsv_core::term::capture(|| run(argv(&["fsv", flag])));
-            assert_eq!((code, text.as_str()), (0, "fsv 2026.5.29\n"));
+            assert_eq!((code, text.as_str()), (0, "fsv 2026.11.12\n"));
         }
     }
 

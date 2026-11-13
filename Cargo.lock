@@ -863,7 +863,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-api"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "base64 0.22.1",
  "fancy-regex 0.20.1",
@@ -880,7 +880,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-app"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "fsv-api",
  "fsv-completion",
@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-cli"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "clap",
  "fsv-api",
@@ -924,7 +924,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-completion"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "clap",
  "fsv-core",
@@ -936,7 +936,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-core"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -971,7 +971,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-flows"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "fsv-api",
  "fsv-core",
@@ -986,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-forms"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "fsv-py",
  "hex",
@@ -1002,7 +1002,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-formui"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "crossterm",
  "fsv-core",
@@ -1018,14 +1018,14 @@ dependencies = [
 
 [[package]]
 name = "fsv-py"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "fsv-tui"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "crossterm",
  "fsv-api",
@@ -1039,7 +1039,7 @@ dependencies = [
 
 [[package]]
 name = "fsv-views"
-version = "2026.5.29"
+version = "2026.11.12"
 dependencies = [
  "fsv-api",
  "fsv-core",
