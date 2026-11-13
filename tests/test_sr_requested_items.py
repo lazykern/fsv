@@ -36,6 +36,9 @@ def api(monkeypatch, tmp_path):
                 s["signed"] = s.get("signed", 0) + 1
                 signed = dict(item, icon_url=f"https://cdn.example.com/icons/71.png?X-Amz-Date=2026{s['signed']:04d}"
                                              f"&X-Amz-Signature=sig{s['signed']}&X-Amz-Expires=300")
+                if s.get("shard"):  # unsigned icons rotate the CDN shard host per GET instead
+                    signed["icon_url"] = (f"https://assets{s['signed'] % 9 + 1}.freshservice.com/assets/"
+                                          f"cdn-ignored/{s['shard']}")
                 return httpx.Response(200, json={"service_item": signed})
             if path == "tickets/123/requested_items":
                 return httpx.Response(200, json={"requested_items": copy.deepcopy(s["rows"]), "meta": {"e_signature_limit_reached": False}})
@@ -170,3 +173,15 @@ def test_edit_plan_hash_stable_across_rotating_signed_catalog_urls(api):
     # A real metadata change still changes the review.
     s["rows"][0]["item"]["custom_fields"][0]["label"] = "Renamed"
     assert flow.build_plan(c, 123, action="edit", **opts("edit")).hash != first.hash
+
+
+@pytest.mark.parametrize("action", ["edit", "add"])
+def test_plan_hash_stable_across_rotating_cdn_shard_hosts(api, action):
+    c, s = api
+    s["shard"] = "images/icons/acme.png"
+    first = flow.build_plan(c, 123, action=action, **opts(action))
+    second = flow.build_plan(c, 123, action=action, **opts(action))
+    assert s["signed"] >= 2 and first.hash == second.hash
+    # A different icon (real metadata change) still changes the review.
+    s["shard"] = "images/icons/globex.png"
+    assert flow.build_plan(c, 123, action=action, **opts(action)).hash != first.hash

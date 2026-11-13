@@ -17,14 +17,23 @@ _VOLATILE_FIELDS = frozenset({
 _URL = re.compile(r"https?://[^\s<>\"']+")
 _SIGNATURE_KEYS = frozenset({"signature", "policy", "key-pair-id", "awsaccesskeyid"})
 _SIGNED_QUERY_KEYS = _SIGNATURE_KEYS | {"expires"}
+# Unsigned web-asset links (e.g. catalog icons) rotate the CDN shard host per
+# GET (assets4., assets9., ...) for the same path; only the shard digits vary.
+_CDN_SHARD = re.compile(r"^(assets)\d+(\.freshservice\.com(?::\d+)?)$", re.IGNORECASE)
 
 
 def _stable_url(match: re.Match[str]) -> str:
     original = match.group()
     parsed = urlsplit(html.unescape(original))
+    shard = _CDN_SHARD.match(parsed.netloc)
+    if shard:
+        parsed = parsed._replace(netloc=shard.group(1) + shard.group(2))
     pairs = parse_qsl(parsed.query, keep_blank_values=True)
     if not any(k.casefold() in _SIGNATURE_KEYS or k.casefold().startswith("x-amz-") for k, _ in pairs):
-        return original
+        if not shard:
+            return original
+        result = urlunsplit(parsed)
+        return result.replace("&", "&amp;") if "&amp;" in original else result
     pairs = [(k, v) for k, v in pairs if k.casefold() not in _SIGNED_QUERY_KEYS
              and not k.casefold().startswith("x-amz-")]
     result = urlunsplit(parsed._replace(query=urlencode(pairs)))
