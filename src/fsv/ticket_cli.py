@@ -42,10 +42,12 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
         except (T.TemplateError, ValueError) as e:
             raise flow.FlowExit(2, str(e)) from None
         base_draft, applied, ignored = T.to_draft(row)
+        prefilled = list(applied)
         err.print(f"template {row.get('name')!r} prefills: {', '.join(applied) or 'nothing'}"
                   + (f"; not applied: {', '.join(ignored)}" if ignored else ""), markup=False, highlight=False)
     else:
         base_draft = None
+        prefilled = []
     form = not (from_file or sets or preset or edit or base_draft) and tty and form_tty()
     template_only = not (from_file or sets or preset or edit or form or base_draft) and dry_run
     if not (from_file or sets or preset or edit or form or template_only or base_draft):
@@ -144,8 +146,21 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
     ack_now = ack or bool(plan.state.acknowledged)
     rebuild = (lambda m: session.build_plan(ack_now, m)) if session else (lambda m: build(plan.draft, ack_now, m))
     result = ticket_flow.send(plan, client, rebuild, expected=expect_plan, allow_duplicate=allow_duplicate)
+    template_check = None
+    if prefilled and plan.payload:
+        from fsv import templates as T
+        template_check = T.prefill_changes(client, result["id"], plan.payload, prefilled)
+        for change in template_check["changes"]:
+            err.print(f"server changed {change['field']} from {change['sent']} to {change['server']}",
+                      markup=False, highlight=False)
+        if template_check.get("warning"):
+            err.print(template_check["warning"], markup=False, highlight=False)
+        elif template_check.get("unavailable"):
+            err.print("not in the ticket read-back: " + ", ".join(template_check["unavailable"]),
+                      markup=False, highlight=False)
     if as_json:
         print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"],
+                          **({"template_readback": template_check} if template_check is not None else {}),
                           **({"verification": result["verification"]} if "verification" in result else {}),
                           **({"device_verification": result["device_verification"]} if "device_verification" in result else {})}, default=str))
     else:

@@ -62,6 +62,45 @@ def test_create_with_template_goes_through_the_form_review(monkeypatch):
     assert res.exit_code == 2 and not c.writes
 
 
+class ReadbackTemplateClient(TemplateClient):
+    stored = None
+
+    def int_get(self, path, params=None):
+        if path == "tickets/123":
+            if self.stored is None:
+                raise RuntimeError("synthetic read failure")
+            return {"ticket": self.stored}
+        return super().int_get(path, params)
+
+
+@pytest.mark.parametrize("server_subject,expect", [("Acme outage (P2)", "server changed subject from Acme outage to Acme outage (P2)"),
+                                                   ("Acme outage", None), (None, "could not read the ticket back")])
+def test_template_create_reports_server_changed_prefill(monkeypatch, server_subject, expect):
+    c = ReadbackTemplateClient()
+    if server_subject is not None:
+        c.stored = {"id": 123, "subject": server_subject, "custom_fields": {}}
+    m = meta()
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    monkeypatch.setattr(change_flow, "interactive", lambda: False)
+    monkeypatch.setattr("fsv.ticket_cli.load_meta", lambda *a, **kw: m)
+    monkeypatch.setattr(change_flow, "load_meta", lambda *a, **kw: m)
+    args = ["tickets", "create", "--requester", "jane.doe@example.com", "--template", "Acme outage",
+            "--set", "Cloud Only=Yes", "--json"]
+    review = CliRunner().invoke(cli.app, args + ["--dry-run"])
+    digest = json.loads(review.stdout[review.stdout.index("{"):])["plan_hash"]
+    res = CliRunner().invoke(cli.app, args + ["--yes", "--expect-plan", digest])
+    assert res.exit_code == 0, res.output
+    doc = json.loads(res.stdout[res.stdout.index("{"):])
+    check = doc["template_readback"]
+    if expect is None:
+        assert check["checked"] and check["changes"] == [] and "server changed" not in res.stderr
+    else:
+        assert expect in res.stderr
+        if server_subject is not None:
+            assert check["changes"] == [{"field": "subject", "sent": "Acme outage", "server": "Acme outage (P2)"}]
+    assert len(c.writes) == 1
+
+
 class AgentClient:
     def __init__(self, rows):
         self.rows, self.calls = rows, []

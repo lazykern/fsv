@@ -95,6 +95,38 @@ def to_draft(template: dict[str, Any]) -> tuple[Draft, list[str], list[str]]:
                   description.strip() else None), applied, sorted(ignored))
 
 
+def prefill_changes(client: Any, ticket_id: Any, payload: dict[str, Any], applied: list[str]) -> dict[str, Any]:
+    """After a template create: read the exact ticket back and list every
+    template-prefilled field the server stored differently (some tenants derive
+    priority from urgency and impact). Description HTML is not compared."""
+    sent: dict[str, Any] = {}
+    custom = payload.get("custom_fields") if isinstance(payload.get("custom_fields"), dict) else {}
+    for key in applied:
+        if key == "description":
+            continue
+        if key in payload and not isinstance(payload[key], (dict, list)):
+            sent[key] = ("top", payload[key])
+        elif key in custom and not isinstance(custom[key], (dict, list)):
+            sent[key] = ("custom", custom[key])
+    try:
+        raw = client.int_get(f"tickets/{ticket_id}")
+        row = raw.get("ticket", raw) if isinstance(raw, dict) else None
+        if not isinstance(row, dict) or str(row.get("id")) != str(ticket_id):
+            raise ValueError("identity mismatch")
+    except Exception:  # noqa: BLE001 - reported, never silent
+        return {"checked": False, "changes": [], "fields": sorted(sent),
+                "warning": "could not read the ticket back to compare template-prefilled fields"}
+    row_custom = row.get("custom_fields") if isinstance(row.get("custom_fields"), dict) else {}
+    changes, unavailable = [], []
+    for key, (where, value) in sent.items():
+        source = row if where == "top" else row_custom
+        if key not in source:
+            unavailable.append(key)
+        elif str(source[key]) != str(value):
+            changes.append({"field": key, "sent": value, "server": source[key]})
+    return {"checked": True, "changes": changes, "unavailable": unavailable, "fields": sorted(sent)}
+
+
 def notify_entry(client: Any, text: str) -> str:
     """``Name <email>`` for one active agent from the agent autocomplete
     (the note editor's "Notify to" picker). Exact name or email only."""

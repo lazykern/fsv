@@ -438,8 +438,13 @@ does: subject, status, source, priority, urgency, impact, category fields,
 scalar custom fields and the description become draft answers, `--from`,
 `--preset` and `--set` win key by key, and everything still passes the form's
 fields, business rules and the normal review/hash gate. Keys that are not
-prefilled (tags, nested custom values, ...) are named on stderr. Template
-create/delete are classic admin form posts and are not implemented.
+prefilled (tags, nested custom values, ...) are named on stderr. After the
+create, fsv reads the exact ticket back and compares every prefilled field it
+sent: a field the server stored differently is printed as `server changed
+<field> from X to Y` (for example a priority some tenants derive from urgency
+and impact) and listed under `template_readback` in JSON output; an unreadable
+ticket is reported, never silent. Template create/delete are classic admin
+form posts and are not implemented.
 
 `fsv changes windows list|create|delete` follow the captured window page:
 `create` needs at least one `--criteria change_type=<label or id>` (the UI's

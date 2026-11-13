@@ -480,6 +480,7 @@ refuses an empty criteria row; the API accepts `criteria: []`. Some
 | Feature | Request | Payload | Response | Proof |
 |---|---|---|---|---|
 | List | `GET /api/_/ticket-templates`, `GET /api/_/change-templates` | — | `{ticket_templates: [{id, name, type, workspace_id}], meta: {max_template_count}}` | VERIFIED LIVE |
+| Priority matrix | — | — | a tenant may derive priority from urgency and impact: a create carrying priority 3 with urgency 2 and impact 2 was stored as priority 2 (the creator activity names the change) | VERIFIED LIVE |
 | Detail (apply in the new-ticket form) | `GET /api/_/ticket-templates/<id>` | — | `{ticket_template: {id, name, template_data: {subject, status, source, priority, urgency, impact, description, custom_fields, ...}}}` | VERIFIED LIVE |
 | Create | `POST /ws/<ws>/admin/ticket_templates` | `multipart/form-data`: `itil_form_template[name]`, `itil_form_template[description]`, `itil_form_template[accessible_attributes][access_type]`, `template_data[subject]`, `template_data[priority\|urgency\|impact\|status\|source]` | 302 to the template list | VERIFIED LIVE |
 | Delete | `DELETE /ws/<ws>/admin/ticket_templates/<id>` | none | **404 JSON, but the template is gone** | VERIFIED LIVE |
