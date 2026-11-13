@@ -13,7 +13,7 @@ from fsv.resources import CHANGES, TICKETS
 def test_root_cli_note_registration_preserves_resource_flows(resource):
     result = CliRunner().invoke(cli.app, [resource, 'add-note', '--help'])
     assert result.exit_code == 0, result.output
-    assert ('--expect-plan' in result.output) is (resource == 'tickets')
+    assert ('--expect-plan' in result.output) is (resource in ('tickets', 'problems'))
     assert not TICKETS.has_notes
 
 

@@ -4785,22 +4785,44 @@ def _make_subapp(res: Resource) -> typer.Typer:
             """List notes using the browser-session internal endpoint."""
             notes_resource(res, id_, page, per_page, json_out, all_pages, n_pages, format_)
 
-        @sub.command("add-note", help=f"Add {singular} note.", epilog=(
-            f"[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  "
-            f"[bold]Examples:[/bold]  "
-            f"fsv {res.name} add-note {_pfx}-1234 'Checked deployment evidence'"
-            + (f"  |  fsv {res.name} add-note {_pfx}-1234 'Visible update' --public" if res.name != "problems" else
-               "  (problem notes have no visibility key: the tenant default applies)")
-        ))
-        def add_note(
-            id_: str = typer.Argument(...),
-            body: str = typer.Argument(..., help="HTML or plain text"),
-            public: bool = typer.Option(False, "--public", help="changes only: public note (problem notes have no visibility key)"),
-            dry_run: bool = typer.Option(False, "--dry-run", help="print the note without adding it"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm a public note"),
-            no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
-        ) -> None:
-            note_resource(res, id_, body, public, dry_run, yes, no_input)
+        if res.name == "problems":
+            @sub.command("add-note", help="Review and add a problem note (reviewed write: plan hash, journal, "
+                                          "independent readback by listing notes).", epilog=(
+                f"[bold]Examples:[/bold]  "
+                f"fsv problems add-note {_pfx}-1234 'Root cause evidence' --dry-run  |  "
+                f"fsv problems add-note {_pfx}-1234 'Root cause evidence' --yes --expect-plan HASH --json  "
+                "(problem notes have no visibility key: the tenant default applies)"
+            ))
+            def problem_add_note(
+                id_: str = typer.Argument(..., metavar="ID"),
+                body: str = typer.Argument(..., help="HTML or plain text (sent verbatim)"),
+                public: bool = typer.Option(False, "--public", help="refused: problem notes have no visibility key"),
+                dry_run: bool = typer.Option(False, "--dry-run", help="review: print the exact payload and plan_hash; nothing is sent"),
+                yes: bool = typer.Option(False, "--yes", "-y", help="send the exact plan reviewed with --dry-run (needs --expect-plan)"),
+                expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full plan_hash from the --dry-run review"),
+                no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
+                json_out: bool = typer.Option(False, "--json", help="emit the structured result (verified, readback)"),
+            ) -> None:
+                from fsv import problem_notes
+                problem_notes.add_note(lambda: _client(), id_, body, public=public, dry_run=dry_run, yes=yes,
+                                       no_input=no_input, expect_plan=expect_plan, json_out=json_out)
+        else:
+            @sub.command("add-note", help=f"Add {singular} note.", epilog=(
+                f"[bold]Note:[/bold] Changes use add-note (legacy, unhashed); ticket and problem notes have a separate reviewed flow (docs/ticket-notes.md).  "
+                f"[bold]Examples:[/bold]  "
+                f"fsv {res.name} add-note {_pfx}-1234 'Checked deployment evidence'"
+                + (f"  |  fsv {res.name} add-note {_pfx}-1234 'Visible update' --public" if res.name != "problems" else
+                   "  (problem notes have no visibility key: the tenant default applies)")
+            ))
+            def add_note(
+                id_: str = typer.Argument(...),
+                body: str = typer.Argument(..., help="HTML or plain text"),
+                public: bool = typer.Option(False, "--public", help="changes only: public note (problem notes have no visibility key)"),
+                dry_run: bool = typer.Option(False, "--dry-run", help="print the note without adding it"),
+                yes: bool = typer.Option(False, "--yes", "-y", help="confirm a public note"),
+                no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
+            ) -> None:
+                note_resource(res, id_, body, public, dry_run, yes, no_input)
     else:
         @sub.command("conversations", help="List ticket conversations/replies.", epilog=(
             f"[bold]Examples:[/bold]  "

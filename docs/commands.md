@@ -568,6 +568,12 @@ fsv problems columns list -h
 fsv problems columns set -h
 ```
 
+`problems add-note` is a reviewed write: `--dry-run` prints the exact
+`{body}` payload and a `plan_hash`; `--yes --expect-plan <hash>` sends it
+once (journaled, never replayed), then lists the problem's notes to find the
+returned note id and compare its body. The result (`--json`) carries
+`verified`. Problem notes have no visibility key, so `--public` is refused.
+
 `problems update --set` nests custom fields in `custom_fields` (only the
 changed keys) and refuses a deleted (trashed) problem before sending; the
 server answers 405 there. `problems status` reads back the status: a
