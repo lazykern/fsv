@@ -1,0 +1,823 @@
+{
+ "upstream": "754eef18692934c644263911bb39df1fa0cc9618",
+ "note": "Module-level counterparts of src/fsv at this upstream commit. A Python file can map to several Rust files when the port split it. This is not a function-by-function proof.",
+ "modules": [
+  {
+   "py": "__init__.py",
+   "rust": [
+    "crates/fsv-cli/src/main.rs"
+   ]
+  },
+  {
+   "py": "_complete.py",
+   "rust": [
+    "crates/fsv-completion/src/lib.rs",
+    "crates/fsv-completion/src/dynamic.rs"
+   ]
+  },
+  {
+   "py": "agent_lookup.py",
+   "rust": [
+    "crates/fsv-api/src/agent_lookup.rs"
+   ]
+  },
+  {
+   "py": "approval_model.py",
+   "rust": [
+    "crates/fsv-api/src/approval_model.rs"
+   ]
+  },
+  {
+   "py": "approval_recipients.py",
+   "rust": [
+    "crates/fsv-api/src/approval_recipients.rs"
+   ]
+  },
+  {
+   "py": "asset_picker.py",
+   "rust": [
+    "crates/fsv-api/src/asset_picker.rs"
+   ]
+  },
+  {
+   "py": "asset_picker_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "attachments.py",
+   "rust": [
+    "crates/fsv-api/src/attachments.rs"
+   ]
+  },
+  {
+   "py": "attachments_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/attachments.rs"
+   ]
+  },
+  {
+   "py": "bulk_priority.py",
+   "rust": [
+    "crates/fsv-api/src/bulk_priority.rs"
+   ]
+  },
+  {
+   "py": "bulk_priority_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "cache.py",
+   "rust": [
+    "crates/fsv-core/src/cache.rs"
+   ]
+  },
+  {
+   "py": "canned.py",
+   "rust": [
+    "crates/fsv-api/src/canned.rs"
+   ]
+  },
+  {
+   "py": "canned_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/native.rs"
+   ]
+  },
+  {
+   "py": "catalog.py",
+   "rust": [
+    "crates/fsv-api/src/catalog.rs"
+   ]
+  },
+  {
+   "py": "change_approval_actions.py",
+   "rust": [
+    "crates/fsv-api/src/approvals.rs"
+   ]
+  },
+  {
+   "py": "change_approvals.py",
+   "rust": [
+    "crates/fsv-api/src/approvals.rs",
+    "crates/fsv-cli/src/cmd/review.rs"
+   ]
+  },
+  {
+   "py": "change_associations.py",
+   "rust": [
+    "crates/fsv-api/src/associations.rs"
+   ]
+  },
+  {
+   "py": "change_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/changes.rs",
+    "crates/fsv-cli/src/cmd/formflow.rs"
+   ]
+  },
+  {
+   "py": "change_delete.py",
+   "rust": [
+    "crates/fsv-api/src/change_delete.rs"
+   ]
+  },
+  {
+   "py": "change_flow.py",
+   "rust": [
+    "crates/fsv-flows/src/change.rs"
+   ]
+  },
+  {
+   "py": "change_form_update.py",
+   "rust": [
+    "crates/fsv-flows/src/change.rs"
+   ]
+  },
+  {
+   "py": "change_lifecycle.py",
+   "rust": [
+    "crates/fsv-api/src/change_lifecycle.rs"
+   ]
+  },
+  {
+   "py": "change_relationships.py",
+   "rust": [
+    "crates/fsv-api/src/change_relationships.rs"
+   ]
+  },
+  {
+   "py": "change_relationships_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "change_task_delete.py",
+   "rust": [
+    "crates/fsv-api/src/change_task_delete.rs"
+   ]
+  },
+  {
+   "py": "change_task_update.py",
+   "rust": [
+    "crates/fsv-api/src/change_task_update.rs"
+   ]
+  },
+  {
+   "py": "change_tasks.py",
+   "rust": [
+    "crates/fsv-api/src/tasks.rs",
+    "crates/fsv-cli/src/cmd/review.rs"
+   ]
+  },
+  {
+   "py": "choice_ids.py",
+   "rust": [
+    "crates/fsv-api/src/choice_ids.rs"
+   ]
+  },
+  {
+   "py": "cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/mod.rs",
+    "crates/fsv-cli/src/cmd/misc.rs",
+    "crates/fsv-cli/src/cmd/resource.rs",
+    "crates/fsv-cli/src/filters.rs",
+    "crates/fsv-cli/src/util.rs",
+    "crates/fsv-cli/src/generated.rs"
+   ]
+  },
+  {
+   "py": "cli_sr.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/sr.rs",
+    "crates/fsv-flows/src/sr.rs"
+   ]
+  },
+  {
+   "py": "client.py",
+   "rust": [
+    "crates/fsv-core/src/client/mod.rs"
+   ]
+  },
+  {
+   "py": "completion.py",
+   "rust": [
+    "crates/fsv-completion/src/dynamic.rs"
+   ]
+  },
+  {
+   "py": "completion_gen.py",
+   "rust": [
+    "crates/fsv-completion/src/model.rs",
+    "crates/fsv-completion/src/emit.rs"
+   ]
+  },
+  {
+   "py": "config.py",
+   "rust": [
+    "crates/fsv-core/src/config.rs"
+   ]
+  },
+  {
+   "py": "create.py",
+   "rust": [
+    "crates/fsv-api/src/create.rs"
+   ]
+  },
+  {
+   "py": "drafts.py",
+   "rust": [
+    "crates/fsv-flows/src/drafts.rs"
+   ]
+  },
+  {
+   "py": "editor.py",
+   "rust": [
+    "crates/fsv-core/src/editor.rs"
+   ]
+  },
+  {
+   "py": "errors.py",
+   "rust": [
+    "crates/fsv-core/src/error.rs"
+   ]
+  },
+  {
+   "py": "filter_proof.py",
+   "rust": [
+    "crates/fsv-api/src/filter_proof.rs"
+   ]
+  },
+  {
+   "py": "form_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/form.rs"
+   ]
+  },
+  {
+   "py": "formmeta.py",
+   "rust": [
+    "crates/fsv-api/src/formmeta.rs"
+   ]
+  },
+  {
+   "py": "forms/__init__.py",
+   "rust": [
+    "crates/fsv-forms/src/lib.rs"
+   ]
+  },
+  {
+   "py": "forms/errors.py",
+   "rust": [
+    "crates/fsv-forms/src/errors.rs"
+   ]
+  },
+  {
+   "py": "forms/fetch.py",
+   "rust": [
+    "crates/fsv-forms/src/fetch.rs"
+   ]
+  },
+  {
+   "py": "forms/payload.py",
+   "rust": [
+    "crates/fsv-forms/src/payload.rs"
+   ]
+  },
+  {
+   "py": "forms/plan.py",
+   "rust": [
+    "crates/fsv-forms/src/plan.rs"
+   ]
+  },
+  {
+   "py": "forms/rules.py",
+   "rust": [
+    "crates/fsv-forms/src/rules.rs"
+   ]
+  },
+  {
+   "py": "forms/spec.py",
+   "rust": [
+    "crates/fsv-forms/src/spec.rs"
+   ]
+  },
+  {
+   "py": "forms/state.py",
+   "rust": [
+    "crates/fsv-forms/src/state.rs"
+   ]
+  },
+  {
+   "py": "forms/tz.py",
+   "rust": [
+    "crates/fsv-forms/src/tz.rs"
+   ]
+  },
+  {
+   "py": "formui/__init__.py",
+   "rust": [
+    "crates/fsv-formui/src/lib.rs"
+   ]
+  },
+  {
+   "py": "formui/app.py",
+   "rust": [
+    "crates/fsv-formui/src/app.rs"
+   ]
+  },
+  {
+   "py": "formui/fuzzy.py",
+   "rust": [
+    "crates/fsv-forms/src/fuzzy.rs"
+   ]
+  },
+  {
+   "py": "formui/lookups.py",
+   "rust": [
+    "crates/fsv-formui/src/lookups.rs"
+   ]
+  },
+  {
+   "py": "formui/screens.py",
+   "rust": [
+    "crates/fsv-formui/src/screen/mod.rs",
+    "crates/fsv-formui/src/screen/review.rs",
+    "crates/fsv-formui/src/screen/dialogs.rs"
+   ]
+  },
+  {
+   "py": "formui/session.py",
+   "rust": [
+    "crates/fsv-formui/src/session.rs"
+   ]
+  },
+  {
+   "py": "formui/when.py",
+   "rust": [
+    "crates/fsv-forms/src/when.rs"
+   ]
+  },
+  {
+   "py": "formui/widgets.py",
+   "rust": [
+    "crates/fsv-formui/src/widgets/mod.rs",
+    "crates/fsv-formui/src/widgets/text.rs",
+    "crates/fsv-formui/src/widgets/combo.rs",
+    "crates/fsv-formui/src/widgets/date.rs",
+    "crates/fsv-formui/src/widgets/calendar.rs",
+    "crates/fsv-formui/src/widgets/markdown.rs"
+   ]
+  },
+  {
+   "py": "integrated_assets.py",
+   "rust": [
+    "crates/fsv-api/src/integrated_assets.rs"
+   ]
+  },
+  {
+   "py": "integrated_assets_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/inventory.rs"
+   ]
+  },
+  {
+   "py": "journal.py",
+   "rust": [
+    "crates/fsv-core/src/journal.rs"
+   ]
+  },
+  {
+   "py": "legacy_approvals.py",
+   "rust": [
+    "crates/fsv-api/src/legacy_approvals.rs"
+   ]
+  },
+  {
+   "py": "list_preferences.py",
+   "rust": [
+    "crates/fsv-api/src/list_preferences.rs"
+   ]
+  },
+  {
+   "py": "list_preferences_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/native.rs"
+   ]
+  },
+  {
+   "py": "mdlite.py",
+   "rust": [
+    "crates/fsv-core/src/mdlite.rs"
+   ]
+  },
+  {
+   "py": "module_time.py",
+   "rust": [
+    "crates/fsv-api/src/module_time.rs"
+   ]
+  },
+  {
+   "py": "module_time_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "pages.py",
+   "rust": [
+    "crates/fsv-views/src/pages.rs"
+   ]
+  },
+  {
+   "py": "planning_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "planning_text.py",
+   "rust": [
+    "crates/fsv-api/src/planning_text.rs"
+   ]
+  },
+  {
+   "py": "private_view_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/native.rs"
+   ]
+  },
+  {
+   "py": "private_views.py",
+   "rust": [
+    "crates/fsv-api/src/private_views.rs"
+   ]
+  },
+  {
+   "py": "problem_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/native.rs",
+    "crates/fsv-cli/src/cmd/reviewed.rs",
+    "crates/fsv-cli/src/cmd/attachments.rs"
+   ]
+  },
+  {
+   "py": "problem_incidents.py",
+   "rust": [
+    "crates/fsv-api/src/problem_incidents.rs"
+   ]
+  },
+  {
+   "py": "problem_known_error.py",
+   "rust": [
+    "crates/fsv-api/src/problem_known_error.rs"
+   ]
+  },
+  {
+   "py": "problem_properties.py",
+   "rust": [
+    "crates/fsv-api/src/problem_properties.rs"
+   ]
+  },
+  {
+   "py": "problem_status.py",
+   "rust": [
+    "crates/fsv-api/src/problem_status.rs"
+   ]
+  },
+  {
+   "py": "problem_task_update.py",
+   "rust": [
+    "crates/fsv-api/src/problem_task_update.rs"
+   ]
+  },
+  {
+   "py": "problem_task_update_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "problem_workflows.py",
+   "rust": [
+    "crates/fsv-api/src/problem_workflows.rs"
+   ]
+  },
+  {
+   "py": "query.py",
+   "rust": [
+    "crates/fsv-api/src/query.rs"
+   ]
+  },
+  {
+   "py": "readback.py",
+   "rust": [
+    "crates/fsv-api/src/readback.rs"
+   ]
+  },
+  {
+   "py": "render.py",
+   "rust": [
+    "crates/fsv-views/src/render.rs"
+   ]
+  },
+  {
+   "py": "resources.py",
+   "rust": [
+    "crates/fsv-core/src/resource.rs"
+   ]
+  },
+  {
+   "py": "review.py",
+   "rust": [
+    "crates/fsv-core/src/review.rs"
+   ]
+  },
+  {
+   "py": "reviewed_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/types.rs"
+   ]
+  },
+  {
+   "py": "reviewed_inventory.py",
+   "rust": [
+    "crates/fsv-api/src/reviewed_inventory.rs"
+   ]
+  },
+  {
+   "py": "reviewed_snapshot.py",
+   "rust": [
+    "crates/fsv-core/src/reviewed_snapshot.rs"
+   ]
+  },
+  {
+   "py": "reviewed_write.py",
+   "rust": [
+    "crates/fsv-api/src/reviewed_write.rs"
+   ]
+  },
+  {
+   "py": "safety.py",
+   "rust": [
+    "crates/fsv-core/src/safety.rs"
+   ]
+  },
+  {
+   "py": "scenarios.py",
+   "rust": [
+    "crates/fsv-api/src/scenarios.rs"
+   ]
+  },
+  {
+   "py": "schema.py",
+   "rust": [
+    "crates/fsv-api/src/schema.rs"
+   ]
+  },
+  {
+   "py": "service.py",
+   "rust": [
+    "crates/fsv-api/src/service.rs"
+   ]
+  },
+  {
+   "py": "session.py",
+   "rust": [
+    "crates/fsv-core/src/session/mod.rs"
+   ]
+  },
+  {
+   "py": "solutions.py",
+   "rust": [
+    "crates/fsv-api/src/solutions.rs"
+   ]
+  },
+  {
+   "py": "solutions_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/inventory.rs"
+   ]
+  },
+  {
+   "py": "sr_approvals.py",
+   "rust": [
+    "crates/fsv-api/src/sr_approvals.rs"
+   ]
+  },
+  {
+   "py": "sr_approvals_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/inventory.rs"
+   ]
+  },
+  {
+   "py": "sr_recipient_readback.py",
+   "rust": [
+    "crates/fsv-api/src/sr_recipient_readback.rs"
+   ]
+  },
+  {
+   "py": "sr_requested_items.py",
+   "rust": [
+    "crates/fsv-api/src/sr_requested_items.rs"
+   ]
+  },
+  {
+   "py": "sr_requested_items_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "state_flow.py",
+   "rust": [
+    "crates/fsv-api/src/state_flow.rs"
+   ]
+  },
+  {
+   "py": "task_status.py",
+   "rust": [
+    "crates/fsv-api/src/task_status.rs"
+   ]
+  },
+  {
+   "py": "ticket_assignment.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_assignment.rs"
+   ]
+  },
+  {
+   "py": "ticket_assignment_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "ticket_bulk.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_bulk.rs"
+   ]
+  },
+  {
+   "py": "ticket_bulk_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "ticket_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/tickets.rs",
+    "crates/fsv-cli/src/cmd/formflow.rs"
+   ]
+  },
+  {
+   "py": "ticket_conversation.py",
+   "rust": [
+    "crates/fsv-api/src/conversations.rs"
+   ]
+  },
+  {
+   "py": "ticket_flow.py",
+   "rust": [
+    "crates/fsv-flows/src/ticket.rs"
+   ]
+  },
+  {
+   "py": "ticket_kind.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_kind.rs"
+   ]
+  },
+  {
+   "py": "ticket_lifecycle.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_lifecycle.rs"
+   ]
+  },
+  {
+   "py": "ticket_lifecycle_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "ticket_merge.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_merge.rs"
+   ]
+  },
+  {
+   "py": "ticket_merge_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "ticket_note_mutation.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_note_mutation.rs"
+   ]
+  },
+  {
+   "py": "ticket_note_mutation_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "ticket_notes.py",
+   "rust": [
+    "crates/fsv-api/src/notes.rs",
+    "crates/fsv-api/src/recipients.rs"
+   ]
+  },
+  {
+   "py": "ticket_properties.py",
+   "rust": [
+    "crates/fsv-api/src/properties.rs"
+   ]
+  },
+  {
+   "py": "ticket_tasks.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_tasks.rs"
+   ]
+  },
+  {
+   "py": "ticket_tasks_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "ticket_time.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_time.rs"
+   ]
+  },
+  {
+   "py": "ticket_time_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "tui/__init__.py",
+   "rust": [
+    "crates/fsv-tui/src/lib.rs"
+   ]
+  },
+  {
+   "py": "tui/actions.py",
+   "rust": [
+    "crates/fsv-tui/src/actions.rs"
+   ]
+  },
+  {
+   "py": "tui/app.py",
+   "rust": [
+    "crates/fsv-tui/src/app.rs"
+   ]
+  },
+  {
+   "py": "tui/modals.py",
+   "rust": [
+    "crates/fsv-tui/src/modals.rs"
+   ]
+  },
+  {
+   "py": "views.py",
+   "rust": [
+    "crates/fsv-api/src/site/mod.rs",
+    "crates/fsv-api/src/site/list.rs",
+    "crates/fsv-views/src/lib.rs",
+    "crates/fsv-views/src/detail.rs"
+   ]
+  },
+  {
+   "py": "watcher_cli.py",
+   "rust": [
+    "crates/fsv-cli/src/cmd/reviewed.rs"
+   ]
+  },
+  {
+   "py": "watchers.py",
+   "rust": [
+    "crates/fsv-api/src/watchers.rs"
+   ]
+  },
+  {
+   "py": "yamlio.py",
+   "rust": [
+    "crates/fsv-core/src/yaml.rs"
+   ]
+  }
+ ]
+}
