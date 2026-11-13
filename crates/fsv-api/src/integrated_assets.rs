@@ -47,6 +47,17 @@ pub fn target_id(module: &str, target: &Value) -> Result<(&'static str, i64)> {
     Ok((wire, id))
 }
 
+/// `integrated_assets.PAGE_SIZE`.
+const PAGE_SIZE: i64 = 50;
+
+/// `_past_end`: the `ValueError` for a page after the inventory's last row.
+fn past_end(kind: &str, page: i64, total: i64) -> Error {
+    let pages = std::cmp::max(1, (total + PAGE_SIZE - 1).div_euclid(PAGE_SIZE));
+    Error::value(format!(
+        "no results on page {page}: the {kind} inventory has {total} row(s) ({pages} page(s) of {PAGE_SIZE})"
+    ))
+}
+
 /// Port of `integrated_assets.search`.
 pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> {
     let Some(family) = family(kind) else {
@@ -60,8 +71,39 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
         ));
     }
     let url = format!("https://{}/itam/core/{family}/api/", c.domain());
-    let params = obj(json!({"order": "", "page": page, "page_size": 50, "q": query}));
-    let raw = c.absolute_get(&url, Some(params))?;
+    let params = obj(json!({"order": "", "page": page, "page_size": PAGE_SIZE, "q": query}));
+    let raw = match c.absolute_get(&url, Some(params)) {
+        Ok(raw) => raw,
+        Err(e) if page != 1 && matches!(e.status(), Some(400 | 404)) => Value::Null,
+        Err(e) => return Err(e),
+    };
+    if page > 1
+        && raw.get("error").is_some_and(Value::is_string)
+        && raw.get("data") == Some(&json!([]))
+        && let Some(total) = raw.get("total_rows").and_then(json_int)
+        && (0..=(page - 1) * PAGE_SIZE).contains(&total)
+    {
+        // Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
+        return Err(past_end(kind, page, total));
+    }
+    let valid = raw.is_object()
+        && !raw.get("error").is_some_and(fsv_py::truthy)
+        && raw.get("data").is_some_and(Value::is_array)
+        && raw.get("page").and_then(json_int) == Some(page)
+        && raw.get("total_rows").and_then(json_int).is_some();
+    let rows_here = raw
+        .get("data")
+        .and_then(Value::as_array)
+        .is_some_and(|d| !d.is_empty());
+    if page > 1 && !(valid && rows_here) {
+        // Other past-the-end shapes (404/400, an error without a total, an
+        // empty page): page 1's total decides; a read-only GET, never a guess.
+        let first = search(c, query, kind, 1)?;
+        let total = first.get("total_rows").and_then(json_int).unwrap_or(0);
+        if total <= (page - 1) * PAGE_SIZE {
+            return Err(past_end(kind, page, total));
+        }
+    }
     let Some(obj) = raw.as_object() else {
         return Err(refused("integrated inventory unavailable"));
     };
@@ -1121,5 +1163,106 @@ mod tests {
             "/itam/core/businessservice/api/"
         );
         assert!(s.writes.is_empty());
+    }
+
+    /// `tests/test_assets_search_pages.py`.
+    type PageCalls = Arc<Mutex<Vec<(String, i64)>>>;
+
+    fn pages_api(page2: (u16, Value), total: i64) -> (PageCalls, FnApi) {
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let seen = Arc::clone(&calls);
+        let rows = json!([{"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}},
+                          {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}}]);
+        let c = FnApi::new(move |call: &Call| {
+            let page = call.params.as_ref().unwrap()["page"].as_i64().unwrap();
+            let path = format!("/itam/{}", call.path.split_once("/itam/").unwrap().1);
+            seen.lock().unwrap().push((path, page));
+            if page == 1 {
+                return Ok(json!({"page": 1, "error": null, "total_rows": total, "data": rows}));
+            }
+            let (status, body) = page2.clone();
+            if status == 200 {
+                Ok(body)
+            } else {
+                Err(ApiError::new(status, body).into())
+            }
+        });
+        (calls, c)
+    }
+
+    #[test]
+    fn past_the_end_shapes() {
+        let rows = json!([{"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}},
+                          {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}}]);
+        for kind in ["devices", "services"] {
+            for page2 in [
+                (404, json!({"detail": "Invalid page."})),
+                (400, json!({"error": "bad page"})),
+                (
+                    200,
+                    json!({"error": "Requested page is out of range.", "data": []}),
+                ),
+                (
+                    200,
+                    json!({"page": 1, "error": null, "total_rows": 2, "data": rows}),
+                ),
+                (
+                    200,
+                    json!({"page": 2, "error": null, "total_rows": 2, "data": []}),
+                ),
+            ] {
+                let (calls, c) = pages_api(page2.clone(), 2);
+                let err = search(&c, "acme", kind, 2).unwrap_err();
+                assert!(matches!(err, Error::Value(_)), "{kind} {page2:?}: {err}");
+                assert!(
+                    err.to_string().starts_with(&format!(
+                        "no results on page 2: the {kind} inventory has 2 row"
+                    )),
+                    "{err}"
+                );
+                let pages: HashSet<i64> = calls.lock().unwrap().iter().map(|(_, p)| *p).collect();
+                assert_eq!(pages, HashSet::from([1, 2]));
+            }
+        }
+        let (_, c) = pages_api((404, json!({})), 2);
+        assert_eq!(
+            search(&c, "", "devices", 2).unwrap_err().to_string(),
+            "no results on page 2: the devices inventory has 2 row(s) (1 page(s) of 50)"
+        );
+    }
+
+    #[test]
+    fn unreadable_page_inside_the_inventory_stays_unavailable() {
+        let (_, c) = pages_api((200, json!({"error": "internal"})), 120);
+        let err = search(&c, "", "devices", 2).unwrap_err();
+        assert!(
+            matches!(err, Error::Exit { code: 2, .. }) && err.to_string().contains("unavailable")
+        );
+    }
+
+    #[test]
+    fn real_second_page_is_returned() {
+        let rows = json!([{"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}},
+                          {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}}]);
+        let (calls, c) = pages_api(
+            (
+                200,
+                json!({"page": 2, "error": null, "total_rows": 52, "data": rows}),
+            ),
+            52,
+        );
+        let out = search(&c, "", "devices", 2).unwrap();
+        let ids: Vec<&Value> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| &r["name"]["id"])
+            .collect();
+        assert_eq!(ids, [&json!(81), &json!(82)]);
+        assert_eq!(out["complete"], false);
+        assert_eq!(
+            *calls.lock().unwrap(),
+            [("/itam/core/device/api/".to_string(), 2)]
+        );
     }
 }
