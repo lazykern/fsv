@@ -1534,12 +1534,10 @@ impl Backend for LiveBackend {
         if !plan.ok() {
             return Err(Failure::value(plan.errors.join("; ")));
         }
+        let review = crate::form::change_plan_json(&plan)
+            .ok_or_else(|| Failure::value("change status plan has no review"))?;
         Ok(ReviewPlan {
-            review: json!({
-                "plan_hash": plan.hash,
-                "errors": plan.errors,
-                "payload": plan.payload,
-            }),
+            review,
             hash: plan.hash,
             public: false,
             target_id: target.clone(),

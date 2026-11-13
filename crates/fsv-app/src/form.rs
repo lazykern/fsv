@@ -474,6 +474,11 @@ struct Carried<P> {
     form: LiveForm,
 }
 
+/// `change_flow.Plan.to_json`: the body the TUI status confirm prints.
+pub(crate) fn change_plan_json(plan: &fsv_formui::Plan) -> Option<Json> {
+    carried::<change::Plan>(plan).map(change::Plan::to_json)
+}
+
 /// The builder's plan a reviewed [`fsv_formui::Plan`] carries.
 fn carried<T: Any + Send + Sync>(plan: &fsv_formui::Plan) -> Option<&T> {
     plan.detail

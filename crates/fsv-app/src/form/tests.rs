@@ -219,6 +219,14 @@ fn edit_change_fetches_the_record_and_puts_the_diff() {
         (EDIT_HASH, Some(json!({"subject": "New subject"})))
     );
     assert!(plan.review.rows.is_empty());
+    let body = change_plan_json(&plan).unwrap();
+    assert_eq!(body["action"], json!("update"));
+    assert_eq!(body["target"], json!(77));
+    assert_eq!(body["plan_hash"], json!(EDIT_HASH));
+    assert_eq!(body["payload"], json!({"subject": "New subject"}));
+    assert!(body.get("review").is_some());
+    assert!(body.get("risks").is_some());
+    assert!(body.get("warnings").is_some());
     let n = t.calls().len();
     let out = s.send(&plan, false).unwrap();
     let calls = t.calls().split_off(n);
