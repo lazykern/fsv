@@ -438,6 +438,9 @@ pub fn send(
             fields.insert(k.clone(), json!(state));
         }
         let mut exempt = None;
+        let reminder = !create
+            && key == "task"
+            && crate::readback::exempt_unexposed_reminder(&mut fields, row.is_some());
         if let Some(Value::Object(r)) = row.as_ref().filter(|_| create)
             && fields.get("email") == Some(&json!("unavailable"))
         {
@@ -456,12 +459,18 @@ pub fn send(
             }
         }
         let verified = row.is_some()
-            && fields
-                .iter()
-                .all(|(k, v)| Some(k.as_str()) == exempt || v == "matched");
-        Ok(obj(
-            json!({format!("{key}_id"): exact_id, "fields": fields, "verified": verified}),
-        ))
+            && fields.iter().all(|(k, v)| {
+                Some(k.as_str()) == exempt || (reminder && k == "notify_before") || v == "matched"
+            });
+        let mut out =
+            obj(json!({format!("{key}_id"): exact_id, "fields": fields, "verified": verified}));
+        if reminder && verified {
+            out.insert(
+                "readback_note".into(),
+                json!(crate::readback::REMINDER_NOTE),
+            );
+        }
+        Ok(out)
     };
     execute(&plan.plan, c, journal, reviewed_hash, &rebuild, &verify)
 }

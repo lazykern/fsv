@@ -758,6 +758,19 @@ fn problem_handle(s: &mut Value, method: &str, path: &str, body: Option<&Value>)
                         .unwrap()
                         .shift_remove(if key == "notes" { "body" } else { "title" });
                 }
+                let shape = s["shape"].as_str().unwrap_or_default().to_string();
+                for r in rows.as_array_mut().unwrap() {
+                    let r = r.as_object_mut().unwrap();
+                    if shape.starts_with("omit-reminder") {
+                        r.shift_remove("notify_before");
+                    }
+                    if shape == "omit-reminder-and-title" {
+                        r.shift_remove("title");
+                    }
+                    if shape == "wrong-reminder" {
+                        r.insert("notify_before".into(), json!(50 + 99));
+                    }
+                }
                 return R::J(json!({key: rows, "has_more": false}));
             }
             _ => {}
@@ -946,6 +959,48 @@ fn problem_note_and_task() {
                 &problem_send(&w, &p),
                 &want[kind][readback],
                 &format!("{kind} {readback}"),
+            );
+        }
+    }
+}
+
+/// `test_child_task_reminder_not_exposed_by_server`.
+#[test]
+fn child_task_reminder_not_exposed_by_server() {
+    for (shape, verified) in [
+        ("omit-reminder", true),
+        ("wrong-reminder", false),
+        ("omit-reminder-and-title", false),
+    ] {
+        let w = problem_wire();
+        w.set(|s| s["shape"] = json!(shape));
+        let p = problem_workflows::child_plan(&w.api, "PRB-123", "task", "Acme").unwrap();
+        let result = problem_send(&w, &p)["ok"].clone();
+        assert_eq!(result["verified"], json!(verified), "{shape}: {result}");
+        assert_eq!(w.state.lock().unwrap()["writes"], json!(1));
+        if verified {
+            assert_eq!(
+                result["fields"]["notify_before"],
+                json!("unavailable (not exposed by the server)")
+            );
+            assert!(
+                result["readback_note"]
+                    .as_str()
+                    .unwrap()
+                    .contains("not returned")
+            );
+            assert!(result.get("warning").is_none());
+        } else {
+            assert!(
+                result["warning"]
+                    .as_str()
+                    .unwrap()
+                    .contains("do not resend")
+            );
+            assert!(
+                result["fields"]["notify_before"]
+                    != json!("unavailable (not exposed by the server)")
+                    || shape != "wrong-reminder"
             );
         }
     }

@@ -861,9 +861,13 @@ pub fn send(
     let identity_verified = exact
         .as_ref()
         .is_some_and(|e| !before.contains(&tid) && matches(e, plan));
-    let (verified_fields, unverified_fields, mismatched_fields) =
+    let (verified_fields, mut unverified_fields, mismatched_fields) =
         compare_fields(exact.as_ref(), plan);
     let verified = identity_verified && mismatched_fields.is_empty();
+    // The task GET never returns the create-time reminder: on an exactly
+    // identified row its absence is "not exposed", not an unverified field.
+    let unexposed = identity_verified && unverified_fields.iter().any(|k| k == "notify_before");
+    unverified_fields.retain(|k| !(unexposed && k == "notify_before"));
     let mut result = obj(json!({
         "status": "submitted", "change_id": plan.change_id, "task_id": tid,
         "verified": verified, "identity_verified": identity_verified,
@@ -871,6 +875,18 @@ pub fn send(
         "verified_fields": verified_fields, "unverified_fields": unverified_fields,
         "mismatched_fields": mismatched_fields, "readback": exact, "plan_hash": hash,
     }));
+    if unexposed {
+        result.insert(
+            "unexposed_fields".into(),
+            json!({"notify_before": crate::readback::REMINDER_NOT_EXPOSED}),
+        );
+        if verified && unverified_fields.is_empty() {
+            result.insert(
+                "readback_note".into(),
+                json!(crate::readback::REMINDER_NOTE),
+            );
+        }
+    }
     if !verified {
         result.insert(
             "warning".into(),
@@ -1330,6 +1346,62 @@ mod tests {
         );
     }
 
+    /// `test_create_reminder_absent_from_get_is_not_exposed`.
+    #[test]
+    fn create_reminder_absent_from_get_is_not_exposed() {
+        let d = default_plan();
+        let opts = SendOpts {
+            reviewed_hash: Some(DEFAULT_HASH),
+            ..Default::default()
+        };
+        for (reminder, verified, fields_verified) in [
+            (None, true, true),
+            (Some(900), false, false),
+            (Some(0), true, true),
+        ] {
+            let mut exact = json!({"id": 9, "title": "Review", "owner_id": null, "status": 1});
+            if let Some(r) = reminder {
+                exact["notify_before"] = json!(r);
+            }
+            let api = FakeApi::new()
+                .ok("GET changes/12/tasks", json!({"tasks": []}))
+                .ok("GET changes/12/tasks", json!({"tasks": [exact.clone()]}))
+                .ok("POST changes/12/tasks", json!({"task": exact}));
+            let result = send(&d, &api, &MemJournal::default(), opts).unwrap();
+            assert_eq!(result["verified"], json!(verified), "{reminder:?}");
+            assert_eq!(result["fields_verified"], json!(fields_verified));
+            match reminder {
+                None => {
+                    assert_eq!(
+                        result["unexposed_fields"],
+                        json!({"notify_before": "unavailable (not exposed by the server)"})
+                    );
+                    assert_eq!(result["unverified_fields"], json!([]));
+                    assert!(
+                        result.get("warning").is_none() && result.get("readback_note").is_some()
+                    );
+                }
+                Some(900) => {
+                    assert_eq!(result["mismatched_fields"], json!(["notify_before"]));
+                    assert!(
+                        result["warning"]
+                            .as_str()
+                            .unwrap()
+                            .contains("do not resend")
+                    );
+                }
+                _ => assert!(
+                    result.get("unexposed_fields").is_none()
+                        && result.get("readback_note").is_none()
+                ),
+            }
+            assert_eq!(
+                api.writes().iter().filter(|c| c.method == "POST").count(),
+                1
+            );
+        }
+    }
+
     #[test]
     fn send_unverified_and_partial_readback() {
         let d = default_plan();
@@ -1356,9 +1428,10 @@ mod tests {
         assert_eq!(
             send(&d, &api, &MemJournal::default(), opts).unwrap(),
             json!({"status": "submitted", "change_id": 12, "task_id": 9, "verified": true, "identity_verified": true, "fields_verified": false,
-                   "verified_fields": ["title"], "unverified_fields": ["status", "notify_before"], "mismatched_fields": [],
+                   "verified_fields": ["title"], "unverified_fields": ["status"], "mismatched_fields": [],
                    "readback": {"id": 9, "title": "Review", "owner_id": null}, "plan_hash": DEFAULT_HASH,
-                   "warning": "Task identity verified, but fields absent from GET remain unverified: status, notify_before; do not resend."})
+                   "unexposed_fields": {"notify_before": "unavailable (not exposed by the server)"},
+                   "warning": "Task identity verified, but fields absent from GET remain unverified: status; do not resend."})
         );
     }
 
