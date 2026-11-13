@@ -444,7 +444,8 @@ creates a maintenance window, and it answered `{"match_found": false}` while
 the new maintenance window overlapped an existing maintenance window with the
 same change-type condition (both were created). Treat it as a blackout-window
 check only; detect maintenance-window overlaps from the window list's
-`start_time`/`end_time`. Whether a `maintenance_events` type is accepted here
+`start_time`/`end_time` (a read-only GET, so fsv also evaluates it during a
+plain dry-run). Whether a `maintenance_events` type is accepted here
 was not captured. [VERIFIED LIVE / INFERRED for the blackout-only scope]
 
 Time zone. The create and overlap bodies carry wall-clock dates and times

@@ -162,6 +162,9 @@ class WindowPlan:
     time_zone: str = ""  # tenant zone (IANA key) the wire's wall clock is read in
     input_zone: str = ""  # zone --start/--end were read in, with its source
     legacy_hash: str = ""  # hash of the same plan before zones were bound
+    # Listed windows intersecting this one at review time (read-only GET);
+    # None = some listed window's times are unreadable (overlap unknown).
+    overlapping: tuple[int, ...] | None = ()
 
     @property
     def hash(self) -> str:
@@ -191,9 +194,23 @@ class WindowPlan:
                                           "rule": "any listed window whose time range intersects "
                                                   f"{_render(s, tenant)} -> {_render(e, tenant)} refuses; "
                                                   "unreadable window times refuse"},
+                "overlapping_window_ids": list(self.overlapping) if self.overlapping is not None else "unknown",
+                **({"overlap_warning": self.overlap_warning()} if self.overlap_warning() else {}),
                 "warning": "The existing-window check and the overlap check run first; any overlapping window, "
                            "or an answer that does not show 'no overlap', refuses the create unless "
                            "--allow-overlap. Single attempt; never resend an unknown outcome."}
+
+
+    def overlap_warning(self) -> str:
+        """Review-time verdict of the window-list check ('' when clear). The
+        blackout overlap POST is not sent while reviewing; it runs at send."""
+        if self.overlapping is None:
+            return ("overlap unknown: a listed window has unreadable start/end times; "
+                    "sending refuses unless --allow-overlap")
+        if self.overlapping:
+            return (f"overlapping windows exist: {', '.join(map(str, self.overlapping))}; "
+                    "sending refuses unless --allow-overlap")
+        return ""
 
 
 def create_plan(client: Any, name: str, description: str, start: str, end: str, criteria: list[str], *,
@@ -237,8 +254,12 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
                                      "input_zone": input_label, "start": s_at.isoformat(), "end": e_at.isoformat()})
     write = WritePlan("change_window_create", 0, config.DOMAIN, "POST", "maintenance_windows",
                       json.dumps(payload, sort_keys=True), context or "")
+    try:
+        found: tuple[int, ...] | None = tuple(existing_overlaps(snapshot["windows"], s_at, e_at, tenant))
+    except ReviewedWriteError:
+        found = None
     return WindowPlan(write, json.dumps(overlap, sort_keys=True), s_wall.isoformat(timespec="minutes"),
-                      e_wall.isoformat(timespec="minutes"), tz_name(tenant), input_label, legacy.hash)
+                      e_wall.isoformat(timespec="minutes"), tz_name(tenant), input_label, legacy.hash, found)
 
 
 def _instant(value: Any) -> dt.datetime | None:

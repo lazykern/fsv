@@ -425,3 +425,43 @@ def test_window_cli_timezone_option_reviews_both_renderings(wapi):
                           "tenant": "2030-11-14 05:00 America/New_York (-05:00)"}
     assert doc["payload"]["change_window"]["start_time"] == "3:00am"
     assert s["writes"] == []
+
+
+# --- the plain dry-run evaluates the existing-window overlap (read-only GET)
+@pytest.mark.parametrize("windows,ids", [
+    ([], []),
+    ([NY_A, NY_C], [71, 72]),                                                # both intersect 03:00-05:00
+    ([NY_A], [71]),
+    ([{**NY_C, "id": 73, "start_time": "2030-11-14T05:00:00-05:00", "end_time": "2030-11-14T06:00:00-05:00"}], []),  # touching
+    ([{**NY_A, "id": 74, "start_time": "2030-11-14T01:00:00-05:00", "end_time": "2030-11-14T03:00:00-05:00"}], []),  # touching
+    ([{**NY_A, "id": 75, "start_time": "2030-11-14T07:59:00Z", "end_time": "2030-11-14T08:01:00Z"}], [75]),  # other offset
+])
+def test_window_dry_run_reports_overlapping_ids(wapi, windows, ids):
+    c, s = wapi
+    s["windows"] = [dict(w) for w in windows]
+    r = CliRunner().invoke(cli.app, ["changes", "windows", "create", "--name", "Acme", "--start", "2030-11-14 15:00",
+                                     "--end", "2030-11-14 17:00", "--criteria", "change_type=Normal",
+                                     "--timezone", "Asia/Bangkok", "--dry-run", "--json"])
+    assert r.exit_code == 0, r.output
+    doc = json.loads(r.output)
+    assert doc["status"] == "dry_run" and doc["overlapping_window_ids"] == ids
+    if ids:
+        assert doc["overlap_warning"] == (f"overlapping windows exist: {', '.join(map(str, ids))}; "
+                                          "sending refuses unless --allow-overlap")
+    else:
+        assert "overlap_warning" not in doc
+    assert s["writes"] == []  # neither the overlap POST nor the create ran
+    if ids:
+        r = CliRunner().invoke(cli.app, ["changes", "windows", "create", "--name", "Acme", "--start",
+                                         "2030-11-14 15:00", "--end", "2030-11-14 17:00", "--criteria",
+                                         "change_type=Normal", "--timezone", "Asia/Bangkok", "--yes",
+                                         "--expect-plan", doc["plan_hash"]])
+        assert r.exit_code != 0 and "already listed" in r.output and s["writes"] == []
+
+
+def test_window_dry_run_unreadable_times_warn_unknown(wapi):
+    c, s = wapi
+    s["windows"] = [{"id": 76, "name": "Acme odd", "start_time": "soon", "end_time": "later"}]
+    rv = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00").review()
+    assert rv["overlapping_window_ids"] == "unknown" and rv["overlap_warning"].startswith("overlap unknown")
+    assert s["writes"] == []

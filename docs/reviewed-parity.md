@@ -400,7 +400,11 @@ the review shows both renderings (`start`/`end` `input` and `tenant`). An
 unreadable tenant zone, an unknown `--timezone`, or a time that a
 daylight-saving change skips or repeats refuses. The zones and instants are
 bound into the plan hash; journals of the earlier hash format still guard.
-After `--yes --expect-plan` it first re-reads the maintenance window list and
+The plain `--dry-run` already evaluates the window-list part of the guard
+(the list is a read-only GET): the review and `--json` show
+`overlapping_window_ids` (ids, `[]`, or `unknown` for unreadable times) and an
+`overlap_warning` line when any overlap exists; the blackout overlap POST is
+not sent while reviewing. After `--yes --expect-plan` it first re-reads the maintenance window list and
 refuses when any listed window's time range intersects the new one (criteria
 are not compared; unreadable window times also refuse), then posts the UI's
 overlap check (`POST /api/_/change_windows/overlapping_windows`, read-only in
