@@ -61,7 +61,8 @@ fsv problems task-write PRB-123 71 delete --dry-run --json
 ```
 
 Send with `--yes --expect-plan FULL_HASH`. Time is self-owned/manual only;
-create defaults billable (as captured), and change update can set billable.
+create is non-billable unless `--billable` is passed (the web form pre-ticks
+the box; fsv sends only what you chose), and change update can set billable.
 Durations/instants are normalized only for independent v2 readback. Problem time
 update (`problems time update PROBLEM ENTRY --spent --note`, or `time write ...
 update --entry`) sends `PUT problems/<id>/time_entries/<entry>` with

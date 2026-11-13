@@ -55,7 +55,9 @@ def build_plan(client: Any, module: str, target: str | int, *, action: str, entr
         when = _date(executed_at)
         if when is None:
             raise ValueError("executed-at needs an explicit offset")
-        payload = {"executed_at": when, "timer_running": False, "billable": True if billable is None else billable,
+        # Billable only when the user asks: the captured web form pre-ticks the box, but the
+        # wire accepts false (captured ticket time creates and change time updates send it).
+        payload = {"executed_at": when, "timer_running": False, "billable": bool(billable),
                    "time_spent": _duration(spent), "note": note or "", "agent_id": user}
         method, path = "POST", f"{module}/{cid}/time_entries"
     else:

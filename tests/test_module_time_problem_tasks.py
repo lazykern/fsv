@@ -178,6 +178,21 @@ def test_task_closure_requirements_and_combined_completion_refused(api):
     assert not s["writes"]
 
 
+@pytest.mark.parametrize("module", ["changes", "problems"])
+@pytest.mark.parametrize("flags,expected", [([], False), (["--billable"], True), (["--non-billable"], False), (["--no-billable"], False)])
+def test_time_create_billable_only_when_chosen(api, module, flags, expected):
+    c, s = api
+    prefix = "CHN" if module == "changes" else "PRB"
+    r = CliRunner().invoke(cli.app, [module, "time", "write", f"{prefix}-123", "create", "--spent", "00:01",
+                                     "--executed-at", "2026-01-01T09:00:00Z", *flags, "--dry-run", "--json"])
+    assert r.exit_code == 0, r.output
+    payload = json.loads(r.stdout)["payload"]
+    payload = json.loads(payload) if isinstance(payload, str) else payload
+    assert payload["billable"] is expected
+    p = module_time.build_plan(c, module, 123, action="create", spent="00:01", executed_at="2026-01-01T09:00:00Z")
+    assert p.payload["billable"] is False and not s["writes"]
+
+
 @pytest.mark.parametrize("args", [["changes", "time", "write", "CHN-123", "create", "--spent", "00:01", "--executed-at", "2026-01-01T09:00:00Z", "--billable"],
                                  ["problems", "task-write", "PRB-123", "71", "complete"]])
 def test_time_task_cli_review_and_send(api, args):
