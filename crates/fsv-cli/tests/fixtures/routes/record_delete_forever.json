@@ -1,0 +1,443 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/41",
+  "json": {
+   "problem": {
+    "id": 41,
+    "display_id": 41,
+    "subject": "Acme trashed 41",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/41",
+  "json": {
+   "problem": {
+    "id": 41,
+    "display_id": 41,
+    "subject": "Acme trashed 41",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/41",
+  "json": {
+   "problem": {
+    "id": 41,
+    "display_id": 41,
+    "subject": "Acme trashed 41",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/41",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/42",
+  "json": {
+   "problem": {
+    "id": 42,
+    "display_id": 42,
+    "subject": "Acme trashed 42",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/42",
+  "json": {
+   "problem": {
+    "id": 42,
+    "display_id": 42,
+    "subject": "Acme trashed 42",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/42",
+  "json": {
+   "problem": {
+    "id": 42,
+    "display_id": 42,
+    "subject": "Acme trashed 42",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/42",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/43",
+  "json": {
+   "problem": {
+    "id": 43,
+    "display_id": 43,
+    "subject": "Acme trashed 43",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/43",
+  "json": {
+   "problem": {
+    "id": 43,
+    "display_id": 43,
+    "subject": "Acme trashed 43",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/43",
+  "json": {
+   "problem": {
+    "id": 43,
+    "display_id": 43,
+    "subject": "Acme trashed 43",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/43",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/44",
+  "json": {
+   "problem": {
+    "id": 44,
+    "display_id": 44,
+    "subject": "Acme trashed 44",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/44",
+  "json": {
+   "problem": {
+    "id": 44,
+    "display_id": 44,
+    "subject": "Acme trashed 44",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/44",
+  "json": {
+   "problem": {
+    "id": 44,
+    "display_id": 44,
+    "subject": "Acme trashed 44",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/44",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/45",
+  "json": {
+   "problem": {
+    "id": 45,
+    "display_id": 45,
+    "subject": "Acme trashed 45",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/45",
+  "json": {
+   "problem": {
+    "id": 45,
+    "display_id": 45,
+    "subject": "Acme trashed 45",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/45",
+  "json": {
+   "problem": {
+    "id": 45,
+    "display_id": 45,
+    "subject": "Acme trashed 45",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/45",
+  "json": {
+   "problem": {
+    "id": 45,
+    "display_id": 45,
+    "subject": "Acme trashed 45",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/46",
+  "json": {
+   "problem": {
+    "id": 46,
+    "display_id": 46,
+    "subject": "Acme trashed 46",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/46",
+  "json": {
+   "problem": {
+    "id": 46,
+    "display_id": 46,
+    "subject": "Acme trashed 46",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/46",
+  "json": {
+   "problem": {
+    "id": 46,
+    "display_id": 46,
+    "subject": "Acme trashed 46",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/46",
+  "json": {
+   "problem": {
+    "id": 46,
+    "display_id": 46,
+    "subject": "Acme trashed 46",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/delete-forever",
+  "status": 500,
+  "query": {
+   "ids": "45"
+  },
+  "json": {
+   "errors": "no"
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/delete-forever",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/51",
+  "json": {
+   "article": {
+    "id": 51,
+    "title": "Globex article 51",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/51",
+  "json": {
+   "article": {
+    "id": 51,
+    "title": "Globex article 51",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/51",
+  "json": {
+   "article": {
+    "id": 51,
+    "title": "Globex article 51",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/51",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/solutions/articles/51/delete_forever",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/52",
+  "json": {
+   "article": {
+    "id": 52,
+    "title": "Globex article 52",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/52",
+  "json": {
+   "article": {
+    "id": 52,
+    "title": "Globex article 52",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/52",
+  "json": {
+   "article": {
+    "id": 52,
+    "title": "Globex article 52",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/52",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/solutions/articles/52/delete_forever",
+  "status": 204
+ }
+]

@@ -6,6 +6,7 @@ pub mod cache;
 pub mod changes;
 pub mod completion;
 pub mod config;
+pub mod deletes;
 pub mod download;
 pub mod form;
 pub mod formflow;
@@ -75,6 +76,12 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         "solutions create" => inventory::solutions_create(parse(m)?),
         "sr items list" => reviewed::sr_items_list(parse(m)?),
         "sr items write" => reviewed::sr_items_write(parse(m)?),
+        // batch "deletes": record, ticket trash and spam deletes
+        "problems delete" => deletes::problems_delete(parse(m)?),
+        "problems restore" => deletes::problems_restore(parse(m)?),
+        "problems delete-forever" => deletes::problems_delete_forever(parse(m)?),
+        "solutions delete" => deletes::solutions_delete(parse(m)?),
+        "solutions delete-forever" => deletes::solutions_delete_forever(parse(m)?),
         _ if path.starts_with("form ") => form::dispatch(sub, m),
         _ if path.starts_with("sr ") => {
             inventory::dispatch("sr", sub, m).unwrap_or_else(|| sr::dispatch(sub, m))
