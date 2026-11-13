@@ -132,16 +132,19 @@ fn tree_matches_python() {
     let mut problems = Vec::new();
     walk(&tree, &cmd, &mut seen, &mut problems);
     assert!(problems.is_empty(), "{}", problems.join("\n"));
-    assert_eq!(seen.len(), 223);
+    assert_eq!(seen.len(), 263);
 }
 
 /// Fixtures still stamped with an older Python commit. Each one must be
 /// regenerated against `port/UPSTREAM_BASE` before its stamp moves; until
 /// then the debt is named here instead of hidden behind a false stamp.
-const STAMP_DEBT: &[(&str, &str)] = &[(
-    "completion_tree",
-    "7fcdea40050b962d13c70c38328c6d5ea4455ae1",
-)];
+///
+/// Both trees are ahead of `UPSTREAM_BASE` for now: the command surface was
+/// regenerated from Python `72b4716` before the commands' behavior landed.
+const STAMP_DEBT: &[(&str, &str)] = &[
+    ("cli_tree", "72b4716d470a853a4080698b01a1254db27951dc"),
+    ("completion_tree", "72b4716d470a853a4080698b01a1254db27951dc"),
+];
 
 /// Every JSON oracle records the Python commit it was dumped from.
 #[test]
@@ -175,7 +178,7 @@ fn every_command_path_is_reachable() {
     }
     let mut all = vec![];
     paths(&fsv_cli::command(), "fsv", &mut all);
-    assert_eq!(all.len(), 222);
+    assert_eq!(all.len(), 262);
     for p in [
         "fsv changes assets legacy",
         "fsv changes relationships write",

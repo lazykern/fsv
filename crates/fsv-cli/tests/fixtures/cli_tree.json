@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "406ca71e2392f23d5b9fd680572d50aabb0835a2",
+  "commit": "72b4716d470a853a4080698b01a1254db27951dc",
   "dirty": false
  },
  "path": "fsv",
@@ -632,6 +632,275 @@
    "params": [],
    "commands": [
     {
+     "path": "fsv solutions delete",
+     "help": "Move one knowledge article to the trash (reviewed; --confirm-destructive).",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ident",
+       "kind": "argument",
+       "opts": [
+        "ident"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ARTICLE_ID",
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "review the exact target; nothing is sent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full hash from the review",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required for permanent or untracked deletes",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "JSON output (always JSON)",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv solutions delete-forever",
+     "help": "PERMANENTLY delete explicit articles already in the trash (reviewed). More than one ID needs --max-records (1 to 50); always --confirm-destructive.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "idents",
+       "kind": "argument",
+       "opts": [
+        "idents"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": -1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ARTICLE_ID...",
+       "envvar": null
+      },
+      {
+       "name": "max_records",
+       "kind": "option",
+       "opts": [
+        "--max-records"
+       ],
+       "secondary_opts": [],
+       "type": "integer",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "bound, 1 to 50; required for more than one ID",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "review the exact targets; nothing is sent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full hash from the review",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required: the deletes are permanent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "JSON output (always JSON)",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
      "path": "fsv solutions create",
      "help": "Create a draft workaround/permanent article; does not link or publish it.",
      "epilog": null,
@@ -808,6 +1077,93 @@
        "hidden": false,
        "help": null,
        "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    }
+   ]
+  },
+  {
+   "path": "fsv templates",
+   "help": "Ticket templates (read-only; apply with `fsv tickets create --template NAME`).",
+   "epilog": null,
+   "hidden": false,
+   "group": true,
+   "params": [],
+   "commands": [
+    {
+     "path": "fsv templates list",
+     "help": "List ticket templates.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv templates show",
+     "help": "Show one ticket template and the fields it prefills.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "name",
+       "kind": "argument",
+       "opts": [
+        "name"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "NAME_OR_ID",
        "envvar": null
       },
       {
@@ -4386,7 +4742,7 @@
     },
     {
      "path": "fsv changes export",
-     "help": "Review a native CSV/30-day export request; may email data, job/download contract is unknown.",
+     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -4462,7 +4818,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": false,
+       "hidden": true,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -4481,7 +4837,7 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": false,
+       "hidden": true,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -5959,7 +6315,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "output directory (default: ./CHN-<id>)",
+       "help": "output directory (default: ./downloads/CHN-<id>)",
        "metavar": null,
        "envvar": null
       },
@@ -6941,7 +7297,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": null,
+       "help": "changes only: public note (problem notes have no visibility key)",
        "metavar": null,
        "envvar": null
       },
@@ -7304,7 +7660,7 @@
     },
     {
      "path": "fsv changes time",
-     "help": "Reviewed self-owned manual time entries; problem updates remain blocked.",
+     "help": "Reviewed self-owned manual time entries: list, write create|update|delete, update.",
      "epilog": null,
      "hidden": false,
      "group": true,
@@ -7508,7 +7864,8 @@
           "--billable"
          ],
          "secondary_opts": [
-          "--non-billable"
+          "--non-billable",
+          "--no-billable"
          ],
          "type": "boolean",
          "choices": null,
@@ -7518,7 +7875,7 @@
          "is_flag": true,
          "default": null,
          "hidden": false,
-         "help": null,
+         "help": "create: mark the entry billable (default: non-billable)",
          "metavar": null,
          "envvar": null
         },
@@ -7615,6 +7972,556 @@
          "nargs": 1,
          "is_flag": false,
          "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv changes time update",
+       "help": "Review, then change the duration and/or note of one exact self-owned entry; verified by re-reading the entry list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "entry",
+         "kind": "argument",
+         "opts": [
+          "entry"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ENTRY_ID",
+         "envvar": null,
+         "min": 1,
+         "max": null
+        },
+        {
+         "name": "spent",
+         "kind": "option",
+         "opts": [
+          "--spent"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "manual duration HH:MM",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "note",
+         "kind": "option",
+         "opts": [
+          "--note"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "output is always JSON",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
+    },
+    {
+     "path": "fsv changes windows",
+     "help": "Change maintenance windows (reviewed create/delete).",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv changes windows list",
+       "help": "List maintenance windows.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv changes windows create",
+       "help": "Create a maintenance window (overlap check, then reviewed POST).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "name",
+         "kind": "option",
+         "opts": [
+          "--name"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "start",
+         "kind": "option",
+         "opts": [
+          "--start"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "YYYY-MM-DD HH:MM (in --timezone)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "end",
+         "kind": "option",
+         "opts": [
+          "--end"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "YYYY-MM-DD HH:MM (in --timezone)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "timezone",
+         "kind": "option",
+         "opts": [
+          "--timezone"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "zone --start/--end are in (IANA name; default FSV_TZ, else the tenant zone: the agent profile time zone). Times are converted to the tenant zone before checking and sending",
+         "metavar": "ZONE",
+         "envvar": null
+        },
+        {
+         "name": "criteria",
+         "kind": "option",
+         "opts": [
+          "--criteria"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": true,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "change_type=<label or id> (repeatable; at least one)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "description",
+         "kind": "option",
+         "opts": [
+          "--description"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "no_alert_suppression",
+         "kind": "option",
+         "opts": [
+          "--no-alert-suppression"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "allow_overlap",
+         "kind": "option",
+         "opts": [
+          "--allow-overlap"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "create even if windows overlap or the overlap answer is not understood (part of the reviewed plan hash)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv changes windows delete",
+       "help": "Delete one maintenance window (reviewed).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ident",
+         "kind": "argument",
+         "opts": [
+          "ident"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "WINDOW_ID",
+         "envvar": null,
+         "min": 1,
+         "max": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
          "hidden": false,
          "help": null,
          "metavar": null,
@@ -8584,7 +9491,7 @@
       },
       {
        "path": "fsv changes assets candidates",
-       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "help": "Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.",
        "epilog": null,
        "hidden": false,
        "group": false,
@@ -8607,6 +9514,65 @@
          "help": null,
          "metavar": null,
          "envvar": null
+        },
+        {
+         "name": "query",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "",
+         "hidden": false,
+         "help": "integrated search text",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "kind",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "devices",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "page",
+         "kind": "option",
+         "opts": [
+          "--page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": 1,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "json_out",
@@ -9214,6 +10180,306 @@
          "default": null,
          "hidden": false,
          "help": "captured change requester freeze only; display_id is automatic",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
+    },
+    {
+     "path": "fsv changes private-views",
+     "help": "Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv changes private-views list",
+       "help": "Your own non-default saved views (the list carries no visibility).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv changes private-views show",
+       "help": "Exact view read plus whether fsv treats it as private (Myself, no groups).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv changes private-views write",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "SOURCE_VIEW",
+         "envvar": null,
+         "min": 1,
+         "max": null
+        },
+        {
+         "name": "action",
+         "kind": "argument",
+         "opts": [
+          "action"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "create (clone source); rename/delete are not captured for change views",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "name",
+         "kind": "option",
+         "opts": [
+          "--name"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
          "metavar": null,
          "envvar": null
         },
@@ -10206,7 +11472,7 @@
     },
     {
      "path": "fsv tickets export",
-     "help": "Review a native CSV/30-day export request; may email data, job/download contract is unknown.",
+     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -10282,7 +11548,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": false,
+       "hidden": true,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -10301,7 +11567,7 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": false,
+       "hidden": true,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -12171,6 +13437,25 @@
        "envvar": null
       },
       {
+       "name": "scenario",
+       "kind": "option",
+       "opts": [
+        "--scenario"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "scenario only: exact scenario name or ID (never by position)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -12186,6 +13471,506 @@
        "default": false,
        "hidden": false,
        "help": "accepted for symmetry; stdout is always JSON only (selection list goes to stderr)",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv tickets restore",
+     "help": "Review, then restore one deleted ticket from the trash; verified by deleted=false.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ticket",
+       "kind": "argument",
+       "opts": [
+        "ticket"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "TICKET",
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv tickets delete-forever",
+     "help": "PERMANENTLY delete explicit tickets that are already in the trash. Needs --max-records and --confirm-destructive; no filters, no empty-trash.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "tickets",
+       "kind": "argument",
+       "opts": [
+        "tickets"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": -1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "TICKET...",
+       "envvar": null
+      },
+      {
+       "name": "max_records",
+       "kind": "option",
+       "opts": [
+        "--max-records"
+       ],
+       "secondary_opts": [],
+       "type": "integer",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "required bound, 1 to 50",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv tickets spam",
+     "help": "Review, then mark one ticket as spam (needs --confirm-destructive); verified by the spam flag. Bulk: tickets bulk spam.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ticket",
+       "kind": "argument",
+       "opts": [
+        "ticket"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "TICKET",
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required for spam",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv tickets unspam",
+     "help": "Review, then mark one ticket as not spam; verified by the spam flag.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ticket",
+       "kind": "argument",
+       "opts": [
+        "ticket"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "TICKET",
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required for spam",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
        "metavar": null,
        "envvar": null
       }
@@ -12833,6 +14618,25 @@
        "envvar": null
       },
       {
+       "name": "notify_agent",
+       "kind": "option",
+       "opts": [
+        "--notify-agent"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "agent exact name or email from the agent lookup; sent as 'Name <email>' in notify_emails (repeatable)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "attach",
        "kind": "option",
        "opts": [
@@ -12848,6 +14652,25 @@
        "default": null,
        "hidden": false,
        "help": "local file (repeatable; reviewed two-step upload)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "inline_image",
+       "kind": "option",
+       "opts": [
+        "--inline-image"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "local JPEG/PNG/GIF/WebP shown inside the note body (repeatable; reviewed upload)",
        "metavar": null,
        "envvar": null
       },
@@ -12888,6 +14711,25 @@
        "default": null,
        "hidden": false,
        "help": "add and set status (Pending, Resolved or Closed; runtime requirements apply)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "with --set-status Resolved/Closed: acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       },
@@ -13091,6 +14933,25 @@
        "default": null,
        "hidden": false,
        "help": "draft preset",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "template",
+       "kind": "option",
+       "opts": [
+        "--template"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "ticket template name or ID: prefills the form; --set/--from still win",
        "metavar": null,
        "envvar": null
       },
@@ -13754,7 +15615,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "full reviewed hash for ticket property update",
+       "help": "full reviewed hash (ticket property update, problem update)",
        "metavar": null,
        "envvar": null
       },
@@ -13957,7 +15818,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "output directory",
+       "help": "output directory (default: ./downloads/<ID>)",
        "metavar": null,
        "envvar": null
       },
@@ -14258,6 +16119,25 @@
        "envvar": null
       },
       {
+       "name": "inline_image",
+       "kind": "option",
+       "opts": [
+        "--inline-image"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "local JPEG/PNG/GIF/WebP shown inside the reply body (repeatable; requires --sender; reviewed upload)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "max_bytes",
        "kind": "option",
        "opts": [
@@ -14332,6 +16212,25 @@
        "default": null,
        "hidden": false,
        "help": "send and set status (Pending, Resolved or Closed; runtime requirements apply)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "with --set-status Resolved/Closed: acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       },
@@ -14764,7 +16663,7 @@
       },
       {
        "path": "fsv tickets assets candidates",
-       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "help": "Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.",
        "epilog": null,
        "hidden": false,
        "group": false,
@@ -14787,6 +16686,65 @@
          "help": null,
          "metavar": null,
          "envvar": null
+        },
+        {
+         "name": "query",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "",
+         "hidden": false,
+         "help": "integrated search text",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "kind",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "devices",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "page",
+         "kind": "option",
+         "opts": [
+          "--page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": 1,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "json_out",
@@ -16281,15 +18239,66 @@
     },
     {
      "path": "fsv tickets private-views",
-     "help": "Private ticket views: clone, rename or delete an exact self-owned non-default view.",
+     "help": "Private ticket views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.",
      "epilog": null,
      "hidden": false,
      "group": true,
      "params": [],
      "commands": [
       {
+       "path": "fsv tickets private-views list",
+       "help": "Your own non-default saved views (the list carries no visibility).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
        "path": "fsv tickets private-views show",
-       "help": "",
+       "help": "Exact view read plus whether fsv treats it as private (Myself, no groups).",
        "epilog": null,
        "hidden": false,
        "group": false,
@@ -16402,7 +18411,7 @@
          "is_flag": false,
          "default": null,
          "hidden": false,
-         "help": "create (clone source) | edit (rename) | delete",
+         "help": "create (clone source) | rename | delete",
          "metavar": null,
          "envvar": null
         },
@@ -17501,6 +19510,1440 @@
        "commands": []
       }
      ]
+    },
+    {
+     "path": "fsv tickets problems",
+     "help": "Problems linked to an incident: list, candidates, link, unlink.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv tickets problems list",
+       "help": "Complete associated list for the exact ticket (read-only).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets problems candidates",
+       "help": "Picker list or search results to choose from (read-only, one page).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "search",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets problems link",
+       "help": "Review, then link once and verify by the complete associated list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "item",
+         "kind": "argument",
+         "opts": [
+          "item"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "PROBLEM",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets problems unlink",
+       "help": "Review, then unlink once and verify by the complete associated list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "item",
+         "kind": "argument",
+         "opts": [
+          "item"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "PROBLEM",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
+    },
+    {
+     "path": "fsv tickets changes",
+     "help": "Changes linked to a ticket in either direction: list, candidates, link, unlink.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv tickets changes list",
+       "help": "Complete associated list for the exact ticket (read-only).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets changes candidates",
+       "help": "Picker list or search results to choose from (read-only, one page).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "search",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets changes link",
+       "help": "Review, then link once and verify by the complete associated list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "item",
+         "kind": "argument",
+         "opts": [
+          "item"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "CHANGE",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets changes unlink",
+       "help": "Review, then unlink once and verify by the complete associated list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "item",
+         "kind": "argument",
+         "opts": [
+          "item"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "CHANGE",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
+    },
+    {
+     "path": "fsv tickets children",
+     "help": "Child tickets of a parent ticket: list, candidates, link, unlink.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv tickets children list",
+       "help": "Complete associated list for the exact ticket (read-only).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets children candidates",
+       "help": "Picker list or search results to choose from (read-only, one page).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "search",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets children link",
+       "help": "Review, then link once and verify by the complete associated list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "item",
+         "kind": "argument",
+         "opts": [
+          "item"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "CHILD_TICKET",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets children unlink",
+       "help": "Review, then unlink once and verify by the complete associated list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "ticket",
+         "kind": "argument",
+         "opts": [
+          "ticket"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "TICKET",
+         "envvar": null
+        },
+        {
+         "name": "item",
+         "kind": "argument",
+         "opts": [
+          "item"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "CHILD_TICKET",
+         "envvar": null
+        },
+        {
+         "name": "ctype",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "changes only",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes",
+          "-y"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
+    },
+    {
+     "path": "fsv tickets trash",
+     "help": "Deleted tickets (the Trash view; every agent's deleted tickets).",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv tickets trash list",
+       "help": "One page of the Trash view (read-only).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "page",
+         "kind": "option",
+         "opts": [
+          "--page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": 1,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": 30,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
     }
    ]
   },
@@ -18160,7 +21603,7 @@
     },
     {
      "path": "fsv problems export",
-     "help": "Review a native CSV/30-day export request; may email data, job/download contract is unknown.",
+     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -18236,7 +21679,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": false,
+       "hidden": true,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -18255,7 +21698,7 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": false,
+       "hidden": true,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -18631,6 +22074,400 @@
        "default": false,
        "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv problems delete",
+     "help": "Move one exact problem to the trash (reviewed; restorable).",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ident",
+       "kind": "argument",
+       "opts": [
+        "ident"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "PROBLEM_ID",
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "review the exact target; nothing is sent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full hash from the review",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required for permanent or untracked deletes",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "JSON output (always JSON)",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv problems restore",
+     "help": "Restore one exact problem from the trash (reviewed).",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ident",
+       "kind": "argument",
+       "opts": [
+        "ident"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "PROBLEM_ID",
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "review the exact target; nothing is sent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full hash from the review",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required for permanent or untracked deletes",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "JSON output (always JSON)",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv problems delete-forever",
+     "help": "PERMANENTLY delete explicit problems already in the trash (reviewed). More than one ID needs --max-records (1 to 50); always --confirm-destructive.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "idents",
+       "kind": "argument",
+       "opts": [
+        "idents"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": -1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "PROBLEM_ID...",
+       "envvar": null
+      },
+      {
+       "name": "max_records",
+       "kind": "option",
+       "opts": [
+        "--max-records"
+       ],
+       "secondary_opts": [],
+       "type": "integer",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "bound, 1 to 50; required for more than one ID",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "review the exact targets; nothing is sent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full hash from the review",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required: the deletes are permanent",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "JSON output (always JSON)",
        "metavar": null,
        "envvar": null
       }
@@ -20922,7 +24759,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "full reviewed hash for ticket property update",
+       "help": "full reviewed hash (ticket property update, problem update)",
        "metavar": null,
        "envvar": null
       },
@@ -21125,7 +24962,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "output directory",
+       "help": "output directory (default: ./downloads/<ID>)",
        "metavar": null,
        "envvar": null
       },
@@ -21326,7 +25163,7 @@
     {
      "path": "fsv problems add-note",
      "help": "Add problem note.",
-     "epilog": "[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  [bold]Examples:[/bold]  fsv problems add-note PRB-1234 'Checked deployment evidence'  |  fsv problems add-note PRB-1234 'Visible update' --public",
+     "epilog": "[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  [bold]Examples:[/bold]  fsv problems add-note PRB-1234 'Checked deployment evidence'  (problem notes have no visibility key: the tenant default applies)",
      "hidden": false,
      "group": false,
      "params": [
@@ -21383,7 +25220,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": null,
+       "help": "changes only: public note (problem notes have no visibility key)",
        "metavar": null,
        "envvar": null
       },
@@ -21592,7 +25429,7 @@
       },
       {
        "path": "fsv problems assets candidates",
-       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "help": "Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.",
        "epilog": null,
        "hidden": false,
        "group": false,
@@ -21615,6 +25452,65 @@
          "help": null,
          "metavar": null,
          "envvar": null
+        },
+        {
+         "name": "query",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "",
+         "hidden": false,
+         "help": "integrated search text",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "kind",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "devices",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "page",
+         "kind": "option",
+         "opts": [
+          "--page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": 1,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "json_out",
@@ -22175,7 +26071,7 @@
     },
     {
      "path": "fsv problems time",
-     "help": "Reviewed self-owned manual time entries; problem updates remain blocked.",
+     "help": "Reviewed self-owned manual time entries: list, write create|update|delete, update.",
      "epilog": null,
      "hidden": false,
      "group": true,
@@ -22379,7 +26275,8 @@
           "--billable"
          ],
          "secondary_opts": [
-          "--non-billable"
+          "--non-billable",
+          "--no-billable"
          ],
          "type": "boolean",
          "choices": null,
@@ -22389,7 +26286,7 @@
          "is_flag": true,
          "default": null,
          "hidden": false,
-         "help": null,
+         "help": "create: mark the entry billable (default: non-billable)",
          "metavar": null,
          "envvar": null
         },
@@ -22469,6 +26366,170 @@
          "default": false,
          "hidden": false,
          "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv problems time update",
+       "help": "Review, then change the duration and/or note of one exact self-owned entry; verified by re-reading the entry list.",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "entry",
+         "kind": "argument",
+         "opts": [
+          "entry"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ENTRY_ID",
+         "envvar": null,
+         "min": 1,
+         "max": null
+        },
+        {
+         "name": "spent",
+         "kind": "option",
+         "opts": [
+          "--spent"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "manual duration HH:MM",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "note",
+         "kind": "option",
+         "opts": [
+          "--note"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "output is always JSON",
          "metavar": null,
          "envvar": null
         },
@@ -22700,7 +26761,7 @@
        "is_flag": false,
        "default": "changes",
        "hidden": false,
-       "help": "form: changes",
+       "help": "form: changes, tickets, problems, or sr (with --item)",
        "metavar": null,
        "envvar": null
       },
@@ -22818,6 +26879,25 @@
        "help": "table|json",
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "item",
+       "kind": "option",
+       "opts": [
+        "--item"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "sr: the catalog item (display id or exact name)",
+       "metavar": null,
+       "envvar": null
       }
      ],
      "commands": []
@@ -22844,7 +26924,7 @@
        "is_flag": false,
        "default": "changes",
        "hidden": false,
-       "help": "form: changes",
+       "help": "form: changes, tickets, problems, or sr (with --item)",
        "metavar": null,
        "envvar": null
       },
@@ -22886,6 +26966,25 @@
        "help": "table|json",
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "item",
+       "kind": "option",
+       "opts": [
+        "--item"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "sr: the catalog item (display id or exact name)",
+       "metavar": null,
+       "envvar": null
       }
      ],
      "commands": []
@@ -22912,7 +27011,7 @@
        "is_flag": false,
        "default": "changes",
        "hidden": false,
-       "help": "form: changes",
+       "help": "form: changes, tickets, problems, or sr (with --item)",
        "metavar": null,
        "envvar": null
       },
@@ -22932,6 +27031,25 @@
        "default": "new",
        "hidden": false,
        "help": "new|edit (which form's rules)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "item",
+       "kind": "option",
+       "opts": [
+        "--item"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "sr: the catalog item (display id or exact name)",
        "metavar": null,
        "envvar": null
       }
@@ -23758,7 +27876,7 @@
       },
       {
        "path": "fsv sr assets candidates",
-       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "help": "Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.",
        "epilog": null,
        "hidden": false,
        "group": false,
@@ -23781,6 +27899,65 @@
          "help": null,
          "metavar": null,
          "envvar": null
+        },
+        {
+         "name": "query",
+         "kind": "option",
+         "opts": [
+          "--search"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "",
+         "hidden": false,
+         "help": "integrated search text",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "kind",
+         "kind": "option",
+         "opts": [
+          "--kind"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "devices",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "page",
+         "kind": "option",
+         "opts": [
+          "--page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": 1,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "json_out",

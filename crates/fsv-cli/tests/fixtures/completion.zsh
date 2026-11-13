@@ -30,6 +30,14 @@ _fsv() {
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "changes time write")
             compadd -- --verbose -v --entry --spent --executed-at --note --billable --non-billable --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+        "changes time update")
+            compadd -- --verbose -v --spent --note --dry-run --yes --json --expect-plan; return 0 ;;
+        "changes windows list")
+            compadd -- --verbose -v --json; return 0 ;;
+        "changes windows create")
+            compadd -- --verbose -v --name --start --end --timezone --criteria --description --no-alert-suppression --allow-overlap --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "changes windows delete")
+            compadd -- --verbose -v --dry-run --yes -y --expect-plan --json; return 0 ;;
         "changes associations legacy")
             case "$prev" in
                 --output)
@@ -77,7 +85,7 @@ _fsv() {
         "changes assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
         "changes assets candidates")
-            compadd -- --verbose -v --json; return 0 ;;
+            compadd -- --verbose -v --search --kind --page --json; return 0 ;;
         "changes assets legacy")
             compadd -- --verbose -v --search --json; return 0 ;;
         "changes assets add")
@@ -90,6 +98,12 @@ _fsv() {
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "changes columns set")
             compadd -- --verbose -v --column --freeze --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "changes private-views list")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "changes private-views show")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "changes private-views write")
+            compadd -- --verbose -v --name --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "changes watchers list")
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "changes watchers set")
@@ -99,7 +113,7 @@ _fsv() {
         "tickets assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
         "tickets assets candidates")
-            compadd -- --verbose -v --json; return 0 ;;
+            compadd -- --verbose -v --search --kind --page --json; return 0 ;;
         "tickets assets add")
             compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "tickets assets remove")
@@ -122,6 +136,8 @@ _fsv() {
             compadd -- --verbose -v --to --dry-run --yes --expect-plan --json; return 0 ;;
         "tickets tasks delete")
             compadd -- --verbose -v --dry-run --yes --expect-plan --json; return 0 ;;
+        "tickets private-views list")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
         "tickets private-views show")
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "tickets private-views write")
@@ -144,12 +160,38 @@ _fsv() {
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "tickets time write")
             compadd -- --verbose -v --entry --spent --executed-at --note --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+        "tickets problems list")
+            compadd -- --verbose -v --kind --json; return 0 ;;
+        "tickets problems candidates")
+            compadd -- --verbose -v --search --kind --json; return 0 ;;
+        "tickets problems link")
+            compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets problems unlink")
+            compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets changes list")
+            compadd -- --verbose -v --kind --json; return 0 ;;
+        "tickets changes candidates")
+            compadd -- --verbose -v --search --kind --json; return 0 ;;
+        "tickets changes link")
+            compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets changes unlink")
+            compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets children list")
+            compadd -- --verbose -v --kind --json; return 0 ;;
+        "tickets children candidates")
+            compadd -- --verbose -v --search --kind --json; return 0 ;;
+        "tickets children link")
+            compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets children unlink")
+            compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets trash list")
+            compadd -- --verbose -v --page --per-page --json; return 0 ;;
         "problems assets ls")
             compadd -- --verbose -v --kind --json; return 0 ;;
         "problems assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
         "problems assets candidates")
-            compadd -- --verbose -v --json; return 0 ;;
+            compadd -- --verbose -v --search --kind --page --json; return 0 ;;
         "problems assets add")
             compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "problems assets remove")
@@ -162,12 +204,14 @@ _fsv() {
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "problems time write")
             compadd -- --verbose -v --entry --spent --executed-at --note --billable --non-billable --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+        "problems time update")
+            compadd -- --verbose -v --spent --note --dry-run --yes --json --expect-plan; return 0 ;;
         "sr assets ls")
             compadd -- --verbose -v --kind --json; return 0 ;;
         "sr assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
         "sr assets candidates")
-            compadd -- --verbose -v --json; return 0 ;;
+            compadd -- --verbose -v --search --kind --page --json; return 0 ;;
         "sr assets add")
             compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "sr assets remove")
@@ -200,8 +244,16 @@ _fsv() {
             compadd -- --verbose -v; return 0 ;;
         "assets search")
             compadd -- --verbose -v --kind --page --json; return 0 ;;
+        "solutions delete")
+            compadd -- --verbose -v --dry-run --yes -y --expect-plan --confirm-destructive --json; return 0 ;;
+        "solutions delete-forever")
+            compadd -- --verbose -v --max-records --dry-run --yes -y --expect-plan --confirm-destructive --json; return 0 ;;
         "solutions create")
             compadd -- --verbose -v --title --body --type --category --folder --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
+        "templates list")
+            compadd -- --verbose -v --json; return 0 ;;
+        "templates show")
+            compadd -- --verbose -v --json; return 0 ;;
         "completion show")
             compadd -- --verbose -v; return 0 ;;
         "completion install")
@@ -495,13 +547,17 @@ _fsv() {
         "changes relationships")
             compadd -- list write --verbose -v; return 0 ;;
         "changes time")
-            compadd -- list write --verbose -v; return 0 ;;
+            compadd -- list write update --verbose -v; return 0 ;;
+        "changes windows")
+            compadd -- list create delete --verbose -v; return 0 ;;
         "changes associations")
             compadd -- legacy ls search add remove pick --verbose -v; return 0 ;;
         "changes assets")
             compadd -- ls list candidates legacy add remove search --verbose -v; return 0 ;;
         "changes columns")
             compadd -- list set --verbose -v; return 0 ;;
+        "changes private-views")
+            compadd -- list show write --verbose -v; return 0 ;;
         "changes watchers")
             compadd -- list set --verbose -v; return 0 ;;
         "tickets ls")
@@ -579,7 +635,15 @@ _fsv() {
         "tickets bulk-priority")
             compadd -- --verbose -v --priority --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "tickets bulk")
-            compadd -- --verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --set --json; return 0 ;;
+            compadd -- --verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --set --scenario --json; return 0 ;;
+        "tickets restore")
+            compadd -- --verbose -v --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets delete-forever")
+            compadd -- --verbose -v --max-records --confirm-destructive --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets spam")
+            compadd -- --verbose -v --confirm-destructive --dry-run --yes -y --expect-plan --json; return 0 ;;
+        "tickets unspam")
+            compadd -- --verbose -v --confirm-destructive --dry-run --yes -y --expect-plan --json; return 0 ;;
         "tickets fields")
             case "$prev" in
                 --output)
@@ -620,9 +684,9 @@ _fsv() {
         "tickets url")
             compadd -- --verbose -v; return 0 ;;
         "tickets add-note")
-            compadd -- --verbose -v --body -b --public --confirm-public --html --notify-email --attach --max-bytes --set-status --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
+            compadd -- --verbose -v --body -b --public --confirm-public --html --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --ack --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
         "tickets create")
-            compadd -- --verbose -v --device --from --set --preset --edit -e --requester --cc --attach --max-bytes --dry-run --output -o --json --yes -y --expect-plan --allow-duplicate --ack --no-input; return 0 ;;
+            compadd -- --verbose -v --device --from --set --preset --template --edit -e --requester --cc --attach --max-bytes --dry-run --output -o --json --yes -y --expect-plan --allow-duplicate --ack --no-input; return 0 ;;
         "tickets approvals")
             case "$prev" in
                 --output)
@@ -681,7 +745,7 @@ _fsv() {
             esac
             compadd -- --verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N; return 0 ;;
         "tickets reply")
-            compadd -- --verbose -v --cc --bcc --attach --max-bytes --json --sender --set-status --expect-plan --dry-run --yes -y --no-input; return 0 ;;
+            compadd -- --verbose -v --cc --bcc --attach --inline-image --max-bytes --json --sender --set-status --ack --expect-plan --dry-run --yes -y --no-input; return 0 ;;
         "tickets forward")
             compadd -- --verbose -v --conversation --to --sender --output -o --json --dry-run --yes --expect-plan; return 0 ;;
         "tickets assets")
@@ -693,13 +757,21 @@ _fsv() {
         "tickets tasks")
             compadd -- list add update status delete --verbose -v; return 0 ;;
         "tickets private-views")
-            compadd -- show write --verbose -v; return 0 ;;
+            compadd -- list show write --verbose -v; return 0 ;;
         "tickets canned")
             compadd -- folders list show reply --verbose -v; return 0 ;;
         "tickets scenarios")
             compadd -- list show apply --verbose -v; return 0 ;;
         "tickets time")
             compadd -- list write --verbose -v; return 0 ;;
+        "tickets problems")
+            compadd -- list candidates link unlink --verbose -v; return 0 ;;
+        "tickets changes")
+            compadd -- list candidates link unlink --verbose -v; return 0 ;;
+        "tickets children")
+            compadd -- list candidates link unlink --verbose -v; return 0 ;;
+        "tickets trash")
+            compadd -- list --verbose -v; return 0 ;;
         "problems ls")
             case "$prev" in
                 --order-type)
@@ -756,6 +828,12 @@ _fsv() {
             compadd -- --verbose -v --view --field --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "problems task-write")
             compadd -- --verbose -v --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --dry-run --yes --expect-plan --json; return 0 ;;
+        "problems delete")
+            compadd -- --verbose -v --dry-run --yes -y --expect-plan --confirm-destructive --json; return 0 ;;
+        "problems restore")
+            compadd -- --verbose -v --dry-run --yes -y --expect-plan --confirm-destructive --json; return 0 ;;
+        "problems delete-forever")
+            compadd -- --verbose -v --max-records --dry-run --yes -y --expect-plan --confirm-destructive --json; return 0 ;;
         "problems link-incident")
             compadd -- --verbose -v --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "problems unlink-incident")
@@ -868,15 +946,15 @@ _fsv() {
         "problems columns")
             compadd -- list set --verbose -v; return 0 ;;
         "problems time")
-            compadd -- list write --verbose -v; return 0 ;;
+            compadd -- list write update --verbose -v; return 0 ;;
         "attachments delete")
             compadd -- --verbose -v --owner --child --section --dry-run --yes --expect-plan --json; return 0 ;;
         "form explain")
-            compadd -- --verbose -v --set --from --preset --id --all --output -o; return 0 ;;
+            compadd -- --verbose -v --set --from --preset --id --all --output -o --item; return 0 ;;
         "form fields")
-            compadd -- --verbose -v --choices --output -o; return 0 ;;
+            compadd -- --verbose -v --choices --output -o --item; return 0 ;;
         "form dump")
-            compadd -- --verbose -v --mode; return 0 ;;
+            compadd -- --verbose -v --mode --item; return 0 ;;
         "form diff")
             compadd -- --verbose -v --against --output -o; return 0 ;;
         "sr catalog")
@@ -914,7 +992,9 @@ _fsv() {
         "assets")
             compadd -- search --verbose -v; return 0 ;;
         "solutions")
-            compadd -- create --verbose -v; return 0 ;;
+            compadd -- delete delete-forever create --verbose -v; return 0 ;;
+        "templates")
+            compadd -- list show --verbose -v; return 0 ;;
         "completion")
             compadd -- show install refresh doctor --verbose -v; return 0 ;;
         "config")
@@ -924,11 +1004,11 @@ _fsv() {
         "journal")
             compadd -- ls tail path --verbose -v; return 0 ;;
         "changes")
-            compadd -- ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time associations assets columns watchers --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time windows associations assets columns private-views watchers --verbose -v; return 0 ;;
         "tickets")
-            compadd -- ls get activity tasks-legacy export note-edit note-delete assign pick-up merge resolve close reopen status bulk-priority bulk fields lookup views search url add-note create approvals associations update download conversations reply forward assets columns watchers tasks private-views canned scenarios time --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks-legacy export note-edit note-delete assign pick-up merge resolve close reopen status bulk-priority bulk restore delete-forever spam unspam fields lookup views search url add-note create approvals associations update download conversations reply forward assets columns watchers tasks private-views canned scenarios time problems changes children trash --verbose -v; return 0 ;;
         "problems")
-            compadd -- ls get activity tasks export task-write link-incident unlink-incident note status create write-child link-solution unlink-solution mark-known-error planning-text fields lookup views search url update download notes add-note assets columns time --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks export task-write delete restore delete-forever link-incident unlink-incident note status create write-child link-solution unlink-solution mark-known-error planning-text fields lookup views search url update download notes add-note assets columns time --verbose -v; return 0 ;;
         "attachments")
             compadd -- delete --verbose -v; return 0 ;;
         "form")
@@ -936,7 +1016,7 @@ _fsv() {
         "sr")
             compadd -- catalog fields create get assets approvals items --verbose -v; return 0 ;;
         "")
-            compadd -- help search setup tui auth assets solutions completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V; return 0 ;;
+            compadd -- help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V; return 0 ;;
     esac
 }
 

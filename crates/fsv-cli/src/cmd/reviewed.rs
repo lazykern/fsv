@@ -770,7 +770,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             note_secondary: a.note_secondary.as_deref(),
         };
         let mut answers = Map::new();
-        for expression in &a.set_ {
+        for expression in &a.sets {
             let (key, value) = match expression.split_once('=') {
                 Some((key, value)) => (key, value),
                 None => {

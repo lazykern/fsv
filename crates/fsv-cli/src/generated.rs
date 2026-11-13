@@ -1,6 +1,6 @@
 // Clap command tree. Hand-maintained; `tests/tree.rs` checks every command,
 // option, positional and help string against tests/fixtures/cli_tree.json.
-// Python commit: 406ca71e2392f23d5b9fd680572d50aabb0835a2
+// Python commit: 72b4716d470a853a4080698b01a1254db27951dc
 #![allow(clippy::all)]
 use crate::types::{OutputFormat, ReviewOutput, SearchSort, SortOrder};
 use clap::{Arg, ArgAction, Args, Command};
@@ -151,6 +151,63 @@ pub struct AssetsSearchArgs {
     pub json_out: bool,
 }
 
+// fsv solutions delete
+#[derive(Args, Debug, Clone)]
+pub struct SolutionsDeleteArgs {
+    #[arg(value_name = "ARTICLE_ID")]
+    pub ident: String,
+    #[arg(help = "review the exact target; nothing is sent", long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(
+        help = "full hash from the review",
+        long = "expect-plan",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub expect_plan: Option<String>,
+    #[arg(
+        help = "required for permanent or untracked deletes",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
+    #[arg(help = "JSON output (always JSON)", long = "json")]
+    pub json_out: bool,
+}
+
+// fsv solutions delete-forever
+#[derive(Args, Debug, Clone)]
+pub struct SolutionsDeleteForeverArgs {
+    #[arg(value_name = "ARTICLE_ID...", num_args = 1.., required = true)]
+    pub idents: Vec<String>,
+    #[arg(
+        help = "bound, 1 to 50; required for more than one ID",
+        long = "max-records",
+        allow_hyphen_values = true,
+        value_name = "INTEGER"
+    )]
+    pub max_records: Option<i64>,
+    #[arg(help = "review the exact targets; nothing is sent", long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(
+        help = "full hash from the review",
+        long = "expect-plan",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub expect_plan: Option<String>,
+    #[arg(
+        help = "required: the deletes are permanent",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
+    #[arg(help = "JSON output (always JSON)", long = "json")]
+    pub json_out: bool,
+}
+
 // fsv solutions create
 #[derive(Args, Debug, Clone)]
 pub struct SolutionsCreateArgs {
@@ -192,6 +249,22 @@ pub struct SolutionsCreateArgs {
     pub expected: Option<String>,
     #[arg(long = "read-only")]
     pub read_only: bool,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv templates list
+#[derive(Args, Debug, Clone)]
+pub struct TemplatesListArgs {
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv templates show
+#[derive(Args, Debug, Clone)]
+pub struct TemplatesShowArgs {
+    #[arg(value_name = "NAME_OR_ID")]
+    pub name: String,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -1079,9 +1152,14 @@ pub struct ResExportArgs {
     pub field: Vec<String>,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
-    #[arg(long = "yes")]
+    #[arg(hide = true, long = "yes")]
     pub yes: bool,
-    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    #[arg(
+        hide = true,
+        long = "expect-plan",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
     pub expect_plan: Option<String>,
     #[arg(
         long = "output",
@@ -1483,7 +1561,7 @@ pub struct ChangesDownloadArgs {
     )]
     pub all_: bool,
     #[arg(
-        help = "output directory (default: ./CHN-<id>)",
+        help = "output directory (default: ./downloads/CHN-<id>)",
         long = "dir",
         visible_alias = "out",
         allow_hyphen_values = true,
@@ -1755,7 +1833,10 @@ pub struct ResAddNoteArgs {
     pub id_: String,
     #[arg(help = "HTML or plain text", value_name = "BODY")]
     pub body: String,
-    #[arg(long = "public")]
+    #[arg(
+        help = "changes only: public note (problem notes have no visibility key)",
+        long = "public"
+    )]
     pub public: bool,
     #[arg(help = "print the note without adding it", long = "dry-run")]
     pub dry_run: bool,
@@ -1856,9 +1937,13 @@ pub struct ChangesTimeWriteArgs {
     pub executed_at: Option<String>,
     #[arg(long = "note", allow_hyphen_values = true, value_name = "TEXT")]
     pub note: Option<String>,
-    #[arg(long = "billable", overrides_with = "non_billable")]
+    #[arg(
+        help = "create: mark the entry billable (default: non-billable)",
+        long = "billable",
+        overrides_with = "non_billable"
+    )]
     pub billable: bool,
-    #[arg(long = "non-billable", overrides_with = "billable")]
+    #[arg(long = "non-billable", alias = "no-billable", overrides_with = "billable")]
     pub non_billable: bool,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -1877,6 +1962,112 @@ pub struct ChangesTimeWriteArgs {
     pub json_out: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+}
+
+// fsv changes time update
+#[derive(Args, Debug, Clone)]
+pub struct ChangesTimeUpdateArgs {
+    #[arg(value_name = "ID")]
+    pub id_: String,
+    #[arg(value_name = "ENTRY_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    pub entry: i64,
+    #[arg(
+        help = "manual duration HH:MM",
+        long = "spent",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub spent: Option<String>,
+    #[arg(long = "note", allow_hyphen_values = true, value_name = "TEXT")]
+    pub note: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(help = "output is always JSON", long = "json")]
+    pub json_out: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+}
+
+// fsv changes windows list
+#[derive(Args, Debug, Clone)]
+pub struct ChangesWindowsListArgs {
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv changes windows create
+#[derive(Args, Debug, Clone)]
+pub struct ChangesWindowsCreateArgs {
+    #[arg(long = "name", allow_hyphen_values = true, value_name = "TEXT")]
+    pub name: String,
+    #[arg(
+        help = "YYYY-MM-DD HH:MM (in --timezone)",
+        long = "start",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub start: String,
+    #[arg(
+        help = "YYYY-MM-DD HH:MM (in --timezone)",
+        long = "end",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub end: String,
+    #[arg(
+        help = "zone --start/--end are in (IANA name; default FSV_TZ, else the tenant zone: the agent profile time zone). Times are converted to the tenant zone before checking and sending",
+        long = "timezone",
+        allow_hyphen_values = true,
+        value_name = "ZONE"
+    )]
+    pub timezone: Option<String>,
+    #[arg(
+        help = "change_type=<label or id> (repeatable; at least one)",
+        long = "criteria",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        required = true
+    )]
+    pub criteria: Vec<String>,
+    #[arg(
+        long = "description",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = ""
+    )]
+    pub description: String,
+    #[arg(long = "no-alert-suppression")]
+    pub no_alert_suppression: bool,
+    #[arg(
+        help = "create even if windows overlap or the overlap answer is not understood (part of the reviewed plan hash)",
+        long = "allow-overlap"
+    )]
+    pub allow_overlap: bool,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv changes windows delete
+#[derive(Args, Debug, Clone)]
+pub struct ChangesWindowsDeleteArgs {
+    #[arg(value_name = "WINDOW_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    pub ident: i64,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
 }
 
 // fsv changes associations legacy
@@ -2079,6 +2270,28 @@ pub struct ChangesAssetsListArgs {
 pub struct ChangesAssetsCandidatesArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
+    #[arg(
+        help = "integrated search text",
+        long = "search",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = ""
+    )]
+    pub query: String,
+    #[arg(
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = "devices"
+    )]
+    pub kind: String,
+    #[arg(
+        long = "page",
+        value_name = "INTEGER RANGE",
+        default_value_t = 1,
+        value_parser = clap::value_parser!(i64).range(1..)
+    )]
+    pub page: i64,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -2212,6 +2425,68 @@ pub struct ColumnsSetArgs {
         value_name = "TEXT"
     )]
     pub freeze: Vec<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv changes private-views list
+#[derive(Args, Debug, Clone)]
+pub struct ChangesPrivateViewsListArgs {
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv changes private-views show
+#[derive(Args, Debug, Clone)]
+pub struct ChangesPrivateViewsShowArgs {
+    #[arg(value_name = "ID_", value_parser = clap::value_parser!(i64).range(1..))]
+    pub id_: i64,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv changes private-views write
+#[derive(Args, Debug, Clone)]
+pub struct ChangesPrivateViewsWriteArgs {
+    #[arg(value_name = "SOURCE_VIEW", value_parser = clap::value_parser!(i64).range(1..))]
+    pub id_: i64,
+    #[arg(
+        help = "create (clone source); rename/delete are not captured for change views",
+        value_name = "ACTION"
+    )]
+    pub action: String,
+    #[arg(long = "name", allow_hyphen_values = true, value_name = "TEXT")]
+    pub name: Option<String>,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
     #[arg(long = "yes")]
@@ -2586,11 +2861,91 @@ pub struct TicketsBulkArgs {
         allow_hyphen_values = true,
         value_name = "TEXT"
     )]
-    pub set_: Vec<String>,
+    pub sets: Vec<String>,
+    #[arg(
+        help = "scenario only: exact scenario name or ID (never by position)",
+        long = "scenario",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub scenario: Option<String>,
     #[arg(
         help = "accepted for symmetry; stdout is always JSON only (selection list goes to stderr)",
         long = "json"
     )]
+    pub json_out: bool,
+}
+
+// fsv tickets restore
+#[derive(Args, Debug, Clone)]
+pub struct TicketsRestoreArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets delete-forever
+#[derive(Args, Debug, Clone)]
+pub struct TicketsDeleteForeverArgs {
+    #[arg(value_name = "TICKET...", num_args = 1.., required = true)]
+    pub tickets: Vec<String>,
+    #[arg(
+        help = "required bound, 1 to 50",
+        long = "max-records",
+        allow_hyphen_values = true,
+        value_name = "INTEGER"
+    )]
+    pub max_records: Option<i64>,
+    #[arg(long = "confirm-destructive")]
+    pub confirm_destructive: bool,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets spam
+#[derive(Args, Debug, Clone)]
+pub struct TicketsSpamArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(help = "required for spam", long = "confirm-destructive")]
+    pub confirm_destructive: bool,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets unspam
+#[derive(Args, Debug, Clone)]
+pub struct TicketsUnspamArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(help = "required for spam", long = "confirm-destructive")]
+    pub confirm_destructive: bool,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
     pub json_out: bool,
 }
 
@@ -2624,12 +2979,26 @@ pub struct TicketsAddNoteArgs {
     )]
     pub notify: Vec<String>,
     #[arg(
+        help = "agent exact name or email from the agent lookup; sent as 'Name <email>' in notify_emails (repeatable)",
+        long = "notify-agent",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub notify_agent: Vec<String>,
+    #[arg(
         help = "local file (repeatable; reviewed two-step upload)",
         long = "attach",
         allow_hyphen_values = true,
         value_name = "TEXT"
     )]
     pub attach: Vec<String>,
+    #[arg(
+        help = "local JPEG/PNG/GIF/WebP shown inside the note body (repeatable; reviewed upload)",
+        long = "inline-image",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub inline_image: Vec<String>,
     #[arg(
         help = "explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
         long = "max-bytes",
@@ -2644,6 +3013,11 @@ pub struct TicketsAddNoteArgs {
         value_name = "TEXT"
     )]
     pub set_status: Option<String>,
+    #[arg(
+        help = "with --set-status Resolved/Closed: acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
     #[arg(help = "review only; no POST or journal writes", long = "dry-run")]
     pub dry_run: bool,
     #[arg(help = "refuse sends", long = "read-only")]
@@ -2698,6 +3072,13 @@ pub struct TicketsCreateArgs {
         value_name = "TEXT"
     )]
     pub preset: Option<String>,
+    #[arg(
+        help = "ticket template name or ID: prefills the form; --set/--from still win",
+        long = "template",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub template: Option<String>,
     #[arg(help = "edit YAML in a terminal", long = "edit", short = 'e')]
     pub edit: bool,
     #[arg(
@@ -2877,7 +3258,7 @@ pub struct ResUpdateArgs {
     )]
     pub ack: bool,
     #[arg(
-        help = "full reviewed hash for ticket property update",
+        help = "full reviewed hash (ticket property update, problem update)",
         long = "expect-plan",
         allow_hyphen_values = true,
         value_name = "TEXT"
@@ -2921,7 +3302,7 @@ pub struct ResDownloadArgs {
     #[arg(help = "download all attachments from all sources", long = "all")]
     pub all_: bool,
     #[arg(
-        help = "output directory",
+        help = "output directory (default: ./downloads/<ID>)",
         long = "dir",
         visible_alias = "out",
         allow_hyphen_values = true,
@@ -3007,6 +3388,13 @@ pub struct TicketsReplyArgs {
     )]
     pub attach: Vec<String>,
     #[arg(
+        help = "local JPEG/PNG/GIF/WebP shown inside the reply body (repeatable; requires --sender; reviewed upload)",
+        long = "inline-image",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub inline_image: Vec<String>,
+    #[arg(
         help = "explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
         long = "max-bytes",
         value_name = "INTEGER RANGE",
@@ -3029,6 +3417,11 @@ pub struct TicketsReplyArgs {
         value_name = "TEXT"
     )]
     pub set_status: Option<String>,
+    #[arg(
+        help = "with --set-status Resolved/Closed: acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
     #[arg(
         help = "full hash from prior reply review",
         long = "expect-plan",
@@ -3129,6 +3522,28 @@ pub struct TicketsAssetsListArgs {
 pub struct TicketsAssetsCandidatesArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
+    #[arg(
+        help = "integrated search text",
+        long = "search",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = ""
+    )]
+    pub query: String,
+    #[arg(
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = "devices"
+    )]
+    pub kind: String,
+    #[arg(
+        long = "page",
+        value_name = "INTEGER RANGE",
+        default_value_t = 1,
+        value_parser = clap::value_parser!(i64).range(1..)
+    )]
+    pub page: i64,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -3293,6 +3708,21 @@ pub struct TicketsTasksDeleteArgs {
     pub json_out: bool,
 }
 
+// fsv tickets private-views list
+#[derive(Args, Debug, Clone)]
+pub struct TicketsPrivateViewsListArgs {
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
 // fsv tickets private-views show, fsv tickets canned show, fsv tickets scenarios show
 #[derive(Args, Debug, Clone)]
 pub struct PositiveIdArgs {
@@ -3316,7 +3746,7 @@ pub struct TicketsPrivateViewsWriteArgs {
     #[arg(value_name = "SOURCE_VIEW", value_parser = clap::value_parser!(i64).range(1..))]
     pub id_: i64,
     #[arg(
-        help = "create (clone source) | edit (rename) | delete",
+        help = "create (clone source) | rename | delete",
         value_name = "ACTION"
     )]
     pub action: String,
@@ -3482,6 +3912,273 @@ pub struct TicketsTimeWriteArgs {
     pub expect_plan: Option<String>,
 }
 
+// fsv tickets problems list
+#[derive(Args, Debug, Clone)]
+pub struct TicketsProblemsListArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets problems candidates
+#[derive(Args, Debug, Clone)]
+pub struct TicketsProblemsCandidatesArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(long = "search", allow_hyphen_values = true, value_name = "TEXT")]
+    pub search: Option<String>,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets problems link
+#[derive(Args, Debug, Clone)]
+pub struct TicketsProblemsLinkArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(value_name = "PROBLEM")]
+    pub item: String,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets problems unlink
+#[derive(Args, Debug, Clone)]
+pub struct TicketsProblemsUnlinkArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(value_name = "PROBLEM")]
+    pub item: String,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets changes list
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChangesListArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(
+        help = "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets changes candidates
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChangesCandidatesArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(long = "search", allow_hyphen_values = true, value_name = "TEXT")]
+    pub search: Option<String>,
+    #[arg(
+        help = "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets changes link
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChangesLinkArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(value_name = "CHANGE")]
+    pub item: String,
+    #[arg(
+        help = "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets changes unlink
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChangesUnlinkArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(value_name = "CHANGE")]
+    pub item: String,
+    #[arg(
+        help = "initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets children list
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChildrenListArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets children candidates
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChildrenCandidatesArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(long = "search", allow_hyphen_values = true, value_name = "TEXT")]
+    pub search: Option<String>,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets children link
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChildrenLinkArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(value_name = "CHILD_TICKET")]
+    pub item: String,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets children unlink
+#[derive(Args, Debug, Clone)]
+pub struct TicketsChildrenUnlinkArgs {
+    #[arg(value_name = "TICKET")]
+    pub ticket: String,
+    #[arg(value_name = "CHILD_TICKET")]
+    pub item: String,
+    #[arg(
+        help = "changes only",
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub ctype: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets trash list
+#[derive(Args, Debug, Clone)]
+pub struct TicketsTrashListArgs {
+    #[arg(
+        long = "page",
+        value_name = "INTEGER RANGE",
+        default_value_t = 1,
+        value_parser = clap::value_parser!(i64).range(1..)
+    )]
+    pub page: i64,
+    #[arg(
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        default_value_t = 30,
+        value_parser = clap::value_parser!(i64).range(1..=100)
+    )]
+    pub per_page: i64,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
 // fsv problems task-write
 #[derive(Args, Debug, Clone)]
 pub struct ProblemsTaskWriteArgs {
@@ -3530,6 +4227,88 @@ pub struct ProblemsTaskWriteArgs {
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
     #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv problems delete
+#[derive(Args, Debug, Clone)]
+pub struct ProblemsDeleteArgs {
+    #[arg(value_name = "PROBLEM_ID")]
+    pub ident: String,
+    #[arg(help = "review the exact target; nothing is sent", long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(
+        help = "full hash from the review",
+        long = "expect-plan",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub expect_plan: Option<String>,
+    #[arg(
+        help = "required for permanent or untracked deletes",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
+    #[arg(help = "JSON output (always JSON)", long = "json")]
+    pub json_out: bool,
+}
+
+// fsv problems restore
+#[derive(Args, Debug, Clone)]
+pub struct ProblemsRestoreArgs {
+    #[arg(value_name = "PROBLEM_ID")]
+    pub ident: String,
+    #[arg(help = "review the exact target; nothing is sent", long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(
+        help = "full hash from the review",
+        long = "expect-plan",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub expect_plan: Option<String>,
+    #[arg(
+        help = "required for permanent or untracked deletes",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
+    #[arg(help = "JSON output (always JSON)", long = "json")]
+    pub json_out: bool,
+}
+
+// fsv problems delete-forever
+#[derive(Args, Debug, Clone)]
+pub struct ProblemsDeleteForeverArgs {
+    #[arg(value_name = "PROBLEM_ID...", num_args = 1.., required = true)]
+    pub idents: Vec<String>,
+    #[arg(
+        help = "bound, 1 to 50; required for more than one ID",
+        long = "max-records",
+        allow_hyphen_values = true,
+        value_name = "INTEGER"
+    )]
+    pub max_records: Option<i64>,
+    #[arg(help = "review the exact targets; nothing is sent", long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes", short = 'y')]
+    pub yes: bool,
+    #[arg(
+        help = "full hash from the review",
+        long = "expect-plan",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub expect_plan: Option<String>,
+    #[arg(
+        help = "required: the deletes are permanent",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
+    #[arg(help = "JSON output (always JSON)", long = "json")]
     pub json_out: bool,
 }
 
@@ -3794,6 +4573,28 @@ pub struct ProblemsAssetsListArgs {
 pub struct ProblemsAssetsCandidatesArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
+    #[arg(
+        help = "integrated search text",
+        long = "search",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = ""
+    )]
+    pub query: String,
+    #[arg(
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = "devices"
+    )]
+    pub kind: String,
+    #[arg(
+        long = "page",
+        value_name = "INTEGER RANGE",
+        default_value_t = 1,
+        value_parser = clap::value_parser!(i64).range(1..)
+    )]
+    pub page: i64,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -3908,9 +4709,13 @@ pub struct ProblemsTimeWriteArgs {
     pub executed_at: Option<String>,
     #[arg(long = "note", allow_hyphen_values = true, value_name = "TEXT")]
     pub note: Option<String>,
-    #[arg(long = "billable", overrides_with = "non_billable")]
+    #[arg(
+        help = "create: mark the entry billable (default: non-billable)",
+        long = "billable",
+        overrides_with = "non_billable"
+    )]
     pub billable: bool,
-    #[arg(long = "non-billable", overrides_with = "billable")]
+    #[arg(long = "non-billable", alias = "no-billable", overrides_with = "billable")]
     pub non_billable: bool,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -3926,6 +4731,32 @@ pub struct ProblemsTimeWriteArgs {
     )]
     pub output: ReviewOutput,
     #[arg(help = "alias for --output json", long = "json")]
+    pub json_out: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+}
+
+// fsv problems time update
+#[derive(Args, Debug, Clone)]
+pub struct ProblemsTimeUpdateArgs {
+    #[arg(value_name = "ID")]
+    pub id_: String,
+    #[arg(value_name = "ENTRY_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    pub entry: i64,
+    #[arg(
+        help = "manual duration HH:MM",
+        long = "spent",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub spent: Option<String>,
+    #[arg(long = "note", allow_hyphen_values = true, value_name = "TEXT")]
+    pub note: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(help = "output is always JSON", long = "json")]
     pub json_out: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
@@ -3971,7 +4802,7 @@ pub struct AttachmentsDeleteArgs {
 #[derive(Args, Debug, Clone)]
 pub struct FormExplainArgs {
     #[arg(
-        help = "form: changes",
+        help = "form: changes, tickets, problems, or sr (with --item)",
         value_name = "MODULE",
         default_value = "changes"
     )]
@@ -4015,13 +4846,20 @@ pub struct FormExplainArgs {
         default_value = "table"
     )]
     pub output: String,
+    #[arg(
+        help = "sr: the catalog item (display id or exact name)",
+        long = "item",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub item: Option<String>,
 }
 
 // fsv form fields
 #[derive(Args, Debug, Clone)]
 pub struct FormFieldsArgs {
     #[arg(
-        help = "form: changes",
+        help = "form: changes, tickets, problems, or sr (with --item)",
         value_name = "MODULE",
         default_value = "changes"
     )]
@@ -4042,13 +4880,20 @@ pub struct FormFieldsArgs {
         default_value = "table"
     )]
     pub output: String,
+    #[arg(
+        help = "sr: the catalog item (display id or exact name)",
+        long = "item",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub item: Option<String>,
 }
 
 // fsv form dump
 #[derive(Args, Debug, Clone)]
 pub struct FormDumpArgs {
     #[arg(
-        help = "form: changes",
+        help = "form: changes, tickets, problems, or sr (with --item)",
         value_name = "MODULE",
         default_value = "changes"
     )]
@@ -4061,6 +4906,13 @@ pub struct FormDumpArgs {
         default_value = "new"
     )]
     pub mode: String,
+    #[arg(
+        help = "sr: the catalog item (display id or exact name)",
+        long = "item",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub item: Option<String>,
 }
 
 // fsv form diff
@@ -4299,6 +5151,28 @@ pub struct SrAssetsListArgs {
 pub struct SrAssetsCandidatesArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
+    #[arg(
+        help = "integrated search text",
+        long = "search",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = ""
+    )]
+    pub query: String,
+    #[arg(
+        long = "kind",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = "devices"
+    )]
+    pub kind: String,
+    #[arg(
+        long = "page",
+        value_name = "INTEGER RANGE",
+        default_value_t = 1,
+        value_parser = clap::value_parser!(i64).range(1..)
+    )]
+    pub page: i64,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -4635,19 +5509,6 @@ fn watchers_group() -> Command {
         ))
 }
 
-fn private_views_group() -> Command {
-    Command::new("private-views")
-        .about(
-            "Private ticket views: clone, rename or delete an exact self-owned non-default view.",
-        )
-        .subcommand(PositiveIdArgs::augment_args(
-            Command::new("show").arg(global_verbose()),
-        ))
-        .subcommand(TicketsPrivateViewsWriteArgs::augment_args(
-            Command::new("write").arg(global_verbose()),
-        ))
-}
-
 fn canned_group() -> Command {
     Command::new("canned")
         .about("Read canned responses and insert selected literal HTML into a reviewed reply.")
@@ -4698,7 +5559,13 @@ pub fn build() -> Command {
             .subcommand(AssetsSearchArgs::augment_args(Command::new("search").arg(global_verbose()))))
         .subcommand(Command::new("solutions")
             .about("Draft knowledge solutions.")
+            .subcommand(SolutionsDeleteArgs::augment_args(Command::new("delete") .about("Move one knowledge article to the trash (reviewed; --confirm-destructive).").arg(global_verbose())))
+            .subcommand(SolutionsDeleteForeverArgs::augment_args(Command::new("delete-forever") .about("PERMANENTLY delete explicit articles already in the trash (reviewed). More than one ID needs --max-records (1 to 50); always --confirm-destructive.").arg(global_verbose())))
             .subcommand(SolutionsCreateArgs::augment_args(Command::new("create") .about("Create a draft workaround/permanent article; does not link or publish it.").arg(global_verbose()))))
+        .subcommand(Command::new("templates")
+            .about("Ticket templates (read-only; apply with `fsv tickets create --template NAME`).")
+            .subcommand(TemplatesListArgs::augment_args(Command::new("list") .about("List ticket templates.").arg(global_verbose())))
+            .subcommand(TemplatesShowArgs::augment_args(Command::new("show") .about("Show one ticket template and the fields it prefills.").arg(global_verbose()))))
         .subcommand(Command::new("completion")
             .about("shell completion helpers")
             .after_help("Examples: fsv completion install | fsv cache refresh | fsv completion doctor")
@@ -4749,7 +5616,7 @@ pub fn build() -> Command {
             .subcommand(ChangesCiAddArgs::augment_args(Command::new("ci-add") .hide(true).arg(global_verbose())))
             .subcommand(ChangesCiRemoveArgs::augment_args(Command::new("ci-remove") .hide(true).arg(global_verbose())))
             .subcommand(ChangesCiListArgs::augment_args(Command::new("ci-list") .hide(true).arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review a native CSV/30-day export request; may email data, job/download contract is unknown.").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
             .subcommand(ChangesAssetPickerArgs::augment_args(Command::new("asset-picker") .about("Search/select a change asset candidate without associating it (read-only).").arg(global_verbose())))
             .subcommand(PlanningTextArgs::augment_args(Command::new("planning-text") .about("Review a native planning/analysis text section; no files.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable change fields.") .after_help("Examples: fsv changes fields | fsv changes fields --required | fsv changes fields --choices status | fsv changes fields --custom").arg(global_verbose())))
@@ -4768,9 +5635,15 @@ pub fn build() -> Command {
                 .subcommand(ChangesRelationshipsListArgs::augment_args(Command::new("list").arg(global_verbose())))
                 .subcommand(ChangesRelationshipsWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))
             .subcommand(Command::new("time")
-                .about("Reviewed self-owned manual time entries; problem updates remain blocked.")
+                .about("Reviewed self-owned manual time entries: list, write create|update|delete, update.")
                 .subcommand(ChangesTimeListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(ChangesTimeWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))
+                .subcommand(ChangesTimeWriteArgs::augment_args(Command::new("write").arg(global_verbose())))
+                .subcommand(ChangesTimeUpdateArgs::augment_args(Command::new("update") .about("Review, then change the duration and/or note of one exact self-owned entry; verified by re-reading the entry list.").arg(global_verbose()))))
+            .subcommand(Command::new("windows")
+                .about("Change maintenance windows (reviewed create/delete).")
+                .subcommand(ChangesWindowsListArgs::augment_args(Command::new("list") .about("List maintenance windows.").arg(global_verbose())))
+                .subcommand(ChangesWindowsCreateArgs::augment_args(Command::new("create") .about("Create a maintenance window (overlap check, then reviewed POST).").arg(global_verbose())))
+                .subcommand(ChangesWindowsDeleteArgs::augment_args(Command::new("delete") .about("Delete one maintenance window (reviewed).").arg(global_verbose()))))
             .subcommand(Command::new("associations")
                 .about("Manage change ticket associations.")
                 .after_help("Examples: fsv changes associations ls CHN-1234 | fsv changes associations search CHN-1234 SR-123 | fsv changes associations add CHN-1234 SR-123 --dry-run | fsv changes associations remove CHN-1234 SR-123 --yes --expect-plan FULL_HASH | fsv changes associations pick CHN-1234 --dry-run")
@@ -4784,12 +5657,17 @@ pub fn build() -> Command {
                 .about("Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.")
                 .subcommand(ChangesAssetsLsArgs::augment_args(Command::new("ls") .hide(true).arg(global_verbose())))
                 .subcommand(ChangesAssetsListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(ChangesAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets the web offers to associate (legacy asset association driver).").arg(global_verbose())))
+                .subcommand(ChangesAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.").arg(global_verbose())))
                 .subcommand(ChangesAssetsLegacyArgs::augment_args(Command::new("legacy") .hide(true).arg(global_verbose())))
                 .subcommand(ChangesAssetsAddArgs::augment_args(Command::new("add").arg(global_verbose())))
                 .subcommand(ChangesAssetsRemoveArgs::augment_args(Command::new("remove").arg(global_verbose())))
                 .subcommand(ChangesAssetsSearchArgs::augment_args(Command::new("search").arg(global_verbose()))))
             .subcommand(columns_group())
+            .subcommand(Command::new("private-views")
+                .about("Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.")
+                .subcommand(ChangesPrivateViewsListArgs::augment_args(Command::new("list") .about("Your own non-default saved views (the list carries no visibility).").arg(global_verbose())))
+                .subcommand(ChangesPrivateViewsShowArgs::augment_args(Command::new("show") .about("Exact view read plus whether fsv treats it as private (Myself, no groups).").arg(global_verbose())))
+                .subcommand(ChangesPrivateViewsWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))
             .subcommand(watchers_group()))
         .subcommand(Command::new("tickets")
             .about("tickets commands")
@@ -4798,7 +5676,7 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one ticket.") .after_help("Examples: fsv tickets get INC-1234 | fsv tickets get INC-1234 --tab activity | fsv tickets get INC-1234 --all-tabs | fsv tickets get INC-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List ticket activity.") .after_help("Examples: fsv tickets activity INC-1234 | fsv tickets activity INC-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks-legacy") .hide(true) .about("List ticket tasks.") .after_help("Examples: fsv tickets tasks INC-1234 | fsv tickets tasks INC-1234 --json").arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review a native CSV/30-day export request; may email data, job/download contract is unknown.").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
             .subcommand(TicketsNoteEditArgs::augment_args(Command::new("note-edit") .about("Review an edit to an exact ticket note.").arg(global_verbose())))
             .subcommand(TicketsNoteDeleteArgs::augment_args(Command::new("note-delete") .about("Review deletion of an exact ticket note.").arg(global_verbose())))
             .subcommand(TicketsAssignArgs::augment_args(Command::new("assign") .about("Review ticket assignment, group assignment, or agent unassignment.").arg(global_verbose())))
@@ -4810,6 +5688,10 @@ pub fn build() -> Command {
             .subcommand(TicketsStatusArgs::augment_args(Command::new("status") .about("Reviewed runtime status transition with conditional custom answers.").arg(global_verbose())))
             .subcommand(TicketsBulkPriorityArgs::augment_args(Command::new("bulk-priority") .about("Review priority for explicit ticket IDs; no filter/all-pages expansion.").arg(global_verbose())))
             .subcommand(TicketsBulkArgs::augment_args(Command::new("bulk") .about("Review captured bulk actions on explicit IDs or a complete filtered expansion.").arg(global_verbose())))
+            .subcommand(TicketsRestoreArgs::augment_args(Command::new("restore") .about("Review, then restore one deleted ticket from the trash; verified by deleted=false.").arg(global_verbose())))
+            .subcommand(TicketsDeleteForeverArgs::augment_args(Command::new("delete-forever") .about("PERMANENTLY delete explicit tickets that are already in the trash. Needs --max-records and --confirm-destructive; no filters, no empty-trash.").arg(global_verbose())))
+            .subcommand(TicketsSpamArgs::augment_args(Command::new("spam") .about("Review, then mark one ticket as spam (needs --confirm-destructive); verified by the spam flag. Bulk: tickets bulk spam.").arg(global_verbose())))
+            .subcommand(TicketsUnspamArgs::augment_args(Command::new("unspam") .about("Review, then mark one ticket as not spam; verified by the spam flag.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable ticket fields.") .after_help("Examples: fsv tickets fields | fsv tickets fields --required | fsv tickets fields --choices status | fsv tickets fields --custom").arg(global_verbose())))
             .subcommand(ResLookupArgs::augment_args(Command::new("lookup") .about("Look up users, groups, or field choices.") .after_help("Examples: fsv tickets lookup requester me@example.com | fsv tickets lookup group desk").arg(global_verbose())))
             .subcommand(ResViewsArgs::augment_args(Command::new("views") .about("List saved view names.") .after_help("Examples: fsv tickets views | fsv tickets ls --view all").arg(global_verbose())))
@@ -4828,7 +5710,7 @@ pub fn build() -> Command {
                 .about("Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.")
                 .subcommand(TicketsAssetsLsArgs::augment_args(Command::new("ls") .hide(true).arg(global_verbose())))
                 .subcommand(TicketsAssetsListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(TicketsAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets the web offers to associate (legacy asset association driver).").arg(global_verbose())))
+                .subcommand(TicketsAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.").arg(global_verbose())))
                 .subcommand(TicketsAssetsAddArgs::augment_args(Command::new("add").arg(global_verbose())))
                 .subcommand(TicketsAssetsRemoveArgs::augment_args(Command::new("remove").arg(global_verbose()))))
             .subcommand(columns_group())
@@ -4840,13 +5722,38 @@ pub fn build() -> Command {
                 .subcommand(TicketsTasksUpdateArgs::augment_args(Command::new("update").arg(global_verbose())))
                 .subcommand(TicketsTasksStatusArgs::augment_args(Command::new("status").arg(global_verbose())))
                 .subcommand(TicketsTasksDeleteArgs::augment_args(Command::new("delete").arg(global_verbose()))))
-            .subcommand(private_views_group())
+            .subcommand(Command::new("private-views")
+                .about("Private ticket views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.")
+                .subcommand(TicketsPrivateViewsListArgs::augment_args(Command::new("list") .about("Your own non-default saved views (the list carries no visibility).").arg(global_verbose())))
+                .subcommand(PositiveIdArgs::augment_args(Command::new("show") .about("Exact view read plus whether fsv treats it as private (Myself, no groups).").arg(global_verbose())))
+                .subcommand(TicketsPrivateViewsWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))
             .subcommand(canned_group())
             .subcommand(scenarios_group())
             .subcommand(Command::new("time")
                 .about("Reviewed self-owned, nonbillable manual time entries.")
                 .subcommand(ReviewedListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(TicketsTimeWriteArgs::augment_args(Command::new("write").arg(global_verbose())))))
+                .subcommand(TicketsTimeWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))
+            .subcommand(Command::new("problems")
+                .about("Problems linked to an incident: list, candidates, link, unlink.")
+                .subcommand(TicketsProblemsListArgs::augment_args(Command::new("list") .about("Complete associated list for the exact ticket (read-only).").arg(global_verbose())))
+                .subcommand(TicketsProblemsCandidatesArgs::augment_args(Command::new("candidates") .about("Picker list or search results to choose from (read-only, one page).").arg(global_verbose())))
+                .subcommand(TicketsProblemsLinkArgs::augment_args(Command::new("link") .about("Review, then link once and verify by the complete associated list.").arg(global_verbose())))
+                .subcommand(TicketsProblemsUnlinkArgs::augment_args(Command::new("unlink") .about("Review, then unlink once and verify by the complete associated list.").arg(global_verbose()))))
+            .subcommand(Command::new("changes")
+                .about("Changes linked to a ticket in either direction: list, candidates, link, unlink.")
+                .subcommand(TicketsChangesListArgs::augment_args(Command::new("list") .about("Complete associated list for the exact ticket (read-only).").arg(global_verbose())))
+                .subcommand(TicketsChangesCandidatesArgs::augment_args(Command::new("candidates") .about("Picker list or search results to choose from (read-only, one page).").arg(global_verbose())))
+                .subcommand(TicketsChangesLinkArgs::augment_args(Command::new("link") .about("Review, then link once and verify by the complete associated list.").arg(global_verbose())))
+                .subcommand(TicketsChangesUnlinkArgs::augment_args(Command::new("unlink") .about("Review, then unlink once and verify by the complete associated list.").arg(global_verbose()))))
+            .subcommand(Command::new("children")
+                .about("Child tickets of a parent ticket: list, candidates, link, unlink.")
+                .subcommand(TicketsChildrenListArgs::augment_args(Command::new("list") .about("Complete associated list for the exact ticket (read-only).").arg(global_verbose())))
+                .subcommand(TicketsChildrenCandidatesArgs::augment_args(Command::new("candidates") .about("Picker list or search results to choose from (read-only, one page).").arg(global_verbose())))
+                .subcommand(TicketsChildrenLinkArgs::augment_args(Command::new("link") .about("Review, then link once and verify by the complete associated list.").arg(global_verbose())))
+                .subcommand(TicketsChildrenUnlinkArgs::augment_args(Command::new("unlink") .about("Review, then unlink once and verify by the complete associated list.").arg(global_verbose()))))
+            .subcommand(Command::new("trash")
+                .about("Deleted tickets (the Trash view; every agent's deleted tickets).")
+                .subcommand(TicketsTrashListArgs::augment_args(Command::new("list") .about("One page of the Trash view (read-only).").arg(global_verbose())))))
         .subcommand(Command::new("problems")
             .about("problems commands")
             .after_help("Examples: fsv problems ls --where status=Open | fsv problems ls --where 'requester=me@example.com' --output json | fsv problems get PRB-1234 | fsv problems get PRB-1234 --internal | fsv problems update PRB-1234 --status 'In Progress'")
@@ -4854,8 +5761,11 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one problem.") .after_help("Examples: fsv problems get PRB-1234 | fsv problems get PRB-1234 --tab activity | fsv problems get PRB-1234 --all-tabs | fsv problems get PRB-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List problem activity.") .after_help("Examples: fsv problems activity PRB-1234 | fsv problems activity PRB-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks") .about("List problem tasks.") .after_help("Examples: fsv problems tasks PRB-1234 | fsv problems tasks PRB-1234 --json").arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review a native CSV/30-day export request; may email data, job/download contract is unknown.").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
             .subcommand(ProblemsTaskWriteArgs::augment_args(Command::new("task-write") .about("Review a problem task update, complete or delete; completion may rewrite planned dates.").arg(global_verbose())))
+            .subcommand(ProblemsDeleteArgs::augment_args(Command::new("delete") .about("Move one exact problem to the trash (reviewed; restorable).").arg(global_verbose())))
+            .subcommand(ProblemsRestoreArgs::augment_args(Command::new("restore") .about("Restore one exact problem from the trash (reviewed).").arg(global_verbose())))
+            .subcommand(ProblemsDeleteForeverArgs::augment_args(Command::new("delete-forever") .about("PERMANENTLY delete explicit problems already in the trash (reviewed). More than one ID needs --max-records (1 to 50); always --confirm-destructive.").arg(global_verbose())))
             .subcommand(ProblemsLinkIncidentArgs::augment_args(Command::new("link-incident") .about("Review an incident association to a problem.").arg(global_verbose())))
             .subcommand(ProblemsUnlinkIncidentArgs::augment_args(Command::new("unlink-incident") .about("Review removal of a problem-incident association.").arg(global_verbose())))
             .subcommand(ProblemsNoteArgs::augment_args(Command::new("note") .about("Review a problem note, optionally with local attachments; visibility is not inferred.").arg(global_verbose())))
@@ -4874,19 +5784,20 @@ pub fn build() -> Command {
             .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Examples: fsv problems update PRB-1234 --status 'In Progress' | fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --status Closed --yes").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download problem attachments.") .after_help("Examples: fsv problems download PRB-1234 | fsv problems download PRB-1234 --all --dir ./evidence").arg(global_verbose())).mut_arg("threads", |a| a.help("download attachments from notes").long("notes").alias(None).short(None).short_alias(None)))
             .subcommand(ResNotesArgs::augment_args(Command::new("notes") .about("List problem notes.") .after_help("Examples: fsv problems notes PRB-1234 | fsv problems notes PRB-1234 --json").arg(global_verbose())))
-            .subcommand(ResAddNoteArgs::augment_args(Command::new("add-note") .about("Add problem note.") .after_help("Note: Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md). Examples: fsv problems add-note PRB-1234 'Checked deployment evidence' | fsv problems add-note PRB-1234 'Visible update' --public").arg(global_verbose())))
+            .subcommand(ResAddNoteArgs::augment_args(Command::new("add-note") .about("Add problem note.") .after_help("Note: Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md). Examples: fsv problems add-note PRB-1234 'Checked deployment evidence' (problem notes have no visibility key: the tenant default applies)").arg(global_verbose())))
             .subcommand(Command::new("assets")
                 .about("Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.")
                 .subcommand(ProblemsAssetsLsArgs::augment_args(Command::new("ls") .hide(true).arg(global_verbose())))
                 .subcommand(ProblemsAssetsListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(ProblemsAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets the web offers to associate (legacy asset association driver).").arg(global_verbose())))
+                .subcommand(ProblemsAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.").arg(global_verbose())))
                 .subcommand(ProblemsAssetsAddArgs::augment_args(Command::new("add").arg(global_verbose())))
                 .subcommand(ProblemsAssetsRemoveArgs::augment_args(Command::new("remove").arg(global_verbose()))))
             .subcommand(columns_group())
             .subcommand(Command::new("time")
-                .about("Reviewed self-owned manual time entries; problem updates remain blocked.")
+                .about("Reviewed self-owned manual time entries: list, write create|update|delete, update.")
                 .subcommand(ProblemsTimeListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(ProblemsTimeWriteArgs::augment_args(Command::new("write").arg(global_verbose())))))
+                .subcommand(ProblemsTimeWriteArgs::augment_args(Command::new("write").arg(global_verbose())))
+                .subcommand(ProblemsTimeUpdateArgs::augment_args(Command::new("update") .about("Review, then change the duration and/or note of one exact self-owned entry; verified by re-reading the entry list.").arg(global_verbose())))))
         .subcommand(Command::new("attachments")
             .about("Reviewed attachment deletion with independent owner readback.")
             .subcommand(AttachmentsDeleteArgs::augment_args(Command::new("delete").arg(global_verbose()))))
@@ -4906,7 +5817,7 @@ pub fn build() -> Command {
                 .about("Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.")
                 .subcommand(SrAssetsLsArgs::augment_args(Command::new("ls") .hide(true).arg(global_verbose())))
                 .subcommand(SrAssetsListArgs::augment_args(Command::new("list").arg(global_verbose())))
-                .subcommand(SrAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets the web offers to associate (legacy asset association driver).").arg(global_verbose())))
+                .subcommand(SrAssetsCandidatesArgs::augment_args(Command::new("candidates") .about("Assets offered for association: legacy assets-to-associate on legacy records, else (or when it answers 403/404) the integrated inventory search.").arg(global_verbose())))
                 .subcommand(SrAssetsAddArgs::augment_args(Command::new("add").arg(global_verbose())))
                 .subcommand(SrAssetsRemoveArgs::augment_args(Command::new("remove").arg(global_verbose()))))
             .subcommand(Command::new("approvals")
@@ -4933,7 +5844,11 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("auth logout", "AuthLogoutArgs"),
     ("auth status", "AuthStatusArgs"),
     ("assets search", "AssetsSearchArgs"),
+    ("solutions delete", "SolutionsDeleteArgs"),
+    ("solutions delete-forever", "SolutionsDeleteForeverArgs"),
     ("solutions create", "SolutionsCreateArgs"),
+    ("templates list", "TemplatesListArgs"),
+    ("templates show", "TemplatesShowArgs"),
     ("completion show", "CompletionShowArgs"),
     ("completion install", "CompletionInstallArgs"),
     ("completion refresh", "CompletionRefreshArgs"),
@@ -4988,6 +5903,10 @@ pub const LEAVES: &[(&str, &str)] = &[
     ),
     ("changes time list", "ChangesTimeListArgs"),
     ("changes time write", "ChangesTimeWriteArgs"),
+    ("changes time update", "ChangesTimeUpdateArgs"),
+    ("changes windows list", "ChangesWindowsListArgs"),
+    ("changes windows create", "ChangesWindowsCreateArgs"),
+    ("changes windows delete", "ChangesWindowsDeleteArgs"),
     (
         "changes associations legacy",
         "ChangesAssociationsLegacyArgs",
@@ -5012,6 +5931,12 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("changes assets search", "ChangesAssetsSearchArgs"),
     ("changes columns list", "JsonOnlyArgs"),
     ("changes columns set", "ColumnsSetArgs"),
+    ("changes private-views list", "ChangesPrivateViewsListArgs"),
+    ("changes private-views show", "ChangesPrivateViewsShowArgs"),
+    (
+        "changes private-views write",
+        "ChangesPrivateViewsWriteArgs",
+    ),
     ("changes watchers list", "ReviewedListArgs"),
     ("changes watchers set", "WatchersSetArgs"),
     ("tickets ls", "ResLsArgs"),
@@ -5030,6 +5955,10 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("tickets status", "TicketsStatusArgs"),
     ("tickets bulk-priority", "TicketsBulkPriorityArgs"),
     ("tickets bulk", "TicketsBulkArgs"),
+    ("tickets restore", "TicketsRestoreArgs"),
+    ("tickets delete-forever", "TicketsDeleteForeverArgs"),
+    ("tickets spam", "TicketsSpamArgs"),
+    ("tickets unspam", "TicketsUnspamArgs"),
     ("tickets fields", "ResFieldsArgs"),
     ("tickets lookup", "ResLookupArgs"),
     ("tickets views", "ResViewsArgs"),
@@ -5058,6 +5987,7 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("tickets tasks update", "TicketsTasksUpdateArgs"),
     ("tickets tasks status", "TicketsTasksStatusArgs"),
     ("tickets tasks delete", "TicketsTasksDeleteArgs"),
+    ("tickets private-views list", "TicketsPrivateViewsListArgs"),
     ("tickets private-views show", "PositiveIdArgs"),
     (
         "tickets private-views write",
@@ -5072,12 +6002,34 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("tickets scenarios apply", "TicketsScenariosApplyArgs"),
     ("tickets time list", "ReviewedListArgs"),
     ("tickets time write", "TicketsTimeWriteArgs"),
+    ("tickets problems list", "TicketsProblemsListArgs"),
+    (
+        "tickets problems candidates",
+        "TicketsProblemsCandidatesArgs",
+    ),
+    ("tickets problems link", "TicketsProblemsLinkArgs"),
+    ("tickets problems unlink", "TicketsProblemsUnlinkArgs"),
+    ("tickets changes list", "TicketsChangesListArgs"),
+    ("tickets changes candidates", "TicketsChangesCandidatesArgs"),
+    ("tickets changes link", "TicketsChangesLinkArgs"),
+    ("tickets changes unlink", "TicketsChangesUnlinkArgs"),
+    ("tickets children list", "TicketsChildrenListArgs"),
+    (
+        "tickets children candidates",
+        "TicketsChildrenCandidatesArgs",
+    ),
+    ("tickets children link", "TicketsChildrenLinkArgs"),
+    ("tickets children unlink", "TicketsChildrenUnlinkArgs"),
+    ("tickets trash list", "TicketsTrashListArgs"),
     ("problems ls", "ResLsArgs"),
     ("problems get", "ResGetArgs"),
     ("problems activity", "ResActivityArgs"),
     ("problems tasks", "ResTasksArgs"),
     ("problems export", "ResExportArgs"),
     ("problems task-write", "ProblemsTaskWriteArgs"),
+    ("problems delete", "ProblemsDeleteArgs"),
+    ("problems restore", "ProblemsRestoreArgs"),
+    ("problems delete-forever", "ProblemsDeleteForeverArgs"),
     ("problems link-incident", "ProblemsLinkIncidentArgs"),
     ("problems unlink-incident", "ProblemsUnlinkIncidentArgs"),
     ("problems note", "ProblemsNoteArgs"),
@@ -5106,6 +6058,7 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("problems columns set", "ColumnsSetArgs"),
     ("problems time list", "ProblemsTimeListArgs"),
     ("problems time write", "ProblemsTimeWriteArgs"),
+    ("problems time update", "ProblemsTimeUpdateArgs"),
     ("attachments delete", "AttachmentsDeleteArgs"),
     ("form explain", "FormExplainArgs"),
     ("form fields", "FormFieldsArgs"),
@@ -5139,6 +6092,16 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
         &[("<QUERY>", "Missing argument 'QUERY'.")],
     ),
     (
+        "solutions delete",
+        "[OPTIONS] ARTICLE_ID",
+        &[("<ARTICLE_ID>", "Missing argument 'ARTICLE_ID'.")],
+    ),
+    (
+        "solutions delete-forever",
+        "[OPTIONS] ARTICLE_ID...",
+        &[("<ARTICLE_ID...>", "Missing argument 'ARTICLE_ID...'.")],
+    ),
+    (
         "solutions create",
         "[OPTIONS]",
         &[
@@ -5146,6 +6109,11 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
             ("--body", "Missing option '--body'."),
             ("--type", "Missing option '--type'."),
         ],
+    ),
+    (
+        "templates show",
+        "[OPTIONS] NAME_OR_ID",
+        &[("<NAME_OR_ID>", "Missing argument 'NAME_OR_ID'.")],
     ),
     (
         "config get",
@@ -5372,6 +6340,29 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
         ],
     ),
     (
+        "changes time update",
+        "[OPTIONS] ID ENTRY_ID",
+        &[
+            ("<ID>", "Missing argument 'ID'."),
+            ("<ENTRY_ID>", "Missing argument 'ENTRY_ID'."),
+        ],
+    ),
+    (
+        "changes windows create",
+        "[OPTIONS]",
+        &[
+            ("--name", "Missing option '--name'."),
+            ("--start", "Missing option '--start'."),
+            ("--end", "Missing option '--end'."),
+            ("--criteria", "Missing option '--criteria'."),
+        ],
+    ),
+    (
+        "changes windows delete",
+        "[OPTIONS] WINDOW_ID",
+        &[("<WINDOW_ID>", "Missing argument 'WINDOW_ID'.")],
+    ),
+    (
         "changes associations legacy",
         "[OPTIONS] ID_",
         &[("<ID_>", "Missing argument 'ID_'.")],
@@ -5450,6 +6441,19 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
         "changes columns set",
         "[OPTIONS]",
         &[("--column", "Missing option '--column'.")],
+    ),
+    (
+        "changes private-views show",
+        "[OPTIONS] ID_",
+        &[("<ID_>", "Missing argument 'ID_'.")],
+    ),
+    (
+        "changes private-views write",
+        "[OPTIONS] SOURCE_VIEW ACTION",
+        &[
+            ("<SOURCE_VIEW>", "Missing argument 'SOURCE_VIEW'."),
+            ("<ACTION>", "Missing argument 'ACTION'."),
+        ],
     ),
     (
         "changes watchers list",
@@ -5562,6 +6566,26 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
         "tickets bulk",
         "[OPTIONS] ACTION [IDS]...",
         &[("<ACTION>", "Missing argument 'ACTION'.")],
+    ),
+    (
+        "tickets restore",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets delete-forever",
+        "[OPTIONS] TICKET...",
+        &[("<TICKET...>", "Missing argument 'TICKET...'.")],
+    ),
+    (
+        "tickets spam",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets unspam",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
     ),
     (
         "tickets lookup",
@@ -5776,6 +6800,84 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
         ],
     ),
     (
+        "tickets problems list",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets problems candidates",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets problems link",
+        "[OPTIONS] TICKET PROBLEM",
+        &[
+            ("<TICKET>", "Missing argument 'TICKET'."),
+            ("<PROBLEM>", "Missing argument 'PROBLEM'."),
+        ],
+    ),
+    (
+        "tickets problems unlink",
+        "[OPTIONS] TICKET PROBLEM",
+        &[
+            ("<TICKET>", "Missing argument 'TICKET'."),
+            ("<PROBLEM>", "Missing argument 'PROBLEM'."),
+        ],
+    ),
+    (
+        "tickets changes list",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets changes candidates",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets changes link",
+        "[OPTIONS] TICKET CHANGE",
+        &[
+            ("<TICKET>", "Missing argument 'TICKET'."),
+            ("<CHANGE>", "Missing argument 'CHANGE'."),
+        ],
+    ),
+    (
+        "tickets changes unlink",
+        "[OPTIONS] TICKET CHANGE",
+        &[
+            ("<TICKET>", "Missing argument 'TICKET'."),
+            ("<CHANGE>", "Missing argument 'CHANGE'."),
+        ],
+    ),
+    (
+        "tickets children list",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets children candidates",
+        "[OPTIONS] TICKET",
+        &[("<TICKET>", "Missing argument 'TICKET'.")],
+    ),
+    (
+        "tickets children link",
+        "[OPTIONS] TICKET CHILD_TICKET",
+        &[
+            ("<TICKET>", "Missing argument 'TICKET'."),
+            ("<CHILD_TICKET>", "Missing argument 'CHILD_TICKET'."),
+        ],
+    ),
+    (
+        "tickets children unlink",
+        "[OPTIONS] TICKET CHILD_TICKET",
+        &[
+            ("<TICKET>", "Missing argument 'TICKET'."),
+            ("<CHILD_TICKET>", "Missing argument 'CHILD_TICKET'."),
+        ],
+    ),
+    (
         "problems get",
         "[OPTIONS] ID",
         &[("<ID>", "Missing argument 'ID'.")],
@@ -5806,6 +6908,21 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
             ("<TASK>", "Missing argument 'TASK'."),
             ("<ACTION>", "Missing argument 'ACTION'."),
         ],
+    ),
+    (
+        "problems delete",
+        "[OPTIONS] PROBLEM_ID",
+        &[("<PROBLEM_ID>", "Missing argument 'PROBLEM_ID'.")],
+    ),
+    (
+        "problems restore",
+        "[OPTIONS] PROBLEM_ID",
+        &[("<PROBLEM_ID>", "Missing argument 'PROBLEM_ID'.")],
+    ),
+    (
+        "problems delete-forever",
+        "[OPTIONS] PROBLEM_ID...",
+        &[("<PROBLEM_ID...>", "Missing argument 'PROBLEM_ID...'.")],
     ),
     (
         "problems link-incident",
@@ -5967,6 +7084,14 @@ pub const CLICK_USAGE: &[(&str, &str, &[(&str, &str)])] = &[
         &[
             ("<ID>", "Missing argument 'ID'."),
             ("<ACTION>", "Missing argument 'ACTION'."),
+        ],
+    ),
+    (
+        "problems time update",
+        "[OPTIONS] ID ENTRY_ID",
+        &[
+            ("<ID>", "Missing argument 'ID'."),
+            ("<ENTRY_ID>", "Missing argument 'ENTRY_ID'."),
         ],
     ),
     (
@@ -6283,6 +7408,95 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     ),
     ("fsv solutions", "", &[]),
     (
+        "fsv solutions delete",
+        "",
+        &[
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv solutions delete-forever",
+        "",
+        &[
+            OptionHint {
+                id: "max_records",
+                flags: &["--max-records"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
         "fsv solutions create",
         "",
         &[
@@ -6357,6 +7571,29 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
         ],
+    ),
+    ("fsv templates", "", &[]),
+    (
+        "fsv templates list",
+        "",
+        &[OptionHint {
+            id: "json_out",
+            flags: &["--json"],
+            completer: None,
+            resource: None,
+            value_flag: false,
+        }],
+    ),
+    (
+        "fsv templates show",
+        "",
+        &[OptionHint {
+            id: "json_out",
+            flags: &["--json"],
+            completer: None,
+            resource: None,
+            value_flag: false,
+        }],
     ),
     ("fsv completion", "", &[]),
     ("fsv completion show", "Show shell completion script.", &[]),
@@ -8477,6 +9714,190 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
         ],
     ),
+    (
+        "fsv changes time update",
+        "",
+        &[
+            OptionHint {
+                id: "spent",
+                flags: &["--spent"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "note",
+                flags: &["--note"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    ("fsv changes windows", "", &[]),
+    (
+        "fsv changes windows list",
+        "",
+        &[OptionHint {
+            id: "json_out",
+            flags: &["--json"],
+            completer: None,
+            resource: None,
+            value_flag: false,
+        }],
+    ),
+    (
+        "fsv changes windows create",
+        "",
+        &[
+            OptionHint {
+                id: "name",
+                flags: &["--name"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "start",
+                flags: &["--start"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "end",
+                flags: &["--end"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "timezone",
+                flags: &["--timezone"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "criteria",
+                flags: &["--criteria"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "description",
+                flags: &["--description"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "no_alert_suppression",
+                flags: &["--no-alert-suppression"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "allow_overlap",
+                flags: &["--allow-overlap"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv changes windows delete",
+        "",
+        &[
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
     ("fsv changes associations", "", &[]),
     (
         "fsv changes associations legacy",
@@ -8761,13 +10182,36 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     (
         "fsv changes assets candidates",
         "",
-        &[OptionHint {
-            id: "json_out",
-            flags: &["--json"],
-            completer: None,
-            resource: None,
-            value_flag: false,
-        }],
+        &[
+            OptionHint {
+                id: "query",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "kind",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "page",
+                flags: &["--page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
     ),
     (
         "fsv changes assets legacy",
@@ -8947,6 +10391,95 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "freeze",
                 flags: &["--freeze"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    ("fsv changes private-views", "", &[]),
+    (
+        "fsv changes private-views list",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv changes private-views show",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv changes private-views write",
+        "",
+        &[
+            OptionHint {
+                id: "name",
+                flags: &["--name"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -9895,8 +11428,179 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
             OptionHint {
-                id: "set_",
+                id: "sets",
                 flags: &["--set"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "scenario",
+                flags: &["--scenario"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets restore",
+        "",
+        &[
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets delete-forever",
+        "",
+        &[
+            OptionHint {
+                id: "max_records",
+                flags: &["--max-records"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets spam",
+        "",
+        &[
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets unspam",
+        "",
+        &[
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -10101,8 +11805,22 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
             OptionHint {
+                id: "notify_agent",
+                flags: &["--notify-agent"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
                 id: "attach",
                 flags: &["--attach"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "inline_image",
+                flags: &["--inline-image"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -10117,6 +11835,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "set_status",
                 flags: &["--set-status"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -10193,6 +11918,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "preset",
                 flags: &["--preset"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "template",
+                flags: &["--template"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -10577,6 +12309,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
             OptionHint {
+                id: "inline_image",
+                flags: &["--inline-image"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
                 id: "max_bytes",
                 flags: &["--max-bytes"],
                 completer: None,
@@ -10600,6 +12339,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "set_status",
                 flags: &["--set-status"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -10740,13 +12486,36 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     (
         "fsv tickets assets candidates",
         "",
-        &[OptionHint {
-            id: "json_out",
-            flags: &["--json"],
-            completer: None,
-            resource: None,
-            value_flag: false,
-        }],
+        &[
+            OptionHint {
+                id: "query",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "kind",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "page",
+                flags: &["--page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
     ),
     (
         "fsv tickets assets add",
@@ -11202,6 +12971,26 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     ),
     ("fsv tickets private-views", "", &[]),
     (
+        "fsv tickets private-views list",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
         "fsv tickets private-views show",
         "",
         &[
@@ -11578,6 +13367,424 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
         ],
     ),
+    ("fsv tickets problems", "", &[]),
+    (
+        "fsv tickets problems list",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets problems candidates",
+        "",
+        &[
+            OptionHint {
+                id: "search",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets problems link",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets problems unlink",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    ("fsv tickets changes", "", &[]),
+    (
+        "fsv tickets changes list",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets changes candidates",
+        "",
+        &[
+            OptionHint {
+                id: "search",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets changes link",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets changes unlink",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    ("fsv tickets children", "", &[]),
+    (
+        "fsv tickets children list",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets children candidates",
+        "",
+        &[
+            OptionHint {
+                id: "search",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets children link",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets children unlink",
+        "",
+        &[
+            OptionHint {
+                id: "ctype",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    ("fsv tickets trash", "", &[]),
+    (
+        "fsv tickets trash list",
+        "",
+        &[
+            OptionHint {
+                id: "page",
+                flags: &["--page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "per_page",
+                flags: &["--per-page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
     ("fsv problems", "", &[]),
     (
         "fsv problems ls",
@@ -11938,6 +14145,136 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "expect_plan",
                 flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems delete",
+        "",
+        &[
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems restore",
+        "",
+        &[
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems delete-forever",
+        "",
+        &[
+            OptionHint {
+                id: "max_records",
+                flags: &["--max-records"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes", "-y"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "confirm_destructive",
+                flags: &["--confirm-destructive"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -12867,13 +15204,36 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     (
         "fsv problems assets candidates",
         "",
-        &[OptionHint {
-            id: "json_out",
-            flags: &["--json"],
-            completer: None,
-            resource: None,
-            value_flag: false,
-        }],
+        &[
+            OptionHint {
+                id: "query",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "kind",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "page",
+                flags: &["--page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
     ),
     (
         "fsv problems assets add",
@@ -13144,6 +15504,54 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
         ],
     ),
+    (
+        "fsv problems time update",
+        "",
+        &[
+            OptionHint {
+                id: "spent",
+                flags: &["--spent"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "note",
+                flags: &["--note"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
     ("fsv attachments", "", &[]),
     (
         "fsv attachments delete",
@@ -13247,6 +15655,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 resource: None,
                 value_flag: false,
             },
+            OptionHint {
+                id: "item",
+                flags: &["--item"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
         ],
     ),
     (
@@ -13267,18 +15682,34 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 resource: None,
                 value_flag: false,
             },
+            OptionHint {
+                id: "item",
+                flags: &["--item"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
         ],
     ),
     (
         "fsv form dump",
         "Print a metadata snapshot (fields + rules) as JSON. Keep it local:",
-        &[OptionHint {
-            id: "mode",
-            flags: &["--mode"],
-            completer: None,
-            resource: None,
-            value_flag: false,
-        }],
+        &[
+            OptionHint {
+                id: "mode",
+                flags: &["--mode"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "item",
+                flags: &["--item"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
     ),
     (
         "fsv form diff",
@@ -13549,13 +15980,36 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     (
         "fsv sr assets candidates",
         "",
-        &[OptionHint {
-            id: "json_out",
-            flags: &["--json"],
-            completer: None,
-            resource: None,
-            value_flag: false,
-        }],
+        &[
+            OptionHint {
+                id: "query",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "kind",
+                flags: &["--kind"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "page",
+                flags: &["--page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
     ),
     (
         "fsv sr assets add",
