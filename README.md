@@ -72,6 +72,7 @@ This is not a blanket guarantee for every historical command: legacy compatibili
 - Physical-asset association writes are disabled; integrated device/business-service support has narrower reviewed limits. Inventory IDs are not legacy display IDs.
 - Mentions and ticket split are unsupported. Some operations, account combinations and live responses remain unverified.
 - Legacy-write guards reduce risk but do not make every compatibility path a reviewed single-send operation. See the [coverage notes](docs/reviewed-parity.md).
+- Which commands have been proven live, with an independent readback, is listed per command in [command coverage](docs/coverage.md), together with the known gaps.
 
 ## Development
 

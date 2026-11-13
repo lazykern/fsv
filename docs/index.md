@@ -1,6 +1,7 @@
 # Documentation index
 
 - [Command cheat sheet](commands.md) — common commands and safe help examples for the full command surface.
+- [Command coverage](coverage.md) — per-command live proof, independent readback, production parity, offline tests and known gaps.
 - [Change approvals](change-approvals.md) — review, request, respond to, and cancel change approvals.
 - [Change associations](change-associations.md) — review and verify change–ticket links.
 - [Change tasks](change-tasks.md) — create, update, and delete reviewed change tasks.
