@@ -7,6 +7,9 @@ from fsv.integrated_assets_cli import finish, guard
 
 
 def register(app: typer.Typer, factory: Callable[[], Any]) -> None:
+    from fsv.record_delete_cli import register_articles
+    register_articles(app, factory)
+
     @app.command("create", help="Create a draft workaround/permanent article; does not link or publish it.")
     def create(title: str = typer.Option(..., "--title"), body: str = typer.Option(..., "--body", help="plain text"),
                kind: str = typer.Option(..., "--type", help="workaround or permanent"),

@@ -232,6 +232,10 @@ fsv sr approvals list SR-1234
 fsv sr assets list SR-1234
 fsv problems views
 fsv problems ls --where status=Open --json
+fsv problems delete PRB-12 --dry-run
+fsv problems restore PRB-12 --dry-run
+fsv problems delete-forever PRB-12 --confirm-destructive --yes --expect-plan FULL_HASH
+fsv solutions delete-forever 1234 --dry-run
 fsv problems get PRB-1234
 fsv problems tasks PRB-1234
 fsv problems note PRB-1234 --body 'Investigating' --dry-run

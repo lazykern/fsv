@@ -352,6 +352,29 @@ There is **no delete path** for inline images: removing an image in the editor
 sends no request and the probed delete routes answer 404/500. A failed or
 unknown transaction leaves orphan images; the error lists their ids.
 
+## Problem and article deletion
+
+| Command | Wire | Readback |
+|---|---|---|
+| `fsv problems delete ID` | `DELETE /api/_/problems/<n>` (trash) | exact GET `deleted: true` |
+| `fsv problems restore ID` | `PUT /api/_/problems/<n>/restore` | exact GET `deleted: false` |
+| `fsv problems delete-forever ID` | `DELETE /api/_/problems/delete-forever?ids=<n>` (trashed problems only) | exact GET 404 |
+| `fsv solutions delete ARTICLE_ID` | `DELETE /api/_/solutions/articles/<id>` (trash) | `deleted: true` or 404 |
+| `fsv solutions delete-forever ARTICLE_ID` | `DELETE /api/_/solutions/articles/<id>/delete_forever` | exact GET 404 |
+
+All are bodyless JSON requests, reviewed with `--dry-run` (title, deleted flag,
+effect), hash-bound to the exact record snapshot, single-attempt and journaled
+(no replay; an identical re-review of the same record keeps its hash and is
+refused). `delete-forever` and article trash also need
+`--confirm-destructive`. There is no captured article restore.
+
+`projects delete` is **blocked**: the project UI is an iframe to a separate
+product host with its own session; the request
+(`DELETE /projects/<id>` with `{"delete_project_name": "<exact name>"}`) cannot
+be authenticated by fsv's agent session and the host is not published in the
+tenant metadata fsv reads, so nothing is implemented rather than hardcoding a
+host.
+
 ## Ticket note edits and deletion
 
 ```sh

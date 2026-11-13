@@ -18,6 +18,8 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     from fsv.problem_task_update_cli import register as register_task_update
     register_time(app, client_factory, "problems")
     register_task_update(app, client_factory)
+    from fsv.record_delete_cli import register_problems
+    register_problems(app, client_factory)
     def finish(plan, client, dry_run, yes, expect_plan):
         if dry_run:
             typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
