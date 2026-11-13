@@ -2,7 +2,7 @@
 //! was captured from the Python fsv on the same routes (`cmp.py --emit`).
 
 mod common;
-use common::{run_files, run_fixture};
+use common::{run_files, run_fixture, run_steps};
 
 /// `metadata.fetched_at` is the run's clock.
 fn masked(out: &str) -> String {
@@ -1094,6 +1094,151 @@ fn sr_approvals_list_flat_rows_table() {
     assert_eq!(
         r.err,
         r#"this tenant uses legacy flat approvals (approval-chains answered HTTP 400)
+"#
+    );
+}
+
+// Python commit: ebfbdd5 (fb2b13c behavior: record workspace notes)
+
+#[test]
+fn form_explain_record_workspace_notes() {
+    let r = run_steps(
+        "form_record_workspace",
+        &[&["config", "set", "forms.workspace_id", "5"]],
+        &["form", "explain", "problems", "--id", "PRB-77"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"                        problem form (edit)                         
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Field       ┃ State             ┃ Value          ┃ Why           ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Subject     │ visible, required │ Globex problem │ form metadata │
+│ Description │ visible, required │                │ form metadata │
+│ Requester   │ visible, required │                │ form metadata │
+│ Status      │ visible, required │                │ form metadata │
+│ Priority    │ visible, required │                │ form metadata │
+│ Impact      │ visible, required │                │ form metadata │
+│ Acme count  │ visible           │                │ form metadata │
+└─────────────┴───────────────────┴────────────────┴───────────────┘
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"note: the record is in workspace 9 but the default problem form's fields belong to workspace 5; business rules come from workspace 9, the field list is the default form's
+note: forms.workspace_id=5 does not apply to this record: it carries its own workspace 9
+"#
+    );
+}
+
+#[test]
+fn form_explain_record_workspace_notes_json() {
+    let r = run_steps(
+        "form_record_workspace",
+        &[&["config", "set", "forms.workspace_id", "5"]],
+        &[
+            "form", "explain", "problems", "--id", "PRB-77", "-o", "json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        masked(&r.out),
+        r#"{
+  "rows": [
+    {
+      "field": "subject",
+      "label": "Subject",
+      "visible": true,
+      "required": true,
+      "disabled": false,
+      "value": "Globex problem",
+      "populated_by": null,
+      "why": []
+    },
+    {
+      "field": "description",
+      "label": "Description",
+      "visible": true,
+      "required": true,
+      "disabled": false,
+      "value": "",
+      "populated_by": null,
+      "why": []
+    },
+    {
+      "field": "requester",
+      "label": "Requester",
+      "visible": true,
+      "required": true,
+      "disabled": false,
+      "value": "",
+      "populated_by": null,
+      "why": []
+    },
+    {
+      "field": "status",
+      "label": "Status",
+      "visible": true,
+      "required": true,
+      "disabled": false,
+      "value": "",
+      "populated_by": null,
+      "why": []
+    },
+    {
+      "field": "priority",
+      "label": "Priority",
+      "visible": true,
+      "required": true,
+      "disabled": false,
+      "value": "",
+      "populated_by": null,
+      "why": []
+    },
+    {
+      "field": "impact",
+      "label": "Impact",
+      "visible": true,
+      "required": true,
+      "disabled": false,
+      "value": "",
+      "populated_by": null,
+      "why": []
+    },
+    {
+      "field": "acme_count",
+      "label": "Acme count",
+      "visible": true,
+      "required": false,
+      "disabled": false,
+      "value": "",
+      "populated_by": null,
+      "why": []
+    }
+  ],
+  "messages": [],
+  "conflicts": [],
+  "errors": [],
+  "metadata": {
+    "updated_at": null,
+    "fetched_at": "<fetched>",
+    "source": "server",
+    "fingerprint": "552f641fd20f9acd"
+  },
+  "form_notes": [
+    "the record is in workspace 9 but the default problem form's fields belong to workspace 5; business rules come from workspace 9, the field list is the default form's",
+    "forms.workspace_id=5 does not apply to this record: it carries its own workspace 9"
+  ]
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"note: the record is in workspace 9 but the default problem form's fields belong to workspace 5; business rules come from workspace 9, the field list is the default form's
+note: forms.workspace_id=5 does not apply to this record: it carries its own workspace 9
 "#
     );
 }

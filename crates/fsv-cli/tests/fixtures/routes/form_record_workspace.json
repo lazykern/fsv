@@ -1,0 +1,135 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9,
+    "first_name": "Ann",
+    "last_name": "Lee",
+    "email": "ann@acme.com"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem_form_fields",
+  "json": {
+   "problem_fields": [
+    {
+     "id": 501,
+     "name": "subject",
+     "label": "Subject",
+     "field_type": "default_subject",
+     "required": true,
+     "position": 1
+    },
+    {
+     "id": 502,
+     "name": "description",
+     "label": "Description",
+     "field_type": "default_description",
+     "required": true,
+     "position": 2
+    },
+    {
+     "id": 503,
+     "name": "requester",
+     "label": "Requester",
+     "field_type": "default_requester",
+     "required": true,
+     "position": 3
+    },
+    {
+     "id": 510,
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "required": true,
+     "choices": [
+      {
+       "id": 41,
+       "value": "Open"
+      }
+     ],
+     "position": 4
+    },
+    {
+     "id": 511,
+     "name": "priority",
+     "label": "Priority",
+     "field_type": "default_priority",
+     "required": true,
+     "choices": [
+      {
+       "id": 42,
+       "value": "Low"
+      }
+     ],
+     "position": 5
+    },
+    {
+     "id": 512,
+     "name": "impact",
+     "label": "Impact",
+     "field_type": "default_impact",
+     "required": true,
+     "choices": [
+      {
+       "id": 43,
+       "value": "Low"
+      }
+     ],
+     "position": 6
+    },
+    {
+     "id": 601,
+     "name": "acme_count",
+     "label": "Acme count",
+     "field_type": "custom_number",
+     "required": false,
+     "position": 7,
+     "workspace_id": 5,
+     "default_field": false
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "json": {
+   "results": [
+    {
+     "id": 51,
+     "value": "Ann Lee",
+     "email": "ann@acme.com",
+     "details": "ann@acme.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/77",
+  "json": {
+   "problem": {
+    "id": 77,
+    "subject": "Globex problem",
+    "workspace_id": 9
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ws/9/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ }
+]
