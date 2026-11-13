@@ -760,8 +760,10 @@ def _confirm_terminal_status(res: Resource, cid: int, sch: dict[str, Any], statu
 
 def _emit_dry_run(res: Resource, cid: int, body: dict[str, Any], action: str = "update",
                   risks: list[str] | None = None, display_id: str | None = None,
-                  warnings: list[str] | None = None) -> None:
+                  warnings: list[str] | None = None, plan_hash: str | None = None) -> None:
     out: dict[str, Any] = {"dry_run": True, "action": action, "id": display_id or format_id({"id": cid}, res), "body": body}
+    if plan_hash:
+        out["plan_hash"] = plan_hash
     if risks:
         out["requires_confirmation"] = risks
     if warnings:
@@ -2660,6 +2662,18 @@ def _problem_planning_update(id_: str, planned_start: Optional[str], planned_end
         raise typer.Exit(2) from None
 
 
+def _problem_update_hash(res: Resource, cid: int, body: dict[str, Any], row: Any) -> str | None:
+    """Review hash of a problem update: tenant, target, exact PUT body and the
+    stable snapshot of the problem it was reviewed against (None when the
+    problem could not be read)."""
+    from fsv import journal
+    if not isinstance(row, dict) or not config.DOMAIN:
+        return None
+    return journal.plan_hash({"action": "update", "resource": res.name, "target": cid, "tenant": config.DOMAIN,
+                              "method": "PUT", "path": f"{res.api_path}/{cid}", "payload": body,
+                              "record": journal.snapshot_hash(row)})
+
+
 def update_resource(
     res: Resource,
     id_: str,
@@ -2672,10 +2686,12 @@ def update_resource(
     yes: bool,
     no_input: bool = False,
     set_: Optional[List[str]] = None,
+    expect_plan: Optional[str] = None,
 ) -> None:
     from fsv import schema as schema_mod
     from fsv import service
     cid = _cid(id_, res)
+    row: Any = None
     c = _client()
     sch = _api(lambda: schema_mod.load(res, c))
     stale_warning = schema_mod.freshness_warning(res, c, sch) if dry_run else None
@@ -2719,6 +2735,10 @@ def update_resource(
         _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
     current = _current_flat(res, cid, c) if dry_run and res.name == "tickets" else None
     risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
+    plan_hash = _problem_update_hash(res, cid, body, row) if res.name == "problems" else None
+    if expect_plan is not None and (plan_hash is None or expect_plan != plan_hash):
+        _err(f"{format_id({'id': cid}, res)} or the update changed since review (or the problem could not be "
+             "read); review again with --dry-run. Nothing was sent")
     if dry_run:
         display_id = None
         if res.name == "tickets":
@@ -2732,7 +2752,7 @@ def update_resource(
             else:
                 display_id = f"tickets/{cid}"
         _emit_dry_run(res, cid, body, risks=risks, display_id=display_id,
-                      warnings=[stale_warning] if stale_warning else None)
+                      warnings=[stale_warning] if stale_warning else None, plan_hash=plan_hash)
         return
     _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
 
@@ -4379,7 +4399,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_effort: Optional[str] = typer.Option(None, "--planned-effort", help="problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field"),
             reviewed: bool = typer.Option(False, "--reviewed", help="tickets only: evaluate --set and core flags as a hash-bound property plan"),
             ack: bool = typer.Option(False, "--ack", help="tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)"),
-            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash for ticket property update"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash (ticket property update, problem update)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
@@ -4432,11 +4452,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     typer.echo(str(exc), err=True)
                     raise typer.Exit(2) from None
                 return
-            if expect_plan:
+            if expect_plan and res != PROBLEMS:
                 _err("--expect-plan requires --reviewed, --tag, --planned-start or --planned-end")
             if ack:
                 _err("--ack requires tickets --reviewed")
-            update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input, set_)
+            update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input, set_,
+                            expect_plan=expect_plan)
 
         _threads_key = "conversations" if not res.has_notes else "notes"
         _threads_flag = "--conversations" if not res.has_notes else "--notes"

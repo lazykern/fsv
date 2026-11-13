@@ -160,3 +160,34 @@ def test_dry_run_reports_stale_schema(monkeypatch):
     assert res.exit_code == 0, res.output
     doc = json.loads(res.output[res.output.index("{"):])
     assert any("--refresh" in w for w in doc["warnings"])
+
+
+def test_problem_update_dry_run_prints_a_plan_hash_bound_on_send(monkeypatch):
+    from fsv import config, service
+    monkeypatch.setattr(config, "DOMAIN", "acme.example.com")
+    client = Client()
+    state = {"problem": {"id": 7, "deleted": False, "subject": "Acme outage"}}
+    client.int_get = lambda path, params=None: (
+        {PROBLEMS.form_fields_key: SCHEMA["fields"]} if path == PROBLEMS.form_fields_path
+        else {"problem": dict(state["problem"])})
+    sent = []
+    monkeypatch.setattr(service, "update_item", lambda res, cid, body, client=None: sent.append(body) or
+                        {"id": cid, **body})
+    monkeypatch.setattr(cli, "_client", lambda: client)
+    monkeypatch.setattr("fsv.schema.load", lambda *a, **k: {**SCHEMA, "source": "server"})
+    args = ["problems", "update", "PRB-7", "--priority", "High"]
+    run = lambda *extra: CliRunner().invoke(cli.app, [*args, *extra])
+    res = run("--dry-run", "--json")
+    assert res.exit_code == 0, res.output
+    doc = json.loads(res.output[res.output.index("{"):])
+    plan = doc["plan_hash"]
+    assert len(plan) == 64 and doc["body"] and not sent
+    again = run("--dry-run").output
+    assert json.loads(again[again.index("{"):])["plan_hash"] == plan
+    assert run("--yes", "--expect-plan", "0" * 64, "--json").exit_code != 0 and not sent
+    state["problem"]["subject"] = "Globex outage"  # changed after review
+    assert run("--yes", "--expect-plan", plan, "--json").exit_code != 0 and not sent
+    state["problem"]["subject"] = "Acme outage"
+    res = run("--yes", "--expect-plan", plan, "--json")
+    assert res.exit_code == 0, res.output
+    assert len(sent) == 1
