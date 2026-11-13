@@ -699,24 +699,6 @@ pub fn overlaps(response: &Value) -> Result<Vec<Value>> {
     )))
 }
 
-/// `journal.replay_refusal`: why a journaled plan must not be sent again.
-fn replay_refusal(events: &[Value], unknown: &str) -> Option<String> {
-    let last = events.last()?;
-    match last.get("event").and_then(Value::as_str) {
-        Some("started") => Some(unknown.to_string()),
-        Some("done") => {
-            let when = last
-                .get("ts")
-                .filter(|v| fsv_py::truthy(v))
-                .map_or_else(|| "an earlier run".to_string(), py_str);
-            Some(format!(
-                "this exact plan was already sent at {when} and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
-            ))
-        }
-        _ => None,
-    }
-}
-
 /// Port of fsv.change_windows.send_create. Whether overlaps refuse is
 /// `plan.allow_overlap` (part of the reviewed hash).
 pub fn send_create(
@@ -746,7 +728,7 @@ pub fn send_create(
                     .is_some_and(|p| guards.contains(&p))
         })
         .collect();
-    if let Some(msg) = replay_refusal(
+    if let Some(msg) = fsv_core::journal::replay_refusal(
         &events,
         "window create was sent or outcome unknown; inspect the window list, do not replay",
     ) {

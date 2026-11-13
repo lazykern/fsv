@@ -19,7 +19,7 @@ use crate::notes::{self, BodyFormat};
 use crate::properties::record;
 use crate::readback::{py_equal, resolution_text, same_text, submitted_value_matches};
 use crate::reviewed_write::refused;
-use crate::service::{Api, Journal, last_event, obj, plan_hash, snapshot_hash};
+use crate::service::{Api, Journal, last_event, obj, plan_hash, replay_refusal, snapshot_hash};
 
 pub const ACTION: &str = "ticket_transition";
 
@@ -572,13 +572,13 @@ pub fn send(
     if plan.tenant.is_empty() || c.domain() != plan.tenant || reviewed != hash {
         return Err(refused("tenant or full review hash changed; review again"));
     }
-    if matches!(
-        last_event(journal, ACTION, &hash).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = replay_refusal(
+        journal,
+        ACTION,
+        &hash,
+        "transition was sent or outcome unknown; inspect ticket and journal before retry",
     ) {
-        return Err(refused(
-            "transition was sent or outcome unknown; inspect ticket and journal before retry",
-        ));
+        return Err(refused(refusal));
     }
     let answers = plan.answers();
     let before = record(c, plan.target)?;

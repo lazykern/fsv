@@ -734,13 +734,13 @@ pub fn send(
             "spam/delete require --confirm-destructive after inspecting the printed ID list",
         ));
     }
-    if matches!(
-        service::last_event(journal, &plan.write.action, &plan.write.hash()).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = service::replay_refusal(
+        journal,
+        &plan.write.action,
+        &plan.write.hash(),
+        "bulk write was sent or outcome unknown; do not replay",
     ) {
-        return Err(refused(
-            "bulk write was sent or outcome unknown; do not replay",
-        ));
+        return Err(refused(refusal));
     }
     rebuilt(plan, c, store, journal)?;
     if intent.get("answers").is_some_and(fsv_py::truthy) {

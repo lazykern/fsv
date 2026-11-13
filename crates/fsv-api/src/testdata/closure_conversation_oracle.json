@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "922817f958cd142404f48efc2933e508beacd2bc",
+  "commit": "a3f2a1a1c802d5db32ef4bb8b0cc1b86da1137f9",
   "dirty": false
  },
  "closure_acme_note_Resolved": {
@@ -70,7 +70,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -154,7 +154,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -239,7 +239,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -324,7 +324,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -408,7 +408,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -492,7 +492,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -577,7 +577,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -662,7 +662,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -842,7 +842,7 @@
    {
     "error": {
      "type": "ConversationError",
-     "msg": "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }

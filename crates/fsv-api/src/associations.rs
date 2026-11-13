@@ -11,7 +11,7 @@ use fsv_core::resource::{CHANGES, parse_id};
 
 use crate::service::{
     Api, Journal, collect_pages, definite_rejection, dumps_bytes, last_event, obj, plan_hash,
-    positive_id,
+    positive_id, replay_refusal,
 };
 
 const ACTION: &str = "change_ticket_association";
@@ -223,11 +223,8 @@ pub fn send(
             "association review hash/tenant does not match; review again",
         ));
     }
-    if matches!(
-        last_event(journal, ACTION, &hash).as_deref(),
-        Some("started" | "done")
-    ) {
-        return Err(fail(UNKNOWN));
+    if let Some(refusal) = replay_refusal(journal, ACTION, &hash, UNKNOWN) {
+        return Err(fail(&refusal));
     }
     let prepared = ticket_ids(c, plan.change_id).and_then(|b| c.get_csrf().map(|t| (b, t)));
     let Ok((before, csrf)) = prepared else {
@@ -377,7 +374,7 @@ mod tests {
             )
             .unwrap_err()
             .to_string(),
-            UNKNOWN
+            fsv_core::journal::replay_refusal(&[json!({"event": "done"})], UNKNOWN).unwrap()
         );
     }
 
