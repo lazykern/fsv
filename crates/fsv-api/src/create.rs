@@ -237,10 +237,13 @@ pub fn field_default(f: &Value) -> Value {
     let ftype = s(f.get("field_type"));
     let choices = f.list_or_empty("choices");
     let boolish = |c: &Value| {
-        c.get("id").is_some_and(Value::is_boolean)
-            || c.get("id")
-                .is_some_and(|v| *v == json!(1) || *v == json!(0))
-            || c.get("value").is_some_and(|v| v == "true" || v == "false")
+        // `id in (True, False)`: 1 == True and 0 == False, including 1.0 and 0.0.
+        let id_bool = c.get("id").is_some_and(|v| match v {
+            Value::Bool(_) => true,
+            Value::Number(n) => n.as_f64().is_some_and(|f| f == 0.0 || f == 1.0),
+            _ => false,
+        });
+        id_bool || c.get("value").is_some_and(|v| v == "true" || v == "false")
     };
     if matches!(ftype.as_str(), "default_checkbox" | "custom_checkbox")
         || (!choices.is_empty() && choices.iter().take(2).all(boolish))
@@ -466,11 +469,19 @@ pub fn clone_assets(c: &dyn Api, source_change_id: i64, new_change_id: i64) -> R
             })
             .cloned()
     };
-    let ids: Vec<i64> = get_change_assets(c, source_change_id)?
+    let mut ids = Vec::new();
+    for v in get_change_assets(c, source_change_id)?
         .iter()
         .filter_map(display)
-        .map(|v| py_int(&v).unwrap_or(0))
-        .collect();
+    {
+        let Some(id) = py_int(&v) else {
+            return Err(Error::value(format!(
+                "invalid literal for int() with base 10: {}",
+                py_repr(&v)
+            )));
+        };
+        ids.push(id);
+    }
     if ids.is_empty() {
         return Ok(ids);
     }
@@ -1931,6 +1942,19 @@ mod tests {
             &json!({"field_type": "custom_text", "choices": [{"id": true}, {"id": false}]}),
         ));
         assert_eq!(json!(defaults), want("field_default"));
+        // `id in (True, False)` treats 1.0 and 0.0 as booleans; 1 and 2 do not.
+        assert_eq!(
+            field_default(
+                &json!({"field_type": "custom_dropdown", "choices": [{"id": 1.0}, {"id": 0.0}]})
+            ),
+            json!(false)
+        );
+        assert_eq!(
+            field_default(
+                &json!({"field_type": "custom_dropdown", "choices": [{"id": 1}, {"id": 2}]})
+            ),
+            json!([1, 2])
+        );
         let schema = json!({"fields": sf});
         assert_eq!(
             json!([
@@ -2063,6 +2087,21 @@ mod tests {
         assert_eq!(
             json!([clone_assets(&a, 5, 6).unwrap(), writes(&a)]),
             want("clone_assets_none")
+        );
+        let a = FakeApi::new().ok(
+            "GET changes/5/assets",
+            json!({"associated_assets": [{"display_id": "nope"}]}),
+        );
+        assert_eq!(
+            err(clone_assets(&a, 5, 6)),
+            "invalid literal for int() with base 10: 'nope'"
+        );
+        assert!(
+            writes(&a)
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|c| c["method"] != "PUT")
         );
 
         let a = FakeApi::new()

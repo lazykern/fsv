@@ -182,6 +182,16 @@ those stay identical.
   changed; review again". Python's `canned.freshen` raises `KeyError`.
 - Detail panel: a `description` or `description_text` that is not text is
   omitted or stringified. Python's `render.detail_panel` raises `TypeError`.
+- Attachment readback: an owner envelope that is not an object is an error.
+  Python's `attachments.readback` raises `AttributeError`.
+- Catalog item labels: a form error that is not a value error is returned
+  as an error. Python prints a traceback.
+- Change send: after the change body is sent, only a definite 4xx refusal
+  marks the journal entry failed, and a missing started mark refuses the
+  send. Python's `change_flow.execute` marks any later error failed.
+- Change clone assets: a display id that is neither text nor a number gets
+  the invalid-literal message. Python raises `TypeError`. A change-approvals
+  body that is neither a list nor an object reads as no approvals.
 
 ## fsv-app
 

@@ -423,10 +423,11 @@ pub fn validate_required(fields: &[Value], payload: &Map<String, Value>) -> Resu
             || value == Some(&json!(""))
             || value == Some(&json!([]))
         {
+            // `str(label or name)`: 0 and other falsy labels use the field name.
             let label = field
                 .get("label")
+                .filter(|v| fsv_py::truthy(v))
                 .map(fsv_py::py_str)
-                .filter(|s| !s.is_empty())
                 .unwrap_or(name);
             missing.push(label);
         }
@@ -510,10 +511,11 @@ pub fn reminder_choices(fields: &[Value]) -> Result<Vec<(i64, String)>> {
 /// form's first choice.
 pub fn runtime_reminder_label(value: Option<&str>, fields: &[Value]) -> Result<String> {
     let choices = reminder_choices(fields)?;
-    let Some(value) = value.map(str::trim).filter(|v| !v.is_empty()) else {
+    // Only `None` is the form default. `""` is looked up and misses.
+    let Some(value) = value else {
         return Ok(choices[0].1.clone());
     };
-    let key = casefold(value);
+    let key = casefold(fsv_core::pystr::strip(value));
     let hits: Vec<&str> = choices
         .iter()
         .filter(|(id, label)| key == id.to_string() || key == casefold(label))
@@ -1182,6 +1184,31 @@ mod tests {
                 T
             )),
             "prefix INC not valid for changes (expect CHN)"
+        );
+    }
+
+    #[test]
+    fn reminder_blank_is_not_the_default_and_falsy_label_uses_name() {
+        let fields = json!([{
+            "name": "notify_before",
+            "choices": [{"id": 0, "value": "Never"}, {"id": 3600, "value": "1 Hour"}]
+        }]);
+        let fields = fields.as_array().unwrap();
+        assert_eq!(runtime_reminder_label(None, fields).unwrap(), "Never");
+        assert_eq!(
+            err(runtime_reminder_label(Some(""), fields)),
+            "notify before must be one of the runtime choices: Never, 1 Hour"
+        );
+        assert_eq!(
+            err(runtime_reminder_label(Some("   "), fields)),
+            "notify before must be one of the runtime choices: Never, 1 Hour"
+        );
+        let required = json!([{
+            "name": "cf_x", "label": 0, "default": false, "required": true
+        }]);
+        assert_eq!(
+            err(validate_required(required.as_array().unwrap(), &Map::new())),
+            "required task fields missing: cf_x"
         );
     }
 
