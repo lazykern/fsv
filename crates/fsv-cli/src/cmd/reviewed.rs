@@ -783,7 +783,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             }
             answers.insert(key, json!(value));
         }
-        let plan = ticket_bulk::build_plan_with_answers(
+        let plan = ticket_bulk::build_plan_scenario(
             c.as_ref(),
             &store,
             &DiskJournal,
@@ -791,6 +791,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             &args,
             a.max_records,
             (!answers.is_empty()).then_some(&answers),
+            a.scenario.as_deref(),
         )?;
         let ids: Vec<String> = plan.ids.iter().map(i64::to_string).collect();
         eprintln!("Selected ticket IDs: {}", ids.join(", "));
@@ -800,6 +801,14 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
                 "  {}: {}",
                 fsv_py::py_str(&row["id"]),
                 fsv_py::py_str(&row["subject"])
+            );
+        }
+        if a.action == "scenario" {
+            let chosen = plan.review()["scenario"].clone();
+            eprintln!(
+                "Scenario to run: {} ({}); its effects cannot be verified",
+                fsv_py::py_str(&chosen["id"]),
+                fsv_py::py_str(&chosen["name"])
             );
         }
         if a.dry_run {
