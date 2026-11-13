@@ -534,6 +534,14 @@ def register(app: typer.Typer) -> None:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
 
+    CHAINS_REMIND_GAP = (
+        "approval-remind is not available on the approval-chains model: the only reminder accepted on a chains "
+        "tenant is the service-request one (`fsv sr approvals remind`, bodyless PUT "
+        "tickets/<id>/approvals/<approval id>/resend). The same web constant would build "
+        "changes/<id>/approvals/<approval id>/resend, but no change reminder was ever accepted (the legacy "
+        "change capture was aborted unsent), so fsv does not guess it; nothing was sent. Use the web UI: "
+        "change > Approvals > the approval row menu > Send reminder")
+
     @app.command("approval-remind", help="Review a reminder for one requested approval (legacy flat approvals; capture-based).")
     def approval_remind(
         id_: str = typer.Argument(..., metavar="CHANGE_ID"),
@@ -549,8 +557,7 @@ def register(app: typer.Typer) -> None:
             client = get_client()
             cid = parse_id(id_, CHANGES)
             if _model(client, cid, model) != approval_model.LEGACY:
-                raise ApprovalError("approval-remind: no change reminder wire was captured on the approval chains "
-                                    "model; use the web UI")
+                raise ApprovalError(CHAINS_REMIND_GAP)
             plan = legacy_approvals.build_remind(client, "changes", cid, approval_id)
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))

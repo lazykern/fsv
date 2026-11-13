@@ -52,6 +52,15 @@ journaled attempt verified only by an independent read of the flat
 * Remind (`changes approval-remind`, `sr approvals remind`): bodyless
   `PUT <module>/<id>/approvals/<approval id>/resend` on a requested record;
   verified by `last_reminded_at` advancing.
+* Approval-chains tenants: `sr approvals remind` uses the same bodyless
+  `PUT tickets/<id>/approvals/<approval id>/resend` (the nested approval
+  record id from `approval-chains`); it is the one reminder accepted and read
+  back on a chains tenant. `changes approval-remind` refuses there before any
+  write: the web's module-generic constant
+  (`{module}/{item_id}/approvals/{id}/resend`) implies
+  `changes/<id>/approvals/<approval id>/resend`, but no change reminder
+  request was ever accepted on any tenant (the legacy change capture was
+  aborted unsent), so the variant stays blocked until one is captured.
 * Readback: new record ids must carry exactly the recipients as `member_id`;
   raw status 0 and the rule's raw type id verify, anything else is reported
   as unverified.

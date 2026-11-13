@@ -152,3 +152,14 @@ def test_unverified_rules_are_refused_on_legacy(tenant):
     c, _ = tenant
     with pytest.raises(ValueError, match="observed rules"):
         legacy.build_request(c, "changes", 41, CAB_MEMBERS, rule="majority")
+
+
+def test_change_remind_on_chains_refuses_with_the_exact_gap(tenant):
+    c, s = tenant
+    r = CliRunner().invoke(cli.app, ["changes", "approval-remind", "CHN-41", "730000000002", "--model", "chains",
+                                     "--dry-run"])
+    assert r.exit_code == 2
+    text = " ".join(r.output.split())
+    assert "sr approvals remind" in text and "nothing was sent" in text and "Send reminder" in text
+    assert "changes/<id>/approvals/<approval id>/resend" in text
+    assert not s["writes"]
