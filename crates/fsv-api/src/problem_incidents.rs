@@ -77,9 +77,12 @@ pub fn build_plan(c: &dyn Api, problem: &str, incident: &str, unlink: bool) -> R
     let Some(ticket) = ticket.filter(|m| id_of(m) == tid.to_string()) else {
         return Err(refused("incident read did not identify exact target"));
     };
-    let display = ticket.get("human_display_id").filter(|v| !v.is_null());
-    if ticket.get("type") != Some(&json!("Incident"))
-        || display.is_some_and(|d| *d != json!(format!("INC-{tid}")))
+    // every piece of evidence the record carries must say incident
+    let evidence = crate::ticket_kind::kind_evidence(&Value::Object(ticket.clone()));
+    if evidence.is_empty()
+        || evidence
+            .iter()
+            .any(|(_, kind)| kind != crate::ticket_kind::INCIDENT)
     {
         return Err(refused("ticket is not a verified incident"));
     }

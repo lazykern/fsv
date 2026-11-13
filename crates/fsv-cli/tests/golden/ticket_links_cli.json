@@ -1,0 +1,72 @@
+{
+ "dry": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"dry_run\",\n  \"action\": \"ticket_link_change\",\n  \"method\": \"PUT\",\n  \"path\": \"/api/_/tickets/41/changes/associate\",\n  \"payload\": {\n    \"change_type\": \"change\",\n    \"item_ids\": [\n      9\n    ],\n    \"type\": \"link\"\n  },\n  \"plan_hash\": \"84858da10ee2aa7dfd4a50d1e3c84f3a25c6096c6239765093154965e14704dc\",\n  \"warning\": \"Single-attempt write. Unknown outcomes must be inspected, never automatically resent.\",\n  \"ticket_id\": 41,\n  \"kind\": \"change\",\n  \"item_id\": 9,\n  \"change_type\": \"change\",\n  \"meaning\": \"change initiated by this ticket\"\n}\n",
+  "stderr": ""
+ },
+ "cand_child": {
+  "code": 0,
+  "stdout": "{\n  \"ticket_id\": 41,\n  \"kind\": \"child\",\n  \"search\": \"printer\",\n  \"candidates\": [\n    {\n      \"id\": 42,\n      \"subject\": \"Acme printer\"\n    }\n  ],\n  \"scope\": \"one picker page or search result; not a complete inventory\",\n  \"mutation\": \"none\"\n}\n",
+  "stderr": ""
+ },
+ "no_kind": {
+  "code": 2,
+  "stdout": "",
+  "stderr": "--kind is required: initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)\n"
+ },
+ "cand_no_kind": {
+  "code": 2,
+  "stdout": "",
+  "stderr": "--kind is required for the picker list: initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)\n"
+ },
+ "list_no_kind": {
+  "code": 2,
+  "stdout": "",
+  "stderr": "--kind is required: initiating (change_cause: the change caused this ticket) | initiated-by (change: this ticket initiated the change)\n"
+ },
+ "kind_on_problem": {
+  "code": 2,
+  "stdout": "",
+  "stderr": "--kind applies to changes only\n"
+ },
+ "gate": {
+  "code": 2,
+  "stdout": "",
+  "stderr": "review with --dry-run, then --yes --expect-plan FULL_HASH\n"
+ },
+ "missing": {
+  "code": 2,
+  "stdout": "",
+  "stderr": "problem 77 not found (HTTP 404); nothing was sent\n"
+ },
+ "send": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"submitted\",\n  \"plan_hash\": \"84858da10ee2aa7dfd4a50d1e3c84f3a25c6096c6239765093154965e14704dc\",\n  \"verified\": true,\n  \"ticket_id\": 41,\n  \"item_id\": 9,\n  \"kind\": \"change\",\n  \"change_type\": \"change\",\n  \"linked\": true\n}\n",
+  "stderr": ""
+ },
+ "list": {
+  "code": 0,
+  "stdout": "{\n  \"ticket_id\": 41,\n  \"change_type\": \"change\",\n  \"meaning\": \"change initiated by this ticket\",\n  \"changes\": [\n    {\n      \"id\": 9\n    }\n  ],\n  \"complete\": true\n}\n",
+  "stderr": ""
+ },
+ "child_link_dry": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"dry_run\",\n  \"action\": \"ticket_link_child\",\n  \"method\": \"POST\",\n  \"path\": \"/api/_/tickets/41/associate-child-tickets\",\n  \"payload\": {\n    \"ticket_ids\": [\n      42\n    ]\n  },\n  \"plan_hash\": \"eb138edc529494338e941fcb501628f5156881920bf025778b5441a363841a10\",\n  \"warning\": \"Single-attempt write. Unknown outcomes must be inspected, never automatically resent.\",\n  \"ticket_id\": 41,\n  \"kind\": \"child\",\n  \"item_id\": 42\n}\n",
+  "stderr": ""
+ },
+ "child_link_send": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"submitted\",\n  \"plan_hash\": \"eb138edc529494338e941fcb501628f5156881920bf025778b5441a363841a10\",\n  \"verified\": true,\n  \"ticket_id\": 41,\n  \"item_id\": 42,\n  \"kind\": \"child\",\n  \"child_hierarchy\": \"child\",\n  \"linked\": true\n}\n",
+  "stderr": ""
+ },
+ "child_unlink_dry": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"dry_run\",\n  \"action\": \"ticket_unlink_child\",\n  \"method\": \"DELETE\",\n  \"path\": \"/api/_/tickets/41/remove_child?ticket_id=42\",\n  \"payload\": null,\n  \"plan_hash\": \"583f4ed8a1c68c72ef44fe1a2d7cdd1a76fc978689a58118250e04722da52923\",\n  \"warning\": \"Single-attempt write. Unknown outcomes must be inspected, never automatically resent.\",\n  \"ticket_id\": 41,\n  \"kind\": \"child\",\n  \"item_id\": 42\n}\n",
+  "stderr": ""
+ },
+ "child_unlink_send": {
+  "code": 0,
+  "stdout": "{\n  \"status\": \"submitted\",\n  \"plan_hash\": \"583f4ed8a1c68c72ef44fe1a2d7cdd1a76fc978689a58118250e04722da52923\",\n  \"verified\": true,\n  \"ticket_id\": 41,\n  \"item_id\": 42,\n  \"kind\": \"child\",\n  \"child_hierarchy\": \"none\",\n  \"linked\": false\n}\n",
+  "stderr": ""
+ }
+}

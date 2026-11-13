@@ -831,7 +831,14 @@ pub fn relationships_list(a: ChangesRelationshipsListArgs) -> CmdResult {
     let c = client()?;
     let rows = parse_id(&a.target, &CHANGES)
         .and_then(|cid| change_relationships::inventory(c.as_ref(), cid, &a.kind))
-        .map_err(refusal)?;
+        .map_err(|e| match e {
+            Error::Api(_) => {
+                let what = format!("the {} relationships of {}", a.kind, a.target);
+                let msg = change_relationships::refusal(e, &what).to_string();
+                plain_fail(&msg.replace("; nothing was sent", ""), 2)
+            }
+            other => refusal(other),
+        })?;
     println!("{}", dumps(&json!(rows)));
     Ok(())
 }
@@ -862,7 +869,11 @@ pub fn relationships_write(a: ChangesRelationshipsWriteArgs) -> CmdResult {
         let result = change_relationships::send(&plan, c.as_ref(), &DiskJournal, Some(&hash))?;
         print_verified(&result)
     };
-    run().map_err(refusal)
+    // Plan building maps its reads; this is a last-resort one-liner.
+    run().map_err(|e| match e {
+        Error::Api(_) => plain_fail(&format!("error: {e}; nothing was sent"), 2),
+        other => refusal(other),
+    })
 }
 
 /// Port of fsv.module_time_cli's `list` (changes and problems).
