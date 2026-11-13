@@ -1,0 +1,547 @@
+[
+ {
+  "name": "problems_delete_dry_run",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_wrong_hash",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "name": "problems_delete_no_yes",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "12",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "name": "problems_delete_send",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_send_unverified",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "13",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "problems",
+   "delete",
+   "13",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_rejected",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "14",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "problems",
+   "delete",
+   "14",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_already_trashed",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "21",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_not_found",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_flag_unavailable",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "15",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_other_identity",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "16",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_read_500",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "17",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_bad_id",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "CHN-12",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_restore_dry_run",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "restore",
+   "21",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_restore_not_trashed",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "restore",
+   "12",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_restore_send",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "restore",
+   "21",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "problems",
+   "restore",
+   "21",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_forever_dry_run",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_forever_not_trashed",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "12",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_forever_needs_confirm",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_delete_forever_send",
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_dry_run",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "31",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_needs_confirm",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "31",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "solutions",
+   "delete",
+   "31",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_send",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "31",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "solutions",
+   "delete",
+   "31",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_already_trashed",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_not_found",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_bad_id",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "KB-3",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_forever_dry_run",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_forever_needs_confirm",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "33",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "solutions",
+   "delete-forever",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_delete_forever_send",
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "33",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "solutions",
+   "delete-forever",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_needs_max_records",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_more_than_max",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "--max-records",
+   "1",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_max_records_range",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "--max-records",
+   "51",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_distinct",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "41",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_forever_needs_max_records",
+  "fixture": "record_delete_forever",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "51",
+   "52",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_many_dry_run",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_many_needs_confirm",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_many_send",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problems_forever_stops_at_first_failure",
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "44",
+   "45",
+   "46",
+   "--max-records",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "problems",
+   "delete-forever",
+   "44",
+   "45",
+   "46",
+   "--max-records",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "solutions_forever_many_send",
+  "fixture": "record_delete_forever",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "51",
+   "52",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "solutions",
+   "delete-forever",
+   "51",
+   "52",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ }
+]

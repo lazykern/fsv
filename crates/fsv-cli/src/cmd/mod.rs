@@ -6,6 +6,7 @@ pub mod cache;
 pub mod changes;
 pub mod completion;
 pub mod config;
+pub mod deletes;
 pub mod download;
 pub mod form;
 pub mod formflow;
@@ -19,6 +20,7 @@ pub mod review;
 pub mod reviewed;
 pub mod sr;
 pub mod ticket_links;
+pub mod ticket_trash;
 pub mod tickets;
 pub mod windows;
 
@@ -83,6 +85,17 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         "changes windows list" => windows::windows_list(parse(m)?),
         "changes windows create" => windows::windows_create(parse(m)?),
         "changes windows delete" => windows::windows_delete(parse(m)?),
+        // batch "deletes": record, ticket trash and spam deletes
+        "problems delete" => deletes::problems_delete(parse(m)?),
+        "problems restore" => deletes::problems_restore(parse(m)?),
+        "problems delete-forever" => deletes::problems_delete_forever(parse(m)?),
+        "solutions delete" => deletes::solutions_delete(parse(m)?),
+        "solutions delete-forever" => deletes::solutions_delete_forever(parse(m)?),
+        "tickets trash list" => ticket_trash::trash_list(parse(m)?),
+        "tickets restore" => ticket_trash::restore(parse(m)?),
+        "tickets delete-forever" => ticket_trash::delete_forever(parse(m)?),
+        "tickets spam" => ticket_trash::spam(parse(m)?),
+        "tickets unspam" => ticket_trash::unspam(parse(m)?),
         _ if path.starts_with("form ") => form::dispatch(sub, m),
         _ if path.starts_with("sr ") => {
             inventory::dispatch("sr", sub, m).unwrap_or_else(|| sr::dispatch(sub, m))

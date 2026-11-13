@@ -14,6 +14,7 @@ use fsv_core::error::{Error, Result};
 use fsv_core::pystr::casefold;
 use fsv_core::resource::{TICKETS, parse_id};
 
+use crate::delete_state::delete_state_tokens;
 use crate::formmeta::MetaStore;
 use crate::properties::{self, PropertyArgs};
 use crate::reviewed_write::{WritePlan, execute, refused};
@@ -259,10 +260,11 @@ fn intent_value(
 pub fn build_plan(
     c: &dyn Api,
     store: &dyn MetaStore,
+    journal: &dyn Journal,
     ids: &[String],
     args: &BulkArgs<'_>,
 ) -> Result<BulkPlan> {
-    build_plan_bounded(c, store, ids, args, None)
+    build_plan_bounded(c, store, journal, ids, args, None)
 }
 
 /// `build_plan(..., max_records=)`. `BulkArgs` stays unchanged so existing
@@ -270,11 +272,12 @@ pub fn build_plan(
 pub fn build_plan_bounded(
     c: &dyn Api,
     store: &dyn MetaStore,
+    journal: &dyn Journal,
     ids: &[String],
     args: &BulkArgs<'_>,
     max_records: Option<i64>,
 ) -> Result<BulkPlan> {
-    build_plan_with_answers(c, store, ids, args, max_records, None)
+    build_plan_with_answers(c, store, journal, ids, args, max_records, None)
 }
 
 /// [`build_plan_bounded`] plus `answers=` (`bulk status --set`): each
@@ -283,6 +286,7 @@ pub fn build_plan_bounded(
 pub fn build_plan_with_answers(
     c: &dyn Api,
     store: &dyn MetaStore,
+    journal: &dyn Journal,
     ids: &[String],
     args: &BulkArgs<'_>,
     max_records: Option<i64>,
@@ -456,7 +460,22 @@ pub fn build_plan_with_answers(
             }
             (Vec::new(), fields)
         };
-        let context = snapshot_hash(&json!({"plans": plan_hashes, "records": baselines}))?;
+        let mut state = json!({"plans": plan_hashes, "records": baselines});
+        if args.action == "delete" {
+            // a delete after a restore is a new plan, not a replay
+            let rows: Vec<Map<String, Value>> = baselines
+                .iter()
+                .filter_map(Value::as_object)
+                .cloned()
+                .collect();
+            state["states"] = Value::Array(delete_state_tokens(
+                journal,
+                &rows,
+                &cids,
+                &["ticket_restore"],
+            ));
+        }
+        let context = snapshot_hash(&state)?;
         if !delegate.is_empty() {
             // The bulk update_multiple wire is captured for status/assignment
             // only; rule-required answers use the captured single-ticket PUT
@@ -552,7 +571,12 @@ pub fn build_plan_with_answers(
     })
 }
 
-fn plan_from_intent(c: &dyn Api, store: &dyn MetaStore, intent_json: &str) -> Result<BulkPlan> {
+fn plan_from_intent(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+    intent_json: &str,
+) -> Result<BulkPlan> {
     let intent: Value = serde_json::from_str(intent_json).unwrap_or(Value::Null);
     let ids = string_list(&intent["ids"]);
     let where_ = string_list(&intent["where"]);
@@ -566,6 +590,7 @@ fn plan_from_intent(c: &dyn Api, store: &dyn MetaStore, intent_json: &str) -> Re
     build_plan_with_answers(
         c,
         store,
+        journal,
         &ids,
         &BulkArgs {
             action: &action,
@@ -672,8 +697,13 @@ fn verify(plan: &BulkPlan, c: &dyn Api) -> Result<Map<String, Value>> {
     })))
 }
 
-fn rebuilt(plan: &BulkPlan, c: &dyn Api, store: &dyn MetaStore) -> Result<BulkPlan> {
-    let fresh = plan_from_intent(c, store, &plan.intent_json)?;
+fn rebuilt(
+    plan: &BulkPlan,
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+) -> Result<BulkPlan> {
+    let fresh = plan_from_intent(c, store, journal, &plan.intent_json)?;
     if fresh.hash() != plan.hash() {
         return Err(refused(
             "bulk selection, metadata or records changed; review again",
@@ -712,7 +742,7 @@ pub fn send(
             "bulk write was sent or outcome unknown; do not replay",
         ));
     }
-    rebuilt(plan, c, store)?;
+    rebuilt(plan, c, store, journal)?;
     if intent.get("answers").is_some_and(fsv_py::truthy) {
         return send_each(plan, c, store, journal);
     }
@@ -737,7 +767,7 @@ pub fn send(
         return ticket_assignment::send(delegate, c, store, journal, Some(&delegate.hash()), None)
             .map(reported);
     }
-    let rebuild = || Ok(rebuilt(plan, c, store)?.write);
+    let rebuild = || Ok(rebuilt(plan, c, store, journal)?.write);
     let check = |_: &Value| Ok(crate::readback::bounded_readback(|| verify(plan, c)));
     execute(
         &plan.write,
@@ -918,6 +948,7 @@ mod tests {
         build_plan(
             c,
             &store(),
+            &MemJournal::default(),
             &["INC-72".into(), "INC-71".into()],
             &args("spam"),
         )
@@ -969,7 +1000,14 @@ mod tests {
     fn delete_and_unspam_match_python() {
         let state = Arc::new(Mutex::new(world()));
         let c = api(Arc::clone(&state));
-        let plan = build_plan(&c, &store(), &["71".into(), "72".into()], &args("delete")).unwrap();
+        let plan = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into(), "72".into()],
+            &args("delete"),
+        )
+        .unwrap();
         let want = oracle_plan("delete");
         assert_eq!(plan.write.path, want["path"].as_str().unwrap());
         assert_eq!(plan.write.payload_json, want["payload"].as_str().unwrap());
@@ -986,7 +1024,14 @@ mod tests {
 
         let state = Arc::new(Mutex::new(world()));
         let c = api(state);
-        let plan = build_plan(&c, &store(), &["71".into()], &args("unspam")).unwrap();
+        let plan = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into()],
+            &args("unspam"),
+        )
+        .unwrap();
         let want = oracle_plan("unspam");
         assert_eq!(plan.write.path, want["path"].as_str().unwrap());
         assert_eq!(plan.write.payload_json, want["payload"].as_str().unwrap());
@@ -1059,7 +1104,8 @@ mod tests {
         let c = api(Arc::clone(&state));
         let (where_, mut bulk) = filtered("spam");
         bulk.where_ = &where_;
-        let plan = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap();
+        let plan =
+            build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(2)).unwrap();
         assert_eq!(plan.ids, vec![71, 72]);
         state.lock().unwrap().list.retain(|id| *id != 72);
         let err = send(
@@ -1077,7 +1123,8 @@ mod tests {
         let state = Arc::new(Mutex::new(filtered_world()));
         state.lock().unwrap().partial = true;
         let c = api(state);
-        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+        let err = build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(2))
+            .unwrap_err();
         assert!(
             msg(&err).contains("complete, consistent mutation inventory"),
             "{}",
@@ -1092,7 +1139,8 @@ mod tests {
             let c = api(Arc::new(Mutex::new(filtered_world())));
             let (where_, mut bulk) = filtered("spam");
             bulk.where_ = &where_;
-            let err = build_plan_bounded(&c, &store(), &[], &bulk, bound).unwrap_err();
+            let err = build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, bound)
+                .unwrap_err();
             assert_eq!(
                 msg(&err),
                 "filtered writes require --max-records N (1 to 50)"
@@ -1102,9 +1150,10 @@ mod tests {
         let c = api(Arc::new(Mutex::new(filtered_world())));
         let (where_, mut bulk) = filtered("spam");
         bulk.where_ = &where_;
-        let err = build_plan(&c, &store(), &[], &bulk).unwrap_err();
+        let err = build_plan(&c, &store(), &MemJournal::default(), &[], &bulk).unwrap_err();
         assert!(msg(&err).contains("--max-records"));
-        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(1)).unwrap_err();
+        let err = build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(1))
+            .unwrap_err();
         assert_eq!(
             msg(&err),
             "filtered selection exceeds --max-records; refusing the whole plan"
@@ -1143,7 +1192,9 @@ mod tests {
                 bulk.select_all = true;
                 bulk.status = Some("Open");
                 bulk.agent = Some("me");
-                let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+                let err =
+                    build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(2))
+                        .unwrap_err();
                 let text = msg(&err);
                 let want = match bad {
                     "contradiction" => {
@@ -1165,7 +1216,8 @@ mod tests {
         let mut bulk = args("spam");
         bulk.where_ = &where_;
         bulk.select_all = true;
-        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+        let err = build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(2))
+            .unwrap_err();
         assert_eq!(
             msg(&err),
             "filtered writes take only basic list filters (status, priority, people, groups, date ranges); advanced-only conditions cannot select a write"
@@ -1179,7 +1231,8 @@ mod tests {
         let c = api(Arc::clone(&state));
         let (where_, mut bulk) = filtered("spam");
         bulk.where_ = &where_;
-        let plan = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap();
+        let plan =
+            build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(2)).unwrap();
         assert_eq!(
             plan.review()["selected_tickets"],
             json!([{"id": 71, "subject": "Acme 71"}, {"id": 72, "subject": "Acme 72"}])
@@ -1210,7 +1263,8 @@ mod tests {
             .unwrap()
             .shift_remove("subject");
         let c = api(Arc::new(Mutex::new(w)));
-        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+        let err = build_plan_bounded(&c, &store(), &MemJournal::default(), &[], &bulk, Some(2))
+            .unwrap_err();
         assert_eq!(
             msg(&err),
             "exact selected subject unavailable; refusing filtered review"
@@ -1333,6 +1387,7 @@ mod tests {
             let built = build_plan_with_answers(
                 &c,
                 &store(),
+                &MemJournal::default(),
                 &["71".into(), "72".into()],
                 &bulk,
                 None,
@@ -1395,8 +1450,14 @@ mod tests {
             let state = Arc::new(Mutex::new(world()));
             state.lock().unwrap().stale = case["lag"].as_u64().unwrap() as usize;
             let c = api(Arc::clone(&state));
-            let plan =
-                build_plan(&c, &store(), &["71".into(), "72".into()], &args(action)).unwrap();
+            let plan = build_plan(
+                &c,
+                &store(),
+                &MemJournal::default(),
+                &["71".into(), "72".into()],
+                &args(action),
+            )
+            .unwrap();
             assert_eq!(plan.hash(), case["hash"].as_str().unwrap());
             assert_eq!(plan.write.hash(), case["write_hash"].as_str().unwrap());
             let journal = MemJournal::default();
@@ -1449,36 +1510,66 @@ mod tests {
             (Vec::<String>::new(), "select 1 to 100"),
             (vec!["71".into(), "71".into()], "select 1 to 100"),
         ] {
-            let err = build_plan(&c, &store(), &ids, &args("spam")).unwrap_err();
+            let err =
+                build_plan(&c, &store(), &MemJournal::default(), &ids, &args("spam")).unwrap_err();
             assert!(msg(&err).contains(needle), "{}", msg(&err));
         }
         let mut select_all = args("spam");
         select_all.select_all = true;
-        let err = build_plan(&c, &store(), &[], &select_all).unwrap_err();
+        let err = build_plan(&c, &store(), &MemJournal::default(), &[], &select_all).unwrap_err();
         assert!(msg(&err).contains("--select-all requires an explicit filter"));
         let where_ = ["created_at>=2026-01-01".to_string()];
         let mut both = args("spam");
         both.where_ = &where_;
         both.select_all = true;
-        let err = build_plan(&c, &store(), &["71".into()], &both).unwrap_err();
+        let err =
+            build_plan(&c, &store(), &MemJournal::default(), &["71".into()], &both).unwrap_err();
         assert!(msg(&err).contains("filters require --select-all"));
         let mut filtered = args("spam");
         filtered.where_ = &where_;
-        let err = build_plan(&c, &store(), &[], &filtered).unwrap_err();
+        let err = build_plan(&c, &store(), &MemJournal::default(), &[], &filtered).unwrap_err();
         assert!(msg(&err).contains("filters require --select-all"));
-        let err = build_plan(&c, &store(), &["71".into()], &args("nope")).unwrap_err();
+        let err = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into()],
+            &args("nope"),
+        )
+        .unwrap_err();
         assert!(msg(&err).contains("unsupported bulk action"));
         let mut status = args("spam");
         status.status = Some("Pending");
-        let err = build_plan(&c, &store(), &["71".into()], &status).unwrap_err();
+        let err = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into()],
+            &status,
+        )
+        .unwrap_err();
         assert!(msg(&err).contains("options do not match"));
         let mut resolved = args("status");
         resolved.status = Some("Resolved");
-        let err = build_plan(&c, &store(), &["71".into()], &resolved).unwrap_err();
+        let err = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into()],
+            &resolved,
+        )
+        .unwrap_err();
         assert!(msg(&err).contains("bulk closure"), "{}", msg(&err));
         let mut assign = args("assign");
         assign.agent = Some("91");
-        let err = build_plan(&c, &store(), &["71".into()], &assign).unwrap_err();
+        let err = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into()],
+            &assign,
+        )
+        .unwrap_err();
         assert!(
             msg(&err).contains("both --agent and --group"),
             "{}",
@@ -1487,8 +1578,69 @@ mod tests {
         let mut bare = row(71);
         bare.as_object_mut().unwrap().shift_remove("spam");
         state.lock().unwrap().rows.insert(71, bare);
-        let err = build_plan(&c, &store(), &["71".into()], &args("spam")).unwrap_err();
+        let err = build_plan(
+            &c,
+            &store(),
+            &MemJournal::default(),
+            &["71".into()],
+            &args("spam"),
+        )
+        .unwrap_err();
         assert!(msg(&err).contains("baseline flag"), "{}", msg(&err));
         assert!(posts(&c).is_empty());
+    }
+
+    #[test]
+    fn delete_after_restore_plans_fresh_hash_but_true_replay_refuses() {
+        for restore in ["fsv", "web-bumps-updated_at"] {
+            let state = Arc::new(Mutex::new(world()));
+            let c = api(Arc::clone(&state));
+            let journal = MemJournal::default();
+            let ids = ["INC-71".to_string()];
+            let plan = || build_plan(&c, &store(), &journal, &ids, &args("delete")).unwrap();
+            let quiet = |p: &BulkPlan| {
+                crate::readback::with_readback_sleep(
+                    |_| {},
+                    || send(p, &c, &store(), &journal, Some(&p.hash()), true),
+                )
+            };
+            let undelete = || {
+                let mut s = state.lock().unwrap();
+                s.rows.get_mut(&71).unwrap()["deleted"] = json!(false);
+            };
+            let first = plan();
+            assert_eq!(quiet(&first).unwrap()["verified"], json!(true), "{restore}");
+            undelete();
+            let same = plan();
+            assert_eq!(same.hash(), first.hash(), "{restore}");
+            let err = quiet(&same).unwrap_err();
+            assert!(msg(&err).contains("was sent"), "{restore}: {}", msg(&err));
+            if restore == "fsv" {
+                journal.record_plan(
+                    "done",
+                    &"0".repeat(64),
+                    "ticket_restore",
+                    Some(&json!(71)),
+                    None,
+                );
+            } else {
+                state.lock().unwrap().rows.get_mut(&71).unwrap()["updated_at"] =
+                    json!("2030-01-01T00:00:09Z");
+            }
+            let again = plan();
+            assert_ne!(again.hash(), first.hash(), "{restore}");
+            let writes = posts(&c).len();
+            assert_eq!(quiet(&again).unwrap()["verified"], json!(true), "{restore}");
+            assert_eq!(posts(&c).len(), writes + 1, "{restore}");
+            undelete();
+            let replay = plan();
+            let err = crate::readback::with_readback_sleep(
+                |_| {},
+                || send(&replay, &c, &store(), &journal, Some(&again.hash()), true),
+            )
+            .unwrap_err();
+            assert!(msg(&err).contains("was sent"), "{restore}: {}", msg(&err));
+            assert_eq!(posts(&c).len(), writes + 1, "{restore}");
+        }
     }
 }

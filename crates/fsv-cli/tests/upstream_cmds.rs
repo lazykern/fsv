@@ -16417,7 +16417,7 @@ fn tickets_bulk_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/tickets/delete_multiple?ids=140%2C141",
   "payload": null,
-  "plan_hash": "b087f9298d7f4bf2686574f8e69fdd83b31ce53ae01f46248d47a91a95f654c3",
+  "plan_hash": "722d0b5d90e5c1645a9571562baa4fb99ce4e1e76beaec8ef27179118bdccd4d",
   "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
   "ticket_ids": [
     140,
@@ -18733,7 +18733,7 @@ fn changes_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/changes/21",
   "payload": null,
-  "plan_hash": "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+  "plan_hash": "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
   "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
   "change_id": 21,
   "subject": "Acme firewall rollout"
@@ -18754,7 +18754,7 @@ fn changes_delete_send() {
             "--confirm-destructive",
             "--yes",
             "--expect-plan",
-            "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+            "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
         ],
         None,
     );
@@ -18763,7 +18763,7 @@ fn changes_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+  "plan_hash": "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
   "verified": true,
   "change_id": 21,
   "fields": {
@@ -18788,7 +18788,7 @@ fn changes_delete_send_unverified() {
             "--confirm-destructive",
             "--yes",
             "--expect-plan",
-            "36b8f62c3eb1ab5beb1124cacc8d011a69ea65c0f89516bb71447497f06a1a0c",
+            "3d40a78de7476dc411b9d65d744699f80f355c5ecb20427826c2b901c897bf01",
         ],
         None,
     );
@@ -18797,7 +18797,7 @@ fn changes_delete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "36b8f62c3eb1ab5beb1124cacc8d011a69ea65c0f89516bb71447497f06a1a0c",
+  "plan_hash": "3d40a78de7476dc411b9d65d744699f80f355c5ecb20427826c2b901c897bf01",
   "verified": false,
   "change_id": 22,
   "fields": {
@@ -18822,7 +18822,7 @@ fn changes_delete_needs_confirm_destructive() {
             "21",
             "--yes",
             "--expect-plan",
-            "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+            "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
         ],
         None,
     );

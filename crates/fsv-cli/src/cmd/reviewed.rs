@@ -786,6 +786,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
         let plan = ticket_bulk::build_plan_with_answers(
             c.as_ref(),
             &store,
+            &DiskJournal,
             &a.ids,
             &args,
             a.max_records,

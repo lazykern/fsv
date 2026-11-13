@@ -1,0 +1,355 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/12",
+  "json": {
+   "problem": {
+    "id": 12,
+    "display_id": 12,
+    "subject": "Acme outage",
+    "deleted": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/12",
+  "json": {
+   "problem": {
+    "id": 12,
+    "display_id": 12,
+    "subject": "Acme outage",
+    "deleted": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/12",
+  "json": {
+   "problem": {
+    "id": 12,
+    "display_id": 12,
+    "subject": "Acme outage",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:05:00Z"
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/12",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/13",
+  "json": {
+   "problem": {
+    "id": 13,
+    "display_id": 13,
+    "subject": "Acme ignored",
+    "deleted": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/13",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/14",
+  "json": {
+   "problem": {
+    "id": 14,
+    "display_id": 14,
+    "subject": "Acme locked",
+    "deleted": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/14",
+  "status": 422,
+  "json": {
+   "errors": "synthetic"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21",
+  "json": {
+   "problem": {
+    "id": 21,
+    "display_id": 21,
+    "subject": "Acme trashed",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21",
+  "json": {
+   "problem": {
+    "id": 21,
+    "display_id": 21,
+    "subject": "Acme trashed",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21",
+  "json": {
+   "problem": {
+    "id": 21,
+    "display_id": 21,
+    "subject": "Acme trashed",
+    "deleted": false,
+    "updated_at": "2026-11-01T10:05:00Z"
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/21/restore",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/22",
+  "json": {
+   "problem": {
+    "id": 22,
+    "display_id": 22,
+    "subject": "Acme trashed twice",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/22",
+  "json": {
+   "problem": {
+    "id": 22,
+    "display_id": 22,
+    "subject": "Acme trashed twice",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/22",
+  "json": {
+   "problem": {
+    "id": 22,
+    "display_id": 22,
+    "subject": "Acme trashed twice",
+    "deleted": true,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/22",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/delete-forever",
+  "status": 204,
+  "query": {
+   "ids": "22"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/15",
+  "json": {
+   "problem": {
+    "id": 15,
+    "subject": "Acme flagless"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/16",
+  "json": {
+   "problem": {
+    "id": 61,
+    "subject": "Acme other",
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/17",
+  "json": {
+   "errors": "boom"
+  },
+  "status": 500
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/99",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/31",
+  "json": {
+   "article": {
+    "id": 31,
+    "title": "Globex workaround",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/31",
+  "json": {
+   "article": {
+    "id": 31,
+    "title": "Globex workaround",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/31",
+  "json": {
+   "article": {
+    "id": 31,
+    "title": "Globex workaround",
+    "deleted": true,
+    "status": 1,
+    "updated_at": "2026-11-01T10:05:00Z"
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/solutions/articles/31",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/32",
+  "json": {
+   "article": {
+    "id": 32,
+    "title": "Globex trashed \u00e9t\u00e9",
+    "deleted": true,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/33",
+  "json": {
+   "article": {
+    "id": 33,
+    "title": "Globex permanent",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/33",
+  "json": {
+   "article": {
+    "id": 33,
+    "title": "Globex permanent",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/33",
+  "json": {
+   "article": {
+    "id": 33,
+    "title": "Globex permanent",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/33",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/solutions/articles/33/delete_forever",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/99",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ }
+]

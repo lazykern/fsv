@@ -1,0 +1,188 @@
+[
+ {
+  "name": "tickets_spam_dry_run",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "INC-32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_needs_confirm",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "32",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "spam",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_wrong_hash",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "32",
+   "--yes",
+   "--expect-plan",
+   "abc",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "name": "tickets_spam_send",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "32",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "tickets",
+   "spam",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_send_unverified",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "36",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "tickets",
+   "spam",
+   "36",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_rejected",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "37",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "tickets",
+   "spam",
+   "37",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_already",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_in_trash",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "34",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_flag_unavailable",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "35",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_not_found",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_spam_read_failed",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "38",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_unspam_dry_run",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "unspam",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_unspam_not_marked",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "unspam",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_unspam_send",
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "unspam",
+   "33",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "unspam",
+   "33",
+   "--dry-run"
+  ]
+ }
+]

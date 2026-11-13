@@ -1,0 +1,288 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets",
+  "query": {
+   "page": "9"
+  },
+  "status": 500,
+  "json": {
+   "errors": "boom"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets",
+  "query": {
+   "page": "8"
+  },
+  "json": {
+   "tickets": "nope"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 31,
+     "human_display_id": "INC-31",
+     "subject": "Acme 31",
+     "deleted": true,
+     "spam": false,
+     "updated_at": "2026-11-01T10:00:00Z",
+     "requester": {
+      "name": "Ann"
+     }
+    },
+    {
+     "id": 32,
+     "human_display_id": "INC-32",
+     "subject": "Acme caf\u00e9 32",
+     "deleted": true,
+     "updated_at": "2026-11-01T11:00:00Z"
+    }
+   ],
+   "meta": {
+    "offset": 0,
+    "has_next": false,
+    "count": 2,
+    "editable_ids": []
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/31",
+  "json": {
+   "ticket": {
+    "id": 31,
+    "human_display_id": "INC-31",
+    "subject": "Acme 31",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/31",
+  "json": {
+   "ticket": {
+    "id": 31,
+    "human_display_id": "INC-31",
+    "subject": "Acme 31",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/31",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/32",
+  "json": {
+   "ticket": {
+    "id": 32,
+    "human_display_id": "INC-32",
+    "subject": "Acme 32",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/32",
+  "json": {
+   "ticket": {
+    "id": 32,
+    "human_display_id": "INC-32",
+    "subject": "Acme 32",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/32",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/33",
+  "json": {
+   "ticket": {
+    "id": 33,
+    "human_display_id": "INC-33",
+    "subject": "Acme 33",
+    "deleted": false,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/34",
+  "json": {
+   "ticket": {
+    "id": 34,
+    "human_display_id": "INC-34",
+    "subject": "Acme 34",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/34",
+  "json": {
+   "ticket": {
+    "id": 34,
+    "human_display_id": "INC-34",
+    "subject": "Acme 34",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/34",
+  "json": {
+   "ticket": {
+    "id": 34,
+    "human_display_id": "INC-34",
+    "subject": "Acme 34",
+    "deleted": false,
+    "spam": false,
+    "updated_at": "2026-11-01T10:05:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/35",
+  "json": {
+   "ticket": {
+    "id": 35,
+    "human_display_id": "INC-35",
+    "subject": "Acme 35",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/36",
+  "json": {
+   "ticket": {
+    "id": 36,
+    "human_display_id": "INC-36",
+    "subject": "Acme 36",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/37",
+  "json": {
+   "ticket": {
+    "id": 37,
+    "human_display_id": "INC-37",
+    "subject": "Acme 37",
+    "deleted": true,
+    "spam": false,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/38",
+  "json": {
+   "errors": "boom"
+  },
+  "status": 500
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/39",
+  "json": {
+   "ticket": {
+    "id": 39,
+    "subject": "Acme 39"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/99",
+  "json": {
+   "errors": "not found"
+  },
+  "status": 404
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/34/restore",
+  "status": 204
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/35/restore",
+  "status": 204
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/tickets/delete_forever",
+  "status": 500,
+  "query": {
+   "ids": "36"
+  },
+  "json": {
+   "errors": "synthetic"
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/tickets/delete_forever",
+  "status": 204
+ }
+]
