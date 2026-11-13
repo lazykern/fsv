@@ -15,7 +15,7 @@ use fsv_py::py_str;
 use crate::formmeta::{
     MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status, load_meta,
 };
-use crate::readback::same_instant;
+use crate::readback::{same_instant, same_tags};
 use crate::service::{
     Api, Journal, definite_rejection, last_event, obj, plan_hash, snapshot_hash, stable_snapshot,
 };
@@ -625,6 +625,7 @@ pub fn send_with(
                 Some(actual) if key == "planned_start_date" || key == "planned_end_date" => {
                     same_instant(actual, expected)
                 }
+                Some(actual) if key == "tags" => same_tags(actual, expected),
                 Some(Value::Object(actual)) if key == "custom_fields" => expected
                     .as_object()
                     .into_iter()
@@ -1214,5 +1215,56 @@ mod tests {
             "--set field 'Globex nothing' did not match a ticket field label exactly; see `fsv tickets fields` for the exact labels; no update attempted"
         );
         assert!(c.writes().is_empty());
+    }
+
+    /// `test_ticket_properties.py::test_tag_readback_normalises_native_objects` (7f1e537).
+    #[test]
+    fn tag_readback_normalises_native_objects() {
+        let cases = [
+            (
+                json!([{"id": 7, "name": "Acme"}, {"id": 8, "name": "one"}]),
+                true,
+            ),
+            (
+                json!([{"id": 8, "name": "ONE"}, {"id": 7, "name": "acme"}]),
+                true,
+            ),
+            (json!(["Acme", "one"]), true),
+            (json!([{"id": 7, "name": "Acme"}]), false),
+            (
+                json!([{"id": 7, "name": "Acme"}, {"id": 9, "name": "two"}]),
+                false,
+            ),
+            (json!([{"id": 7}]), false),
+            (Value::Null, false),
+        ];
+        for (readback, ok) in cases {
+            let row = std::sync::Mutex::new(rich_row());
+            let form = rich_form(&[]);
+            let c = FnApi::new(move |call| {
+                let mut row = row.lock().unwrap();
+                match (call.method.as_str(), call.path.as_str()) {
+                    ("GET", "ticket_form_fields") => Ok(form.clone()),
+                    ("GET", p) if p.ends_with("business_rules") => {
+                        Ok(json!({"business_rules": []}))
+                    }
+                    ("GET", "tickets/123") => Ok(json!({"ticket": *row})),
+                    ("PUT", "tickets/123") => {
+                        row["tags"] = readback.clone();
+                        Ok(json!({"ticket": *row}))
+                    }
+                    other => panic!("unexpected {other:?}"),
+                }
+            });
+            let store = MemStore::default();
+            let t = vec!["Acme".to_string(), "one".to_string()];
+            let p = build_plan(&c, &store, "123", Some(&t), None, None).unwrap();
+            let result = send(&p, &c, &MemJournal::default(), &store, Some(&p.hash())).unwrap();
+            let want = if ok { "matched" } else { "mismatched" };
+            assert_eq!(result["fields"]["tags"], json!(want), "{result}");
+            assert_eq!(result["verified"], json!(ok));
+            assert_eq!(c.writes().len(), 1);
+            assert_eq!(result.get("warning").is_some(), !ok);
+        }
     }
 }

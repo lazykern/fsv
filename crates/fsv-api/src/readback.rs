@@ -310,8 +310,57 @@ pub fn custom_fields_match(actual: &Value, expected: &Value) -> bool {
     })
 }
 
+/// Port of fsv.readback.tag_names: tag names from a readback list of strings
+/// or native `{id, name}` objects; `None` for anything else.
+pub fn tag_names(value: &Value) -> Option<Vec<String>> {
+    let mut names = Vec::new();
+    for item in value.as_array()? {
+        let item = match item {
+            Value::Object(m) => m.get("name").unwrap_or(&Value::Null),
+            other => other,
+        };
+        let text = item.as_str().map(fsv_core::pystr::strip)?;
+        if text.is_empty() {
+            return None;
+        }
+        names.push(text.to_string());
+    }
+    Some(names)
+}
+
+/// Port of fsv.readback.same_tags: tag lists compared by name,
+/// case-insensitively and order-independently.
+pub fn same_tags(actual: &Value, expected: &Value) -> bool {
+    let (Some(got), Some(want)) = (tag_names(actual), tag_names(expected)) else {
+        return false;
+    };
+    let fold = |v: &[String]| {
+        v.iter()
+            .map(|t| fsv_core::pystr::casefold(t))
+            .collect::<std::collections::BTreeSet<String>>()
+    };
+    let got_set = fold(&got);
+    got_set == fold(&want) && got_set.len() == got.len()
+}
+
 #[cfg(test)]
 mod tests {
+    /// `test_ticket_properties.py::test_same_tags_helper_edges` (7f1e537).
+    #[test]
+    fn same_tags_helper_edges() {
+        use super::{same_tags, tag_names};
+        use serde_json::json;
+        assert_eq!(
+            tag_names(&json!([{"id": 1, "name": " x "}, "y"])),
+            Some(vec!["x".to_string(), "y".to_string()])
+        );
+        assert_eq!(tag_names(&json!("x")), None);
+        assert_eq!(tag_names(&json!([1])), None);
+        assert!(!same_tags(&json!([]), &json!(["x"])));
+        assert!(same_tags(&json!([]), &json!([])));
+        assert!(!same_tags(&json!(["a", "A"]), &json!(["a"])));
+    }
+
     use super::*;
 
     #[test]
