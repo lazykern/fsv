@@ -91,11 +91,14 @@ def wapi(request, monkeypatch):
     sch = {"fields": [{"name": "change_type", "label": "Change Type", "workspace_id": 3,
                        "choices": [{"id": 1, "value": "Normal"}, {"id": 4, "value": "Emergency"}]}]}
     monkeypatch.setattr(schema, "load", lambda res, client=None, force=False: sch)
-    s = {"windows": [{"id": 61, "name": "Globex freeze", "start_time": "a", "end_time": "b"}], "writes": [],
-         "overlaps": []}
+    monkeypatch.setenv("FSV_TZ", "America/New_York")
+    s = {"windows": [{"id": 61, "name": "Globex freeze", "start_time": "2030-11-20T09:00:00Z",
+                      "end_time": "2030-11-20T10:00:00Z"}], "writes": [], "overlaps": []}
 
     def handler(req):
         path = req.url.path.removeprefix("/api/_/")
+        if req.method == "GET" and path.endswith("agents/me"):
+            return httpx.Response(404, json={})
         if req.method == "GET":
             assert path == "maintenance_windows"
             return httpx.Response(200, json={"maintenance_windows": s["windows"]})
@@ -229,3 +232,58 @@ def test_window_overlap_unknown_answer_refuses_unless_allowed(wapi, answer):
     r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True, rebuild=lambda: _plan(c))
     assert r["verified"] and r["overlaps"] == "unknown"
     assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, W.OVERLAP_PATH, "maintenance_windows"]
+
+
+# The captured UI overlap check asks about blackout windows only; an existing
+# maintenance window over the same hours must still refuse (live regression:
+# window B overlapping window A was created while the check said no match).
+@pytest.mark.parametrize("answer", [{"match_found": False}, [], {"overlapping_windows": []}])
+@pytest.mark.parametrize("start,end", [
+    ("2030-11-21T13:00:00-05:00", "2030-11-21T14:00:00-05:00"),   # same hours, offset form
+    ("2030-11-21T18:00:00Z", "2030-11-21T19:00:00Z"),             # tail overlap, UTC form
+    ("2030-11-21T15:30:00", "2030-11-21T16:00:00"),               # offset-less: overlaps when read as UTC
+])
+def test_window_existing_maintenance_overlap_refuses_whatever_the_check_says(wapi, answer, start, end):
+    c, s = wapi
+    s["windows"].append({"id": 63, "name": "Acme window A", "start_time": start, "end_time": end})
+    s["overlap_answer"] = answer
+    p = _plan(c)
+    with pytest.raises(ReviewedWriteError, match=r"overlapping window\(s\) already listed \(63\)"):
+        W.send_create(p, c, reviewed_hash=p.hash, rebuild=lambda: _plan(c))
+    assert s["writes"] == []
+    r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True, rebuild=lambda: _plan(c))
+    assert r["verified"] and r["overlapping_window_ids"] == [63] and r["overlaps"] == 1
+    assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, "maintenance_windows"]
+
+
+@pytest.mark.parametrize("answer", [{"match_found": False}, []])
+def test_window_empty_list_and_back_to_back_windows_create(wapi, answer):
+    c, s = wapi
+    s["overlap_answer"] = answer
+    s["windows"] = []
+    p = _plan(c)
+    r = W.send_create(p, c, reviewed_hash=p.hash, rebuild=lambda: _plan(c))
+    assert r["verified"] and r["overlaps"] == 0 and r["overlapping_window_ids"] == []
+    s["windows"] = [{"id": 64, "name": "Globex after", "start_time": "2030-11-21T18:30:00Z",
+                     "end_time": "2030-11-21T20:00:00Z"}]
+    s["writes"].clear()
+    p = W.create_plan(c, "Acme second", "", "2030-11-21 10:00", "2030-11-21 13:30", ["change_type=Normal"])
+    r = W.send_create(p, c, reviewed_hash=p.hash)
+    assert r["verified"] and r["overlaps"] == 0
+    assert p.review()["existing_window_check"]["rule"].startswith("any listed window")
+    assert "America/New_York" in p.review()["existing_window_check"]["rule"]
+
+
+@pytest.mark.parametrize("bad", [{"start_time": "a", "end_time": "b"}, {"start_time": None},
+                                 {"start_time": "2030-11-21T10:00:00Z", "end_time": "2030-11-21T11:00:00"},
+                                 {"start_time": "10:00am", "end_time": "11:00am"}])
+def test_window_unreadable_existing_times_fail_closed(wapi, bad):
+    c, s = wapi
+    s["windows"] = [{"id": 65, "name": "Acme odd", **bad}]
+    p = _plan(c)
+    with pytest.raises(ReviewedWriteError, match="unreadable start/end") as exc:
+        W.send_create(p, c, reviewed_hash=p.hash)
+    assert "10:00" not in str(exc.value)
+    assert s["writes"] == []
+    r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True)
+    assert r["verified"] and r["overlaps"] == "unknown" and r["overlapping_window_ids"] == "unknown"

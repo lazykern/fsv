@@ -439,6 +439,14 @@ custom names), never a numeric row id.
 | Windows matching a change | `POST /api/_/change_windows/matching_windows` | `{itil_change: {id: <internal change id>}, type: "maintenance_events", source: "ember"}` | 200 | VERIFIED LIVE (read-like POST) |
 | Associate a window to a change | not captured | — | — | — |
 
+The UI's overlap check sends `type: "blackout_events"` even when the form
+creates a maintenance window, and it answered `{"match_found": false}` while
+the new maintenance window overlapped an existing maintenance window with the
+same change-type condition (both were created). Treat it as a blackout-window
+check only; detect maintenance-window overlaps from the window list's
+`start_time`/`end_time`. Whether a `maintenance_events` type is accepted here
+was not captured. [VERIFIED LIVE / INFERRED for the blackout-only scope]
+
 The window page takes several seconds to render its form, and the UI
 refuses an empty criteria row; the API accepts `criteria: []`. Some
 `change_windows` GET variants answer 500 even on a working tenant.

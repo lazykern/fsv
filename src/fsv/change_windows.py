@@ -16,6 +16,16 @@
   ``{"success": true}``; readback is absence from the list.
 
 Associating a window with a change (matching windows) is not implemented.
+
+Overlap guard. The captured UI check always posts ``type:
+"blackout_events"``, even when the window being created is a maintenance
+window, so its answer covers blackout windows only: a live run created a
+maintenance window overlapping another one while that check answered
+``{"match_found": false}``. fsv therefore also reads the maintenance
+window list itself (the captured GET) and refuses any listed window whose
+time range intersects the new one (criteria are not compared). Rows whose
+times cannot be read as ISO 8601 date-times make the answer unknown, which
+refuses like an overlap unless ``--allow-overlap``.
 """
 from __future__ import annotations
 
@@ -74,6 +84,9 @@ def _change_type_criterion(sch: dict[str, Any], expr: str) -> dict[str, str]:
 class WindowPlan:
     write: WritePlan
     overlap_json: str
+    start: str = ""  # tenant-local wall clock, ISO 'YYYY-MM-DDTHH:MM'
+    end: str = ""
+    time_zone: str = ""
 
     @property
     def hash(self) -> str:
@@ -82,7 +95,12 @@ class WindowPlan:
     def review(self) -> dict[str, Any]:
         return {**self.write.review(), "overlap_check": {"method": "POST", "path": "/api/_/" + OVERLAP_PATH,
                                                          "payload": json.loads(self.overlap_json)},
-                "warning": "The overlap check is sent first; any overlapping window refuses the create unless "
+                "existing_window_check": {"method": "GET", "path": "/api/_/maintenance_windows",
+                                          "rule": "any listed window whose time range intersects "
+                                                  f"{self.start} -> {self.end} ({self.time_zone}) refuses; "
+                                                  "unreadable window times refuse"},
+                "warning": "The existing-window check and the overlap check run first; any overlapping window, "
+                           "or an answer that does not show 'no overlap', refuses the create unless "
                            "--allow-overlap. Single attempt; never resend an unknown outcome."}
 
 
@@ -115,7 +133,66 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
         f for f in sch.get("fields") or [] if f.get("name") == "change_type"]}) or ""
     write = WritePlan("change_window_create", 0, config.DOMAIN, "POST", "maintenance_windows",
                       json.dumps(payload, sort_keys=True), context)
-    return WindowPlan(write, json.dumps(overlap, sort_keys=True))
+    s0 = dt.datetime.strptime(start.strip(), "%Y-%m-%d %H:%M")
+    e0 = dt.datetime.strptime(end.strip(), "%Y-%m-%d %H:%M")
+    return WindowPlan(write, json.dumps(overlap, sort_keys=True), s0.isoformat(timespec="minutes"),
+                      e0.isoformat(timespec="minutes"), _tz_label(client))
+
+
+def _window_tz(client: Any) -> dt.tzinfo:
+    """Zone the entered wall-clock times are read in (``FSV_TZ``, else the
+    agent profile's zone, else the system one), as the UI form does."""
+    from fsv.views import current_user, user_tz
+    try:
+        return user_tz(current_user(client))
+    except Exception:  # noqa: BLE001
+        return user_tz(None)
+
+
+def _tz_label(client: Any) -> str:
+    from fsv.forms.tz import tz_name
+    return tz_name(_window_tz(client))
+
+
+def _instant(value: Any) -> dt.datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    text = value.strip()
+    if text.endswith(("Z", "z")):
+        text = text[:-1] + "+00:00"
+    try:
+        return dt.datetime.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def existing_overlaps(rows: list[dict[str, Any]], start: str, end: str, tz: dt.tzinfo) -> list[int]:
+    """Ids of listed maintenance windows whose time range intersects the new
+    window (half-open ranges, so back-to-back windows do not overlap).
+
+    Offset-carrying times compare by instant; offset-less times are treated
+    as overlapping when they intersect either as tenant-local wall clock or
+    as UTC (fail closed). A row without readable start/end raises.
+    """
+    s_local = dt.datetime.fromisoformat(start).replace(tzinfo=tz)
+    e_local = dt.datetime.fromisoformat(end).replace(tzinfo=tz)
+    found: list[int] = []
+    for row in rows:
+        rs, re_ = _instant(row.get("start_time")), _instant(row.get("end_time"))
+        if rs is None or re_ is None or (rs.tzinfo is None) != (re_.tzinfo is None):
+            raise ReviewedWriteError(
+                f"existing maintenance window {row.get('id')} has unreadable start/end times "
+                f"(shape {_shape({'start_time': row.get('start_time'), 'end_time': row.get('end_time')})}); "
+                "overlap unknown, nothing was created. Check `fsv changes windows list` yourself; "
+                "--allow-overlap skips this check")
+        if rs.tzinfo is not None:
+            frames = [(rs, re_)]
+        else:
+            frames = [(rs.replace(tzinfo=tz), re_.replace(tzinfo=tz)),
+                      (rs.replace(tzinfo=dt.timezone.utc), re_.replace(tzinfo=dt.timezone.utc))]
+        if any(a < e_local and s_local < b for a, b in frames):
+            found.append(positive_id(row.get("id")))
+    return found
 
 
 _FLAG_WORDS = ("overlap", "conflict")
@@ -193,6 +270,17 @@ def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, all
         raise ReviewedWriteError(refusal)
     if reviewed_hash != plan.hash or (rebuild is not None and rebuild().hash != plan.hash):
         raise ReviewedWriteError("windows or metadata changed since review; review again (nothing was sent)")
+    try:
+        existing: list[int] | None = existing_overlaps(list_windows(client), plan.start, plan.end,
+                                                       _window_tz(client))
+    except ReviewedWriteError:
+        if not allow_overlap:
+            raise
+        existing = None  # explicitly accepted: overlaps unknown
+    if existing and not allow_overlap:
+        raise ReviewedWriteError(f"{len(existing)} overlapping window(s) already listed "
+                                 f"({', '.join(map(str, existing))}); nothing was created "
+                                 "(review them, then pass --allow-overlap)")
     csrf = client._get_csrf()
     answer = client._request("POST", f"{config.API_INT}/{OVERLAP_PATH}", content=plan.overlap_json.encode(),
                              headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
@@ -212,7 +300,11 @@ def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, all
         wid = positive_id(row.get("id") if isinstance(row, dict) else None)
         listed = [r for r in list_windows(client) if positive_id(r.get("id")) == wid]
         state = "matched" if len(listed) == 1 and listed[0].get("name") == name else "mismatched"
-        return {"window_id": wid, "fields": {"name": state}, "overlaps": "unknown" if conflicts is None else len(conflicts), "verified": state == "matched"}
+        unknown = conflicts is None or existing is None
+        total = "unknown" if unknown else len(conflicts or []) + len(existing or [])
+        return {"window_id": wid, "fields": {"name": state}, "overlaps": total,
+                "overlapping_window_ids": existing if existing is not None else "unknown",
+                "verified": state == "matched"}
 
     return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=lambda: plan.write, verify=verify)
 

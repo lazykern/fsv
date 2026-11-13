@@ -392,9 +392,14 @@ create/delete are classic admin form posts and are not implemented.
 `create` needs at least one `--criteria change_type=<label or id>` (the UI's
 mandatory "Applicable to Changes" row; only this condition is captured), takes
 `--start/--end 'YYYY-MM-DD HH:MM'` and sends `DD-MM-YYYY` / `h:mmam` values.
-After `--yes --expect-plan` it first posts the UI's overlap check
-(`POST /api/_/change_windows/overlapping_windows`, read-only in effect) and
-refuses when any window overlaps unless `--allow-overlap`; then one
+After `--yes --expect-plan` it first re-reads the maintenance window list and
+refuses when any listed window's time range intersects the new one (criteria
+are not compared; unreadable window times also refuse), then posts the UI's
+overlap check (`POST /api/_/change_windows/overlapping_windows`, read-only in
+effect; the UI sends `type: "blackout_events"`, so it does not see other
+maintenance windows) and refuses when it reports an overlap or its answer
+cannot be read as 'no overlap'. `--allow-overlap` skips both refusals and the
+result then says which windows overlapped (or `unknown`); then one
 `POST /api/_/maintenance_windows` with the `change_window` body, verified in
 the window list. `delete` is `DELETE /api/_/maintenance_windows/<id>`, verified
 by absence. Matching windows to a change is not implemented (no accepted
