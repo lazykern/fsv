@@ -4801,12 +4801,17 @@ def _make_subapp(res: Resource) -> typer.Typer:
             json_out: bool = typer.Option(False, "--json"),
             sender: Optional[str] = typer.Option(None, "--sender", help="explicit configured support mailbox; not inferred"),
             set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending, Resolved or Closed; runtime requirements apply)"),
+            ack: bool = typer.Option(False, "--ack", help="with --set-status Resolved/Closed: acknowledge blocking rule messages (bound to the review hash)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from prior reply review"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print the reply without sending it"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm sending the reply"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Add a reply (conversation) to a ticket."""
+            if ack and set_status is None:
+                typer.echo("--ack acknowledges blocking rule messages of a --set-status Resolved/Closed transition; "
+                           "pass it together with --set-status", err=True)
+                raise typer.Exit(2)
             if inline_image:
                 from fsv import inline_images
                 from fsv.reviewed_write import ReviewedWriteError
@@ -4837,7 +4842,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 except (ValueError, ReviewedWriteError) as exc:
                     typer.echo(str(exc), err=True)
                     raise typer.Exit(2) from None
-            if not cc and not bcc and sender is None and set_status is None and expect_plan is None:
+            if not cc and not bcc and sender is None and set_status is None and expect_plan is None and not ack:
                 reply_resource(res, id_, body, dry_run, yes, no_input)
                 return
             import json
@@ -4846,7 +4851,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 c = _client()
                 recipients(c, list(bcc or []))
                 plan = build_plan(c, id_, body, cc=recipients(c, list(cc or [])), bcc=tuple(bcc or ()),
-                                  sender=sender, set_status=set_status)
+                                  sender=sender, set_status=set_status, ack=ack)
                 if dry_run:
                     typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                     return

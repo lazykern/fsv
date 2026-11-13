@@ -232,6 +232,7 @@ def register(app: typer.Typer) -> None:
         inline_image: list[str] | None = typer.Option(None, "--inline-image", help="local JPEG/PNG/GIF/WebP shown inside the note body (repeatable; reviewed upload)"),
         max_bytes: int | None = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
         set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending, Resolved or Closed; runtime requirements apply)"),
+        ack: bool = typer.Option(False, "--ack", help="with --set-status Resolved/Closed: acknowledge blocking rule messages (bound to the review hash)"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; no POST or journal writes"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse sends"),
         yes: bool = typer.Option(False, "--yes", "-y", help="confirm the exact previously reviewed --expect-plan"),
@@ -240,6 +241,9 @@ def register(app: typer.Typer) -> None:
         json_out: bool = typer.Option(False, "--json", help="emit structured result"),
     ) -> None:
         try:
+            if ack and set_status is None:
+                raise NoteError("--ack acknowledges blocking rule messages of a --set-status Resolved/Closed transition; "
+                                "pass it together with --set-status")
             if notify_agent:
                 from fsv import templates as T
                 try:
@@ -292,7 +296,8 @@ def register(app: typer.Typer) -> None:
                         raise ConversationError("read-only mode: no note was sent")
                     c = get_client()
                     plan = build_conversation(c, id_, body, kind="note", public=public, notify=tuple(notify or ()),
-                                              body_format="html" if html_body else "plain", set_status=set_status)
+                                              body_format="html" if html_body else "plain", set_status=set_status,
+                                              ack=ack)
                     if dry_run:
                         typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                         return

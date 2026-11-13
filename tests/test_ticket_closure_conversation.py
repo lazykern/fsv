@@ -97,3 +97,49 @@ def test_cli_closure_review_and_full_hash(wire, monkeypatch, kind):
     sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.stdout)["verified"]
+
+
+
+@pytest.mark.parametrize("kind", ["reply", "note"])
+def test_cli_closure_blocking_rule_ack_bound_to_review(wire, monkeypatch, kind):
+    """reply/add-note --set-status Closed: the refusal names --ack, which exists."""
+    import fsv.ticket_lifecycle as lifecycle
+    from test_ticket_lifecycle import _blocking_close_rule
+    w = wire
+    prepare(w, "Closed")
+    real = lifecycle.load_meta
+    monkeypatch.setattr(lifecycle, "load_meta", lambda *a, **k: _blocking_close_rule(real(*a, **k), str(w.closed)))
+    monkeypatch.setattr(cli, "_client", lambda: w.client)
+    monkeypatch.setattr("fsv.ticket_notes.get_client", lambda: w.client)
+    args = (["tickets", "reply", str(w.cid), "Acme self-only reply"] if kind == "reply" else
+            ["tickets", "add-note", str(w.cid), "--body", "Acme private note"]) + ["--set-status", "Closed"]
+    runner = CliRunner()
+    refused = runner.invoke(cli.app, args + ["--dry-run"])
+    assert refused.exit_code == 2 and "pass --ack" in refused.output
+    reviewed = runner.invoke(cli.app, args + ["--ack", "--dry-run"])
+    assert reviewed.exit_code == 0, reviewed.output
+    review = json.loads(reviewed.stdout)
+    assert review["acknowledged_rule_messages"] == ["Only the requester closes Acme tickets"]
+    assert "blocks submit" in review["warning"]
+    # The acknowledgement is part of the reviewed identity.
+    assert runner.invoke(cli.app, args + ["--yes", "--expect-plan", review["plan_hash"]]).exit_code == 2
+    assert not [r for r in w.requests if r.method == "POST"]
+    sent = runner.invoke(cli.app, args + ["--ack", "--yes", "--expect-plan", review["plan_hash"]])
+    assert sent.exit_code == 0, sent.output
+    assert json.loads(sent.stdout)["verified"]
+    assert len([r for r in w.requests if r.method == "POST"]) == 1
+
+
+@pytest.mark.parametrize("kind", ["reply", "note"])
+def test_cli_ack_requires_closing_set_status(wire, monkeypatch, kind):
+    w = wire
+    monkeypatch.setattr(cli, "_client", lambda: w.client)
+    monkeypatch.setattr("fsv.ticket_notes.get_client", lambda: w.client)
+    base = (["tickets", "reply", str(w.cid), "Acme reply"] if kind == "reply" else
+            ["tickets", "add-note", str(w.cid), "--body", "Acme note"])
+    runner = CliRunner()
+    alone = runner.invoke(cli.app, base + ["--ack", "--dry-run"])
+    assert alone.exit_code == 2 and "--set-status" in alone.output
+    pending = runner.invoke(cli.app, base + ["--set-status", "Pending", "--ack", "--dry-run"])
+    assert pending.exit_code == 2 and "only with --set-status Resolved or Closed" in pending.output
+    assert not [r for r in w.requests if r.method in {"POST", "PUT"}]

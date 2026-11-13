@@ -99,15 +99,21 @@ def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
         raise ConversationError("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted") from None
 
 
-def status_fields(client: Any, cid: int, label: str) -> tuple[dict[str, Any], str]:
+def status_fields(client: Any, cid: int, label: str, *, ack: bool = False) -> tuple[dict[str, Any], str]:
     if isinstance(label, str) and label.casefold() in {"resolved", "closed"}:
         from fsv.ticket_lifecycle import context
         from fsv.reviewed_write import ReviewedWriteError
         try:
-            payload, fingerprint, _ = context(client, cid, label)
+            # --ack has the same meaning as tickets close/status --ack: the
+            # reviewer read the blocking rule messages; they are bound into the
+            # returned fingerprint (and so the review hash) only when used.
+            payload, fingerprint, _ = context(client, cid, label, ack=ack)
         except ReviewedWriteError as exc:
             raise ConversationError(str(exc)) from None
         return payload, fingerprint
+    if ack:
+        raise ConversationError("--ack applies only with --set-status Resolved or Closed; the captured Pending wire has "
+                                "no blocking-rule acknowledgement")
     status_id, token, record_hash = status_context(client, cid, label)
     return {"status": status_id, "br_validation_excludes": token}, record_hash
 
@@ -123,6 +129,18 @@ class ConversationPlan:
     canned_id: int | None = None
     canned_pointer: str | None = None
     canned_hash: str | None = None
+    ack: bool = False
+
+    @property
+    def acknowledged(self) -> list[str]:
+        """Blocking rule messages acknowledged with --ack (bound in record_hash)."""
+        if not self.ack or not self.record_hash:
+            return []
+        try:
+            bound = json.loads(self.record_hash)
+        except ValueError:
+            return []
+        return list(bound.get("acknowledged") or []) if isinstance(bound, dict) else []
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -142,9 +160,15 @@ class ConversationPlan:
         return journal.plan_hash(identity) or ""
 
     def review(self) -> dict[str, Any]:
-        return {"action": f"ticket_{self.kind}", "method": "POST", "path": f"/api/_/{self.path}",
-                "payload": self.payload, "status_label": self.status_label, "plan_hash": self.hash,
-                "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}
+        out = {"action": f"ticket_{self.kind}", "method": "POST", "path": f"/api/_/{self.path}",
+               "payload": self.payload, "status_label": self.status_label, "plan_hash": self.hash,
+               "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}
+        acknowledged = self.acknowledged
+        if acknowledged:
+            out["acknowledged_rule_messages"] = acknowledged
+            out["warning"] += (" Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them,"
+                               " and the server or a workflow may still reject or revert the transition.")
+        return out
 
 
 def forward_source(client: Any, ticket_id: int, conversation_id: int) -> str:
@@ -167,8 +191,11 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
                cc: tuple[str, ...] = (), public: bool = False, notify: tuple[str, ...] = (),
                body_format: Literal["plain", "html"] = "plain", set_status: str | None = None,
                bcc: tuple[str, ...] = (), sender: str | None = None,
-               conversation_id: int | None = None) -> ConversationPlan:
+               conversation_id: int | None = None, ack: bool = False) -> ConversationPlan:
     from fsv.ticket_notes import _EMAIL
+    if ack and set_status is None:
+        raise ValueError("--ack acknowledges blocking rule messages of a --set-status Resolved/Closed transition; "
+                         "pass it together with --set-status")
     if kind not in ("reply", "note", "forward"):
         raise ValueError("invalid conversation kind")
     note = note_plan(ticket_id, body, public=public, notify_emails=notify, body_format=body_format)
@@ -208,9 +235,10 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
         record_hash = forward_source(client, note.ticket_id, conversation_id)
         payload["conversation_id"] = conversation_id
     if set_status is not None:
-        payload["helpdesk_ticket"], record_hash = status_fields(client, note.ticket_id, set_status)
+        payload["helpdesk_ticket"], record_hash = status_fields(client, note.ticket_id, set_status, ack=ack)
     return ConversationPlan(kind, note.ticket_id, config.DOMAIN,
-                            json.dumps(payload, sort_keys=True, ensure_ascii=False), set_status, record_hash)
+                            json.dumps(payload, sort_keys=True, ensure_ascii=False), set_status, record_hash,
+                            ack=bool(ack and set_status is not None))
 
 
 def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
@@ -234,7 +262,7 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         from fsv.canned import freshen
         freshen(plan, client)
     if plan.status_label is not None:
-        status_payload, record_hash = status_fields(client, plan.ticket_id, plan.status_label)
+        status_payload, record_hash = status_fields(client, plan.ticket_id, plan.status_label, ack=plan.ack)
         if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != status_payload:
             raise ConversationError("ticket or status metadata changed; review again")
     # Reconfirm formatted CC recipients without silently changing reviewed bytes.
