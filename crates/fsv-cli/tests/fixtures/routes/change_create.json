@@ -1977,5 +1977,60 @@
     "display_id": 12
    }
   }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/13",
+  "json": {
+   "change": {
+    "id": 13,
+    "display_id": 13,
+    "subject": "Patch",
+    "status": 1,
+    "status_name": "Open",
+    "state_flow_id": 11,
+    "change_type": 4,
+    "custom_fields": {
+     "team": "Labs",
+     "stage": "Live"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change_management/11",
+  "json": {
+   "state_flow": {
+    "name": "Standard",
+    "state_list": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Approval"
+     }
+    ],
+    "transitions": {
+     "1": [
+      {
+       "to_state": 2
+      }
+     ],
+     "2": [
+      {
+       "to_state": 3
+      }
+     ],
+     "3": []
+    }
+   }
+  }
  }
 ]
