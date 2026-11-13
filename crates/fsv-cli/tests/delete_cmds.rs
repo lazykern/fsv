@@ -2,7 +2,7 @@
 //! delete-forever, solutions delete and delete-forever (`record_delete_cli`).
 //! Emitted by cmp.py from Python; the header line names its commit.
 
-// Python commit: 4ad278dcc74c643fec6bbea89c8b4a46f1cd36ee
+// Python commit: 041d86589726f01be5bc5ef8d00e21ee6132c660
 
 mod common;
 use common::run_fixture;
@@ -23,7 +23,7 @@ fn problems_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/problems/12",
   "payload": null,
-  "plan_hash": "821dd90b4cf6784bbbe2b80658b682c5a23f6fc276280495a97abcebccfb3ebf",
+  "plan_hash": "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7",
   "warning": "Single attempt; an unknown outcome must be inspected, never automatically resent.",
   "problem_id": 12,
   "title": "Acme outage",
@@ -91,7 +91,7 @@ fn problems_delete_send() {
             "PRB-12",
             "--yes",
             "--expect-plan",
-            "821dd90b4cf6784bbbe2b80658b682c5a23f6fc276280495a97abcebccfb3ebf",
+            "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7",
         ],
         None,
     );
@@ -100,7 +100,7 @@ fn problems_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "821dd90b4cf6784bbbe2b80658b682c5a23f6fc276280495a97abcebccfb3ebf",
+  "plan_hash": "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7",
   "verified": true,
   "problem_id": 12,
   "fields": {
@@ -124,7 +124,7 @@ fn problems_delete_send_unverified() {
             "13",
             "--yes",
             "--expect-plan",
-            "44c96bfcef6ef86f6670d7d91101a528ae03778343a3fcaa04450a223f288446",
+            "6f4287db72535dcce74266ff9c2069a42182651caf2f6e0fd5c8552e4bb8f21f",
         ],
         None,
     );
@@ -133,7 +133,7 @@ fn problems_delete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "44c96bfcef6ef86f6670d7d91101a528ae03778343a3fcaa04450a223f288446",
+  "plan_hash": "6f4287db72535dcce74266ff9c2069a42182651caf2f6e0fd5c8552e4bb8f21f",
   "verified": false,
   "problem_id": 13,
   "fields": {
@@ -158,7 +158,7 @@ fn problems_delete_rejected() {
             "14",
             "--yes",
             "--expect-plan",
-            "11b79ec1be36ec4f4578539d34a5ed38ce9f1738bdb32676b9a334a2bb17c5f6",
+            "b5788dfefb91346f3a3da0a217e7c4c13cd9e55e20f2b655179246c3246138fc",
         ],
         None,
     );

@@ -23,6 +23,7 @@ pub mod change_task_update;
 pub mod choice_ids;
 pub mod conversations;
 pub mod create;
+pub mod delete_state;
 pub mod downloads;
 pub mod email_addr;
 pub mod filter_proof;

@@ -11,6 +11,7 @@ use fsv_core::error::{Error, Result};
 use fsv_core::resource::{CHANGES, parse_id};
 
 use crate::attachments::owner_row;
+use crate::delete_state::state_token;
 use crate::readback::bounded_readback;
 use crate::reviewed_write::{WritePlan, execute, refused};
 use crate::service::{Api, Journal, obj, snapshot_hash};
@@ -35,6 +36,9 @@ pub fn build_plan(c: &dyn Api, target: &str) -> Result<WritePlan> {
     if !row.get("subject").is_some_and(Value::is_string) {
         return Err(refused("exact change subject unavailable"));
     }
+    // `delete_state_tokens([row], [cid], ())`: no change restore is
+    // captured, so the count is always 0.
+    let token = state_token(&row, 0);
     Ok(WritePlan {
         action: "change_delete".into(),
         target: cid,
@@ -42,7 +46,7 @@ pub fn build_plan(c: &dyn Api, target: &str) -> Result<WritePlan> {
         method: "DELETE".into(),
         path: format!("changes/{cid}"),
         payload_json: "null".into(),
-        context_hash: snapshot_hash(&json!({"change": row}))?,
+        context_hash: snapshot_hash(&json!({"change": row, "state": token}))?,
     })
 }
 
@@ -299,5 +303,45 @@ mod tests {
             }
             assert_eq!(json!(deletes(&c).len()), want["writes"], "{name}");
         }
+    }
+
+    #[test]
+    fn delete_after_web_restore_is_fresh_but_unchanged_record_is_a_replay() {
+        let state = Arc::new(Mutex::new(world(json!({
+            "id": 123, "subject": "Acme rollout", "deleted": false
+        }))));
+        let c = api(Arc::clone(&state));
+        let journal = MemJournal::default();
+        let first = build_plan(&c, "123").unwrap();
+        let sent = with_readback_sleep(
+            |_| {},
+            || send(&first, &c, &journal, Some(&first.hash()), true),
+        )
+        .unwrap();
+        assert_eq!(sent["verified"], json!(true));
+        state
+            .lock()
+            .unwrap()
+            .row
+            .insert("deleted".into(), json!(false));
+        let same = build_plan(&c, "123").unwrap();
+        assert_eq!(same.hash(), first.hash());
+        let err = send(&same, &c, &journal, Some(&same.hash()), true).unwrap_err();
+        assert!(err.to_string().contains("was sent"), "{err}");
+        // the server bumps updated_at on restore
+        state
+            .lock()
+            .unwrap()
+            .row
+            .insert("updated_at".into(), json!("2030-01-01T00:00:09Z"));
+        let again = build_plan(&c, "123").unwrap();
+        assert_ne!(again.hash(), first.hash());
+        let sent = with_readback_sleep(
+            |_| {},
+            || send(&again, &c, &journal, Some(&again.hash()), true),
+        )
+        .unwrap();
+        assert_eq!(sent["verified"], json!(true));
+        assert_eq!(deletes(&c).len(), 2);
     }
 }

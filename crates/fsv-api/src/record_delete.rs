@@ -20,6 +20,7 @@ use serde_json::{Map, Value, json};
 use fsv_core::error::{Error, Result};
 use fsv_core::resource::{PROBLEMS, parse_id};
 
+use crate::delete_state::delete_state_tokens;
 use crate::readback::bounded_readback;
 use crate::reviewed_write::{WritePlan, execute, refused};
 use crate::service::{Api, Journal, obj, plan_hash, snapshot_hash};
@@ -80,7 +81,12 @@ fn getter(kind: &str) -> Getter {
 }
 
 /// Port of record_delete.problem_plan.
-pub fn problem_plan(c: &dyn Api, target: &str, action: &str) -> Result<WritePlan> {
+pub fn problem_plan(
+    c: &dyn Api,
+    journal: &dyn Journal,
+    target: &str,
+    action: &str,
+) -> Result<WritePlan> {
     if !PROBLEM_ACTIONS.contains(&action) {
         return Err(refused(format!(
             "unknown problem action {}",
@@ -111,6 +117,18 @@ pub fn problem_plan(c: &dyn Api, target: &str, action: &str) -> Result<WritePlan
         "restore" => ("PUT", format!("problems/{pid}/restore")),
         _ => ("DELETE", format!("problems/delete-forever?ids={pid}")),
     };
+    let mut state = Map::new();
+    if action == "delete" {
+        // a delete after a restore is a new plan, not a replay
+        let token = delete_state_tokens(
+            journal,
+            std::slice::from_ref(&row),
+            &[pid],
+            &["problem_restore"],
+        );
+        state.insert("state".into(), token.into_iter().next().unwrap_or_default());
+    }
+    state.insert("problem".into(), Value::Object(row));
     Ok(WritePlan {
         action: format!("problem_{}", action.replace('-', "_")),
         target: pid,
@@ -118,7 +136,7 @@ pub fn problem_plan(c: &dyn Api, target: &str, action: &str) -> Result<WritePlan
         method: method.into(),
         path,
         payload_json: "null".into(),
-        context_hash: snapshot_hash(&json!({"problem": row}))?,
+        context_hash: snapshot_hash(&Value::Object(state))?,
     })
 }
 
@@ -242,7 +260,7 @@ pub fn send(
     let fetch = getter(kind);
     let rebuild = || {
         if kind == "problem" {
-            problem_plan(c, &target.to_string(), &action)
+            problem_plan(c, journal, &target.to_string(), &action)
         } else {
             article_plan(c, &target.to_string(), &action)
         }
@@ -340,6 +358,7 @@ impl ForeverBatch {
 /// more than one ID needs `--max-records` (1 to 50).
 pub fn build_forever(
     c: &dyn Api,
+    journal: &dyn Journal,
     kind: &str,
     idents: &[String],
     max_records: Option<i64>,
@@ -371,7 +390,7 @@ pub fn build_forever(
         .iter()
         .map(|i| {
             if kind == "problem" {
-                problem_plan(c, i, "delete-forever")
+                problem_plan(c, journal, i, "delete-forever")
             } else {
                 article_plan(c, i, "delete-forever")
             }
@@ -583,7 +602,7 @@ mod tests {
             ("delete", "DELETE", "problems/12"),
             ("restore", "PUT", "problems/12/restore"),
         ] {
-            let p = problem_plan(&c, "PRB-12", action).unwrap();
+            let p = problem_plan(&c, &j, "PRB-12", action).unwrap();
             let r = quiet(|| send(&p, &c, &j, Some(&p.hash()), false)).unwrap();
             assert_eq!(r["verified"], json!(true));
             assert_eq!(r["fields"], json!({"deleted": "matched"}));
@@ -594,7 +613,7 @@ mod tests {
             assert!(send(&p, &c, &j, Some(&p.hash()), false).is_err());
         }
         assert!(
-            msg(problem_plan(&c, "12", "delete-forever"))
+            msg(problem_plan(&c, &j, "12", "delete-forever"))
                 .contains("only to a problem in the trash")
         );
         {
@@ -603,7 +622,7 @@ mod tests {
             row.insert("deleted".into(), json!(true));
             row.insert("subject".into(), json!("Acme outage (trashed)"));
         }
-        let p = problem_plan(&c, "12", "delete-forever").unwrap();
+        let p = problem_plan(&c, &j, "12", "delete-forever").unwrap();
         assert_eq!(
             review(&p, &c).unwrap()["requires"],
             json!("--confirm-destructive")
@@ -629,7 +648,7 @@ mod tests {
         s.lock().unwrap().ignore = true;
         let c = api(Arc::clone(&s));
         let j = MemJournal::default();
-        let p = problem_plan(&c, "12", "delete").unwrap();
+        let p = problem_plan(&c, &j, "12", "delete").unwrap();
         let r = quiet(|| send(&p, &c, &j, Some(&p.hash()), false)).unwrap();
         assert_eq!(r["verified"], json!(false));
         assert_eq!(r["fields"], json!({"deleted": "mismatched"}));
@@ -643,7 +662,7 @@ mod tests {
         let s = world();
         let c = api(Arc::clone(&s));
         let j = MemJournal::default();
-        let p = problem_plan(&c, "12", "delete").unwrap();
+        let p = problem_plan(&c, &j, "12", "delete").unwrap();
         s.lock()
             .unwrap()
             .problem
@@ -652,7 +671,7 @@ mod tests {
             .insert("subject".into(), json!("Acme outage (edited)"));
         assert!(msg(send(&p, &c, &j, Some(&p.hash()), false)).contains("changed since review"));
         s.lock().unwrap().fail = Some(422);
-        let p = problem_plan(&c, "12", "delete").unwrap();
+        let p = problem_plan(&c, &j, "12", "delete").unwrap();
         assert!(msg(send(&p, &c, &j, Some(&p.hash()), false)).contains("HTTP 422"));
         assert_eq!(s.lock().unwrap().writes.len(), 1);
     }
@@ -681,13 +700,14 @@ mod tests {
     #[test]
     fn cancel_and_unknown_actions() {
         let c = api(world());
-        let p = problem_plan(&c, "12", "delete").unwrap();
+        let j = MemJournal::default();
+        let p = problem_plan(&c, &j, "12", "delete").unwrap();
         assert_eq!(
             send(&p, &c, &MemJournal::default(), None, false).unwrap(),
             json!({"status": "cancelled", "verified": false})
         );
         assert_eq!(
-            msg(problem_plan(&c, "12", "purge")),
+            msg(problem_plan(&c, &j, "12", "purge")),
             "unknown problem action 'purge'"
         );
         assert_eq!(
@@ -745,6 +765,7 @@ mod tests {
     #[test]
     fn forever_bounds_refuse_before_any_write() {
         let (s, c) = many();
+        let j = MemJournal::default();
         for (idents, max, want) in [
             (vec!["21", "22"], None, "requires --max-records"),
             (vec!["21", "22"], Some(1), "more IDs than --max-records"),
@@ -752,7 +773,7 @@ mod tests {
             (vec!["21", "21"], Some(2), "distinct"),
             (vec![], None, "give one or more explicit problem IDs"),
         ] {
-            let err = msg(build_forever(&c, "problem", &ids(&idents), max));
+            let err = msg(build_forever(&c, &j, "problem", &ids(&idents), max));
             assert!(err.contains(want), "{err}");
         }
         assert!(s.lock().unwrap().writes.is_empty());
@@ -762,8 +783,8 @@ mod tests {
     fn forever_batch_stops_at_first_failure_and_is_bound_to_max_records() {
         let (s, c) = many();
         let j = MemJournal::default();
-        let a = build_forever(&c, "problem", &ids(&["21", "22", "23"]), Some(3)).unwrap();
-        let b = build_forever(&c, "problem", &ids(&["21", "22", "23"]), Some(4)).unwrap();
+        let a = build_forever(&c, &j, "problem", &ids(&["21", "22", "23"]), Some(3)).unwrap();
+        let b = build_forever(&c, &j, "problem", &ids(&["21", "22", "23"]), Some(4)).unwrap();
         assert_ne!(a.hash(), b.hash());
         assert_eq!(a.review()["problem_ids"], json!([21, 22, 23]));
         assert!(
@@ -783,5 +804,57 @@ mod tests {
             ]
         );
         assert!(w.problems.contains_key(&23));
+    }
+
+    #[test]
+    fn fsv_restore_then_delete_again_is_a_fresh_plan() {
+        let s = world();
+        let c = api(Arc::clone(&s));
+        let j = MemJournal::default();
+        let first = problem_plan(&c, &j, "12", "delete").unwrap();
+        let r = quiet(|| send(&first, &c, &j, Some(&first.hash()), false)).unwrap();
+        assert_eq!(r["verified"], json!(true));
+        let restore = problem_plan(&c, &j, "12", "restore").unwrap();
+        let r = quiet(|| send(&restore, &c, &j, Some(&restore.hash()), false)).unwrap();
+        assert_eq!(r["verified"], json!(true));
+        let again = problem_plan(&c, &j, "12", "delete").unwrap();
+        assert_ne!(again.hash(), first.hash());
+        let r = quiet(|| send(&again, &c, &j, Some(&again.hash()), false)).unwrap();
+        assert_eq!(r["verified"], json!(true));
+        assert_eq!(
+            s.lock().unwrap().problem.as_ref().unwrap()["deleted"],
+            json!(true)
+        );
+    }
+
+    #[test]
+    fn restore_journal_alone_moves_the_delete_hash_and_ambiguous_stays_refused() {
+        let s = world();
+        let c = api(Arc::clone(&s));
+        let j = MemJournal::default();
+        let before = problem_plan(&c, &j, "12", "delete").unwrap();
+        j.record_plan(
+            "done",
+            &"0".repeat(64),
+            "problem_restore",
+            Some(&json!(PID)),
+            None,
+        );
+        let after = problem_plan(&c, &j, "12", "delete").unwrap();
+        assert_ne!(after.hash(), before.hash());
+        assert_eq!(
+            problem_plan(&c, &j, "12", "delete").unwrap().hash(),
+            after.hash()
+        );
+        j.record_plan(
+            "started",
+            &after.hash(),
+            &after.action,
+            Some(&json!(PID)),
+            None,
+        );
+        let again = problem_plan(&c, &j, "12", "delete").unwrap();
+        assert!(msg(send(&again, &c, &j, Some(&after.hash()), false)).contains("outcome unknown"));
+        assert!(s.lock().unwrap().writes.is_empty());
     }
 }

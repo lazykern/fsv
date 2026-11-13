@@ -78,7 +78,7 @@ fn forever(kind: &str, idents: &[String], max_records: Option<i64>, g: Gate<'_>)
     };
     let go = || -> Result<()> {
         let c = LazyApi::default();
-        let batch = flow::build_forever(&c, kind, idents, max_records)?;
+        let batch = flow::build_forever(&c, &DiskJournal, kind, idents, max_records)?;
         let ids: Vec<String> = batch.ids().iter().map(i64::to_string).collect();
         eprintln!("{label} to delete PERMANENTLY: {}", ids.join(", "));
         for row in batch.rows() {
@@ -121,11 +121,17 @@ macro_rules! gate {
 }
 
 pub fn problems_delete(a: ProblemsDeleteArgs) -> CmdResult {
-    run(|c| flow::problem_plan(c, &a.ident, "delete"), gate!(a))
+    run(
+        |c| flow::problem_plan(c, &DiskJournal, &a.ident, "delete"),
+        gate!(a),
+    )
 }
 
 pub fn problems_restore(a: ProblemsRestoreArgs) -> CmdResult {
-    run(|c| flow::problem_plan(c, &a.ident, "restore"), gate!(a))
+    run(
+        |c| flow::problem_plan(c, &DiskJournal, &a.ident, "restore"),
+        gate!(a),
+    )
 }
 
 pub fn problems_delete_forever(a: ProblemsDeleteForeverArgs) -> CmdResult {
