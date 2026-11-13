@@ -562,7 +562,7 @@ Other filter facts:
 
 | Record | Soft delete | Restore | Permanent | Proof |
 |---|---|---|---|---|
-| Ticket | `DELETE /api/_/tickets/<id>` (204, `deleted: true`, still readable); bulk `DELETE /api/_/tickets/delete_multiple?ids=1,2` | `PUT /api/_/tickets/<id>/restore` (204) | `DELETE /api/_/tickets/delete_forever?ids=<id>` (204, **no confirm**; then 404 on internal and v2) | VERIFIED LIVE |
+| Ticket | `DELETE /api/_/tickets/<id>` (204, `deleted: true`, still readable); bulk `DELETE /api/_/tickets/delete_multiple?ids=1,2`; Trash list `GET /api/_/tickets?filter=deleted&...` (`filter=trash` is 400; Spam is `filter=spam`) | `PUT /api/_/tickets/<id>/restore` (204, no body, one request per ticket; then `deleted: false`) | `DELETE /api/_/tickets/delete_forever?ids=<id>` (204, **no confirm**; then 404 on internal and v2) | VERIFIED LIVE |
 | Problem | `DELETE /api/_/problems/<id>` (204; `deleted: true`; listed under `?filter=deleted`) | `PUT /api/_/problems/<id>/restore` | `DELETE /api/_/problems/delete-forever?ids=<id>` (only from trash) | VERIFIED LIVE |
 | Change | `DELETE /api/_/changes/<id>` (204) | — | — | VERIFIED LIVE (readback was `deleted: true` once and 404 once) |
 | Release | `DELETE /api/_/releases/<id>` (204) | — | — | VERIFIED LIVE |

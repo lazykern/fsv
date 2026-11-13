@@ -118,6 +118,29 @@ Caused incidents use their own associated-caused filter, never the candidate lis
 Release unlink uses PUT, not DELETE. No maintenance-window contract is inferred.
 
 
+## Ticket trash, restore and delete forever
+
+```sh
+fsv tickets trash list --json
+fsv tickets restore INC-58 --dry-run --json
+fsv tickets delete-forever INC-58 INC-59 --max-records 2 --dry-run --json
+fsv tickets delete-forever INC-58 INC-59 --max-records 2 --yes --expect-plan FULL_HASH --confirm-destructive
+```
+
+`trash list` reads one page of the Trash view (`GET tickets?filter=deleted`;
+`filter=trash` is rejected). The trash holds every agent's deleted tickets, so
+writes take explicit IDs only: no filters, no select-all, no empty-trash.
+`restore` sends `PUT tickets/<id>/restore` (no body) for one ticket that a fresh
+exact read shows as `deleted: true`, and verifies `deleted: false` on a
+separate read. `delete-forever` requires `--max-records N` (at most 50) and
+`--confirm-destructive`, prints the ID list and subjects on stderr, and only
+accepts tickets already in the trash. Only the single-ID request
+(`DELETE tickets/delete_forever?ids=<id>`) is captured, so each ticket is sent
+as its own request, in order; each one is verified by a 404 on the exact
+ticket, and the run stops at the first failed or unverified ticket with the
+rest listed as not attempted. Permanent deletion cannot be undone; never replay
+an uncertain run.
+
 ## Frozen bulk ticket actions
 
 ```sh

@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
-| Tickets | 83 | 51 | 30 | 1 | 1 |
+| Tickets | 86 | 51 | 33 | 1 | 1 |
 | Changes | 53 | 36 | 13 | 3 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **272** | **165** | **99** | **6** | **2** |
+| **All** | **275** | **165** | **102** | **6** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -145,7 +145,10 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets assets list | `GET associated-cis / associated_assets (driver probes endpoint)` | UNSURE | yes (read) | n/a | read-verified | test_asset_association_driver.py, test_legacy_asset_association.py | Needs seeded CMDB devices or services on the test tenant. |
 | tickets assets candidates | `GET itam/core/<device\|businessservice>/api/?q= (integrated; legacy GET assets-to-associate only on legacy records, 403/404 falls back)` | UNSURE | no | n/a | read-verified | test_asset_candidates.py, test_legacy_asset_association.py | Live run failed on the legacy-only path (HTTP 403); now uses the integrated search; not re-run live. |
 | tickets assets add/remove | `PUT/POST associated-cis (driver)` | UNSURE | stale (re-test) | no | capture-only | test_asset_association_driver.py, test_legacy_asset_association.py | Needs seeded CMDB devices or services on the test tenant. |
-| (missing) tickets restore / delete-forever / spam single / split / share / due-… | `(PUT tickets/{id}/restore, DELETE tickets/delete_forever ...)` | GAP | no | no | none | — | Not implemented. |
+| tickets trash list | `GET /api/_/tickets?filter=deleted` | UNSURE | no | n/a | capture-only | test_ticket_trash.py | Trash filter captured from the UI; fsv offline only. |
+| tickets restore | `PUT /api/_/tickets/{id}/restore` | UNSURE | no | no | capture-only | test_ticket_trash.py | Captured (then deleted=false); fsv offline only. |
+| tickets delete-forever (explicit IDs, --max-records, --confirm-destructive) | `DELETE /api/_/tickets/delete_forever?ids={id}` (one per ticket) | UNSURE | no | no | capture-only | test_ticket_trash.py | Single-ID wire captured (then 404); fsv offline only. |
+| (missing) tickets spam single / split / share / due-… | `(PUT tickets/{id}/spam ...)` | GAP | no | no | none | — | Not implemented. |
 
 ## Changes
 
