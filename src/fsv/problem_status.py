@@ -26,10 +26,16 @@ class StatusPlan(WritePlan):
     # Runtime status labels by ID (not hashed: the metadata is bound through
     # context_hash). Used to check a workflow rewrite against the readback.
     status_labels_json: str = "{}"
+    # Closure preflight summary shown up front in the review (bound through
+    # context_hash, which hashes the closure inventories).
+    closure_check_json: str = "{}"
 
     def review(self) -> dict[str, Any]:
         out = {**super().review(), "to": self.label, "before": json.loads(self.before_json),
                "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."}
+        closure_check = json.loads(self.closure_check_json)
+        if closure_check:
+            out["closure_check"] = closure_check
         warnings = json.loads(self.warnings_json)
         if warnings:
             out["warnings"] = warnings
@@ -89,8 +95,25 @@ def closure_context(client: Any, target: int) -> dict[str, Any]:
                             f"({SOLUTION_RULE}); not blocked because this tenant has not proven that rule "
                             f"({SOLUTION_EVIDENCE}); the server decides")
     if missing:
-        raise ReviewedWriteError("violated_closure_rules: missing " + ", ".join(missing))
+        remembered = (" (this tenant rejected a closure without a linked workaround / solution earlier; fsv "
+                      "remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
+                      if "linked workaround / solution" in missing else "")
+        raise ReviewedWriteError("violated_closure_rules: missing " + ", ".join(missing) + remembered)
     return {"analysis": rows, "solutions": solutions, "warnings": warnings}
+
+
+def closure_summary(closure: dict[str, Any]) -> dict[str, str]:
+    """Up-front closure preflight for the review (no values, only outcomes)."""
+    linked = [r for r in closure.get("solutions", []) if not r.get("deleted") and type(r.get("article_type")) is int
+              and r["article_type"] in (1, 2)]
+    if linked:
+        solution = f"linked ({len(linked)})"
+    elif SOLUTION_RULE in proven_closure_rules():  # unreachable: closure_context refuses first
+        solution = "missing: required by this tenant (remembered rejection)"
+    else:
+        solution = ("missing: this tenant may require a linked workaround / solution for closure (not proven here; "
+                    "the server decides and fsv remembers a rejection for later dry-runs)")
+    return {"analysis": "Root Cause, Impact and Symptoms are filled", "linked_solution": solution}
 
 
 def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
@@ -133,7 +156,8 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
                       json.dumps({"status": status_id}), journal.snapshot_hash(context) or "", label,
                       json.dumps(before, sort_keys=True), json.dumps(warnings),
                       json.dumps({str(i): name for i, name in task_status.active_choices(meta.raw_fields, "problem")},
-                                 sort_keys=True))
+                                 sort_keys=True),
+                      json.dumps(closure_summary(closure) if closure else {}))
 
 
 def status_readback(before: Any, after: Any, sent: Any) -> tuple[bool, str | None]:

@@ -274,3 +274,30 @@ def test_closed_rewritten_by_workflow_is_verified_with_note(api, case, verified)
         assert "verified_with_note" not in result and "do not resend" in result["warning"]
     if case == "workflow-label-differs-from-readback":
         assert "readback status is Monitor" in result["readback_conflict"]
+
+
+
+@pytest.mark.parametrize("articles,expected", [
+    ([], "missing: this tenant may require"),
+    ([{"id": 701, "title": "Acme workaround", "article_type": 2}], "linked (1)"),
+])
+def test_closed_dry_run_shows_closure_check_up_front(api, articles, expected):
+    c, s, _, _ = api
+    s["solution_raw"] = {"articles": articles}
+    r = CliRunner().invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Closed", "--dry-run"])
+    assert r.exit_code == 0, r.output
+    doc = json.loads(r.output)
+    assert expected in doc["closure_check"]["linked_solution"]
+    assert "filled" in doc["closure_check"]["analysis"] and not s["writes"]
+    other = CliRunner().invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Resolve", "--dry-run"])
+    assert "closure_check" not in json.loads(other.output)
+
+
+def test_remembered_solution_rule_blocks_the_dry_run_up_front(api):
+    c, s, _, _ = api
+    s["solution_raw"] = {"articles": []}
+    flow.remember_closure_rules([flow.SOLUTION_RULE])
+    r = CliRunner().invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Closed", "--dry-run"])
+    assert r.exit_code == 2
+    assert "missing linked workaround / solution" in r.output and "rejected a closure" in r.output
+    assert not s["writes"]
