@@ -191,6 +191,25 @@ mod tests {
         }
     }
 
+    /// Python's scripts call `fsv._complete` with the `fsv.cli` completer
+    /// names below, which its dispatcher does not list, so they print nothing.
+    #[test]
+    fn cli_completers_unserved_like_python() {
+        let script = super::build_script("bash", "fsv").unwrap();
+        for (name, res) in [
+            ("_complete_tab", "changes"),
+            ("_complete_task_status", "-"),
+            ("_complete_task_custom_field", "-"),
+            ("_complete_ticket_for_change", "-"),
+        ] {
+            assert!(script.contains(&format!(" {name} ")), "{name}");
+            for shell in ["bash", "zsh", "fish"] {
+                let args: Vec<String> = [shell, name, res, "a"].map(String::from).to_vec();
+                assert_eq!(fsv_completion::run(&args, true), "", "{shell} {name}");
+            }
+        }
+    }
+
     /// Expected values from Python `completion._completion_network` on
     /// `{"completion": {"network": <json>}}`, the config `network_enabled`
     /// passes on.

@@ -54,13 +54,13 @@ fn rows_out(rows: &[Value], json_out: bool) {
     out().print_table(&t);
 }
 
-/// Python `rows[-n:]` for any integer `n` (0 handled by the caller).
+/// Python `rows[-n:] if n else rows` for any integer `n`.
 fn tail_slice(rows: Vec<Value>, n: i64) -> Vec<Value> {
     let len = rows.len() as i64;
-    let start = if n > 0 {
-        (len - n).max(0)
-    } else {
-        (-n).min(len)
+    let start = match n {
+        0 => 0,
+        n if n > 0 => (len - n).max(0),
+        n => (-n).min(len),
     };
     rows.into_iter().skip(start as usize).collect()
 }
@@ -71,24 +71,13 @@ pub fn ls(a: JournalLsArgs) -> CmdResult {
         .into_iter()
         .filter(|r| !a.failed || !r.get("ok").is_some_and(fsv_py::truthy))
         .collect();
-    let rows = if a.limit != 0 {
-        tail_slice(rows, a.limit)
-    } else {
-        rows
-    };
-    rows_out(&rows, a.json_out);
+    rows_out(&tail_slice(rows, a.limit), a.json_out);
     Ok(())
 }
 
-/// `fsv journal tail`.
+/// `fsv journal tail` (`journal.read(limit)`).
 pub fn tail(a: JournalTailArgs) -> CmdResult {
-    let rows = journal::read(None);
-    let rows = if a.limit > 0 {
-        tail_slice(rows, a.limit)
-    } else {
-        rows
-    };
-    rows_out(&rows, a.json_out);
+    rows_out(&tail_slice(journal::read(None), a.limit), a.json_out);
     Ok(())
 }
 
@@ -96,4 +85,25 @@ pub fn tail(a: JournalTailArgs) -> CmdResult {
 pub fn path() -> CmdResult {
     println!("{}", journal::journal_path().display());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    /// Python `rows[-limit:] if limit else rows`, as `journal ls` and
+    /// `journal.read(limit)` (behind `journal tail`) slice.
+    #[test]
+    fn tail_slice_matches_python() {
+        let rows: Vec<_> = (1..=5).map(|i| json!(i)).collect();
+        for (n, want) in [
+            (0, json!([1, 2, 3, 4, 5])),
+            (2, json!([4, 5])),
+            (9, json!([1, 2, 3, 4, 5])),
+            (-3, json!([4, 5])),
+            (-9, json!([])),
+        ] {
+            assert_eq!(json!(super::tail_slice(rows.clone(), n)), want, "{n}");
+        }
+    }
 }

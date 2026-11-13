@@ -456,12 +456,22 @@ fn prompt_multi_select(
         false,
     )
     .ok()?;
-    let picked: Vec<String> = answer
-        .split(',')
-        .filter_map(|p| p.trim().parse::<usize>().ok())
-        .filter_map(|n| values.get(n.wrapping_sub(1)).map(|v| v.0.clone()))
-        .collect();
-    (!picked.is_empty()).then_some(picked)
+    parse_selection(&answer, values)
+}
+
+/// An empty answer is the dialog's Cancel (`None`); any other answer is its
+/// OK, so picking nothing valid yields `Some([])` like an empty checkbox list.
+fn parse_selection(answer: &str, values: &[(String, String)]) -> Option<Vec<String>> {
+    if answer.trim().is_empty() {
+        return None;
+    }
+    Some(
+        answer
+            .split(',')
+            .filter_map(|p| p.trim().parse::<usize>().ok())
+            .filter_map(|n| values.get(n.wrapping_sub(1)).map(|v| v.0.clone()))
+            .collect(),
+    )
 }
 
 fn require_tty() -> CmdResult {
@@ -1449,5 +1459,23 @@ mod tests {
                 "{case}"
             );
         }
+    }
+
+    /// `checkboxlist_dialog`: Cancel is `None`, OK with nothing ticked is
+    /// `[]` (the caller then prints `cancelled`), else the ticked values.
+    #[test]
+    fn parse_selection_matches_checkbox_dialog() {
+        let values = vec![
+            ("11".to_string(), "a".to_string()),
+            ("12".to_string(), "b".to_string()),
+        ];
+        assert_eq!(parse_selection("", &values), None);
+        assert_eq!(parse_selection("  ", &values), None);
+        assert_eq!(parse_selection("x", &values), Some(vec![]));
+        assert_eq!(parse_selection("0, 3", &values), Some(vec![]));
+        assert_eq!(
+            parse_selection("2, 1", &values),
+            Some(vec!["12".to_string(), "11".to_string()])
+        );
     }
 }

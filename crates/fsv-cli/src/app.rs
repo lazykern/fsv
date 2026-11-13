@@ -97,7 +97,7 @@ pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static
     let mut notice = None;
     let mut legacy_check = false;
     for token in args {
-        if legacy_check {
+        if legacy_check && !ROOT_FLAGS_ANYWHERE.contains(&token.as_str()) {
             legacy_check = false;
             if !token.starts_with('-')
                 && current.find_subcommand(token).is_none()
@@ -375,6 +375,9 @@ mod tests {
                 .unwrap()
                 .contains("fsv changes associations <ls|search|add|remove|pick>")
         );
+        let (args, notice) = rewrite(&root, &argv(&["changes", "assets", "-v", "CHN-5"]));
+        assert_eq!(args, argv(&["-v", "changes", "assets", "legacy", "CHN-5"]));
+        assert_eq!(notice, None);
         let (args, notice) = rewrite(&root, &argv(&["changes", "assets", "nope"]));
         assert_eq!((args, notice), (argv(&["changes", "assets", "nope"]), None));
     }
