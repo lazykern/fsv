@@ -26,7 +26,7 @@ Counts: **30 ported, 2 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `273ffde` | 11-12 00:38 | fix(writes): gate status changes and avoid replay | partial | fsv-core (client ported; safety missing), fsv-tui tests |
+| `273ffde` | 11-12 00:38 | fix(writes): gate status changes and avoid replay | partial | fsv-core client and `safety.rs:132-145` ported; open: two tests (fsv-tui, fsv-core) |
 | `9d7caa9` | 11-12 00:42 | fix(updates): validate legacy choices and booleans | ported | fsv-cli `lookup.rs:346`, `:546`, `:570` |
 | `b05933f` | 11-12 00:46 | fix(tickets): align note recipients and readback | ported | fsv-api `notes.rs:24`, `:33`, `:263-302` |
 | `612c117` | 11-12 01:00 | fix(writes): retain ambiguous 403 outcomes | ported | fsv-api `service.rs:298`; fsv-flows `ticket.rs:352` |
@@ -53,7 +53,7 @@ Counts: **30 ported, 2 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778
 | `f711010` | 11-12 03:51 | feat(planning): add reviewed native text saves and TUI editor | ported | fsv-api (`planning_text.rs:34`, `:132`); fsv-tui and fsv-app (`LiveBackend::planning_*`); fsv-cli `reviewed.rs` `planning_text`; fsv-completion |
 | `3057492` | 11-12 04:00 | feat(tui): edit reviewed ticket properties and SR beneficiaries | ported | fsv-api `properties.rs:218`, `:374`; fsv-tui; fsv-app `tui.rs` `ticket_property_plan` / `send_ticket_property` (`build_plan_with` / `send_with`) |
 | `f7bf04a` | 11-12 04:07 | feat(problems): add reviewed known-error mark and TUI action | ported | fsv-api (`problem_known_error.rs:36`); fsv-tui and fsv-app (`LiveBackend::known_error_plan` / `send_known_error`); fsv-cli `reviewed.rs` `mark_known_error`; fsv-completion |
-| `1dc7ab6` | 11-12 04:13 | test(writes): exercise ticket property and mail transport guards | partial | fsv-api CC re-check ported (`conversations.rs:389`); the byte/header-level HTTP tests are ported as `FakeApi` tests only |
+| `1dc7ab6` | 11-12 04:13 | test(writes): exercise ticket property and mail transport guards | partial | fsv-api CC re-check ported (`conversations.rs:560`); open: the HTTP tests over a real `Client` (two are `FakeApi` tests only) |
 | `c0210a7` | 11-12 04:20 | feat(tickets): add reviewed explicit-ID bulk priority | ported | fsv-api (`bulk_priority.rs:49`, `:125`); fsv-cli `reviewed.rs` `bulk_priority`; fsv-completion |
 | `774f4f1` | 11-12 04:26 | fix(tickets): invalidate old beneficiary rule context | ported | fsv-api `properties.rs:218` |
 | `4d778c3` | 11-12 04:38 | fix(readback): compare durations and offset timestamps semantically | ported | fsv-api `readback.rs:15`, `:29`, `:50`; `properties.rs:540`, `tasks.rs:428` |
@@ -83,27 +83,26 @@ values from them.
 Ported: `Client::int_request` fetches CSRF once and never replays
 (`crates/fsv-core/src/client/mod.rs:657-675`).
 
-Missing: `safety.write_risks` now flags **every** ticket/problem status
-transition (same status is still not a risk). Rust keeps the old
-terminal-only rule (`crates/fsv-core/src/safety.rs:140-144`).
+Done: `safety::write_risks` flags every ticket/problem status transition
+with `"{what} status -> {label} (status semantics and workflows require
+confirmation)"` (`crates/fsv-core/src/safety.rs:132-145`; tests
+`ticket_every_status_transition_is_risky` `:244`,
+`localized_terminal_status_needs_confirmation` `:252`). fsv-tui
+`status_plan` uses it (`crates/fsv-tui/src/actions.rs:100`). The fsv-cli
+golden `requires_confirmation` for a non-terminal problem status is in
+`crates/fsv-cli/tests/upstream_cmds.rs:10241`.
 
-- **fsv-core** `safety.rs`: for a non-change, non-task `status` that differs
-  from current (or current is unknown), always push
-  `"{what} status -> {label} (status semantics and workflows require confirmation)"`.
-  Drop the `status_closes` match in `write_risks` (keep `status_closes` as a
-  pub fn if other callers use it). Rename and invert the test
-  `ticket_only_terminal_status_is_risky` (`safety.rs:246`).
-- **fsv-tui** `actions.rs` tests: a ticket status plan to a non-terminal label
-  ("Review") now carries a risk containing the label.
-- **fsv-cli**: dry-run/confirm golden output for ticket/problem status
-  updates gains `requires_confirmation`. Re-run `crates/fsv-cli/tests/write_cmds.rs`.
-- Python tests: `tests/test_write_safety.py::test_ticket_every_status_transition_is_risky`,
-  `tests/test_qa_regressions.py::test_localized_terminal_status_needs_confirmation`
-  ("confirmation" substring; "Pending final closure" is risky),
-  `tests/test_tui_actions.py::test_ticket_every_status_transition_warns`,
-  `tests/test_change_task_wire.py::test_internal_mutation_never_replayed_after_ambiguous_failure`
-  (already covered by `crates/fsv-core/src/client/tests.rs:972`; add a
-  403/disconnect × POST/PUT/PATCH/DELETE single-request case if absent).
+Missing (tests only):
+
+- **fsv-tui** `actions.rs`: no test that a ticket status plan to a
+  non-terminal label ("Review") carries a risk naming it. Only `Closed` is
+  pinned (`ticket_status_plan_has_no_change_footer`, `actions.rs:603`).
+  Python: `tests/test_tui_actions.py:101`.
+- **fsv-core** `client/tests.rs`: no `int_request` case for 403 and
+  disconnect × POST/PUT/PATCH/DELETE that asserts one request with
+  `X-CSRF-Token`. `fsv-api/tests/legacy_write_guards.rs:160` covers POST and
+  PUT through the legacy callers only. Python:
+  `tests/test_change_task_wire.py:34-52`.
 
 ### `7903e2a` fix(changes): route legacy updates through reviewed form plans — ported
 
@@ -363,14 +362,16 @@ New `ticket_time.py` / `ticket_time_cli.py`. Depends on `reviewed_write`,
   `::test_note_only_update_preserves_normalized_minutes` (`{"time_spent":
   "125:05", "note": "Globex"}`).
 
-### `5bc5d4d` feat(tui): review ticket recipient and status conversation options — partial
+### `5bc5d4d` feat(tui): review ticket recipient and status conversation options — ported
 
 Ported in fsv-tui: Ctrl+O option menu, `ConversationRequest` with
 cc/notify/bcc/sender/Pending, plain ticket replies routed to the reviewed
 path (`crates/fsv-tui/src/app/reviewed.rs:480-575`, `app/cont.rs:34-47`,
 `modals.rs:210-259`).
 
-Missing:
+Done: fsv-app `ticket_conversation_plan` / `send_ticket_conversation`
+(`crates/fsv-app/src/tui.rs:881`, `:924`) over `build_plan_mail`. The
+notes below are as triaged.
 
 - **fsv-app**: done. `ticket_conversation_plan` and
   `send_ticket_conversation` in `tui.rs` call `conversations::build_plan_mail`
@@ -426,15 +427,16 @@ Missing:
 - Python tests: `tests/test_planning_text.py` (all four; keys
   `acme_plan` for changes "Rollout Plan", `problem_cause` for "Root Cause").
 
-### `3057492` feat(tui): edit reviewed ticket properties and SR beneficiaries — partial
+### `3057492` feat(tui): edit reviewed ticket properties and SR beneficiaries — ported
 
 **fsv-api ported:** beneficiary answers and `requested_for_id`
-(`properties.rs:189-300`). fsv-app can now call `build_plan_with`.
+(`properties.rs:30`, `:267`). fsv-app can now call `build_plan_with`.
 
 Ported in fsv-tui: `e` on a ticket opens the property picker → value/choice →
 review → outcome (`reviewed.rs:307-360`, `app/forms.rs:23-24`).
 
-Missing:
+Done: fsv-app `ticket_property_plan` / `send_ticket_property`
+(`crates/fsv-app/src/tui.rs:981`, `:1004`). The notes below are as triaged.
 
 - **fsv-api** `properties.rs` (on top of `f761a01`): a beneficiary answer
   (`api_name == "requested_for" && field_type == "default_requested_for"`)
@@ -478,26 +480,30 @@ Missing:
 
 ### `1dc7ab6` test(writes): exercise ticket property and mail transport guards — partial
 
-**fsv-api ported:** the CC re-check (`conversations.rs:389`) and the readback /
-ambiguity cases as `FakeApi` tests. Exact HTTP bytes and headers are not
-exercised (no transport-level fake in fsv-api).
+Done: the CC re-check in `conversations::send`
+(`crates/fsv-api/src/conversations.rs:560`, "CC recipient identity changed;
+review again"). Two Python cases are ported as `FakeApi` tests
+(`conversations.rs:1479`, `:1522`).
 
-Missing source change: before sending, `ticket_conversation.send` re-resolves
-formatted CC recipients and refuses if they differ, without changing the
-reviewed bytes.
+Missing (tests only). No fsv-api test drives a real `fsv_core::Client` over
+`MockTransport` for these, so exact HTTP bytes and headers are not pinned:
 
-- **fsv-api** `conversations.rs` `send`: when `payload.cc_emails` is
-  non-empty, take each value's address (`email.utils.parseaddr(v)[1]`), call
-  `recipients(api, emails)` and compare with the stored list; on a
-  difference → `"CC recipient identity changed; review again"` (exit 2, no
-  POST).
-- **fsv-api** tests: port the transport-level cases (exact HTTP bytes and
-  headers, Acme/Globex runtime status ids, 403/429/500/disconnect leave the
-  `started` guard, wrong-id/missing/contradicting readback never resends,
-  Resolved/Closed refused).
-- Python tests: `tests/test_ticket_conversation_http.py` (all),
-  `tests/test_ticket_properties_http.py` (all; the property side is already
-  implemented, so these are test ports only).
+- `tests/test_ticket_conversation_http.py:11` exact Pending reply/note
+  contract and public consent.
+- `tests/test_ticket_conversation_http.py:47` 403/429/500/disconnect leave
+  the `started` guard.
+- `tests/test_ticket_conversation_http.py:68` Resolved/Closed need a
+  persisted note on readback.
+- `tests/test_ticket_conversation_http.py:35` and `:57` exist only as
+  `FakeApi` tests.
+- `tests/test_ticket_properties_http.py:86` exact property headers, dates,
+  token and metadata.
+- `tests/test_ticket_properties_http.py:103` ambiguous failure never
+  replayed, even with a new client.
+- `tests/test_ticket_properties_http.py:120` wrong-id/missing/contradicting
+  readback stays unverified with no resend.
+- `tests/test_ticket_properties_http.py:129` changed state or metadata
+  blocks the write.
 
 ### `c0210a7` feat(tickets): add reviewed explicit-ID bulk priority — ported
 
@@ -913,12 +919,12 @@ work in progress from another agent: `reviewed_write.rs`, `watchers.rs`
 `watchers::positive_id`. Python had no uncommitted source changes at
 triage time.
 
-Counts: **2 ported, 1 partial, 0 missing.**
+Counts: **3 ported, 0 partial, 0 missing.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
 | `6b7073a` | 11-12 05:11 | feat(lists): add reviewed native columns and scoped export requests | ported | fsv-api (`list_preferences.rs`), fsv-cli (`cmd/native.rs`), fsv-completion |
-| `53c678e` | 11-12 05:17 | feat(assets): add read-only CLI and TUI candidate pickers | partial | fsv-api `asset_picker.rs`, fsv-tui and fsv-app `LiveBackend::asset_candidates`, fsv-cli `changes asset-picker`, fsv-completion done; open: fsv-api `candidates` validates ids after the duplicate check |
+| `53c678e` | 11-12 05:17 | feat(assets): add read-only CLI and TUI candidate pickers | ported | fsv-api `asset_picker.rs`, fsv-tui and fsv-app `LiveBackend::asset_candidates`, fsv-cli `changes asset-picker`, fsv-completion |
 | `dbe553c` | 11-12 05:23 | test(legacy): cover mutation callers through offline HTTP transports | ported | fsv-api `tests/legacy_write_guards.rs` |
 
 New Python modules with no Rust counterpart: `list_preferences.py`,
@@ -1022,12 +1028,15 @@ and `Resource::{filters_path, item_key}` (`crates/fsv-core/src/resource.rs`;
   - Header drift blocks the write. When the preference fields are missing,
     `ticket_subject` is `"unavailable"`.
 
-### `53c678e` feat(assets): add read-only CLI and TUI candidate pickers — partial (fsv-api ordering open)
+### `53c678e` feat(assets): add read-only CLI and TUI candidate pickers — ported
 
 **Status:** fsv-cli `cmd::reviewed::asset_picker` (fixture `asset_picker`)
-and fsv-completion are ported at Python `92002d7`. Open in fsv-api:
-`asset_picker.rs` `candidates` checks duplicates before every display id is
-validated (PARITY fsv-cli divergence; ignored `asset_picker_duplicate_then_bad`).
+and fsv-completion are ported at Python `92002d7`. Done: fsv-api
+`candidates` validates every display id before the duplicate check
+(`crates/fsv-api/src/asset_picker.rs:61-69`, test
+`candidates_validates_every_id_before_duplicates` `:120`). The fsv-cli
+golden `asset_picker_duplicate_then_bad`
+(`crates/fsv-cli/tests/upstream_cmds.rs:3394`) is no longer ignored.
 
 `fsv_api::create::search_assets_for_change` exists
 (`crates/fsv-api/src/create.rs:1594`, GET `assets-to-associate`) and is used
@@ -1184,9 +1193,8 @@ fsv-formui work in this range.
 `port/UPSTREAM_BASE` holds the last Python commit whose range is fully
 triaged (`92d76ff`). Advance it only when every row up to the new SHA is
 `ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
-entry. Open follow-ups: fsv-api `asset_picker.rs` validation order
-(`53c678e`); fsv-cli `planning-text --clear` (`e638d85`) and the clone CLI
-cases (`3432bea`). Next untriaged: `2956fce` (fsv-completion owner).
+entry. The follow-ups once listed here (`53c678e`, `e638d85`, `3432bea`)
+are done.
 (fsv-core's status-0 `ApiError` display now matches Python.)
 
 ## Ledger: `dbe553c..92002d7`
@@ -1306,7 +1314,8 @@ already opens the stored text, and the review now comes back from the backend
 `a_planning_text_picks_a_section_edits_reviews_and_sends_once`). The TUI
 never clears, as in Python.
 
-Open (fsv-cli owner, `planning_cli.py`):
+Done in fsv-cli (`c94f2f5`; see the note under "Ledger: `3432bea..2956fce`").
+The items, as triaged (`planning_cli.py`):
 - `planning-text --description` becomes optional (help "text/HTML; reviewed
   verbatim; mutually exclusive with --clear"). Add a `--clear` bool flag
   (help "delete existing section text; refuses files or unknown state").
@@ -1325,7 +1334,7 @@ Open (fsv-cli owner, `planning_cli.py`):
   `change_planning_text_existing_refused` (an existing section is now a
   reviewed edit, exit 0, not a refusal).
 
-### `3432bea` Test clone partial failures and attachment transport errors offline — partial
+### `3432bea` Test clone partial failures and attachment transport errors offline — ported
 
 Tests only. `port/golden/gen_fsv_api_failure_matrix.py` drives the Python
 handlers of `test_attachment_failure_matrix.py` and
@@ -1345,7 +1354,9 @@ reads, downloads, and the upload receipt line. That line is factored out as
 
 No behavior mismatch was found.
 
-Open (fsv-cli owner, `changes clone`, from `test_clone_failure_matrix.py`):
+Done in fsv-cli (`c94f2f5`): `clone_partial_*`, `clone_dry_run_counts_side_effects`,
+`clone_missing_returned_id`, `clone_no_input_needs_yes`
+(`crates/fsv-cli/tests/upstream_cmds.rs:6767-7050`). The cases, as triaged:
 - `test_partial_clone_preserves_new_identity_and_attempts_each_step_once`:
   the stdout JSON keeps `id: 456`, `human_display_id`, and
   `fsv_clone_steps` (`"ok"` / `"failed: …"`). stderr says "do not rerun
@@ -1818,14 +1829,13 @@ asset block in `reviewed_expected.json` was regenerated from the same
 export; the rest of that fixture is unchanged apart from the stamp.
 This section covers every crate except fsv-cli and fsv-completion.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `36408b2`.
-The partial is the fsv-cli half, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `36408b2`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `36408b2` | 11-12 14:31 | Use integrated inventory for reviewed CI and service associations | partial | fsv-api `integrated_assets`, `asset_picker`, `Api::absolute_get`; fsv-flows `with_devices`; fsv-app `LiveWriter::associated_devices`. fsv-cli follow-up below |
+| `36408b2` | 11-12 14:31 | Use integrated inventory for reviewed CI and service associations | ported | fsv-api `integrated_assets`, `asset_picker`, `Api::absolute_get`; fsv-flows `with_devices`; fsv-app `LiveWriter::associated_devices`; fsv-cli `cmd/inventory.rs` |
 
-### `36408b2` integrated inventory — partial
+### `36408b2` integrated inventory — ported
 
 `fsv_api::integrated_assets` ports `search`, `inventory`, `build_plan`,
 `send`, and `verify_devices`. Search is `GET https://{domain}/itam/core/{family}/api/`
@@ -1859,33 +1869,17 @@ inventory. `LiveWriter` reads change devices. Ticket create reads through
   forward it to `Client::request("GET", url, params)` or asset search and
   the ITAM commands fail closed.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`integrated_assets_cli.register(app, "sr", factory)` adds `sr assets`
-`list` / hidden `ls` / `add` / `remove`. `search`, hidden `legacy`, and
-the `ci-add` / `ci-remove` / `ci-list` aliases are registered only when
-the module is `changes`, and this commit does not call `register` for
-changes. JSON create output includes `device_verification` when the
-result has it.
-
-Scratch tree (`git archive HEAD` plus this library diff, fsv-cli left at
-HEAD): `cargo test -p fsv-cli --offline` is 545 passed, 13 failed. All 13
-are asset-picker tests whose fixture still serves
-`GET /api/_/assets-to-associate`. The library now requests
-`GET /itam/core/device/api/` and the failure is `HTTP 404 listing device`.
-Do not edit fsv-cli. Failing tests:
-
-`asset_picker_api_error_is_uncaught`, `asset_picker_bad_display_id`,
-`asset_picker_display_id_target`, `asset_picker_duplicate_display_ids`,
-`asset_picker_duplicate_then_bad`, `asset_picker_empty_page`,
-`asset_picker_empty_select`, `asset_picker_page`,
-`asset_picker_row_not_object`, `asset_picker_rows_not_list`,
-`asset_picker_search_page_2`, `asset_picker_select`,
-`asset_picker_select_missing`.
-
-These still pass because they refuse before the search:
-`asset_picker_bad_target`, `asset_picker_page_must_be_positive`,
-`asset_picker_ticket_target`, `asset_picker_zero_target`.
+Done: `{changes,tickets,problems,sr} assets list|ls|add|remove`, `changes
+assets search|legacy`, `ci-add|ci-remove|ci-list`, and top-level `assets
+search` (`crates/fsv-cli/src/cmd/inventory.rs:84-252`, over `finish` /
+`guard` at `:48-82`). `LazyApi` forwards `absolute_get`
+(`crates/fsv-cli/src/lazy.rs:101`). Create JSON adds `device_verification`
+(`cmd/changes.rs:1371`, `cmd/tickets.rs:898`). The asset-picker fixture
+serves the ITAM search. Goldens: `assets_search_*`, `sr_assets_list`,
+`changes_assets_*`, `problems_assets_*`, `change_create_device_send*`
+(`crates/fsv-cli/tests/upstream_cmds.rs:12782-13850`).
 
 `port/fsv_coverage.py` maps `integrated_assets` to fsv-api. Audit
 (`/tmp/cov.md`, live Python tree): 1777 rows, 1552 covered, 45 missing,
@@ -1899,14 +1893,13 @@ Triaged against a `git archive 9070409` export
 `port/golden/gen_fsv_api_sr_approvals.py` stamps
 `crates/fsv-api/src/testdata/sr_approvals_oracle.json`.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `9070409`.
-The partial is the fsv-cli command group, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `9070409`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `9070409` | 11-12 14:36 | Add reviewed service request approval lifecycle | partial | fsv-api `sr_approvals`, `approval_groups`; `Client::send_once` Content-Type. fsv-cli follow-up below |
+| `9070409` | 11-12 14:36 | Add reviewed service request approval lifecycle | ported | fsv-api `sr_approvals`, `approval_groups`; `Client::send_once` Content-Type; fsv-cli `cmd/inventory.rs` |
 
-### `9070409` SR approvals — partial
+### `9070409` SR approvals — ported
 
 `fsv_api::sr_approvals` ports `inventory`, `recipients`, `build_plan`, and
 `send`. Inventory reads `tickets/{id}/approval-chains` through
@@ -1925,13 +1918,12 @@ or `tickets`.
 - `fsv_api::sr_approvals::{inventory, recipients, build_plan, send, ApprovalPlan}`
 - `fsv_api::approvals::approval_groups(c, target, module)`
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`sr_approvals_cli.register` adds `sr approvals list|request|approve|reject|cancel|remind`.
-`list` prints `{"approval_groups": ...}`. `request` takes `--name`,
-`--message`, repeatable `--approver`, `--rule`. The other actions take
-the approval id, or the group id for `cancel`, plus `--remark` (required
-on reject). Dry-run and send go through `integrated_assets_cli.finish`.
+Done: `sr approvals list|request|approve|reject|cancel|remind`
+(`crates/fsv-cli/src/cmd/inventory.rs:230-241`, `:254-357`) through
+`finish`. `list` prints `sr_approvals::listing` since `5711a5a`. Goldens
+`sr_approvals_*` (`crates/fsv-cli/tests/upstream_cmds.rs:13848-15058`).
 
 `port/fsv_coverage.py` maps `sr_approvals` to fsv-api.
 
@@ -1942,14 +1934,13 @@ Triaged against a `git archive be41032` export
 `port/golden/gen_fsv_api_change_task_update.py` stamps
 `crates/fsv-api/src/testdata/change_task_update_oracle.json`.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `be41032`.
-The partial is `changes tasks-update` in fsv-cli, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `be41032`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `be41032` | 11-12 14:40 | Review complete captured change task update fields | partial | fsv-api `change_task_update`. fsv-cli follow-up below |
+| `be41032` | 11-12 14:40 | Review complete captured change task update fields | ported | fsv-api `change_task_update`; fsv-cli `changes tasks-update` |
 
-### `be41032` change task update — partial
+### `be41032` change task update — ported
 
 `fsv_api::change_task_update` ports `inventory`, `reminder`, `build_plan`,
 and `send`. The PUT is `changes/{id}/tasks/{task}` and contains only the
@@ -1968,16 +1959,12 @@ when the task stores the alias.
 `planned_effort`, `notify_before`, `values`. `send` rebuilds from
 `inputs_json`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes tasks-update` should call `build_plan` / `send` through
-`integrated_assets_cli.finish` and `guard`. Map flags into `inputs`:
-`--title`, `--status`, `--owner`/`--agent`, `--group`, `--note`,
-`--planned-start`, `--planned-end`, `--planned-effort`, `--notify-before`.
-`--system` and `--environment` become `values["cf_system"]` and
-`values["cf_environment"]`. `--edit` and `--due-date` raise
-`ValueError("--edit/--due-date are not captured task-update contracts; use explicit planned dates and reviewed flags")`.
-Dry-run, `--yes`, `--expect-plan`, and `--read-only` stay on `finish`.
+Done: `changes tasks-update` maps the flags into `inputs`, refuses
+`--edit`/`--due-date`, and goes through `finish` / `guard`
+(`crates/fsv-cli/src/cmd/changes.rs:170-218`). Goldens
+`changes_tasks_update_*` (`crates/fsv-cli/tests/upstream_cmds.rs:17333-17705`).
 
 `port/fsv_coverage.py` maps `change_task_update` to fsv-api.
 
@@ -1991,14 +1978,13 @@ Triaged against a `git archive 0719e33` export
 because closure now requires `article_type` 1 or 2. Closed plan hashes moved.
 Nothing in fsv-cli pins the old hashes.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `0719e33`.
-The partial is the fsv-cli command surface, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `0719e33`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `0719e33` | 11-12 14:49 | Create draft solutions and review problem article links | partial | fsv-api `solutions`, `problem_status::closure_context`. fsv-cli follow-up below |
+| `0719e33` | 11-12 14:49 | Create draft solutions and review problem article links | ported | fsv-api `solutions`, `problem_status::closure_context`; fsv-cli `cmd/inventory.rs` |
 
-### `0719e33` solutions — partial
+### `0719e33` solutions — ported
 
 `fsv_api::solutions` ports draft create, link, and unlink. Create is
 `POST solutions/articles` with `status` 1, `source` `problem`, and
@@ -2016,14 +2002,12 @@ missing.
 
 `fsv_api::solutions::{metadata, folder, article, create_plan, send_create, link_plan, send_link, SolutionPlan}`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`solutions_cli.register` adds top-level `solutions create` (`--title`,
-`--body`, `--type` workaround|permanent, optional `--category` and
-`--folder`, plus dry-run / `--yes` / `--expect-plan` / `--read-only`).
-`solutions_cli.register_links` adds `problems link-solution` and
-`problems unlink-solution` (problem id, article id). Both go through
-`integrated_assets_cli.finish` and `guard`. Create does not link or publish.
+Done: `solutions create` and `problems link-solution|unlink-solution`
+through `finish` / `guard` (`crates/fsv-cli/src/cmd/inventory.rs:242-249`,
+`:359-403`). Goldens `solutions_create_*`, `problems_link_solution_*`,
+`problems_unlink_solution_*` (`crates/fsv-cli/tests/upstream_cmds.rs:15059-15470`).
 
 `port/fsv_coverage.py` maps `solutions` to fsv-api.
 
@@ -2038,14 +2022,13 @@ The individual-approver request hash
 is unchanged. `review()` now always includes `recipient_sources`
 (`[]` when the context is empty).
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `d870fa7`.
-The partial is the fsv-cli command surface, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `d870fa7`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `d870fa7` | 11-12 14:58 | Expand reviewed group and CAB selections to eligible users | partial | fsv-api `approval_recipients`, `approvals`. fsv-cli follow-up below |
+| `d870fa7` | 11-12 14:58 | Expand reviewed group and CAB selections to eligible users | ported | fsv-api `approval_recipients`, `approvals`; fsv-cli `changes approval-request` |
 
-### `d870fa7` approval recipients — partial
+### `d870fa7` approval recipients — ported
 
 `fsv_api::approval_recipients` expands a group or CAB to its eligible
 `approval_users`. Group members are paged (`per_page` 30, up to 100
@@ -2067,24 +2050,16 @@ the same prepare path that rewrites every failure as
 `recipient_context_json`. `ApprovalPlan.recipient_context_json` is the
 stored membership. `review()` always has `recipient_sources`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes approval-request` must accept optional `--approver`, plus
-`--approver-group` and `--cab` / `--approver-cab`. If none of the three
-is passed, ValueError `provide --approver, --approver-group or --cab explicitly`.
-Expand every eligible `approval_users` row (not bootstrap `agent_ids`),
-dedupe into `notified_to`, put the membership in `recipient_sources`
-and the hash, and call `validate` before send. `ReviewedWriteError`
-exits 2. `cmd/review.rs` still requires `--approver` and does not pass
-groups or cabs.
-
-Scratch goldens that now fail, left unedited:
-`approval_request_no_input` and `approval_request_send_unverified`
-(review JSON gained `recipient_sources: []`; plan hash
-`c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1`
-did not move), and `approval_request_dry_run` (email lookup now
-calls requester autocomplete, so the agents fixture misses and
-the duplicate-id check never runs).
+Done: `changes approval-request` takes optional `--approver`,
+`--approver-group` and `--cab`/`--approver-cab`, refuses when none is
+given, and builds through `approval_recipients::resolve` and
+`approvals::build_plan_with` (`crates/fsv-cli/src/cmd/review.rs:180-266`).
+The goldens `approval_request_dry_run`, `_no_input` and `_send_unverified`
+carry `recipient_sources` (`crates/fsv-cli/tests/write_cmds.rs:319-540`).
+No CLI golden passes `--approver-group` or `--cab` on the chains model yet
+(Python `tests/test_approval_recipients.py:64`).
 
 `port/fsv_coverage.py` maps `approval_recipients` to fsv-api.
 
@@ -2098,14 +2073,13 @@ A plan built without `fields` keeps its hash. `fields=[]` binds
 metadata and moves the hash. The review contract text changed for
 every plan.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `780c002`.
-The partial is the fsv-cli command surface, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `780c002`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `780c002` | 11-12 15:13 | Preflight runtime required change task fields and expose custom values | partial | fsv-api `tasks`. fsv-cli follow-up below |
+| `780c002` | 11-12 15:13 | Preflight runtime required change task fields and expose custom values | ported | fsv-api `tasks`; fsv-cli `changes tasks-add` |
 
-### `780c002` change task required fields — partial
+### `780c002` change task required fields — ported
 
 `validate_required` refuses a create whose runtime
 `required_for_create` fields are blank, skipping `workspace_id`.
@@ -2124,19 +2098,13 @@ readback uses `strip_html`. Custom fields use
 `TaskArgs.fields`, or call `build_plan_ex`. `runtime_fields(c)` reads
 `change_task_fields`. `validate_required(fields, payload)`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes tasks-add` must take repeatable `--set NAME=VALUE`,
-`--system`, and `--environment` / `--env`. Load `runtime_fields`
-before the real plan. Map those flags through `ticket_tasks::custom_values`.
-Pass the field list into the plan so the hash binds metadata. The
-review contract is now `Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.`
-
-Scratch goldens that pin the old contract, left unedited:
-`task_add_dry_run`, `task_add_no_input`, `task_add_confirm_eof`,
-`task_add_hash_mismatch`, `task_add_send_unverified`,
-`task_add_full_dry_run`. Their plan hashes are unchanged because the
-CLI still builds without `fields`.
+Done: `changes tasks-add` loads `runtime_fields`, maps `--set`,
+`--system` and `--environment` through `ticket_tasks::custom_values`, and
+passes `fields` into the plan (`crates/fsv-cli/src/cmd/review.rs:56-94`).
+The `task_add_*` goldens pin the new review contract
+(`crates/fsv-cli/tests/write_cmds.rs:3223-3500`).
 
 ## Ledger: `ad40a51` (library side)
 
@@ -2199,7 +2167,7 @@ missing fields still fail verification.
 
 No new CLI flags. A `changes tasks-update` caller that prints `send`'s
 result gets `fields_verified` and that warning. The `be41032` CLI
-follow-up is unchanged.
+follow-up is done.
 
 ## Ledger: `11e76ed` (library side)
 
@@ -2252,13 +2220,11 @@ Triaged against a `git archive e7c536b` export
 `port/golden/gen_fsv_api_agent_lookup.py` stamps
 `crates/fsv-api/src/testdata/agent_lookup_oracle.json`.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `e7c536b`.
-The partial is fsv-cli `lookup.rs` `resolve_agent` and the task-add
-help text, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e7c536b`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `e7c536b` | 11-12 16:57 | Resolve exact agent emails from native autocomplete | partial | fsv-api `agent_lookup`, `tasks::resolve_owner`, `query::resolve_agent`, `change_task_update`. fsv-cli follow-up below |
+| `e7c536b` | 11-12 16:57 | Resolve exact agent emails from native autocomplete | ported | fsv-api `agent_lookup`, `tasks::resolve_owner`, `query::resolve_agent`, `change_task_update`; fsv-cli `lookup.rs` |
 
 `exact_agent_id` returns a user id only for one exact active row.
 Email lookup reads `id`, `email`, and `details` (the native `id` is
@@ -2269,14 +2235,13 @@ id, an exact email, or a full name. Lookup failure is `TaskError`.
 `query._resolve_agent` uses the same email match and still falls
 through to `pick_lookup` for a non-email.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`lookup.rs` `resolve_agent` should, for an email, call
-`agent_lookup::exact_agent_id` and return the user id as text. A
-`ValueError` from that lookup is the command error. Non-email values
-keep `pick_lookup` on `value`, `id`, `email`, and `details`. The
-`changes tasks-add --owner` help text should say an explicit user id,
-exact email, or full name.
+Done: `lookup::resolve_agent` uses `agent_lookup::exact_agent_id` for an
+email and keeps `pick_lookup` otherwise
+(`crates/fsv-cli/src/lookup.rs:231-252`). The `tasks-add --owner` help is
+"explicit user ID or exact agent email/full name; default none, no implicit
+self" (`crates/fsv-cli/src/generated.rs:527`, checked by `tests/tree.rs`).
 
 Still not triaged: none. Range through `e7c536b` is triaged.
 
@@ -2288,12 +2253,11 @@ Triaged against a `git archive 4626e12` export
 `crates/fsv-api/src/testdata/ticket_tasks_oracle.json`. Existing
 add/status/delete plan hashes are unchanged.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `4626e12`.
-The partial is the fsv-cli ticket-task command, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `4626e12`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `4626e12` | 11-12 17:51 | Add metadata-gated ticket task owner and group reviews | partial | fsv-api `ticket_tasks`. fsv-cli follow-up below |
+| `4626e12` | 11-12 17:51 | Add metadata-gated ticket task owner and group reviews | ported | fsv-api `ticket_tasks`; fsv-cli `tickets tasks add` and `update` |
 
 `build_plan` is unchanged: status is always sent, and owner and group
 stay unset. `build_plan_assigned` adds an optional owner, an optional
@@ -2308,14 +2272,13 @@ An empty update is `provide at least one task update field`. `send`
 rebuilds from inputs and leaves status out when the stored status is
 JSON null.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`tickets tasks add` should take optional `--owner` and `--group` and
-call `ticket_tasks::build_plan_assigned`. Add `tickets tasks update
-TARGET TASK` with optional `--title`, `--owner`, and `--group`. That
-command calls `build_plan_assigned` with action `update`, status
-omitted, and no values. Dry-run, `--yes`, and `--expect-plan` stay on
-the existing reviewed-write helper. Do not add fields to `TaskArgs`.
+Done: `tickets tasks add --owner --group` and `tickets tasks update`
+call `ticket_tasks::build_plan_assigned`
+(`crates/fsv-cli/src/cmd/reviewed.rs:653-722`). Goldens
+`tickets_tasks_add_owner_group_*`, `tickets_tasks_update_*`
+(`crates/fsv-cli/tests/upstream_cmds.rs:11028-11280`).
 
 Still not triaged: `dbe1149` and later.
 
@@ -2352,14 +2315,13 @@ the metadata fingerprint, and the tenant. The generator pins an empty
 `FSV_CONFIG_DIR` before importing `fsv`, and it snapshots form fields
 once so later plans share that fingerprint.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `9c8c91d`.
-The partial is the fsv-cli change update and task-delete commands,
-named below. `docs/change-tasks.md` and `docs/reviewed-parity.md` have
-no library behavior.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `9c8c91d`.
+`docs/change-tasks.md` and `docs/reviewed-parity.md` have no library
+behavior.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `9c8c91d` | 11-12 18:44 | Audit TUI sends with real transport and close legacy write gaps | partial | fsv-flows `change`, fsv-api `change_task_delete`, fsv-tui, fsv-app. fsv-cli follow-up below |
+| `9c8c91d` | 11-12 18:44 | Audit TUI sends with real transport and close legacy write gaps | ported | fsv-flows `change`, fsv-api `change_task_delete`, fsv-tui, fsv-app; fsv-cli `changes update`, `tasks-delete` |
 
 An update plan stores `legacy_hash`, `record_hash`, and `tenant`.
 `change::execute` keeps its signature and sends property updates through
@@ -2393,20 +2355,15 @@ Problem notes use `problem_workflows`. Task mutations use
 `change_task_update` and `change_task_delete`. `do_write` refuses with
 `Legacy TUI send path disabled`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes update` JSON should add `verified`, `fields`, and `warning`.
-When the update is not verified, exit 4 with
-`Change update readback unverified; do not resend` for JSON and human
-output. Human output prints later steps only when verified.
-
-`changes tasks-delete` should build `change_task_delete::build_plan`,
-require `--yes` and `--expect-plan` equal to `plan.hash`, then send.
-Add `--expect-plan` and `--json`. An unverified send exits 4. Do not
-call the legacy `delete_task`.
-
-HEAD scratch of `fsv-cli` against this library still fails the same 23
-tests. No new name. The update-hash move is not pinned by those goldens.
+Done: `changes update` JSON adds `verified`, `fields` and `warning`, and an
+unverified send exits 4 with `Change update readback unverified; do not
+resend` before any later steps (`crates/fsv-cli/src/cmd/changes.rs:1120-1156`).
+`changes tasks-delete` builds `change_task_delete::build_plan` and needs
+`--yes --expect-plan` (`cmd/changes.rs:220-249`; goldens
+`changes_tasks_delete_*`, `crates/fsv-cli/tests/upstream_cmds.rs:17706-17853`).
+No golden pins the exit-4 unverified `changes update` yet.
 
 Still not triaged: `922817f` and later.
 
@@ -2456,9 +2413,9 @@ The Rust workspace stays `2026.5.29`. `Cargo.lock` is not edited here.
 
 ### Version follow-up
 
-Bump the workspace `version` to `2026.11.12` together with `Cargo.lock`
-when that file may change. `fsv --version` will keep printing
-`2026.5.29` until then.
+Missing: `Cargo.toml:6` `[workspace.package] version` is still
+`2026.5.29`; Python `pyproject.toml:3` is `2026.11.12`. Bump it together
+with `Cargo.lock`. `fsv --version` prints `2026.5.29` until then.
 
 Still not triaged: `6ead7c9` and later.
 
@@ -2471,31 +2428,26 @@ Triaged against a `git archive 6ead7c9` export
 are unchanged. New cases: `two_step_change_acme`,
 `two_step_change_globex`, and `page_change`.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `6ead7c9`.
-The partial is the change-create CLI, named below. `docs/commands.md`
-and `docs/reviewed-parity.md` have no library behavior.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `6ead7c9`.
+`docs/commands.md` and `docs/reviewed-parity.md` have no library behavior.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `6ead7c9` | 11-12 21:55 | Review initial change attachment transactions and document inline capture boundary | partial | fsv-api `attachments`. fsv-cli follow-up below |
+| `6ead7c9` | 11-12 21:55 | Review initial change attachment transactions and document inline capture boundary | ported | fsv-api `attachments`; fsv-cli `changes create` |
 
 `attachments::readback` treats a `changes` create like a ticket create.
 The response envelope is `change`, and the owner row is
 `GET changes/{id}`. A change create verifies from that row. Ticket,
 problem, and conversation readback stay as they were.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes create` should take `--max-bytes` and pass it into the
-before-create attachment plan. When the draft has attachments and
-`--attach-flow before-create`, build `attachments::wrap` around the
-change create plan and finish it with the reviewed-write helper.
-Refuse that combination when the draft also has planning, devices, or
-an interactive form:
-`initial attachments cannot combine with planning, devices or interactive forms`.
-A before-create run that cannot prove the published byte limit exits 2
-with `no upload` and sends nothing.
-HEAD scratch of `fsv-cli` still fails the same 23 tests. No new name.
+Done: `changes create --max-bytes --attach-flow before-create` wraps the
+create plan with `attachments::wrap` and finishes through
+`cmd::attachments::finish` (`crates/fsv-cli/src/cmd/changes.rs:800-860`).
+The planning/devices/form combination is refused (`ATTACH_COMBINATION`,
+`:163`, `:802`). Goldens `change_create_before_create_*`
+(`crates/fsv-cli/tests/upstream_cmds.rs:12591-12781`).
 
 Still not triaged: `550fe8c` and later.
 
@@ -2506,14 +2458,11 @@ Triaged against `git show 550fe8c`
 existing whole-ticket forward moved. `docs/commands.md` and
 `docs/reviewed-parity.md` have no library behavior.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `550fe8c`.
-The partial is the `tickets forward --conversation` flag, named below.
-The committed CLI does not call the new builder, so the previous
-scratch list is unchanged.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `550fe8c`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `550fe8c` | 11-12 22:02 | Add reviewed exact-conversation forwarding | partial | fsv-api `conversations`. fsv-cli follow-up below |
+| `550fe8c` | 11-12 22:02 | Add reviewed exact-conversation forwarding | ported | fsv-api `conversations`; fsv-cli `tickets forward --conversation` |
 
 `forward_source` snapshots the one conversation whose id matches, and
 only from a complete history. A missing, partial, or ambiguous history
@@ -2524,11 +2473,12 @@ field. `send` recomputes the snapshot before the POST and refuses with
 `forward source changed; review again` when it differs. A selector on
 a reply or note is `conversation selector is only supported for forward`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`tickets forward` should take `--conversation` and call
-`conversations::build_plan_forward_source` with that id. Dry-run,
-`--yes`, and `--expect-plan` stay on the existing helper.
+Done: `tickets forward --conversation N` calls
+`conversations::build_plan_forward_source`
+(`crates/fsv-cli/src/cmd/tickets.rs:626-638`). Goldens
+`forward_conversation_*` (`crates/fsv-cli/tests/upstream_cmds.rs:2103-2220`).
 
 Still not triaged: `e116be9` and later.
 
@@ -2540,12 +2490,11 @@ delete plan hashes match a stamped generator. Status, assign, pickup
 and merge call the real builders. `docs/commands.md` and
 `docs/reviewed-parity.md` are a one-line note.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `e116be9`.
-The partial is the `tickets bulk` command, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e116be9`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `e116be9` | 11-12 22:10 | Add reviewed bulk ticket actions with frozen filtered selection | partial | fsv-api `ticket_bulk`. fsv-cli follow-up below |
+| `e116be9` | 11-12 22:10 | Add reviewed bulk ticket actions with frozen filtered selection | ported | fsv-api `ticket_bulk`; fsv-cli `tickets bulk` |
 
 `selection` sorts 1 to 100 explicit ids, or a complete filtered
 inventory. A short page or a drifted filter refuses before any write.
@@ -2554,15 +2503,13 @@ then the inner write hash. Spam and delete need a destructive confirm.
 A started or done journal blocks replay. Merge and pickup delegate to
 those modules' own senders.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`tickets bulk` should print `Selected ticket IDs: ...` on stderr.
-Dry-run prints the review JSON. Send requires `--yes` and
-`--expect-plan` equal to the bulk hash, otherwise
-`review with --dry-run, then --yes --expect-plan FULL_HASH`.
-Unverified exits 4. `ValueError`, `PropertyError` and
-`ReviewedWriteError` exit 2. Spam and delete require
-`--confirm-destructive` after the printed id list.
+Done: `tickets bulk` prints `Selected ticket IDs: ...` on stderr, then the
+dry-run review or a send gated by `require_full_hash`; unverified exits 4
+through `print_verified` (`crates/fsv-cli/src/cmd/reviewed.rs:492-499`,
+`:757-827`). Goldens `tickets_bulk_*`
+(`crates/fsv-cli/tests/upstream_cmds.rs:15473-16760`).
 
 Still not triaged: `1490984` and later.
 
@@ -2573,12 +2520,11 @@ Triaged against `git show 1490984`
 plan hashes match a stamped generator. Docs in that commit describe
 the CLI only.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `1490984`.
-The partial is `changes relationships`, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `1490984`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `1490984` | 11-12 22:18 | Add captured change relationship writers and project proxy verification | partial | fsv-api `change_relationships`. fsv-cli follow-up below |
+| `1490984` | 11-12 22:18 | Add captured change relationship writers and project proxy verification | ported | fsv-api `change_relationships`; fsv-cli `changes relationships` |
 
 `inventory` refuses a partial page or a project proxy that is not one
 complete page. Add and remove bind the parent change and the current
@@ -2586,15 +2532,11 @@ rows. Project add creates a project; it does not link an existing one.
 A nested non-200 proxy or a readback that misses the id stays
 unverified and is not replayed.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes relationships list` prints `inventory` as JSON and exits 2
-on `ValueError` or `ReviewedWriteError`. `changes relationships write`
-takes kind, action, `--item`, `--project-json`, `--project-key`, and
-`--name`. Dry-run prints the review JSON. Send requires `--yes` and
-`--expect-plan` equal to the plan hash, otherwise
-`review with --dry-run, then --yes --expect-plan FULL_HASH`.
-Unverified exits 4.
+Done: `changes relationships list|write`
+(`crates/fsv-cli/src/cmd/reviewed.rs:829-866`). Goldens
+`changes_relationships_*` (`crates/fsv-cli/tests/upstream_cmds.rs:16766-17330`).
 
 Moved on: `6c6b767` is triaged below.
 
@@ -2606,12 +2548,11 @@ gives the edit, stage, add and remove plans, the wires, the readback
 results and eight refusals. All of them match. Docs in that commit
 describe the CLI only.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `6c6b767`.
-The partial is `sr items`, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `6c6b767`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `6c6b767` | 11-12 22:26 | Add reviewed requested-item answers stage and item lifecycle | partial | fsv-api `sr_requested_items`. fsv-cli follow-up below |
+| `6c6b767` | 11-12 22:26 | Add reviewed requested-item answers stage and item lifecycle | ported | fsv-api `sr_requested_items`; fsv-cli `sr items` |
 
 The parent must be a service request. `inventory` refuses a partial,
 duplicate, short or foreign list. Answers must be plain text or
@@ -2623,13 +2564,10 @@ Stage accepts only 2 (Delivered). Remove accepts only a row whose
 for the item metadata. A readback that misses an answer stays
 unverified and is not replayed.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`sr items list SR` prints `inventory` as JSON. `sr items write SR
-ACTION` takes `--item`, `--catalog-item`, `--answers-json` and
-`--stage`. Dry-run prints the review JSON. Send requires `--yes` and
-`--expect-plan`. `ValueError` and `ReviewedWriteError` exit 2;
-unverified exits 4.
+Done: `sr items list|write` (`crates/fsv-cli/src/cmd/reviewed.rs:1026-1069`).
+Goldens `sr_items_*` (`crates/fsv-cli/tests/upstream_cmds.rs:19074-19460`).
 
 Moved on: `51cd544` is triaged below.
 
@@ -2642,12 +2580,11 @@ create and delete flow, problem task full update, completion and
 delete, two unverified readbacks and twelve refusals. All of them
 match. Docs in that commit describe the CLI only.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `51cd544`.
-The partial is the time and task CLI, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `51cd544`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `51cd544` | 11-12 22:35 | Add captured change time CRUD and problem task lifecycle | partial | fsv-api `module_time`, `problem_task_update`. fsv-cli follow-up below |
+| `51cd544` | 11-12 22:35 | Add captured change time CRUD and problem task lifecycle | ported | fsv-api `module_time`, `problem_task_update`; fsv-cli time and `problems task-write` |
 
 `module_time` reads entries through the v2 API and binds the parent
 row. Create defaults `billable` to true. Problems allow create and
@@ -2660,17 +2597,13 @@ passes when the task is gone, or listed once with `deleted: true`,
 and every other task is unchanged. The `FnApi` test double now routes
 `v2_get` as method `V2`.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes time list|write` and `problems time list|write` call
-`module_time`. `write ID ACTION` takes `--entry`, `--spent`,
-`--executed-at`, `--note` and `--billable/--non-billable`.
-`problems task-write PRB TASK ACTION` takes `--title`, `--status`,
-`--owner`, `--group`, `--note`, `--due-date`, `--planned-start`,
-`--planned-end`, `--planned-effort` and `--notify-before`. Completion
-calls `build_plan` with `{"status": "Completed"}` and delete calls
-`delete_plan`. Dry-run prints the review JSON. Send requires `--yes`
-and `--expect-plan`. Unverified exits 4.
+Done: `{changes,problems} time list|write` over `module_time`
+(`crates/fsv-cli/src/cmd/reviewed.rs:868-962`) and `problems task-write`
+over `problem_task_update` (`:967-1024`). Goldens `changes_time_*`,
+`problems_time_*`, `problems_task_*`
+(`crates/fsv-cli/tests/upstream_cmds.rs:18060-19060`).
 
 Moved on: `9e11155` is triaged below.
 
@@ -2705,12 +2638,11 @@ are the returned owner id on the `done` journal event and the result's
 `owner_id`. The sr, module-time, change-relationship and ticket-bulk
 oracles regenerate unchanged.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `57a236e`.
-The partial is the create CLI wiring, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `57a236e`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `57a236e` | 11-12 23:11 | Harden captured write inventory proofs attachment guards and native readbacks | partial | fsv-api `reviewed_inventory`, `attachments`, `conversations`, `change_relationships`, `module_time`, `problem_task_update`, `sr_requested_items`, `ticket_bulk`. fsv-cli follow-up below |
+| `57a236e` | 11-12 23:11 | Harden captured write inventory proofs attachment guards and native readbacks | ported | fsv-api `reviewed_inventory`, `attachments`, `conversations`, `change_relationships`, `module_time`, `problem_task_update`, `sr_requested_items`, `ticket_bulk`; fsv-cli create wiring |
 
 New `reviewed_inventory::complete_inventory` checks every raw page
 before the display paginator runs. It checks row identity,
@@ -2737,16 +2669,13 @@ Upstream quirk kept for parity: when the requester branch runs, the
 result's `attachments` lists the observed requester ids. `291e5cd`
 fixes this upstream.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`changes create` with `--max-bytes` and without `--attach-flow
-before-create` exits 2 with "--max-bytes requires the reviewed
---attach-flow before-create transaction". The before-create attached
-plans set `requester_id` to the resolved requester. Ticket create sets
-`prior_guards` to the attachments action and wrapped hash, then
-`("ticket_create", create hash)`. Change create sets `("create", create
-hash)`, the legacy create hash when it differs, then the attachments
-action and wrapped hash.
+Done: the `--max-bytes` refusal (`crates/fsv-cli/src/cmd/changes.rs:622`;
+golden `change_create_max_bytes_needs_before_create`,
+`tests/upstream_cmds.rs:12897`). `requester_id` and `prior_guards` match
+Python `ticket_cli.py:100` and `change_cli.py:321-327`
+(`cmd/tickets.rs:796-805`, `cmd/changes.rs:838-846`).
 
 ## Ledger: `fbc54d4` (library side)
 
@@ -2759,12 +2688,11 @@ now refuse as an unproven filter. The ticket-bulk oracle was also
 regenerated: the plan hash now binds `max_records`, the selected
 tickets and the ids.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `fbc54d4`.
-The partial is the CLI wiring, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `fbc54d4`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `fbc54d4` | 11-12 23:47 | Fail closed on unproven filters and independently bound bulk write selection | partial | fsv-api `filter_proof`, `query`, `ticket_bulk`. fsv-cli follow-up below |
+| `fbc54d4` | 11-12 23:47 | Fail closed on unproven filters and independently bound bulk write selection | ported | fsv-api `filter_proof`, `query`, `ticket_bulk`; fsv-cli `filters.rs`, `tickets bulk`, list warning |
 
 New `filter_proof::require_filterable_field` runs in
 `query::resolve_where` before the operator is resolved. It refuses a
@@ -2785,20 +2713,20 @@ unchanged. The bound goes through the new `build_plan_bounded` /
 `selection_bounded`, and rebuild reads it from the intent.
 `build_plan` / `selection` pass no bound, so a filtered call refuses.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-- `tickets bulk`: add `--max-records N` ("Required filtered-write
-  bound, 1 to 50.") and call `ticket_bulk::build_plan_bounded(...,
-  max_records)`. Print each selected ticket after the plan as
-  `  {id}: {subject}` on stderr.
-- The CLI copy of `resolve_where` (`crates/fsv-cli/src/filters.rs`)
-  needs the same `fsv_api::filter_proof::require_filterable_field`
-  guard, in the same place.
-- List reads with `--where` or a raw query hash, and without OR
-  grouping: run `filter_proof::contradictions(items, query)`. When it
-  is not empty, print "Warning: returned records contradict the
-  requested predicate; do not use this list for writes. IDs: " plus the
-  ids joined by ", " on stderr.
+Done:
+
+- `tickets bulk --max-records` goes into the bounded plan (now
+  `build_plan_with_answers`) and prints `  {id}: {subject}` on stderr
+  (`crates/fsv-cli/src/cmd/reviewed.rs:786-803`).
+- `filters.rs` `resolve_where` calls `require_filterable_field` before the
+  operator (`crates/fsv-cli/src/filters.rs:338`).
+- List reads print the contradiction warning on stderr
+  (`crates/fsv-cli/src/cmd/resource.rs:265-274`).
+- Goldens `where_contradiction_warning`, `where_unfilterable_subject`,
+  `tickets_bulk_filtered_*` (`crates/fsv-cli/tests/upstream_cmds.rs:11435`,
+  `:11486`, `:16045-16247`).
 
 ## Ledger: `291e5cd` (library side)
 
@@ -2837,12 +2765,11 @@ ticket-assignment and ticket-merge oracles were regenerated at
 `aa8df39`: their results gain `readback_attempts`. The ticket-bulk and
 reviewed (bulk priority) oracles regenerate unchanged.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `aa8df39`.
-The partial is the CLI note named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `aa8df39`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `aa8df39` | 11-13 01:49 | Re-read bulk outcomes with bounded read-only observations and report the reviewed bulk hash | partial | fsv-api `readback`, `ticket_bulk`, `ticket_assignment`, `ticket_merge`, `bulk_priority`. fsv-cli note below |
+| `aa8df39` | 11-13 01:49 | Re-read bulk outcomes with bounded read-only observations and report the reviewed bulk hash | ported | fsv-api `readback`, `ticket_bulk`, `ticket_assignment`, `ticket_merge`, `bulk_priority`; fsv-cli test runner and goldens |
 
 New `readback::bounded_readback` re-runs only the read-only verifier.
 It takes up to four observations, sleeping 0.5, 1.5 and 3.0 seconds
@@ -2858,14 +2785,13 @@ the write's hash as `delegated_plan_hash`.
 current thread, like the Python tests' `readback._sleep` patch. Without
 a hook the sleep is real, except in fsv-api's own unit tests.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-- CLI tests that send an unverified bulk, assignment, merge or priority
-  write now take up to 5 s of real sleep unless wrapped in
-  `fsv_api::readback::with_readback_sleep(|_| {}, ...)`.
-- CLI result goldens for these sends gain `readback_attempts`. Bulk
-  results also gain `delegated_plan_hash`, and their `plan_hash`
-  becomes the bulk review hash.
+Done (`234b096`): with `FSV_TEST_ROUTES` set, a debug build runs the
+command under `with_readback_sleep(|_| {}, ...)`
+(`crates/fsv-cli/src/app.rs:238-244`). Send goldens carry
+`readback_attempts`, and the bulk merge golden `delegated_plan_hash`
+(`crates/fsv-cli/tests/upstream_cmds.rs`).
 
 ## Ledger: `29f7421`
 
@@ -2876,16 +2802,19 @@ they exercise came in with `fbc54d4`: the `Subject` filter refusal,
 the `--max-records` bound checked before any list read, and the
 exact-record predicate proof.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `29f7421`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `29f7421`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `29f7421` | 11-13 01:55 | Exercise filtered bulk fail-closed selection through the real CLI filter builder | partial | none (fsv-cli tests) |
+| `29f7421` | 11-13 01:55 | Exercise filtered bulk fail-closed selection through the real CLI filter builder | ported | fsv-cli tests |
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-Port the three CLI tests once `tickets bulk --max-records` exists, for
-tenants acme and globex. Each must exit 2 with no writes:
+Done: `tickets_bulk_subject_filter_{acme,globex}_*`,
+`tickets_bulk_filtered_bound_{missing,zero,fifty_one}` and
+`tickets_bulk_server_ignores_filter_{acme,globex}`
+(`crates/fsv-cli/tests/upstream_cmds.rs:16248-16737`). The cases, as
+triaged; each exits 2 with no writes:
 
 - `--where "Subject=Acme rollout"` prints "filter operator unavailable"
   before any `/api/_/tickets` read.
@@ -2980,12 +2909,11 @@ was regenerated at `368a2d4` with three new sections: 20
 ticket-type query builds. All of them match. The earlier sections, the
 query-flow oracle and the ticket-bulk oracle regenerate unchanged.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `368a2d4`.
-The partial is the CLI wiring, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `368a2d4`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `368a2d4` | 11-13 02:23 | Filter ticket type by runtime choice name, not the ignored numeric ID | partial | fsv-api `filter_proof`, `query`. fsv-cli follow-up below |
+| `368a2d4` | 11-13 02:23 | Filter ticket type by runtime choice name, not the ignored numeric ID | ported | fsv-api `filter_proof`, `query`; fsv-cli `filters.rs` |
 
 New `filter_proof::name_valued_choice` covers `default_ticket_type`
 fields. It resolves a label (stripped, casefolded) or a choice id to
@@ -2998,16 +2926,12 @@ a default `ticket_type` clause through `ticket_kind::exact_ticket_type`.
 It needs every clause value to be a string, and compares it casefolded
 only.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-- The CLI `resolve_where` (`crates/fsv-cli/src/filters.rs`) calls
-  `fsv_api::filter_proof::name_valued_choice(&field, &raw)` right
-  before its choice branch. On error it exits 2 with the message, and
-  on a name it emits `query_item(name, operator, [named], type_, ...)`.
-- Port `tests/test_ticket_type_filter.py`'s CLI cases: `tickets ls
-  --where type=Service Request` and `type=7402` both send the name
-  form. `type=Case` exits 2 before any `/api/_/tickets` read. Filtered
-  bulk by type still needs the independent proof.
+Done (`234b096`): `filters.rs` `resolve_where` calls `name_valued_choice`
+before the choice branch (`crates/fsv-cli/src/filters.rs:478-490`).
+Goldens `ls_type_*` and `tickets_bulk_type_filter_needs_independent_proof`
+(`crates/fsv-cli/tests/upstream_cmds.rs:11502-11674`, `:16738`).
 
 ## Ledger: `915df4c` (library side)
 
@@ -3029,8 +2953,7 @@ next to `source_link_verified: false`. It is not a field check:
 `fields` has no `source_link`. A delivery mismatch still fails
 verification.
 
-No CLI follow-up. CLI goldens for `tickets forward --conversation`
-results would gain the key.
+No CLI follow-up. The `forward_conversation_send` golden carries the key.
 
 ## Ledger: `bf6576c` (library side)
 
@@ -3040,12 +2963,11 @@ cases: the bodyless delete, two lagging readbacks, the missing
 confirmation, four unproven targets, subject drift, and four transport
 failures. All of them match.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `bf6576c`.
-The partial is the CLI command, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `bf6576c`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `bf6576c` | 11-13 02:36 | Add reviewed changes delete from the accepted bodyless soft-delete wire | partial | fsv-api `change_delete`. fsv-cli follow-up below |
+| `bf6576c` | 11-13 02:36 | Add reviewed changes delete from the accepted bodyless soft-delete wire | ported | fsv-api `change_delete`; fsv-cli `changes delete` |
 
 `change_delete::build_plan` reads one exact change. `deleted` must be
 false and `subject` must be a string. The plan is `DELETE changes/{id}`
@@ -3056,19 +2978,12 @@ the bodyless DELETE once and checks `deleted: true` through
 `bounded_readback`. A cancel (`reviewed_hash` none) does not require
 the acknowledgement.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`fsv changes delete CHANGE_ID`:
-
-- `--dry-run` prints `{"status": "dry_run", **review}` and does not delete.
-- A send needs `--confirm-destructive --yes --expect-plan FULL_HASH`.
-  Missing `--yes`, a wrong hash, or missing `--confirm-destructive`
-  exits 2 and writes nothing.
-- Call `change_delete::build_plan` then `change_delete::send(..., confirm_destructive)`.
-- Exit 4 when the result is not verified.
-- `ValueError` and the reviewed-write refusal exit 2.
-- Unverified sends sleep up to 5s unless wrapped in
-  `fsv_api::readback::with_readback_sleep`.
+Done: `changes delete` (`crates/fsv-cli/src/cmd/changes.rs:252-280`)
+covers dry-run, the `--confirm-destructive --yes --expect-plan` gate, the
+send and exit 4 when unverified. Goldens `changes_delete_*`
+(`crates/fsv-cli/tests/upstream_cmds.rs:17854-18060`).
 
 ## Ledger: `e1bc129` (library side)
 
@@ -3135,11 +3050,11 @@ legacy-model sentences. 400 and 404 from `approval-chains` are the
 legacy flat model. 403 and 5xx stay unknown and keep the chains path.
 
 Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `5711a5a`.
-The partial is the SR list command, named below.
+The partial is two CLI tests, named below.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `5711a5a` | 11-13 03:10 | Detect the approval model and refuse chains-only actions on legacy tenants | partial | fsv-api `approval_model`, `approvals`, `sr_approvals` |
+| `5711a5a` | 11-13 03:10 | Detect the approval model and refuse chains-only actions on legacy tenants | partial | fsv-api `approval_model`, `approvals`, `sr_approvals`; fsv-cli wiring done, two CLI tests open |
 
 `detect` is one read-only GET. `require_chains` refuses a proven legacy
 tenant before any write. SR `build_plan` does not probe before
@@ -3153,27 +3068,29 @@ refused". Approve and reject probe before the PUT
 `sr_approvals::listing` returns chain groups, or
 `{model: legacy, note, approvals}` from the flat list.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI
 
-- `sr approvals list` must print `sr_approvals::listing`, not
-  `{"approval_groups": inventory(...)}`.
-- `changes approvals --groups`, `approval-request`, `approval-respond`
-  and `approval-cancel` already return these errors. A legacy
-  `approval-cancel --dry-run` exits 2 and writes nothing.
-- Port `tests/test_approval_model.py` (legacy 400/404, unknown 403,
-  SR writes, SR list fallback, groups vs flat list).
+Done: `sr approvals list` prints `sr_approvals::listing`
+(`crates/fsv-cli/src/cmd/inventory.rs:259`). The library cases are tested
+in `fsv-api/src/approval_model.rs` and `approvals.rs:1972`.
+
+Missing:
+
+- No CLI test that a legacy `changes approval-cancel --dry-run` exits 2
+  and writes nothing (`tests/test_approval_model.py:85`).
+- No CLI test of a legacy `changes approvals --groups` refusal next to a
+  working flat list (`tests/test_approval_model.py:90`).
 
 ## Ledger: `a6262dc` (library side)
 
 Triaged against `git show a6262dc`
 (`a6262dc1888b7975dfd2aff26c5e4edb224fb233`). Three library changes.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `a6262dc`.
-The partial is the task command and the TUI, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `a6262dc`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `a6262dc` | 11-13 03:25 | Take change-task reminders/statuses from runtime metadata; scope caches by workspace | partial | fsv-core `config`, fsv-api `schema`, `formmeta`, `tasks`, `approvals`, `sr_approvals`, `views` |
+| `a6262dc` | 11-13 03:25 | Take change-task reminders/statuses from runtime metadata; scope caches by workspace | ported | fsv-core `config`, fsv-api `schema`, `formmeta`, `tasks`, `approvals`, `sr_approvals`, `views`; fsv-cli, fsv-app, fsv-tui task create |
 
 Schema and form-field cache files are `<domain>--ws<id>--<name>.json`.
 No `forms.workspace_id` override uses `wsauto`. Older
@@ -3195,14 +3112,18 @@ A 5xx from business rules is an unavailable set, so edit-rule notes
 say "not available on this account (500)" rather than the old
 raised-error wording.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-- `changes tasks-add`: do not preflight with `status_id: 1`. Resolve
-  status with `default_status` when `--status` is omitted, and the
-  reminder with `runtime_reminder_label` (None is the first choice).
-- `fsv-app` task preflight still passes `status_id: Some(1)`.
-  `fsv-tui` still offers the static `Never` list. Both should use the
-  runtime helpers above.
+Done:
+
+- `changes tasks-add` resolves `default_status` and
+  `runtime_reminder_label` (`crates/fsv-cli/src/cmd/review.rs:56-62`).
+- `fsv-app` does the same (`crates/fsv-app/src/tui.rs:1251-1256`). Its
+  `status_id: Some(1)` plan is only a local input check, like Python
+  `check_inputs` (`tui/app.py:2722`).
+- The TUI choice list comes from `tasks::reminder_choices`
+  (`crates/fsv-app/src/tui.rs:1286-1292`). `TASK_NOTIFY_BEFORE` in
+  `fsv-tui/src/backend.rs:227` is only the test stand-in.
 
 ## Ledger: `233b08f` (library side)
 
@@ -3252,22 +3173,21 @@ sends only the dirty planned-start, planned-end and planned-effort
 keys. The form must have the field, and the rules must leave it
 visible and unlocked.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `1285fe7`.
-The partial is the CLI flag wiring, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `1285fe7`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `1285fe7` | 11-13 03:31 | Allow problem planned dates and effort in problems update | partial | fsv-api `problem_properties` |
+| `1285fe7` | 11-13 03:31 | Allow problem planned dates and effort in problems update | ported | fsv-api `problem_properties`; fsv-cli `problems update` |
 
 Effort is sent as `1h 30m`. Readback uses `same_instant` for dates
 and `same_effort` for effort. An end before the start is refused
 before any write.
 
-### CLI handoff (do not edit fsv-cli here)
+### CLI (done)
 
-`problems update --planned-start --planned-end --planned-effort`
-calls `problem_properties::build_plan` then `send`. `--dry-run`
-prints `review()`. Port `tests/test_problem_properties.py`.
+Done: `problems update` planning flags call `problem_properties::build_plan`
+and `send` (`crates/fsv-cli/src/cmd/resource.rs:1406-1440`). Goldens
+`problems_update_planned_*` (`crates/fsv-cli/tests/upstream_cmds.rs:9925-10170`).
 
 ## Ledger: `02bdf27` (library side)
 
@@ -3319,18 +3239,18 @@ integrated. A successful `associated-cis` read is the integrated
 driver, so `build_plan` does not GET that path twice. `listing` still
 probes, then reads. Verification reads the legacy list only.
 
-Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `58551c8`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `58551c8`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `58551c8` | 11-13 03:46 | feat: asset association driver by endpoint probing + legacy add + candidates | partial | fsv-api (`integrated_assets`) |
+| `58551c8` | 11-13 03:46 | feat: asset association driver by endpoint probing + legacy add + candidates | ported | fsv-api (`integrated_assets`), fsv-cli `assets list`, `candidates` |
 
-### CLI follow-up
+### CLI (done)
 
-`assets list` must print `listing` (driver name included). Add `assets
-candidates`. `assets add` already calls `build_plan` / `send`, which now
-branch. Port `tests/test_asset_association_driver.py` and
-`tests/test_legacy_asset_association.py`.
+Done: `assets list` prints `listing` and `assets candidates` calls
+`legacy_candidates` (`crates/fsv-cli/src/cmd/inventory.rs:91-100`).
+Goldens with `"driver": "legacy"` and `assets candidates` for all four
+modules (`crates/fsv-cli/tests/upstream_cmds.rs:13260-13700`).
 
 ## Ledger: `f5959c8` (library side)
 
@@ -3349,16 +3269,23 @@ Counts: **1 partial, 0 ported.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `f5959c8` | 11-13 03:46 | feat: legacy flat approvals driver (capture-based, unproven) | partial | fsv-api (`legacy_approvals`) |
+| `f5959c8` | 11-13 03:46 | feat: legacy flat approvals driver (capture-based, unproven) | partial | fsv-api (`legacy_approvals`); fsv-cli wiring done, two CLI tests open |
 
-### CLI follow-up
+### CLI
 
-`changes approval-request --model auto|chains|legacy` and `sr approvals
-request` must call `legacy_approvals::build_request` when the tenant is
-legacy (no `--name` / `--message`; `--approver-group` refused). Add
-`changes approval-remind` and route `sr approvals remind` the same way.
-Cancel, approve, and reject call `legacy_approvals::refuse`. Port
-`tests/test_legacy_approvals.py`.
+Done: legacy `changes approval-request` and `approval-remind`
+(`crates/fsv-cli/src/cmd/review.rs:286-360`), and `sr approvals request`
+and `remind` (`cmd/inventory.rs:285-345`). Goldens carry the
+provenance text (`crates/fsv-cli/tests/upstream_cmds.rs:14234-14920`).
+
+Missing:
+
+- No CLI test that a legacy `changes approval-request --cab` expands the
+  CAB members client-side (`tests/test_legacy_approvals.py:76`).
+- No CLI test that legacy `changes approval-cancel`, `sr approvals
+  approve` and `sr approvals cancel` with `--dry-run` exit 2 with
+  "legacy flat approvals" and write nothing
+  (`tests/test_legacy_approvals.py:141-147`).
 
 ## Ledger: `d378079` (library side)
 
@@ -3380,14 +3307,24 @@ Counts: **1 partial, 0 ported.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `d378079` | 11-13 04:01 | fix: model rule context and gate writes on real rule risk | partial | fsv-forms (`rules`, `state`), fsv-api, fsv-flows |
+| `d378079` | 11-13 04:01 | fix: model rule context and gate writes on real rule risk | partial | fsv-forms (`rules`, `state`), fsv-api, fsv-flows; open: gate tests |
 
-### CLI follow-up
+### CLI
 
-Ticket create and transition reviews should print `rule_warnings`.
-Transition readback should accept a server-side status or routing
-rewrite and return `verified_with_note`. Port
-`tests/test_rule_write_gate.py`. Devices are not on `TicketOptions`.
+Done: reviews print `rule_warnings`
+(`crates/fsv-api/src/ticket_lifecycle.rs:386-387`). Transition readback
+returns `verified_with_note` (ported with `d699b8c`; golden
+`tickets_close_verified_with_note`, `crates/fsv-cli/tests/upstream_cmds.rs:7328`).
+Devices are not on `TicketOptions`.
+
+Missing:
+
+- No tests of `RulesEngine::write_gate` (`crates/fsv-forms/src/rules.rs:1509`)
+  or `FormState::rule_gate` (`crates/fsv-forms/src/state.rs:1035`): portal
+  false, runtime groups, widget hide and mandate, unknown context rules,
+  hidden answers (`tests/test_rule_write_gate.py:35-108`).
+- No CLI test that the dry-run JSON lists `rule_warnings`
+  (`tests/test_rule_write_gate.py:115`).
 
 ## Ledger: `7fcdea4` (library side)
 
@@ -3413,15 +3350,23 @@ Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `7fcdea4`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `7fcdea4` | 11-13 04:11 | fix: problem update/status/create write gaps and schema freshness | partial | fsv-api (`problem_properties`, `problem_status`, `problem_workflows`, `schema`) |
+| `7fcdea4` | 11-13 04:11 | fix: problem update/status/create write gaps and schema freshness | partial | fsv-api (`problem_properties`, `problem_status`, `problem_workflows`, `schema`); fsv-cli done; open: freshness tests |
 
-### CLI follow-up
+### CLI
 
-`fsv problems update` must nest custom fields under `custom_fields`,
-refuse a deleted problem before the generic PUT, and explain HTTP 405
-as a trashed record. Dry-run must call `schema::freshness_warning` and
-print the warning. `fsv {name} fields --refresh` is the command the
-warning names. Port `tests/test_problem_write_fixes.py`.
+Done: `problems update` nests `custom_fields`, refuses a deleted problem
+and explains HTTP 405 (`crates/fsv-cli/src/cmd/resource.rs:1621`,
+`:1674`). Dry-run calls `freshness_warning` (`resource.rs:1560`). Goldens
+`problems_update_custom_field_*`, `problems_update_deleted_refused`
+(`crates/fsv-cli/tests/upstream_cmds.rs:10212-10310`).
+
+Missing:
+
+- No test of `schema::freshness_warning`
+  (`crates/fsv-api/src/schema.rs:474`) for a new server choice and a
+  server-sourced schema (`tests/test_problem_write_fixes.py:139`).
+- No CLI test that a dry-run reports the stale schema warning
+  (`tests/test_problem_write_fixes.py:150`).
 
 ## Ledger: `140f52f` (library side)
 
@@ -3475,22 +3420,23 @@ and `tickets_close_readback_mismatch` red until their goldens change.
 message refusal and acknowledged plan, sends with workflow status and
 routing rewrites, and pure `readback` cases.
 
-Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `d699b8c`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `d699b8c`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `d699b8c` | 11-13 04:56 | fix: ticket transitions expose --ack for blocking rule messages | partial | fsv-api (`ticket_lifecycle`, `properties`), fsv-app (`tui` property plan round-trip) |
+| `d699b8c` | 11-13 04:56 | fix: ticket transitions expose --ack for blocking rule messages | ported | fsv-api (`ticket_lifecycle`, `properties`), fsv-app (`tui` property plan round-trip), fsv-cli `--ack` |
 
-### CLI follow-up
+### CLI (done)
 
-Add `--ack` to `tickets close`, `resolve`, `reopen`, `status`, and
-`update --reviewed`. Call `ticket_lifecycle::build_plan_ack` /
-`properties::build_plan_ack`. `--ack` without `--reviewed` exits 2
-(`--ack requires tickets --reviewed`). Print `verified_with_note` from
-transition results. Apply the strings patch and update the
-`update_reviewed_closure_refused` and `tickets_close_readback_mismatch`
-goldens. Port the d699b8c tests in `tests/test_ticket_lifecycle.py` and
-`tests/test_ticket_properties.py`.
+Done: transitions call `build_plan_ack`
+(`crates/fsv-cli/src/cmd/reviewed.rs:294`). `update --reviewed --ack`
+calls `properties::build_plan_ack`, and `--ack` alone exits 2
+(`cmd/resource.rs:1384`, `:1505`). Both strings are applied: goldens
+`tickets_close_readback_mismatch` ("status is still 62") and
+`update_reviewed_closure_refused` (`crates/fsv-cli/tests/upstream_cmds.rs:7669`,
+`:2453`). Goldens `update_reviewed_ack_*`, `tickets_close_ack_*`,
+`tickets_close_verified_with_note` (`upstream_cmds.rs:2599-2760`,
+`:19591-19740`, `:7328`). The strings note above is now history.
 
 ## Ledger: `ce84f9b` (library side)
 
@@ -3591,22 +3537,21 @@ or `none (final state or no transition defined)`) and
 `transitions` (7 cases). `query_flow_oracle.json` is restamped at
 `7530df6`, and its existing sections are unchanged.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `7530df6`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `7530df6`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `7530df6` | 11-13 05:15 | fix: pre-check change lifecycle edges, entry criteria and field locks | partial | fsv-api (`change_lifecycle`, `reviewed_write`, `state_flow`, `ticket_tasks`), fsv-flows (`change`). fsv-cli follow-ups below |
+| `7530df6` | 11-13 05:15 | fix: pre-check change lifecycle edges, entry criteria and field locks | ported | fsv-api (`change_lifecycle`, `reviewed_write`, `state_flow`, `ticket_tasks`), fsv-flows (`change`), fsv-cli |
 
-CLI follow-ups:
+Done in fsv-cli:
 
-- `changes update` calls `build_update_plan_with_lifecycle` with a
-  closure that reads `get_state_flow(state_flow_id, workspace_id)` once
-  per command, only when the record has a `state_flow_id`.
-- `changes state` table output uses `render_flow_with_next` and adds the
-  `Next (allowed transitions)` column when it is `Some`.
-- `tickets tasks delete` passes `status: None` to
-  `build_plan_assigned`, so delete plans bind `status: null` the way
-  Python does.
+- `changes update` passes the flow read only when the record has a
+  `state_flow_id` (`crates/fsv-cli/src/cmd/changes.rs:1001-1012`; test
+  `change_update_status_reads_lifecycle`, `tests/write_cmds.rs:2663`).
+- `changes state` uses `render_flow_with_next` (`cmd/changes.rs:431`;
+  `tests/read_cmds.rs:706-714`).
+- `tickets tasks delete` binds `status: None` (`cmd/reviewed.rs:714`,
+  `:746`; goldens `tickets_tasks_delete_*`, `tests/upstream_cmds.rs:10944`).
 
 ## Ledger: `8a466b5` (library side)
 
@@ -3679,21 +3624,16 @@ returns `submitted` with per-ticket `verified`, `fields`, and
 non-ASCII answers, first and second failures, both validation errors,
 and empty answers hashing the same as none).
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `676b8bb`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `676b8bb`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `676b8bb` | 11-13 05:27 | feat: bulk status --set for rule-required answers; JSON-only stdout | partial | fsv-api (`ticket_bulk`). fsv-cli follow-ups below |
+| `676b8bb` | 11-13 05:27 | feat: bulk status --set for rule-required answers; JSON-only stdout | ported | fsv-api (`ticket_bulk`), fsv-cli `tickets bulk --set` |
 
-CLI follow-ups:
-
-- `tickets bulk status --set FIELD=VALUE` (repeatable). Parse keys with
-  `partition("=")` and strip them; a missing `=`, an empty key, or a
-  duplicate is `--set requires unique FIELD=VALUE answers`. Call
-  `build_plan_with_answers`.
-- The selection list (`Selected ticket IDs: ...` and `  id: subject`)
-  goes to stderr only. The send result gains `selected_tickets` (the
-  plan's `selected_json`). `--json` help says stdout is always JSON.
+Done in fsv-cli: `--set` parsing and its error, `build_plan_with_answers`,
+the stderr selection list and `selected_tickets`
+(`crates/fsv-cli/src/cmd/reviewed.rs:770-827`). Goldens with
+`selected_tickets` (`crates/fsv-cli/tests/upstream_cmds.rs:15515-16100`).
 
 ## Ledger: `754eef1` (library side)
 
@@ -3705,20 +3645,14 @@ Triaged against `git show 754eef1`
 inline at `754eef1` (10 cases). `TabData.meta["partial"]` already
 carries the capped-pages flag.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `754eef1`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `754eef1`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `754eef1` | 11-13 05:33 | fix: activity lists report truncation and accept --all | partial | fsv-views (`detail::truncation_notice`). fsv-cli follow-up below |
+| `754eef1` | 11-13 05:33 | fix: activity lists report truncation and accept --all | ported | fsv-views (`detail::truncation_notice`), fsv-cli `activity --all` |
 
-CLI follow-up:
-
-- `<resource> activity` gains `--all` (every loaded entry; it overrides
-  `--limit`). A negative limit shows none. Compute
-  `truncation_notice(rows, shown, meta.partial)`. In table output, print
-  `\n[yellow]{escape(notice)}[/]` after the rows. For JSON, CSV, and
-  TSV, print `[yellow]{notice}[/]` to stderr first, so stdout keeps its
-  shape. The `--limit` help says `newest N entries (a 'truncated' notice
-  reports the rest)`.
+Done in fsv-cli: `--all`, the negative limit and the notice on stderr or
+after the table (`crates/fsv-cli/src/cmd/resource.rs:531-545`). Tests
+at `crates/fsv-cli/tests/read_cmds.rs:1029-1090`.
 
 Still not triaged: commits after `754eef1`.
