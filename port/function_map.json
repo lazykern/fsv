@@ -6120,97 +6120,109 @@
    "module": "formmeta.py",
    "name": "module_name",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "module_name"
+   "rust_item": "module_name",
+   "note": "same strip/lower/rstrip('s') and the same ValueError listing changes, tickets, problems"
   },
   {
    "module": "formmeta.py",
    "name": "_cache_path",
    "line": 75,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "cache_path"
+   "rust_item": "cache_path",
+   "note": "same forms/<scope>--<name>.json path under the cache dir"
   },
   {
    "module": "formmeta.py",
    "name": "_cached",
    "line": 80,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "cached"
+   "rust_item": "cached",
+   "note": "same fresh non-empty data, treating a stale or empty cache doc as a miss"
   },
   {
    "module": "formmeta.py",
    "name": "_non_empty",
    "line": 88,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "non_empty"
+   "rust_item": "non_empty",
+   "note": "same rule: a mapping is non-empty only when some value is a non-empty list"
   },
   {
    "module": "formmeta.py",
    "name": "_save",
    "line": 94,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "save"
+   "rust_item": "save",
+   "note": "same skip of empty answers and the same swallowed write error"
   },
   {
    "module": "formmeta.py",
    "name": "normalize_rules",
    "line": 103,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "normalize_rules"
+   "rust_item": "normalize_rules",
+   "note": "same APIError(200) messages for a bad shape and a non-evaluable listing"
   },
   {
    "module": "formmeta.py",
    "name": "_ws_id",
    "line": 119,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "ws_id"
+   "rust_item": "ws_id",
+   "note": "DIVERGENCE: ints and digit strings match; a superscript digit string that passes str.isdigit() but crashes int() is left unparsed"
   },
   {
    "module": "formmeta.py",
    "name": "_add",
    "line": 129,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "add"
+   "rust_item": "add",
+   "note": "same first-seen unique workspace ids, skipping bools"
   },
   {
    "module": "formmeta.py",
    "name": "workspaces_in",
    "line": 140,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "workspaces_in"
+   "rust_item": "workspaces_in",
+   "note": "same current, then primary, then rest walk, three levels deep"
   },
   {
    "module": "formmeta.py",
    "name": "_cookie_workspace",
    "line": 183,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "cookie_workspace"
+   "rust_item": "cookie_workspace",
+   "note": "same numeric *workspace* cookies; a jar failure yields []"
   },
   {
    "module": "formmeta.py",
    "name": "account_workspaces",
    "line": 200,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "account_workspaces"
+   "rust_item": "account_workspaces",
+   "note": "same cookie then bootstrap/me then workspaces, stopping at the first non-empty set; SessionError still raises"
   },
   {
    "module": "formmeta.py",
    "name": "fetch_rules",
    "line": 222,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "fetch_rules"
+   "rust_item": "fetch_rules",
+   "note": "same candidate order, empty-answer fallback, 403/404 reason, and immediate 5xx unavailable shape"
   },
   {
    "module": "formmeta.py",
@@ -6232,162 +6244,181 @@
    "module": "formmeta.py",
    "name": "rules_server_error",
    "line": 327,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "rules_server_error"
+   "rust_item": "rules_server_error",
+   "note": "same true only when unavailable is set and unavailable_status is an int >= 500"
   },
   {
    "module": "formmeta.py",
    "name": "rules_unavailable_warning",
    "line": 334,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "rules_unavailable_warning"
+   "rust_item": "rules_unavailable_warning",
+   "note": "same one-line review warning, or None when rules loaded"
   },
   {
    "module": "formmeta.py",
    "name": "rules_gate",
    "line": 344,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "rules_gate"
+   "rust_item": "rules_gate",
+   "note": "same blockers for a missing field and a field hidden on the static form"
   },
   {
    "module": "formmeta.py",
    "name": "rules_warnings",
    "line": 364,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "rules_warnings"
+   "rust_item": "rules_warnings",
+   "note": "same single warning naming the workspace override command"
   },
   {
    "module": "formmeta.py",
    "name": "rules_note",
    "line": 374,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "rules_note"
+   "rust_item": "rules_note",
+   "note": "same stderr note, or None when rules loaded"
   },
   {
    "module": "formmeta.py",
    "name": "workspace_from_fields",
    "line": 383,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "workspace_from_fields"
+   "rust_item": "workspace_from_fields",
+   "note": "same Counter.most_common tie break: highest count, first seen"
   },
   {
    "module": "formmeta.py",
    "name": "configured_workspace",
    "line": 393,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "configured_workspace"
+   "rust_item": "configured_workspace",
+   "note": "DIVERGENCE: digit strings become ints; a superscript digit string that passes str.isdigit() but crashes int() is left as text"
   },
   {
    "module": "formmeta.py",
    "name": "workspace_candidates",
    "line": 398,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "workspace_candidates"
+   "rust_item": "workspace_candidates",
+   "note": "same override-alone-when-set, else preferred with None and '' dropped"
   },
   {
    "module": "formmeta.py",
    "name": "load_rules",
    "line": 412,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "load_rules"
+   "rust_item": "load_rules",
+   "note": "same config override, else preferred, else account workspaces, else the workspace-less path"
   },
   {
    "module": "formmeta.py",
    "name": "FormMeta",
    "line": 423,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "FormMeta"
+   "rust_item": "FormMeta",
+   "note": "same fields, rules, workspace, source, and module_id carried on the meta object"
   },
   {
    "module": "formmeta.py",
    "name": "fields_key",
    "class": "FormMeta",
    "line": 435,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "fields_key"
+   "rust_item": "fields_key",
+   "note": "same MODULES second key (change_fields, ticket_fields, problem_fields)"
   },
   {
    "module": "formmeta.py",
    "name": "raw_fields",
    "class": "FormMeta",
    "line": 439,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "raw_fields"
+   "rust_item": "raw_fields",
+   "note": "same list of the fields-key array, empty when missing"
   },
   {
    "module": "formmeta.py",
    "name": "user",
    "class": "FormMeta",
    "line": 443,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "user"
+   "rust_item": "user",
+   "note": "same rules['user'] object, or None"
   },
   {
    "module": "formmeta.py",
    "name": "fingerprint",
    "class": "FormMeta",
    "line": 447,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "fingerprint"
+   "rust_item": "fingerprint",
+   "note": "same metadata_fingerprint of form_fields and rules"
   },
   {
    "module": "formmeta.py",
    "name": "as_of",
    "class": "FormMeta",
    "line": 450,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "as_of"
+   "rust_item": "as_of",
+   "note": "same updated_at, local fetched_at to seconds, source, and 16-char fingerprint"
   },
   {
    "module": "formmeta.py",
    "name": "spec",
    "class": "FormMeta",
    "line": 460,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "spec"
+   "rust_item": "spec",
+   "note": "same FormSpec.from_form_fields cached on first use"
   },
   {
    "module": "formmeta.py",
    "name": "engine",
    "class": "FormMeta",
    "line": 465,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "engine"
+   "rust_item": "engine",
+   "note": "same RulesEngine with AGENT_SYSTEM_CONTEXT and the meta workspace"
   },
   {
    "module": "formmeta.py",
    "name": "load_meta",
    "line": 471,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "load_meta"
+   "rust_item": "load_meta",
+   "note": "same cache keys, stale-5xx not cached, and workspace taken from the rules answer"
   },
   {
    "module": "formmeta.py",
    "name": "ClientResolver",
    "line": 505,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "ClientResolver"
+   "rust_item": "ClientResolver",
+   "note": "same resolver over autocomplete and bootstrap/agents_groups"
   },
   {
    "module": "formmeta.py",
@@ -6402,125 +6433,139 @@
    "name": "_bootstrap",
    "class": "ClientResolver",
    "line": 513,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "bootstrap"
+   "rust_item": "bootstrap",
+   "note": "same one-shot bootstrap/agents_groups, empty object when the body is falsy"
   },
   {
    "module": "formmeta.py",
    "name": "name_for",
    "class": "ClientResolver",
    "line": 518,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "name_for"
+   "rust_item": "name_for",
+   "note": "same group/agent display from id or user_id; None for other entities"
   },
   {
    "module": "formmeta.py",
    "name": "lookup",
    "class": "ClientResolver",
    "line": 533,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "lookup"
+   "rust_item": "lookup",
+   "note": "same custom-link, requester, agent, group, and generic lookup_link filters including deleted and (Deactivated)"
   },
   {
    "module": "formmeta.py",
    "name": "_email",
    "line": 559,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
    "rust_item": "email_of",
-   "note": "First of email/details/primary_email that is a string containing '@'."
+   "note": "same first of email, details, primary_email that is a string containing @"
   },
   {
    "module": "formmeta.py",
    "name": "_person",
    "line": 567,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "person"
+   "rust_item": "person",
+   "note": "same LookupValue named by value or name, else str(id), with email_of"
   },
   {
    "module": "formmeta.py",
    "name": "resolve_requester",
    "line": 571,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "resolve_requester"
+   "rust_item": "resolve_requester",
+   "note": "same empty, no-match, and several-exact messages, and the same pick callback"
   },
   {
    "module": "formmeta.py",
    "name": "find_field",
    "line": 597,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "find_field"
+   "rust_item": "find_field",
+   "note": "same name-then-label lookup and the same ambiguous-label FormError"
   },
   {
    "module": "formmeta.py",
    "name": "is_status",
    "line": 609,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "is_status"
+   "rust_item": "is_status",
+   "note": "same true only for field_type default_status"
   },
   {
    "module": "formmeta.py",
    "name": "is_requester",
    "line": 613,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "is_requester"
+   "rust_item": "is_requester",
+   "note": "same true only for field_type default_requester"
   },
   {
    "module": "formmeta.py",
    "name": "is_description",
    "line": 617,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "is_description"
+   "rust_item": "is_description",
+   "note": "same true only for field_type default_description"
   },
   {
    "module": "formmeta.py",
    "name": "existing_from_record",
    "line": 621,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "existing_from_record"
+   "rust_item": "existing_from_record",
+   "note": "fixed: an empty object on a lookup field is LookupValue(id={}), matching v not in (None, '', [])"
   },
   {
    "module": "formmeta.py",
    "name": "_hint_name",
    "line": 651,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "hint_name"
+   "rust_item": "hint_name",
+   "note": "fixed: id matches with Python == (1 == 1.0, True == 1) or str(); user_id uses Python =="
   },
   {
    "module": "formmeta.py",
    "name": "name_existing",
    "line": 666,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "name_existing"
+   "rust_item": "name_existing",
+   "note": "same record hint then name_for, and a namer exception leaves the id-only value"
   },
   {
    "module": "formmeta.py",
    "name": "apply_answers",
    "line": 693,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/formmeta.rs",
-   "rust_item": "apply_answers"
+   "rust_item": "apply_answers",
+   "note": "same web-order set, collecting FormError text and the failed api names"
   },
   {
    "module": "forms/errors.py",
    "name": "FormError",
    "line": 7,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/errors.rs",
-   "rust_item": "FormError"
+   "rust_item": "FormError",
+   "note": "same UnknownField, ValueParse, AmbiguousLookup (first 10), and Payload messages including the empty 'invalid payload'"
   },
   {
    "module": "forms/errors.py",
@@ -6623,480 +6668,535 @@
    "name": "BusinessRulesQuery",
    "line": 40,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "BusinessRulesQuery"
+   "rust_item": "BusinessRulesQuery",
+   "note": "same workspace id and ordered param pairs"
   },
   {
    "module": "forms/fetch.py",
    "name": "path",
    "class": "BusinessRulesQuery",
    "line": 47,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "path"
+   "rust_item": "path",
+   "note": "same /api/_/ws/<id>/business_rules with str(workspace_id)"
   },
   {
    "module": "forms/fetch.py",
    "name": "query_string",
    "class": "BusinessRulesQuery",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "query_string"
+   "rust_item": "query_string",
+   "note": "same urlencode(..., safe='.') including space as + and UTF-8 percent"
   },
   {
    "module": "forms/fetch.py",
    "name": "url",
    "class": "BusinessRulesQuery",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "url"
+   "rust_item": "url",
+   "note": "same base.rstrip('/') + path + ? + query"
   },
   {
    "module": "forms/fetch.py",
    "name": "_null",
    "line": 58,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "null"
+   "status": "reviewed",
+   "rust": "crates/fsv-forms/src/fetch.rs",
+   "rust_item": "null_str",
+   "note": "pointer corrected to fetch.rs null_str; None and '' become null, other values use str()"
   },
   {
    "module": "forms/fetch.py",
    "name": "_blank",
    "line": 62,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "blank"
+   "status": "reviewed",
+   "rust": "crates/fsv-forms/src/fetch.rs",
+   "rust_item": "blank_str",
+   "note": "pointer corrected to fetch.rs blank_str; None becomes '' and other values use str()"
   },
   {
    "module": "forms/fetch.py",
    "name": "business_rules_query",
    "line": 66,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "business_rules_query"
+   "rust_item": "business_rules_query",
+   "note": "same param order, sr defaults, and the same ValueError texts for form_type and workspace_id"
   },
   {
    "module": "forms/fetch.py",
    "name": "RulesResponse",
    "line": 121,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "RulesResponse"
+   "rust_item": "RulesResponse",
+   "note": "same rules, user, shape, evaluable, and raw"
   },
   {
    "module": "forms/fetch.py",
    "name": "parse_business_rules",
    "line": 136,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fetch.rs",
-   "rust_item": "parse_business_rules"
+   "rust_item": "parse_business_rules",
+   "note": "same form, listing, and bare-list shapes, including an empty listing rewritten as business_rules"
   },
   {
    "module": "forms/payload.py",
    "name": "_b64",
    "line": 40,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "b64"
+   "rust_item": "b64",
+   "note": "same standard base64 with padding of the UTF-8 text"
   },
   {
    "module": "forms/payload.py",
    "name": "_name_list",
    "line": 45,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "name_list"
+   "rust_item": "name_list",
+   "note": "same json.dumps default separators and ensure_ascii for the name list"
   },
   {
    "module": "forms/payload.py",
    "name": "excludes_lists",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "excludes_lists"
+   "rust_item": "excludes_lists",
+   "note": "same optional/disabled/hidden order and the same account-id and unsafe-name PayloadErrors"
   },
   {
    "module": "forms/payload.py",
    "name": "_account",
    "line": 72,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "account"
+   "rust_item": "account",
+   "note": "same mismatch message and the same None/'' treated as missing"
   },
   {
    "module": "forms/payload.py",
    "name": "build_br_validation_excludes",
    "line": 80,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "build_br_validation_excludes"
+   "rust_item": "build_br_validation_excludes",
+   "note": "same JWT-shaped token, item-id key for service requests, and unknown-kind ValueError"
   },
   {
    "module": "forms/payload.py",
    "name": "decode_br_validation_excludes",
    "line": 103,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "decode_br_validation_excludes"
+   "rust_item": "decode_br_validation_excludes",
+   "note": "same padded urlsafe decode and flat versus item shape"
   },
   {
    "module": "forms/payload.py",
    "name": "format_requester",
    "line": 153,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "format_requester"
+   "rust_item": "format_requester",
+   "note": "same strip, missing-@ PayloadError with repr, and Name <email>"
   },
   {
    "module": "forms/payload.py",
    "name": "text_to_html",
    "line": 162,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "text_to_html"
+   "rust_item": "text_to_html",
+   "note": "same leave-HTML-unchanged and the same escaped paragraphs, or <div></div>"
   },
   {
    "module": "forms/payload.py",
    "name": "encode_value",
    "line": 173,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "encode_value"
+   "rust_item": "encode_value",
+   "note": "same choice id versus label, multi-select str(), and the same invalid-choice PayloadError"
   },
   {
    "module": "forms/payload.py",
    "name": "_lookup_id",
    "line": 202,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "lookup_id"
+   "rust_item": "lookup_id",
+   "note": "same LookupValue.id or int, else the not-resolved PayloadError"
   },
   {
    "module": "forms/payload.py",
    "name": "_problems",
    "line": 210,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "problems"
+   "rust_item": "problems",
+   "note": "same required, unavailable, and unacknowledged lines in that order"
   },
   {
    "module": "forms/payload.py",
    "name": "_check",
    "line": 217,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "check"
+   "rust_item": "check",
+   "note": "same unsupported-always, then allow_incomplete, then problems"
   },
   {
    "module": "forms/payload.py",
    "name": "_module_body",
    "line": 228,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "module_body"
+   "rust_item": "module_body",
+   "note": "same skip of requester/status, key remap, and the fixed field order"
   },
   {
    "module": "forms/payload.py",
    "name": "_status_id",
    "line": 255,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "status_id"
+   "rust_item": "status_id",
+   "note": "same missing-status and invalid-choice PayloadErrors, id else value"
   },
   {
    "module": "forms/payload.py",
    "name": "_requester",
    "line": 265,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "requester"
+   "rust_item": "requester",
+   "note": "same lookup email fallback and the required-email PayloadError"
   },
   {
    "module": "forms/payload.py",
    "name": "build_change_payload",
    "line": 275,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "build_change_payload"
+   "rust_item": "build_change_payload",
+   "note": "same change body: ordered fields, custom_fields, email, br_validation_excludes"
   },
   {
    "module": "forms/payload.py",
    "name": "build_ticket_payload",
    "line": 294,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "build_ticket_payload"
+   "rust_item": "build_ticket_payload",
+   "note": "same ticket body with responder_id and type, plus email and the excludes token"
   },
   {
    "module": "forms/payload.py",
    "name": "build_sr_payload",
    "line": 313,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/payload.rs",
-   "rust_item": "build_sr_payload"
+   "rust_item": "build_sr_payload",
+   "note": "same file-field checks, attachment mandate, and place-request body"
   },
   {
    "module": "forms/plan.py",
    "name": "canonical_json",
    "line": 30,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "canonical_json"
+   "rust_item": "canonical_json",
+   "note": "same sorted keys, no whitespace, UTF-8, ensure_ascii false"
   },
   {
    "module": "forms/plan.py",
    "name": "_default",
    "line": 37,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "default"
+   "status": "idiom",
+   "note": "json.dumps default for datetime, set, and tuple; Rust plan hashes take JSON only, so datetimes are already ISO strings"
   },
   {
    "module": "forms/plan.py",
    "name": "file_digest",
    "line": 47,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "file_digest"
+   "rust_item": "file_digest",
+   "note": "same basename, size, and sha256 of the file bytes"
   },
   {
    "module": "forms/plan.py",
    "name": "_file_entries",
    "line": 57,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "file_entries"
+   "rust_item": "file_entries",
+   "note": "same {field: paths} or a bare list as attachments, sorted by field then index"
   },
   {
    "module": "forms/plan.py",
    "name": "plan_hash",
    "line": 69,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "plan_hash"
+   "rust_item": "plan_hash",
+   "note": "same sha256 of {v, payload, files} canonical JSON"
   },
   {
    "module": "forms/plan.py",
    "name": "plan_matches",
    "line": 77,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "plan_matches"
+   "rust_item": "plan_matches",
+   "note": "same strip, sha256: prefix, and minimum 12 hex characters"
   },
   {
    "module": "forms/plan.py",
    "name": "MetadataFingerprint",
    "line": 86,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "MetadataFingerprint"
+   "rust_item": "MetadataFingerprint",
+   "note": "same hash, updated_at, and counts"
   },
   {
    "module": "forms/plan.py",
    "name": "changed",
    "class": "MetadataFingerprint",
    "line": 91,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "changed"
+   "rust_item": "changed",
+   "note": "same true when the hashes differ"
   },
   {
    "module": "forms/plan.py",
    "name": "_walk_updated",
    "line": 95,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "walk_updated"
+   "rust_item": "walk_updated",
+   "note": "same walk of updated_at strings, ignoring unparsable ones"
   },
   {
    "module": "forms/plan.py",
    "name": "_parse_ts",
    "line": 109,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "parse_ts"
+   "rust_item": "parse_ts",
+   "note": "same fromisoformat with Z as +00:00 and naive times treated as UTC"
   },
   {
    "module": "forms/plan.py",
    "name": "_count",
    "line": 118,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "count"
+   "rust_item": "count",
+   "note": "same len(list), else the first list value in a mapping, else 1 or 0"
   },
   {
    "module": "forms/plan.py",
    "name": "metadata_fingerprint",
    "line": 129,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/plan.rs",
-   "rust_item": "metadata_fingerprint"
+   "rust_item": "metadata_fingerprint",
+   "note": "same hash, newest updated_at, and counts skipping null parts"
   },
   {
    "module": "forms/rules.py",
    "name": "is_empty",
    "line": 115,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "is_empty"
+   "rust_item": "is_empty",
+   "note": "same None, '', and empty list/tuple only; a blank string is not empty"
   },
   {
    "module": "forms/rules.py",
    "name": "RuleContext",
    "line": 124,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "RuleContext"
+   "rust_item": "RuleContext",
+   "note": "same module, form, user_type, workspace, and person/system slots"
   },
   {
    "module": "forms/rules.py",
    "name": "workspaces",
    "class": "RuleContext",
    "line": 148,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "workspaces"
+   "rust_item": "workspaces",
+   "note": "same None disables filtering; a string is one id; other collections become str ids"
   },
   {
    "module": "forms/rules.py",
    "name": "Condition",
    "line": 157,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Condition"
+   "rust_item": "Condition",
+   "note": "same name, field, operator, values, and source"
   },
   {
    "module": "forms/rules.py",
    "name": "ConditionGroup",
    "line": 166,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "ConditionGroup"
+   "rust_item": "ConditionGroup",
+   "note": "same all/any mode and nested items"
   },
   {
    "module": "forms/rules.py",
    "name": "Target",
    "line": 172,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Target"
+   "rust_item": "Target",
+   "note": "same api, raw, base, and custom flag"
   },
   {
    "module": "forms/rules.py",
    "name": "Action",
    "line": 184,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Action"
+   "rust_item": "Action",
+   "note": "same property, api targets, values, and all_targets"
   },
   {
    "module": "forms/rules.py",
    "name": "Rule",
    "line": 192,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Rule"
+   "rust_item": "Rule",
+   "note": "same id, name, condition, actions, and form/user type filters"
   },
   {
    "module": "forms/rules.py",
    "name": "applies_to",
    "class": "Rule",
    "line": 205,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "applies_to"
+   "rust_item": "applies_to",
+   "note": "same both/new/edit and both/user_type, with user_type any always passing"
   },
   {
    "module": "forms/rules.py",
    "name": "Message",
    "line": 213,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Message"
+   "rust_item": "Message",
+   "note": "same text, rule id, name, and blocking flag"
   },
   {
    "module": "forms/rules.py",
    "name": "key",
    "class": "Message",
    "line": 220,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "key"
+   "rust_item": "key",
+   "note": "same (str(rule_id), text)"
   },
   {
    "module": "forms/rules.py",
    "name": "Decision",
    "line": 225,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Decision"
+   "rust_item": "Decision",
+   "note": "same action, matched, event, and rule index"
   },
   {
    "module": "forms/rules.py",
    "name": "describe",
    "class": "Decision",
    "line": 235,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "describe"
+   "rust_item": "describe",
+   "note": "same 'action by rule repr (id) (reversed) on change of event' text"
   },
   {
    "module": "forms/rules.py",
    "name": "Conflict",
    "line": 242,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Conflict"
+   "rust_item": "Conflict",
+   "note": "same field, property, decisions, and winner"
   },
   {
    "module": "forms/rules.py",
    "name": "describe",
    "class": "Conflict",
    "line": 251,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "describe"
+   "rust_item": "describe",
+   "note": "same field.property: actions -> winner wins text"
   },
   {
    "module": "forms/rules.py",
    "name": "RuleGate",
    "line": 257,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "RuleGate"
+   "rust_item": "RuleGate",
+   "note": "same blockers, warnings, and unknown_rules"
   },
   {
    "module": "forms/rules.py",
    "name": "as_json",
    "class": "RuleGate",
    "line": 264,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "as_json"
+   "rust_item": "as_json",
+   "note": "same three-key object with the lists copied"
   },
   {
    "module": "forms/rules.py",
    "name": "Explanation",
    "line": 270,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "Explanation"
+   "rust_item": "Explanation",
+   "note": "same label, state or not-state, and decision or source reason in str()"
   },
   {
    "module": "forms/rules.py",
@@ -7111,54 +7211,60 @@
    "name": "ExcludeName",
    "line": 292,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "ExcludeName"
+   "rust_item": "ExcludeName",
+   "note": "same base and custom flag"
   },
   {
    "module": "forms/rules.py",
    "name": "name",
    "class": "ExcludeName",
    "line": 296,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "name"
+   "rust_item": "name",
+   "note": "same base, or base_account, and the same ValueError when the account id is missing"
   },
   {
    "module": "forms/rules.py",
    "name": "ChoiceRestriction",
    "line": 308,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "ChoiceRestriction"
+   "rust_item": "ChoiceRestriction",
+   "note": "same allowed map, rule id, and rule name"
   },
   {
    "module": "forms/rules.py",
    "name": "offers",
    "class": "ChoiceRestriction",
    "line": 320,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "offers"
+   "rust_item": "offers",
+   "note": "same norm(value) membership in allowed"
   },
   {
    "module": "forms/rules.py",
    "name": "below",
    "class": "ChoiceRestriction",
    "line": 323,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "below"
+   "rust_item": "below",
+   "note": "same nested restriction for the normalised value"
   },
   {
    "module": "forms/rules.py",
    "name": "EvaluatedForm",
    "line": 328,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "EvaluatedForm"
+   "rust_item": "EvaluatedForm",
+   "note": "same visible order, required, disabled, values, and the excludes/restricted maps"
   },
   {
    "module": "forms/rules.py",
@@ -7173,72 +7279,80 @@
    "name": "choices",
    "class": "EvaluatedForm",
    "line": 359,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "choices"
+   "rust_item": "choices",
+   "note": "same offered_choices for the field's current values"
   },
   {
    "module": "forms/rules.py",
    "name": "restriction_for",
    "class": "EvaluatedForm",
    "line": 366,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "restriction_for"
+   "rust_item": "restriction_for",
+   "note": "same top-of-chain restriction and its populate decision"
   },
   {
    "module": "forms/rules.py",
    "name": "is_visible",
    "class": "EvaluatedForm",
    "line": 374,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "is_visible"
+   "rust_item": "is_visible",
+   "note": "same membership in the visible list"
   },
   {
    "module": "forms/rules.py",
    "name": "is_required",
    "class": "EvaluatedForm",
    "line": 377,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "is_required"
+   "rust_item": "is_required",
+   "note": "same membership in the required set"
   },
   {
    "module": "forms/rules.py",
    "name": "blocking_messages",
    "class": "EvaluatedForm",
    "line": 381,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "blocking_messages"
+   "rust_item": "blocking_messages",
+   "note": "same messages with blocking set, in message order"
   },
   {
    "module": "forms/rules.py",
    "name": "decision",
    "class": "EvaluatedForm",
    "line": 386,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "decision"
+   "rust_item": "decision",
+   "note": "same last decision for the field and property"
   },
   {
    "module": "forms/rules.py",
    "name": "explain",
    "class": "EvaluatedForm",
    "line": 389,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "explain"
+   "rust_item": "explain",
+   "note": "same per-property Explanation rows for the named fields"
   },
   {
    "module": "forms/rules.py",
    "name": "RulesEngine",
    "line": 427,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "RulesEngine"
+   "rust_item": "RulesEngine",
+   "note": "same spec, rules, context, strict, dedupe, and populate mode"
   },
   {
    "module": "forms/rules.py",
@@ -7253,486 +7367,539 @@
    "name": "_load",
    "class": "RulesEngine",
    "line": 508,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "load"
+   "rust_item": "load",
+   "note": "same listing FormRuleError and the same skip/dedupe/parse pipeline"
   },
   {
    "module": "forms/rules.py",
    "name": "_filter",
    "class": "RulesEngine",
    "line": 534,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "filter"
+   "rust_item": "filter",
+   "note": "same deleted, state, rule_type, module, item, and workspace skip reasons"
   },
   {
    "module": "forms/rules.py",
    "name": "_dedupe",
    "class": "RulesEngine",
    "line": 551,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "dedupe_rules"
+   "rust_item": "dedupe_rules",
+   "note": "same exact/first/last/none policies, keeping first position"
   },
   {
    "module": "forms/rules.py",
    "name": "_parse_rule",
    "class": "RulesEngine",
    "line": 580,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "parse_rule"
+   "rust_item": "parse_rule",
+   "note": "same name fallback to id and the same strict UnsupportedRuleError text"
   },
   {
    "module": "forms/rules.py",
    "name": "_parse_group",
    "class": "RulesEngine",
    "line": 610,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "parse_group"
+   "rust_item": "parse_group",
+   "note": "same all/any groups and nested condition parsing"
   },
   {
    "module": "forms/rules.py",
    "name": "_target",
    "class": "RulesEngine",
    "line": 645,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "target"
+   "rust_item": "target",
+   "note": "same prefix strip, alias, and custom-field base"
   },
   {
    "module": "forms/rules.py",
    "name": "_parse_actions",
    "class": "RulesEngine",
    "line": 659,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "parse_actions"
+   "rust_item": "parse_actions",
+   "note": "same property, targets, and values from action_data"
   },
   {
    "module": "forms/rules.py",
    "name": "rules_for",
    "class": "RulesEngine",
    "line": 682,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "rules_for"
+   "rust_item": "rules_for",
+   "note": "same rules that applies_to the mode and user type"
   },
   {
    "module": "forms/rules.py",
    "name": "unavailable_dependencies",
    "class": "RulesEngine",
    "line": 685,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "unavailable_dependencies"
+   "rust_item": "unavailable_dependencies",
+   "note": "same unknown condition and action fields, every branch, duplicates dropped"
   },
   {
    "module": "forms/rules.py",
    "name": "_condition_gaps",
    "class": "RulesEngine",
    "line": 721,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "condition_gaps"
+   "rust_item": "condition_gaps",
+   "note": "same new-record empty names skipped and the same missing context fields"
   },
   {
    "module": "forms/rules.py",
    "name": "write_gate",
    "class": "RulesEngine",
    "line": 739,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "write_gate"
+   "rust_item": "write_gate",
+   "note": "same blocker versus warning split, hidden-answer refusal, and stable de-dupe"
   },
   {
    "module": "forms/rules.py",
    "name": "position_order",
    "class": "RulesEngine",
    "line": 819,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "position_order"
+   "rust_item": "position_order",
+   "note": "same sort by web position then name"
   },
   {
    "module": "forms/rules.py",
    "name": "evaluate",
    "class": "RulesEngine",
    "line": 823,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "evaluate"
+   "rust_item": "evaluate",
+   "note": "same model check, edit-entity base, replay versus event dispatch"
   },
   {
    "module": "forms/rules.py",
    "name": "_event_order",
    "class": "RulesEngine",
    "line": 863,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "event_order"
+   "rust_item": "event_order",
+   "note": "same explicit order then the remaining names in field order"
   },
   {
    "module": "forms/rules.py",
    "name": "_evaluate_replay",
    "class": "RulesEngine",
    "line": 873,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "evaluate_replay"
+   "rust_item": "evaluate_replay",
+   "note": "same populate fixed-point and the same disabled-answer refusal"
   },
   {
    "module": "forms/rules.py",
    "name": "_evaluate_events",
    "class": "RulesEngine",
    "line": 897,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "evaluate_events"
+   "rust_item": "evaluate_events",
+   "note": "same load pass, same-value skip, and referenced/transition filters"
   },
   {
    "module": "forms/rules.py",
    "name": "_clear_lower_levels",
    "class": "RulesEngine",
    "line": 929,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "clear_lower_levels"
+   "rust_item": "clear_lower_levels",
+   "note": "same clear of nested children when the parent value changes"
   },
   {
    "module": "forms/rules.py",
    "name": "_fresh",
    "class": "RulesEngine",
    "line": 945,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "fresh"
+   "rust_item": "fresh",
+   "note": "same visible_base and required_base starting state"
   },
   {
    "module": "forms/rules.py",
    "name": "_apply",
    "class": "RulesEngine",
    "line": 952,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "apply"
+   "rust_item": "apply",
+   "note": "same reverse-when-unmatched, message replace, and populate overwrite rules"
   },
   {
    "module": "forms/rules.py",
    "name": "_restrict",
    "class": "RulesEngine",
    "line": 1026,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "restrict"
+   "rust_item": "restrict",
+   "note": "same populate=restrict path and unknown-choice warnings"
   },
   {
    "module": "forms/rules.py",
    "name": "_restriction",
    "class": "RulesEngine",
    "line": 1043,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "restriction"
+   "rust_item": "restriction",
+   "note": "same display_id then id then value, and the no-known-choice warning"
   },
   {
    "module": "forms/rules.py",
    "name": "_finish",
    "class": "RulesEngine",
    "line": 1071,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "finish"
+   "rust_item": "finish",
+   "note": "same parent/section/nested visibility, conflicts, and unavailable choices"
   },
   {
    "module": "forms/rules.py",
    "name": "_excludes",
    "class": "RulesEngine",
    "line": 1141,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "excludes"
+   "rust_item": "excludes",
+   "note": "same first-touch order and nested levels appended as hidden and optional"
   },
   {
    "module": "forms/rules.py",
    "name": "_match_group",
    "class": "RulesEngine",
    "line": 1181,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "match_group"
+   "rust_item": "match_group",
+   "note": "same empty group matches; all short-circuits on false, any on true"
   },
   {
    "module": "forms/rules.py",
    "name": "_person",
    "class": "RulesEngine",
    "line": 1187,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "person"
+   "rust_item": "person",
+   "note": "same once-only warning when the context person or system is missing"
   },
   {
    "module": "forms/rules.py",
    "name": "_entity_lookup",
    "class": "RulesEngine",
    "line": 1196,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "entity_value"
+   "rust_item": "entity_value",
+   "note": "same field, then raw name, then the last dotted part"
   },
   {
    "module": "forms/rules.py",
    "name": "_match",
    "class": "RulesEngine",
    "line": 1205,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "match_condition"
+   "rust_item": "match_condition",
+   "note": "same checkbox 'is True', selected versus empty, and is/includes any-of"
   },
   {
    "module": "forms/rules.py",
    "name": "_value_keys",
    "class": "RulesEngine",
    "line": 1233,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "value_keys"
+   "rust_item": "value_keys",
+   "note": "same bool word sets, lookup id/display/email, and choice keys"
   },
   {
    "module": "forms/rules.py",
    "name": "_populate_value",
    "class": "RulesEngine",
    "line": 1254,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "populate_value"
+   "rust_item": "populate_value",
+   "note": "same choice failure returns None, and checkbox uses str().lower() in true/1/yes"
   },
   {
    "module": "forms/rules.py",
    "name": "_condition_fields",
    "line": 1273,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "condition_fields"
+   "rust_item": "condition_fields",
+   "note": "same form-source field names, nested groups included"
   },
   {
    "module": "forms/rules.py",
    "name": "_nested_chain",
    "line": 1283,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "nested_chain"
+   "rust_item": "nested_chain",
+   "note": "same [top, ..., field] walking parent while a nested level"
   },
   {
    "module": "forms/rules.py",
    "name": "offered_choices",
    "line": 1293,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "offered_choices"
+   "rust_item": "offered_choices",
+   "note": "same empty pool when an upper level is empty or not offered"
   },
   {
    "module": "forms/rules.py",
    "name": "_choice_in",
    "line": 1313,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "choice_in"
+   "status": "reviewed",
+   "rust": "crates/fsv-forms/src/rules.rs",
+   "rust_item": "choice_in_pool",
+   "note": "pointer corrected to rules.rs choice_in_pool; display_id, then id, then value/label"
   },
   {
    "module": "forms/rules.py",
    "name": "_choice_by_any",
    "line": 1327,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "choice_by_any"
+   "rust_item": "choice_by_any",
+   "note": "same display_id, then id, then Field.choice"
   },
   {
    "module": "forms/rules.py",
    "name": "_same",
    "line": 1339,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "same"
+   "rust_item": "same",
+   "note": "same empty, list norms, bool identity, and same-type norm fallback"
   },
   {
    "module": "forms/rules.py",
    "name": "_Skip",
    "line": 1349,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
    "rust_item": "Skip",
-   "note": "Exception -> Err(Skip(msg)) in parse_group/parse_actions; caught per rule like Python's except _Skip."
+   "note": "same control-flow exception for an operator or action the engine refuses"
   },
   {
    "module": "forms/rules.py",
    "name": "_State",
    "line": 1354,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
    "rust_item": "State",
-   "note": "Same fields; reg dict -> [IndexMap;3] (visible/required/disabled) keeping first-touch order; touch() ported. vis/req are HashMaps but are only looked up, never iterated."
+   "note": "same vis/req/values/disabled and the first-touch exclude registers"
   },
   {
    "module": "forms/rules.py",
    "name": "touch",
    "class": "_State",
    "line": 1374,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/rules.rs",
-   "rust_item": "touch"
+   "rust_item": "touch",
+   "note": "same first registration of a target under visible, required, or disabled"
   },
   {
    "module": "forms/spec.py",
    "name": "is_content_type",
    "line": 59,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "is_content_type"
+   "rust_item": "is_content_type",
+   "note": "same lowercased membership or the content/static regex"
   },
   {
    "module": "forms/spec.py",
    "name": "is_planning_type",
    "line": 144,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "is_planning_type"
+   "rust_item": "is_planning_type",
+   "note": "same membership in the five planning field types"
   },
   {
    "module": "forms/spec.py",
    "name": "norm",
    "line": 183,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "norm"
+   "status": "reviewed",
+   "rust": "crates/fsv-forms/src/value.rs",
+   "rust_item": "norm",
+   "note": "pointer corrected to value.rs norm; same collapsed whitespace and casefold"
   },
   {
    "module": "forms/spec.py",
    "name": "camel_to_snake",
    "line": 188,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "camel_to_snake"
+   "rust_item": "camel_to_snake",
+   "note": "same early return without an uppercase letter, and the same A-Z underscores"
   },
   {
    "module": "forms/spec.py",
    "name": "plain_text",
    "line": 198,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "plain_text"
+   "rust_item": "plain_text",
+   "note": "same unescape, block breaks, tag strip, and blank-line drop"
   },
   {
    "module": "forms/spec.py",
    "name": "Choice",
    "line": 212,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "Choice"
+   "rust_item": "Choice",
+   "note": "same value, label, id, display_id, description, visible, and children"
   },
   {
    "module": "forms/spec.py",
    "name": "keys",
    "class": "Choice",
    "line": 229,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "keys"
+   "rust_item": "keys",
+   "note": "same norm of value, label, and present id and display_id"
   },
   {
    "module": "forms/spec.py",
    "name": "Section",
    "line": 239,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "Section"
+   "rust_item": "Section",
+   "note": "same normalised choices and child api names"
   },
   {
    "module": "forms/spec.py",
    "name": "Field",
    "line": 247,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "Field"
+   "rust_item": "Field",
+   "note": "same kind, flags, nested levels, and lookup link carried on the field"
   },
   {
    "module": "forms/spec.py",
    "name": "help",
    "class": "Field",
    "line": 283,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "help"
+   "rust_item": "help",
+   "note": "same alias of helptext"
   },
   {
    "module": "forms/spec.py",
    "name": "is_input",
    "class": "Field",
    "line": 287,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "is_input"
+   "rust_item": "is_input",
+   "note": "same false only for notice"
   },
   {
    "module": "forms/spec.py",
    "name": "is_nested_level",
    "class": "Field",
    "line": 293,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "is_nested_level"
+   "rust_item": "is_nested_level",
+   "note": "same nested kind and level > 1"
   },
   {
    "module": "forms/spec.py",
    "name": "choice",
    "class": "Field",
    "line": 296,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "choice"
+   "rust_item": "choice",
+   "note": "same value/label then id, and the same ambiguous-choice ValueError"
   },
   {
    "module": "forms/spec.py",
    "name": "choice_by_display_id",
    "class": "Field",
    "line": 308,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "choice_by_display_id"
+   "rust_item": "choice_by_display_id",
+   "note": "same last choice with that normalised display_id"
   },
   {
    "module": "forms/spec.py",
    "name": "ServiceItem",
    "line": 316,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "ServiceItem"
+   "rust_item": "ServiceItem",
+   "note": "same id, display_id, attachment flags, and subject template"
   },
   {
    "module": "forms/spec.py",
    "name": "render_subject",
    "class": "ServiceItem",
    "line": 330,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "render_subject"
+   "rust_item": "render_subject",
+   "note": "same {{custom_field.cf_name}} fill, empty when the value is missing"
   },
   {
    "module": "forms/spec.py",
    "name": "FormSpec",
    "line": 344,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "FormSpec"
+   "rust_item": "FormSpec",
+   "note": "same module, fields, item, warnings, and account_id"
   },
   {
    "module": "forms/spec.py",
@@ -7747,194 +7914,217 @@
    "name": "find",
    "class": "FormSpec",
    "line": 359,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "find"
+   "rust_item": "find",
+   "note": "same api name, then resolve_name, then a unique normalised label"
   },
   {
    "module": "forms/spec.py",
    "name": "field",
    "class": "FormSpec",
    "line": 372,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "field"
+   "rust_item": "field",
+   "note": "same UnknownFieldError with up to five label suggestions"
   },
   {
    "module": "forms/spec.py",
    "name": "resolve_name",
    "class": "FormSpec",
    "line": 380,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "resolve_name"
+   "rust_item": "resolve_name",
+   "note": "same prefixes, camelCase, aliases, sr_/cf_, and _id"
   },
   {
    "module": "forms/spec.py",
    "name": "ordered",
    "class": "FormSpec",
    "line": 413,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "ordered"
+   "rust_item": "ordered",
+   "note": "same position sort with None last, children after their parent"
   },
   {
    "module": "forms/spec.py",
    "name": "inputs",
    "class": "FormSpec",
    "line": 439,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "inputs"
+   "rust_item": "inputs",
+   "note": "same ordered fields except notices"
   },
   {
    "module": "forms/spec.py",
    "name": "section_parent",
    "class": "FormSpec",
    "line": 444,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "section_parent"
+   "rust_item": "section_parent",
+   "note": "same controlling field and normalised section choices"
   },
   {
    "module": "forms/spec.py",
    "name": "choices_for",
    "class": "FormSpec",
    "line": 461,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "choices_for"
+   "rust_item": "choices_for",
+   "note": "same nested walk; an empty upper value yields no choices"
   },
   {
    "module": "forms/spec.py",
    "name": "from_form_fields",
    "class": "FormSpec",
    "line": 486,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "from_form_fields"
+   "rust_item": "from_form_fields",
+   "note": "same unwrap, requested_for on change, and ticket section links"
   },
   {
    "module": "forms/spec.py",
    "name": "from_service_item",
    "class": "FormSpec",
    "line": 500,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "from_service_item"
+   "rust_item": "from_service_item",
+   "note": "same deleted skip, section child checks, and attachment defaults"
   },
   {
    "module": "forms/spec.py",
    "name": "_unwrap_fields",
    "line": 557,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "unwrap_fields"
+   "rust_item": "unwrap_fields",
+   "note": "same known keys, then a list whose first row has field_type, else ValueError"
   },
   {
    "module": "forms/spec.py",
    "name": "_account_from_form_fields",
    "line": 570,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "account_from_form_fields"
+   "rust_item": "account_from_form_fields",
+   "note": "same single account id from lookup link field_name, else None"
   },
   {
    "module": "forms/spec.py",
    "name": "_account_from_item",
    "line": 582,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "account_from_item"
+   "rust_item": "account_from_item",
+   "note": "same single account_id from the item or its fields, else None"
   },
   {
    "module": "forms/spec.py",
    "name": "_parse_choices",
    "line": 597,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "parse_choices"
+   "rust_item": "parse_choices",
+   "note": "same dict/list/scalar choices; visible is false only for boolean False"
   },
   {
    "module": "forms/spec.py",
    "name": "split_choice_help",
    "line": 621,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "split_choice_help"
+   "rust_item": "split_choice_help",
+   "note": "same longest label, case-insensitive, and unmatched segments joined"
   },
   {
    "module": "forms/spec.py",
    "name": "attach_choice_descriptions",
    "line": 654,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "attach_choice_descriptions"
+   "rust_item": "attach_choice_descriptions",
+   "note": "same choices returned by split_choice_help"
   },
   {
    "module": "forms/spec.py",
    "name": "_fields_from_form_field",
    "line": 658,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "fields_from_form_field"
+   "rust_item": "fields_from_form_field",
+   "note": "same kind map, date_only, defaults, and nested level fields"
   },
   {
    "module": "forms/spec.py",
    "name": "_add_requested_for",
    "line": 752,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "add_requested_for"
+   "rust_item": "add_requested_for",
+   "note": "same synthetic Request for field, display-only, on change"
   },
   {
    "module": "forms/spec.py",
    "name": "_content_of",
    "line": 769,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "content_of"
+   "rust_item": "content_of",
+   "note": "same notice body from the field's content or description"
   },
   {
    "module": "forms/spec.py",
    "name": "_link_ticket_sections",
    "line": 779,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "link_ticket_sections"
+   "rust_item": "link_ticket_sections",
+   "note": "same ticket section links from the form-fields payload"
   },
   {
    "module": "forms/spec.py",
    "name": "_link_sections",
    "line": 794,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "link_sections"
+   "rust_item": "link_sections",
+   "note": "same section choices attached to the controlling field"
   },
   {
    "module": "forms/spec.py",
    "name": "_opt_true",
    "line": 818,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "opt_true"
+   "rust_item": "opt_true",
+   "note": "same true only for boolean True or the string true, case-insensitive"
   },
   {
    "module": "forms/spec.py",
    "name": "_field_from_sr",
    "line": 822,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/spec.rs",
-   "rust_item": "field_from_sr"
+   "rust_item": "field_from_sr",
+   "note": "same formserv type codes, date_only, and lookup link"
   },
   {
    "module": "forms/state.py",
    "name": "LookupValue",
    "line": 43,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/value.rs",
-   "rust_item": "LookupValue"
+   "rust_item": "LookupValue",
+   "note": "same id, display, email, and str() as Name <email> or the id"
   },
   {
    "module": "forms/state.py",
@@ -7949,27 +8139,30 @@
    "name": "LookupResolver",
    "line": 56,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "LookupResolver"
+   "rust_item": "LookupResolver",
+   "note": "same lookup(entity, query, field) injection; the forms crate does no HTTP"
   },
   {
    "module": "forms/state.py",
    "name": "lookup",
    "class": "LookupResolver",
    "line": 64,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "lookup"
+   "rust_item": "lookup",
+   "note": "same return of every candidate for the caller to narrow"
   },
   {
    "module": "forms/state.py",
    "name": "Diff",
    "line": 68,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "Diff"
+   "rust_item": "Diff",
+   "note": "same appeared/disappeared/required/message/populate/restrict fields"
   },
   {
    "module": "forms/state.py",
@@ -7984,18 +8177,20 @@
    "name": "describe",
    "class": "Diff",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "describe"
+   "rust_item": "describe",
+   "note": "same label lines for added, removed, filled, cleared, and limited choices"
   },
   {
    "module": "forms/state.py",
    "name": "FormState",
    "line": 130,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "FormState"
+   "rust_item": "FormState",
+   "note": "same mode and event_order ValueErrors, defaults, then existing, then user answers"
   },
   {
    "module": "forms/state.py",
@@ -8010,392 +8205,435 @@
    "name": "_evaluate",
    "class": "FormState",
    "line": 192,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "evaluate"
+   "rust_item": "evaluate",
+   "note": "same user answers, cleared load values, and input versus history replay"
   },
   {
    "module": "forms/state.py",
    "name": "_check_refused",
    "class": "FormState",
    "line": 199,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "check_refused"
+   "rust_item": "check_refused",
+   "note": "same FieldDisabledError naming the first refused field"
   },
   {
    "module": "forms/state.py",
    "name": "set",
    "class": "FormState",
    "line": 206,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "set"
+   "rust_item": "set",
+   "note": "same disabled-field error, rollback when the new value disables another answer, and Diff"
   },
   {
    "module": "forms/state.py",
    "name": "unset",
    "class": "FormState",
    "line": 232,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "unset"
+   "rust_item": "unset",
+   "note": "same as set(name, None)"
   },
   {
    "module": "forms/state.py",
    "name": "_store",
    "class": "FormState",
    "line": 235,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "store"
+   "rust_item": "store",
+   "note": "same empty clears the value, records a cleared load value, and appends user order"
   },
   {
    "module": "forms/state.py",
    "name": "_clear_lower_levels",
    "class": "FormState",
    "line": 255,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "clear_lower_levels"
+   "rust_item": "clear_lower_levels",
+   "note": "same clear of nested children when the parent value actually changes"
   },
   {
    "module": "forms/state.py",
    "name": "unacknowledged",
    "class": "FormState",
    "line": 273,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "unacknowledged"
+   "rust_item": "unacknowledged",
+   "note": "same blocking messages whose key is not yet acknowledged"
   },
   {
    "module": "forms/state.py",
    "name": "acknowledge",
    "class": "FormState",
    "line": 277,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "acknowledge"
+   "rust_item": "acknowledge",
+   "note": "same empty-means-all, and the same no-blocking-message ValueError with repr"
   },
   {
    "module": "forms/state.py",
    "name": "parse",
    "class": "FormState",
    "line": 291,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse"
+   "rust_item": "parse",
+   "note": "same blank-to-None and the per-kind parsers, including the unsupported-kind error"
   },
   {
    "module": "forms/state.py",
    "name": "_choices",
    "class": "FormState",
    "line": 320,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "choices"
+   "rust_item": "pool",
+   "note": "pointer corrected to state.rs pool; empty nested level asks for the parent first"
   },
   {
    "module": "forms/state.py",
    "name": "choices",
    "class": "FormState",
    "line": 328,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "choices"
+   "rust_item": "choices",
+   "note": "same offered_choices with restrictions applied"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_choice",
    "class": "FormState",
    "line": 334,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_choice"
+   "rust_item": "parse_choice",
+   "note": "same invalid-choice and not-offered-now ValueParseErrors, including the 15-option clip"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_multi",
    "class": "FormState",
    "line": 354,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_multi"
+   "rust_item": "parse_multi",
+   "note": "same whole-choice or comma split, duplicates dropped"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_lookup",
    "class": "FormState",
    "line": 368,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_lookup"
+   "rust_item": "parse_lookup",
+   "note": "same multi comma/list, and a single-value list of length other than 1 is an error"
   },
   {
    "module": "forms/state.py",
    "name": "_lookup_one",
    "class": "FormState",
    "line": 383,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "lookup_one"
+   "rust_item": "lookup_one",
+   "note": "same numeric id shortcut, custom lookup verify, and AmbiguousLookupError"
   },
   {
    "module": "forms/state.py",
    "name": "get",
    "class": "FormState",
    "line": 416,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "get"
+   "rust_item": "get",
+   "note": "same effective evaluated value"
   },
   {
    "module": "forms/state.py",
    "name": "is_populated",
    "class": "FormState",
    "line": 421,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "is_populated"
+   "rust_item": "is_populated",
+   "note": "same membership in evaluated.populated"
   },
   {
    "module": "forms/state.py",
    "name": "visible_fields",
    "class": "FormState",
    "line": 424,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "visible_fields"
+   "rust_item": "visible_fields",
+   "note": "same fields in evaluated.visible order"
   },
   {
    "module": "forms/state.py",
    "name": "messages",
    "class": "FormState",
    "line": 428,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "messages"
+   "rust_item": "messages",
+   "note": "same evaluated.messages in order"
   },
   {
    "module": "forms/state.py",
    "name": "missing_required",
    "class": "FormState",
    "line": 431,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "missing_required"
+   "rust_item": "missing_required",
+   "note": "same visible required fields; a checkbox counts only when it is True"
   },
   {
    "module": "forms/state.py",
    "name": "unsupported_errors",
    "class": "FormState",
    "line": 444,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "unsupported_errors"
+   "rust_item": "unsupported_errors",
+   "note": "same required-or-answered unsupported fields block the write"
   },
   {
    "module": "forms/state.py",
    "name": "errors",
    "class": "FormState",
    "line": 450,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "errors"
+   "rust_item": "errors",
+   "note": "same required, unsupported, unavailable, and unacknowledged lines"
   },
   {
    "module": "forms/state.py",
    "name": "unavailable_errors",
    "class": "FormState",
    "line": 459,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "unavailable_errors"
+   "rust_item": "unavailable_errors",
+   "note": "same not-offered-any-more line with the limiting rule"
   },
   {
    "module": "forms/state.py",
    "name": "rule_gate",
    "class": "FormState",
    "line": 471,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "rule_gate"
+   "rust_item": "rule_gate",
+   "note": "same write_gate of user-sourced answers"
   },
   {
    "module": "forms/state.py",
    "name": "dropped",
    "class": "FormState",
    "line": 476,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "dropped"
+   "rust_item": "dropped",
+   "note": "same hidden non-notice fields that still hold a value"
   },
   {
    "module": "forms/state.py",
    "name": "explain",
    "class": "FormState",
    "line": 489,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "explain"
+   "rust_item": "explain",
+   "note": "same evaluated.explain"
   },
   {
    "module": "forms/state.py",
    "name": "conflicts",
    "class": "FormState",
    "line": 493,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "conflicts"
+   "rust_item": "conflicts",
+   "note": "same evaluated.conflicts"
   },
   {
    "module": "forms/state.py",
    "name": "payload_values",
    "class": "FormState",
    "line": 496,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "payload_values"
+   "rust_item": "payload_values",
+   "note": "same visible non-empty inputs in form order; notices skipped"
   },
   {
    "module": "forms/state.py",
    "name": "display",
    "class": "FormState",
    "line": 508,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "display"
+   "rust_item": "display",
+   "note": "same display_value of the effective or given value"
   },
   {
    "module": "forms/state.py",
    "name": "to_review",
    "class": "FormState",
    "line": 513,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "to_review"
+   "rust_item": "to_review",
+   "note": "same filled rows, then Replaced, Not offered, Dropped, and message rows"
   },
   {
    "module": "forms/state.py",
    "name": "_diff",
    "line": 551,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "diff"
+   "rust_item": "diff",
+   "note": "same visible/required order, message identity, and restriction label lists"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_number",
    "line": 574,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_number"
+   "rust_item": "parse_number",
+   "note": "same bool rejection, comma strip, int pattern, then float"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_bool",
    "line": 588,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_bool"
+   "rust_item": "parse_bool",
+   "note": "same casefold of yes/true/y and no/false/n, else the yes/no options"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_date",
    "line": 599,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_date"
+   "rust_item": "parse_date",
+   "note": "same date or datetime.date(), else fromisoformat YYYY-MM-DD"
   },
   {
    "module": "forms/state.py",
    "name": "_same_value",
    "line": 610,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "same_value"
+   "rust_item": "same_value",
+   "note": "same both-empty, else norm equality of non-None values"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_datetime",
    "line": 616,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_datetime"
+   "rust_item": "parse_datetime",
+   "note": "same date-only refusal, fromisoformat, and localize for a naive time"
   },
   {
    "module": "forms/state.py",
    "name": "_parse_attachments",
    "line": 639,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "parse_attachments"
+   "rust_item": "parse_attachments",
+   "note": "same single path versus list, max files, and sorted allowed extensions"
   },
   {
    "module": "forms/state.py",
    "name": "_display",
    "line": 652,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/state.rs",
-   "rust_item": "display"
+   "rust_item": "display",
+   "note": "same choice labels, Yes/No, %d %b %Y, offset, and the 120-character ellipsis"
   },
   {
    "module": "forms/state.py",
    "name": "_offset",
    "line": 678,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/pydt.rs",
    "rust_item": "offset_text",
-   "note": "+-HH:MM with minutes floored (div_euclid, like total_seconds() // 60) for negative sub-minute offsets; DateTimeValue::offset_text delegates. Tested against Python in tz/py_tests.rs off_and_offset_match_python."
+   "note": "same ±HH:MM with minutes floored, shared with tz._off"
   },
   {
    "module": "forms/tz.py",
    "name": "zone",
    "line": 173,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/tz.rs",
-   "rust_item": "zone"
+   "rust_item": "zone",
+   "note": "same strip, Rails map, then IANA; unknown or empty is None"
   },
   {
    "module": "forms/tz.py",
    "name": "system_timezone",
    "line": 188,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/tz.rs",
-   "rust_item": "system_timezone"
+   "rust_item": "system_timezone",
+   "note": "same TZ, then /etc/localtime zoneinfo path, then the current offset"
   },
   {
    "module": "forms/tz.py",
    "name": "resolve_timezone",
    "line": 204,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/tz.rs",
-   "rust_item": "resolve_timezone"
+   "rust_item": "resolve_timezone",
+   "note": "same tz argument, then FSV_TZ, then the user time_zone, else the system zone"
   },
   {
    "module": "forms/tz.py",
    "name": "_off",
    "line": 219,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/pydt.rs",
    "rust_item": "offset_text",
-   "note": "Same body as state._offset; one Rust fn serves both, tested by off_and_offset_match_python."
+   "note": "same ±HH:MM with minutes floored (pydt offset_text)"
   },
   {
    "module": "forms/tz.py",
    "name": "tz_name",
    "line": 227,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/tz.rs",
-   "rust_item": "tz_name"
+   "rust_item": "tz_name",
+   "note": "same ZoneInfo key, else str(tz)"
   },
   {
    "module": "forms/tz.py",
    "name": "localize",
    "line": 231,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/tz.rs",
-   "rust_item": "localize"
+   "rust_item": "localize",
+   "note": "same gap and fold ValueErrors naming both offsets"
   },
   {
    "module": "formui/__init__.py",
@@ -12930,82 +13168,91 @@
    "module": "schema.py",
    "name": "_path",
    "line": 20,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "path"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/schema.rs",
+   "rust_item": "cache_path",
+   "note": "pointer corrected to schema.rs cache_path; same tenant schema cache file"
   },
   {
    "module": "schema.py",
    "name": "_doc_fields",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "doc_fields"
+   "rust_item": "doc_fields",
+   "note": "same first non-empty data or fields list; empty or malformed is a miss"
   },
   {
    "module": "schema.py",
    "name": "_cached_path",
    "line": 39,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "cache_path"
+   "rust_item": "cached_doc",
+   "note": "pointer corrected to schema.rs cached_doc; same first candidate with fields and the 7-day stale rule"
   },
   {
    "module": "schema.py",
    "name": "_fetch_schema",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
    "rust_item": "fetch",
-   "note": "Control flow and error preference (session, then API, then first) match. Divergences in the merge helper merge_v2_choices (owner's file, not edited): Python v2_by_name is last-wins for duplicate names (Rust is first-wins); len() counts dict/str choices (Rust choice_len counts arrays only, so nested dict choices are never merged); name None/missing matches a v2 entry with name null."
+   "note": "same internal-then-v2 merge, session error preferred, else APIError(200) when both are empty"
   },
   {
    "module": "schema.py",
    "name": "_choice_labels",
    "line": 97,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "choice_labels"
+   "rust_item": "choice_labels",
+   "note": "same nested value/label/name strings; bools in tuples are excluded"
   },
   {
    "module": "schema.py",
    "name": "freshness_warning",
    "line": 121,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "freshness_warning"
+   "rust_item": "freshness_warning",
+   "note": "fixed: the last cached field of a name wins, names compare with Python ==, and the warning uses str(name)"
   },
   {
    "module": "schema.py",
    "name": "_unwrap",
    "line": 146,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/problem_incidents.rs",
-   "rust_item": "unwrap"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/schema.rs",
+   "rust_item": "unwrap_schema",
+   "note": "pointer corrected to schema.rs unwrap_schema; same saved_at and fields, keeping an explicit empty list"
   },
   {
    "module": "schema.py",
    "name": "load",
    "line": 155,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "load"
+   "rust_item": "load",
+   "note": "same fresh cache, stale warning on stderr with background refresh, and empty schema never saved"
   },
   {
    "module": "schema.py",
    "name": "field",
    "line": 204,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "field"
+   "rust_item": "field",
+   "note": "DIVERGENCE: a missing fields key or a row without name returns None instead of KeyError"
   },
   {
    "module": "schema.py",
    "name": "choice_label",
    "line": 211,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/schema.rs",
-   "rust_item": "choice_label"
+   "rust_item": "choice_label",
+   "note": "same Python == on id/value and truthy value-or-name; DIVERGENCE: a non-dict choice is skipped instead of AttributeError"
   },
   {
    "module": "service.py",

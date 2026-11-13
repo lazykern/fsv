@@ -1177,6 +1177,17 @@ fn empty_json(v: &Json) -> bool {
     }
 }
 
+/// `v not in (None, "", [])`. An empty object is not in that tuple, so a
+/// lookup field still stores `LookupValue(id={})`.
+fn not_blank_scalar(v: &Json) -> bool {
+    match v {
+        Json::Null => false,
+        Json::String(s) if s.is_empty() => false,
+        Json::Array(a) if a.is_empty() => false,
+        _ => true,
+    }
+}
+
 /// Map a change record (`GET /api/_/changes/<id>`) to form values.
 pub fn existing_from_record(spec: &FormSpec, record: &Map<String, Json>) -> Values {
     let custom = record.get("custom_fields").filter(|v| truthy(v));
@@ -1211,7 +1222,7 @@ pub fn existing_from_record(spec: &FormSpec, record: &Map<String, Json>) -> Valu
         {
             let shown = first_truthy(&[m.get("value"), m.get("name")]).unwrap_or(&m["id"]);
             Value::Lookup(LookupValue::new(m["id"].clone(), py_str(shown), None))
-        } else if f.kind.is_lookup() && !empty_json(&v) {
+        } else if f.kind.is_lookup() && not_blank_scalar(&v) {
             match std::mem::take(&mut v) {
                 Json::Array(items) => Value::List(
                     items
@@ -1261,7 +1272,13 @@ pub fn hint_name(
             continue;
         };
         let id = m.get("id").unwrap_or(&Json::Null);
-        if (id.is_null() || id == vid || py_str(id) == py_str(vid) || m.get("user_id") == Some(vid))
+        // `id in (None, vid) or str(id) == str(vid)`, and `user_id == vid`
+        // (Python `==`: 1 == 1.0 and True == 1).
+        let id_hit = id.is_null() || crate::schema::py_eq(id, vid) || py_str(id) == py_str(vid);
+        let user_hit = m
+            .get("user_id")
+            .is_some_and(|u| crate::schema::py_eq(u, vid));
+        if (id_hit || user_hit)
             && let Some(shown) = first_truthy(&[m.get("name"), m.get("value"), m.get("full_name")])
         {
             return (Some(py_str(shown)), email_of(obj));
@@ -2257,6 +2274,47 @@ mod tests {
         assert_eq!(
             ser_values(&name_existing(ex.clone(), &s, &empty, None)),
             ser_values(&ex)
+        );
+    }
+
+    /// An empty object is not in `(None, "", [])`, so a lookup stores
+    /// `LookupValue(id={})`. Ids compare with Python `==` (1 == 1.0, True == 1).
+    #[test]
+    fn existing_empty_object_lookup_and_hint_python_equality() {
+        let data = json!({"change_fields": [
+            {"name": "requester", "label": "Requester", "field_type": "default_requester", "position": 1},
+            {"name": "cf_look", "label": "Look", "field_type": "custom_lookup", "position": 2,
+             "default_field": false, "lookup_config": {"data_source": 5, "link": "/lookup_choices?field_name=cf_look_9&module=change"}},
+            {"name": "subject", "label": "Subject", "field_type": "default_subject", "position": 3}
+        ]});
+        let spec = FormSpec::from_form_fields(&data, "change").unwrap();
+        let rec = crate::service::obj(json!({
+            "requester": {},
+            "custom_fields": {"cf_look": {}},
+            "subject": {}
+        }));
+        assert_eq!(
+            ser_values(&existing_from_record(&spec, &rec)),
+            json!({
+                "requester": {"lookup": [{}, "", null]},
+                "cf_look": {"lookup": [{}, "", null]}
+            })
+        );
+        let float_id =
+            crate::service::obj(json!({"requester": {"id": 1.0, "name": "Ann", "email": "a@b.c"}}));
+        assert_eq!(
+            hint_name("requester", &json!(1), &float_id),
+            (Some("Ann".to_string()), Some("a@b.c".to_string()))
+        );
+        let bool_id = crate::service::obj(json!({"requester": {"id": true, "name": "Ann"}}));
+        assert_eq!(
+            hint_name("requester", &json!(1), &bool_id).0.as_deref(),
+            Some("Ann")
+        );
+        let user = crate::service::obj(json!({"agent": {"user_id": 21.0, "name": "A"}}));
+        assert_eq!(
+            hint_name("agent", &json!(21), &user).0.as_deref(),
+            Some("A")
         );
     }
 

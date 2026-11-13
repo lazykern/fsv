@@ -480,15 +480,16 @@ pub fn freshness_warning(res: &Resource, client: &dyn Api, schema: &Value) -> Op
     let raw = client.int_get(res.form_fields_path, None).ok()?;
     let fresh = raw.get(res.form_fields_key)?.as_array()?;
     let cached = schema.get("fields")?.as_array()?;
+    let cached: Vec<&Value> = cached.iter().filter(|f| f.is_object()).collect();
     let mut changed = Vec::new();
-    for field in fresh {
-        let Some(name) = field.get("name").and_then(Value::as_str) else {
-            continue;
-        };
-        let Some(old) = cached
-            .iter()
-            .find(|item| item.get("name").and_then(Value::as_str) == Some(name))
-        else {
+    for field in fresh.iter().filter(|f| f.is_object()) {
+        // `f.get("name")` is None when the key is missing; the last cached
+        // field with an equal name wins (`{name: labels}` overwrites).
+        let name = field.get("name").unwrap_or(&Value::Null);
+        let Some(old) = cached.iter().rev().find(|item| {
+            let cached_name = item.get("name").unwrap_or(&Value::Null);
+            py_eq(cached_name, name)
+        }) else {
             continue;
         };
         let mut have = Vec::new();
@@ -496,7 +497,7 @@ pub fn freshness_warning(res: &Resource, client: &dyn Api, schema: &Value) -> Op
         let mut live = Vec::new();
         choice_labels(field.get("choices").unwrap_or(&Value::Null), &mut live);
         if live.iter().any(|label| !have.contains(label)) {
-            changed.push(name.to_string());
+            changed.push(fsv_py::py_str(name));
         }
     }
     if changed.is_empty() {
@@ -979,5 +980,34 @@ mod tests {
         assert!(warning.contains("acme_resolve_by") && warning.contains("--refresh"));
         let served = json!({"fields": fields, "source": "server"});
         assert_eq!(freshness_warning(&PROBLEMS, &server(&fresh), &served), None);
+    }
+
+    /// Duplicate cached names: the later field's choices are the ones compared
+    /// (`{name: labels}` overwrites). `1` and `1.0` are the same Python key.
+    #[test]
+    fn freshness_keeps_the_last_cached_field_of_a_name() {
+        use crate::service::testing::FakeApi;
+        use fsv_core::resource::PROBLEMS;
+        let api = |fresh: Value| {
+            FakeApi::new().ok("GET problem_form_fields", json!({"problem_fields": fresh}))
+        };
+        let cached = json!({"source": "cache", "fields": [
+            {"name": "priority", "choices": [{"value": "Low"}]},
+            {"name": "priority", "choices": [{"value": "Low"}, {"value": "High"}]}
+        ]});
+        let fresh = json!([{"name": "priority", "choices": [{"value": "Low"}, {"value": "High"}]}]);
+        assert_eq!(freshness_warning(&PROBLEMS, &api(fresh), &cached), None);
+
+        let one = serde_json::Number::from_f64(1.0).unwrap();
+        let cached = json!({"source": "cache", "fields": [
+            {"name": "priority", "choices": [{"value": "Low"}, {"value": "High"}]},
+            {"name": 1, "choices": [{"value": "Low"}]}
+        ]});
+        let fresh = json!([{
+            "name": one,
+            "choices": [{"value": "Low"}, {"value": "High"}]
+        }]);
+        let warning = freshness_warning(&PROBLEMS, &api(fresh), &cached).unwrap();
+        assert!(warning.contains("1.0"), "{warning}");
     }
 }
