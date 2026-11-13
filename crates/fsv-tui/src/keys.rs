@@ -43,6 +43,14 @@ pub fn name(ev: &KeyEvent) -> String {
     let ctrl = ev.modifiers.contains(KeyModifiers::CONTROL);
     let base = match ev.code {
         KeyCode::Char(c) if ctrl => return format!("ctrl+{}", c.to_ascii_lowercase()),
+        // Some terminals send Shift as a modifier on the lowercase letter
+        // (`n` + Shift) instead of the uppercase character. Textual reports
+        // that as `shift+n`, and the new-form key accepts both.
+        KeyCode::Char(c)
+            if ev.modifiers.contains(KeyModifiers::SHIFT) && c.is_ascii_lowercase() =>
+        {
+            return char_name(c.to_ascii_uppercase());
+        }
         KeyCode::Char(c) => return char_name(c),
         KeyCode::Enter => "enter".to_string(),
         KeyCode::Esc => "escape".to_string(),
@@ -80,9 +88,14 @@ pub fn printable(ev: &KeyEvent) -> Option<char> {
 
 /// Build a key event from a Textual name (test scripts, `press("ctrl+p")`).
 pub fn parse(name: &str) -> KeyEvent {
-    let (mods, rest) = match name.strip_prefix("ctrl+") {
-        Some(r) => (KeyModifiers::CONTROL, r),
-        None => (KeyModifiers::NONE, name),
+    let (mods, rest) = if name == "shift+tab" {
+        (KeyModifiers::NONE, name)
+    } else if let Some(r) = name.strip_prefix("ctrl+") {
+        (KeyModifiers::CONTROL, r)
+    } else if let Some(r) = name.strip_prefix("shift+") {
+        (KeyModifiers::SHIFT, r)
+    } else {
+        (KeyModifiers::NONE, name)
     };
     let code = match rest {
         "enter" => KeyCode::Enter,
@@ -138,5 +151,13 @@ mod tests {
         ] {
             assert_eq!(name(&parse(n)), n);
         }
+    }
+
+    #[test]
+    fn shift_lowercase_is_the_uppercase_name() {
+        assert_eq!(name(&parse("shift+n")), "N");
+        let ev = KeyEvent::new(KeyCode::Char('n'), KeyModifiers::SHIFT);
+        assert_eq!(name(&ev), "N");
+        assert_eq!(name(&parse("shift+tab")), "shift+tab");
     }
 }
