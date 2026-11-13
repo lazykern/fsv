@@ -13,7 +13,7 @@ use fsv_forms::payload::encode_value;
 use fsv_forms::{FormState, Kind, LookupResolver, StateOptions, build_br_validation_excludes};
 
 use crate::formmeta::{
-    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status, load_meta,
+    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status,
 };
 use crate::notes::{self, BodyFormat};
 use crate::properties::record;
@@ -159,7 +159,9 @@ pub fn context_ack(
         Some(row) => row,
         None => record(c, cid)?,
     };
-    let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
+    let rec_ws = crate::formmeta::record_workspace_in(&row);
+    let meta =
+        crate::formmeta::load_meta_in(c, store, "ticket", "edit", true, &json!(cid), &rec_ws)?;
     if meta
         .rules
         .get(RULES_UNAVAILABLE_KEY)
@@ -335,7 +337,9 @@ pub fn context_ack(
         bound["acknowledged"] = json!(acknowledged);
     }
     let fingerprint = dumps(&bound);
-    Ok((payload, fingerprint, choice.label.clone(), gate.warnings))
+    let mut warnings = gate.warnings;
+    warnings.extend(meta.form_notes());
+    Ok((payload, fingerprint, choice.label.clone(), warnings))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

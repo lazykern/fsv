@@ -1,0 +1,111 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-categories",
+  "json": {
+   "service_categories": [
+    {
+     "id": 7001,
+     "name": "Engineering",
+     "description": "Product work",
+     "position": 1,
+     "workspace_id": 3,
+     "hierarchy_info": {
+      "has_sub_category": true,
+      "order": "az"
+     }
+    },
+    {
+     "id": 7004,
+     "name": "Engineering Tools",
+     "description": "Build tools",
+     "position": 2,
+     "workspace_id": 3,
+     "parent_id": 7001,
+     "hierarchy_info": {
+      "has_sub_category": null,
+      "order": null
+     }
+    },
+    {
+     "id": 7002,
+     "name": "Access",
+     "description": "Accounts and permissions",
+     "position": 3,
+     "workspace_id": 3,
+     "hierarchy_info": {
+      "has_sub_category": null,
+      "order": "az"
+     }
+    },
+    {
+     "id": 7003,
+     "name": "Hardware",
+     "description": "Devices",
+     "position": 4,
+     "workspace_id": 3,
+     "hierarchy_info": {
+      "has_sub_category": null,
+      "order": null
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items",
+  "query": {
+   "aurora_search": "true"
+  },
+  "json": {
+   "service_items": [
+    {
+     "id": 4400001,
+     "display_id": 77,
+     "name": "Feature Request",
+     "short_description": "Ask for a product change",
+     "category_id": 7001,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": true,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    },
+    {
+     "id": 4400002,
+     "display_id": 78,
+     "name": "VPN Access",
+     "short_description": "Remote access to the office network",
+     "category_id": 7002,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": false,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    }
+   ],
+   "meta": {
+    "total_pages": 99
+   }
+  }
+ }
+]

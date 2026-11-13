@@ -12,7 +12,7 @@ use fsv_forms::{FormState, build_br_validation_excludes};
 use fsv_py::{py_str, truthy};
 
 use crate::formmeta::{
-    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta, resolve_requester,
+    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, resolve_requester,
 };
 use crate::notes::{self, BodyFormat, EMAIL, note_id, returned_note, valid_recipient};
 use crate::properties::{dumps_sorted, record};
@@ -62,7 +62,9 @@ fn status_inner(
 ) -> Result<(i64, String, String)> {
     let bad = |m: &str| Error::value(m.to_string());
     let row = record(c, cid)?;
-    let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
+    let rec_ws = crate::formmeta::record_workspace_in(&row);
+    let meta =
+        crate::formmeta::load_meta_in(c, store, "ticket", "edit", true, &json!(cid), &rec_ws)?;
     if meta.rules.get(RULES_UNAVAILABLE_KEY).is_some_and(truthy) {
         return Err(bad("rules unavailable"));
     }

@@ -106,6 +106,25 @@ pub fn list_categories(c: &dyn Api) -> Result<Vec<Json>> {
 
 /// `list_items`: every requestable item (all pages), or the popular ones.
 pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json>> {
+    list_items_info(c, popular, max_pages, None)
+}
+
+/// `list_items(..., info=...)`: reading stops after `max_pages` pages; then
+/// `info` gets `truncated: true` with the pages read and per-page size (and
+/// `total_pages` when the server said), so callers can say the list is
+/// incomplete instead of silently cutting it.
+pub fn list_items_info(
+    c: &dyn Api,
+    popular: bool,
+    max_pages: i64,
+    mut info: Option<&mut Map<String, Json>>,
+) -> Result<Vec<Json>> {
+    if let Some(info) = info.as_deref_mut() {
+        info.insert("truncated".into(), json!(false));
+        info.insert("pages_read".into(), json!(0));
+        info.insert("per_page".into(), json!(PER_PAGE));
+        info.insert("max_pages".into(), json!(max_pages));
+    }
     if popular {
         return Ok(rows(
             &c.int_get(
@@ -117,6 +136,8 @@ pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json
     }
     let mut out = Vec::new();
     let mut seen: Vec<Json> = Vec::new();
+    let mut complete = false;
+    let mut total = Json::Null;
     for page in 1..=max_pages {
         let data = c.int_get(
             "catalog/service-items",
@@ -136,20 +157,50 @@ pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json
                 out.push(r.clone());
             }
         }
-        let total = data
+        total = data
             .get("meta")
             .filter(|m| truthy(m))
             .and_then(|m| m.get("total_pages"))
             .cloned()
             .unwrap_or(Json::Null);
+        if let Some(info) = info.as_deref_mut() {
+            info.insert("pages_read".into(), json!(page));
+        }
         if rs.is_empty()
             || total.as_i64().is_some_and(|t| page >= t)
             || (total.is_null() && (rs.len() as i64) < PER_PAGE)
         {
+            complete = true;
             break;
         }
     }
+    if !complete && let Some(info) = info {
+        info.insert("truncated".into(), json!(true));
+        if total.is_i64() {
+            info.insert("total_pages".into(), total);
+        }
+    }
     Ok(out)
+}
+
+/// `truncation_notice`: one line when [`list_items_info`] stopped before
+/// the last page.
+pub fn truncation_notice(info: &Map<String, Json>) -> Option<String> {
+    if !info.get("truncated").is_some_and(truthy) {
+        return None;
+    }
+    let field = |k: &str| py_str(info.get(k).unwrap_or(&Json::Null));
+    let more = match info.get("total_pages") {
+        Some(t) if t.is_i64() => format!(" of {}", py_str(t)),
+        _ => String::new(),
+    };
+    Some(format!(
+        "catalog list truncated: read {}{more} pages of {} items (limit {} pages); more items exist \
+         and are not shown or searched",
+        field("pages_read"),
+        field("per_page"),
+        field("max_pages")
+    ))
 }
 
 fn name_of(c: &Json) -> String {
@@ -331,7 +382,8 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
         let id = fsv_core::pystr::parse_decimal(&s).unwrap_or(0);
         return get_item(c, &json!(id));
     }
-    let items = list_items(c, false, MAX_PAGES)?;
+    let mut info = Map::new();
+    let items = list_items_info(c, false, MAX_PAGES, Some(&mut info))?;
     let exact: Vec<Json> = items
         .iter()
         .filter(|i| norm_s(&name_of(i)) == norm_s(&s))
@@ -345,8 +397,11 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
     match hits.len() {
         1 => get_item(c, hits[0].get("display_id").unwrap_or(&Json::Null)),
         0 => Err(Error::value(format!(
-            "no catalog item matches {}; list them with `fsv sr catalog --search TEXT`",
-            py_repr_str(&s)
+            "no catalog item matches {}; list them with `fsv sr catalog --search TEXT`{}",
+            py_repr_str(&s),
+            truncation_notice(&info)
+                .map(|cut| format!(" ({cut}; use the item's display id)"))
+                .unwrap_or_default()
         ))),
         n => {
             let shown: Vec<String> = hits
@@ -464,6 +519,48 @@ impl ItemMeta {
 
     pub fn fingerprint(&self) -> MetadataFingerprint {
         metadata_fingerprint(None, Some(&self.rules), Some(&self.item))
+    }
+
+    /// `raw_fields`: the item's fields flattened in web order; children name
+    /// their parent (the `FormMeta` surface `fsv form` reads).
+    pub fn raw_fields(&self) -> Vec<Json> {
+        fn walk(rows: Option<&Json>, parent: Option<&Json>, out: &mut Vec<Json>) {
+            for row in rows.and_then(Json::as_array).into_iter().flatten() {
+                let Some(m) = row.as_object() else { continue };
+                if m.get("deleted").is_some_and(truthy) {
+                    continue;
+                }
+                let mut flat: Map<String, Json> = m
+                    .iter()
+                    .filter(|(k, _)| *k != "fields")
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect();
+                if let Some(p) = parent.filter(|p| !p.is_null()) {
+                    flat.insert("parent".into(), p.clone());
+                }
+                out.push(Json::Object(flat));
+                walk(m.get("fields"), m.get("name"), out);
+            }
+        }
+        let si = self.item.get("service_item").unwrap_or(&self.item);
+        let mut out = Vec::new();
+        walk(si.get("custom_fields"), None, &mut out);
+        out
+    }
+
+    /// `FormState(meta.spec, meta.engine(), mode=..., resolver=..., existing=...)`.
+    pub fn state(
+        &self,
+        mode: &str,
+        resolver: Option<Arc<dyn fsv_forms::LookupResolver>>,
+        existing: Option<fsv_forms::Values>,
+    ) -> Result<FormState> {
+        let opts = fsv_forms::StateOptions {
+            resolver,
+            existing,
+            ..fsv_forms::StateOptions::default()
+        };
+        FormState::new(self.spec.clone(), Some(self.engine()?), mode, None, opts).map_err(form_err)
     }
 
     pub fn as_of(&self) -> Map<String, Json> {
@@ -772,7 +869,11 @@ fn json_empty(v: &Json) -> bool {
     }
 }
 
-/// `unsupported_lookup_errors`: never silently discard an answered lookup.
+/// `unsupported_lookup_errors`: fail closed on catalog lookup fields
+/// (formserv types 501/502): no accepted submission wire is captured for
+/// them, so an answered lookup (even if now hidden) or a visible required one
+/// blocks the request instead of being dropped or "satisfied" by an unsent
+/// value.
 pub fn unsupported_lookup_errors(state: &FormState, draft: &Draft) -> Vec<String> {
     let mut answered: HashSet<String> = state
         .spec
@@ -797,15 +898,39 @@ pub fn unsupported_lookup_errors(state: &FormState, draft: &Draft) -> Vec<String
             answered.insert(f.api_name.clone());
         }
     }
+    let ev = &state.evaluated;
+    let required: HashSet<String> = state
+        .spec
+        .fields()
+        .iter()
+        .filter(|f| {
+            f.kind == Kind::Lookup
+                && !f.sent
+                && ev.visible.contains(&f.api_name)
+                && ev.required.contains(&f.api_name)
+        })
+        .map(|f| f.api_name.clone())
+        .collect();
     state
         .spec
         .ordered()
         .into_iter()
-        .filter(|f| answered.contains(&f.api_name))
+        .filter(|f| answered.contains(&f.api_name) || required.contains(&f.api_name))
         .map(|f| {
+            let code = f
+                .field_type
+                .strip_prefix("formserv:")
+                .unwrap_or(&f.field_type);
+            let why = if answered.contains(&f.api_name) {
+                "answered"
+            } else {
+                "required on the form"
+            };
             format!(
-                "{}: catalog lookup submission is unverified; use the web form",
-                f.label
+                "{} ({}): catalog lookup field (type {code}) is {why}, but fsv cannot submit catalog \
+                 lookup fields: no accepted request wire for this field type has been captured, so the \
+                 value would be dropped. Nothing was sent; use the web form for this item",
+                f.label, f.api_name
             )
         })
         .collect()
@@ -3135,5 +3260,98 @@ mod tests {
                 )
             );
         }
+    }
+
+    /// `ItemMeta.raw_fields` (cc81f93): web order, children name their
+    /// parent, deleted rows and their children are skipped.
+    #[test]
+    fn item_raw_fields_flatten_like_python() {
+        let item = json!({"service_item": {"display_id": 5, "custom_fields": [
+            {"name": "a", "label": "A", "fields": [{"name": "a1", "label": "A1"},
+                                                   {"name": "gone", "deleted": true}, "junk"]},
+            {"name": "d", "deleted": true, "fields": [{"name": "hidden"}]},
+            {"label": "nameless", "parent": "x", "fields": [{"name": "orphan"}]}]}});
+        let m = ItemMeta {
+            item,
+            rules: json!({}),
+            workspace_id: Json::Null,
+            fetched_at: 0.0,
+            source: "fixture".into(),
+            spec: Arc::new(FormSpec::from_service_item(&json!({"custom_fields": []})).unwrap()),
+        };
+        assert_eq!(
+            Json::Array(m.raw_fields()),
+            json!([{"name": "a", "label": "A"}, {"name": "a1", "label": "A1", "parent": "a"},
+                   {"label": "nameless", "parent": "x"}, {"name": "orphan"}])
+        );
+    }
+
+    fn lookup_meta(item: Json, ws: i64) -> ItemMeta {
+        ItemMeta::new(
+            item,
+            json!({"business_rules": []}),
+            json!(ws),
+            0.0,
+            "server",
+        )
+        .unwrap()
+    }
+
+    /// e9c9b08 `test_answered_unverified_lookup_never_creates_sendable_plan`
+    /// (the refusal text) and `test_required_unverified_lookup_cannot_be_omitted`.
+    #[test]
+    fn catalog_lookup_refusals_name_the_field_and_the_missing_capture() {
+        for (code, visible) in [(501, true), (501, false), (502, true), (502, false)] {
+            let mut raw = item();
+            raw["custom_fields"].as_array_mut().unwrap().push(json!({
+                "id": 9000000020i64, "name": "asset", "label": "Asset", "type": code,
+                "account_id": 9000000004i64, "visible": visible, "required": false,
+                "field_options": {"link": "/lookup_choices"}}));
+            let m = lookup_meta(raw, 3);
+            let value = if code == 501 {
+                json!(9000000021i64)
+            } else {
+                json!([9000000021i64])
+            };
+            let draft = Draft {
+                answers: answers(json!({"Asset": value})),
+                ..Draft::default()
+            };
+            let errors = unsupported_lookup_errors(&state(&m), &draft);
+            assert!(
+                errors.iter().any(|e| e.starts_with(&format!(
+                    "Asset (asset): catalog lookup field (type {code}) is answered"
+                )) && e.contains("no accepted request wire")),
+                "{errors:?}"
+            );
+        }
+        let mut raw = item();
+        raw["custom_fields"].as_array_mut().unwrap().push(json!({
+            "id": 9000000020i64, "name": "asset", "label": "Asset", "type": 501,
+            "account_id": 9000000004i64, "required": true}));
+        let m = lookup_meta(raw, 3);
+        let errors = unsupported_lookup_errors(&state(&m), &Draft::default());
+        assert_eq!(
+            errors,
+            [
+                "Asset (asset): catalog lookup field (type 501) is required on the form, but fsv cannot \
+              submit catalog lookup fields: no accepted request wire for this field type has been \
+              captured, so the value would be dropped. Nothing was sent; use the web form for this item"
+            ]
+        );
+    }
+
+    /// e9c9b08 `test_required_catalog_lookup_on_a_second_workspace_item_is_refused_by_name`.
+    #[test]
+    fn required_catalog_lookup_on_a_second_workspace_item_is_refused_by_name() {
+        let item = json!({"id": 4400909, "display_id": 909, "name": "Gerät anfordern", "workspace_id": 9,
+            "custom_fields": [{"id": 9000000031i64, "name": "geraet", "label": "Gerät", "type": 502,
+                "position": 1, "required": true, "account_id": 9000000004i64,
+                "field_options": {"link": "/lookup_choices"}}]});
+        let m = lookup_meta(item, 9);
+        let errors = unsupported_lookup_errors(&state(&m), &Draft::default());
+        assert_eq!(errors.len(), 1, "{errors:?}");
+        assert!(errors[0].starts_with("Gerät (geraet): catalog lookup field (type 502)"));
+        assert!(errors[0].contains("Nothing was sent"));
     }
 }

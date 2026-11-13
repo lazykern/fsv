@@ -226,7 +226,7 @@ fn ticket_approvals_table() {
 ┃ Level ┃ Approver ┃ Status    ┃ Decided             ┃ Type     ┃ Comment  ┃
 ┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━┩
 │ 1     │ Dee      │ approved  │ 2026-03-01T10:00:00 │ everyone │ ok by me │
-│ 2     │ 44       │ requested │ 2026-03-02T11:00:00 │ -        │          │
+│ 2     │ 44       │ requested │ 2026-03-02T11:00:00 │ -        │ -        │
 └───────┴──────────┴───────────┴─────────────────────┴──────────┴──────────┘
 "#
     );
@@ -243,7 +243,7 @@ fn ticket_approvals_csv() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        "level,approver,status,decided,type,comment\r\n1,Dee,approved,2026-03-01T10:00:00,everyone,ok by me\r\n2,44,requested,2026-03-02T11:00:00,-,\r\n"
+        "level,approver,approver_id,status_name,status_id,type_name,decided,comment\r\n1,Dee,,approved,,everyone,2026-03-01T10:00:00,ok by me\r\n2,44,44,requested,,,2026-03-02T11:00:00,\r\n"
     );
     assert_eq!(r.err, r#""#);
 }

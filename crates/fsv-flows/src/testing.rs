@@ -375,7 +375,7 @@ impl ChangeWriter for FakeWriter {
     fn get_change(&self, _id: i64) -> Result<Map<String, Json>> {
         Ok(self.change.lock().unwrap().clone())
     }
-    fn edit_fingerprint(&self, _module_id: &Json) -> Result<String> {
+    fn edit_fingerprint(&self, _module_id: &Json, _record_workspace: &Json) -> Result<String> {
         let hash = self.fingerprint.lock().unwrap().clone();
         if hash.is_empty() {
             return Err(Error::other("change metadata unavailable"));

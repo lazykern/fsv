@@ -7341,7 +7341,7 @@ fn form_fields_problems() {
 │ Impact      │ impact      │ dropdown (1) │ visible, required │      │
 │ Acme count  │ acme_count  │ number       │ visible           │      │
 └─────────────┴─────────────┴──────────────┴───────────────────┴──────┘
-choices: fsv form fields changes --choices LABEL
+choices: fsv form fields problems --choices LABEL
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -15551,7 +15551,7 @@ fn changes_approval_remind_chains_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"approval-remind: no change reminder wire was captured on the approval chains model; use the web UI
+        r#"approval-remind is not available on the approval-chains model: the only reminder accepted on a chains tenant is the service-request one (`fsv sr approvals remind`, bodyless PUT tickets/<id>/approvals/<approval id>/resend). The same web constant would build changes/<id>/approvals/<approval id>/resend, but no change reminder was ever accepted (the legacy change capture was aborted unsent), so fsv does not guess it; nothing was sent. Use the web UI: change > Approvals > the approval row menu > Send reminder
 "#
     );
 }
@@ -15566,29 +15566,18 @@ fn sr_legacy_approvals_list() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"{
-  "model": "legacy",
-  "note": "this tenant uses legacy flat approvals (approval-chains answered HTTP 400)",
-  "approvals": [
-    {
-      "id": 601,
-      "member_id": 33,
-      "level_id": 1,
-      "status": {
-        "id": 0,
-        "name": "requested"
-      },
-      "type": {
-        "id": 1,
-        "name": "everyone"
-      },
-      "last_reminded_at": null
-    }
-  ]
-}
+        r#"┏━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃ Level ┃ Approver ┃ Status    ┃ Decided ┃ Type     ┃ Comment ┃
+┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ 1     │ 33       │ requested │ -       │ everyone │ -       │
+└───────┴──────────┴───────────┴─────────┴──────────┴─────────┘
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"this tenant uses legacy flat approvals (approval-chains answered HTTP 400)
+"#
+    );
 }
 
 #[test]

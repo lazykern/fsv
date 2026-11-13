@@ -1,0 +1,90 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/approval-chains",
+  "status": 400,
+  "json": {
+   "errors": "Parallel approvals feature needs to be enabled"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/approvals",
+  "json": {
+   "approvals": [
+    {
+     "id": 710000000001,
+     "member_id": 9000003001,
+     "user_id": 9000004001,
+     "level_id": 1,
+     "approval_level_status": null,
+     "remark": [],
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null,
+     "change_id": 123,
+     "member": {
+      "id": 9000003001,
+      "name": "Acme Approver",
+      "email": "approver@example.com"
+     }
+    },
+    {
+     "id": 710000000002,
+     "member_id": 9000003001,
+     "user_id": 9000004001,
+     "level_id": 2,
+     "approval_level_status": null,
+     "remark": [
+      {
+       "delegate_id": null,
+       "status": 1,
+       "updated_at": "2030-01-02T03:04:05Z",
+       "data": "ok [x]"
+      }
+     ],
+     "status": {
+      "id": 1,
+      "name": "Genehmigt"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null,
+     "change_id": 123,
+     "member": {
+      "id": 9000003001,
+      "name": "Acme Approver",
+      "email": "approver@example.com"
+     }
+    },
+    {
+     "id": 710000000003,
+     "member_id": 9000003002,
+     "level_id": 2,
+     "status": {
+      "id": 4
+     },
+     "type": 2,
+     "updated_at": "2030-01-03T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "triggerable_level": 1,
+    "approval_type": 1
+   }
+  }
+ }
+]

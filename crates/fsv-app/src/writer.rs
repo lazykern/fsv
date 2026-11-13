@@ -94,15 +94,16 @@ impl ChangeWriter for LiveWriter {
             .ok_or_else(|| Error::other("change readback unavailable"))
     }
 
-    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
+    fn edit_fingerprint(&self, module_id: &Json, record_workspace: &Json) -> Result<String> {
         let store = fsv_api::formmeta::DiskStore::current();
-        let meta = fsv_api::formmeta::load_meta(
+        let meta = fsv_api::formmeta::load_meta_in(
             self.api.as_ref(),
             &store,
             "change",
             "edit",
             true,
             module_id,
+            record_workspace,
         )?;
         Ok(meta.fingerprint().hash)
     }

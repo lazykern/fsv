@@ -48,14 +48,6 @@ pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
     }
 }
 
-/// `(d.get(k) or {}).get("name")` truthy, as text.
-fn name_of(v: &Value, key: &str) -> Option<String> {
-    v.get(key)
-        .and_then(|x| x.get("name"))
-        .filter(|n| fsv_py::truthy(n))
-        .map(fsv_py::py_str)
-}
-
 /// `str(d.get(k, "-"))`.
 fn get_dash(v: &Value, key: &str) -> String {
     v.get(key).map_or_else(|| "-".into(), fsv_py::py_str)
@@ -81,59 +73,25 @@ fn approvals(a: TicketsApprovalsArgs) -> CmdResult {
         Err(e @ Error::Api(_)) => return Err(fail_exc(e)),
         Err(e) => return Err(uncaught(e)),
     };
-    let row = |x: &Value| {
-        let remark = x
-            .get("remark")
-            .filter(|r| fsv_py::truthy(r))
-            .and_then(|r| r.get(0))
-            .cloned()
-            .unwrap_or_else(|| json!({}));
-        let decided = first_str(&remark, &["updated_at"], "");
-        let decided = if decided.is_empty() {
-            first_str(x, &["updated_at"], "-")
-        } else {
-            decided
-        };
-        [
-            get_dash(x, "level_id"),
-            name_of(x, "member").unwrap_or_else(|| get_dash(x, "member_id")),
-            name_of(x, "status").unwrap_or_else(|| "-".into()),
-            if decided == "-" {
-                decided
-            } else {
-                decided.chars().take(19).collect()
-            },
-            name_of(x, "type").unwrap_or_else(|| "-".into()),
-            first_str(&remark, &["data"], ""),
-        ]
-    };
+    use fsv_api::approval_model;
     let flat: Vec<Map<String, Value>> = items
         .iter()
         .map(|x| {
-            let r = row(x);
-            ["level", "approver", "status", "decided", "type", "comment"]
+            let row = approval_model::flat_row(x);
+            approval_model::FLAT_KEYS
                 .iter()
-                .zip(r)
-                .map(|(k, v)| (k.to_string(), json!(v)))
+                .map(|k| (k.to_string(), row[*k].clone()))
                 .collect()
         })
         .collect();
     if emit_fmt(
-        &Value::Array(items.clone()),
+        &Value::Array(approval_model::with_flat(&items)),
         &flat,
         effective(a.format_, a.json_out),
     )? {
         return Ok(());
     }
-    let mut t = Table::new();
-    t.add_column(Column::new("Level").style("cyan"));
-    for h in ["Approver", "Status", "Decided", "Type", "Comment"] {
-        t.add_column(Column::new(h));
-    }
-    for x in &items {
-        t.add_row(row(x));
-    }
-    out().print_table(&t);
+    out().print_table(&crate::cmd::inventory::flat_approval_table(&items));
     Ok(())
 }
 

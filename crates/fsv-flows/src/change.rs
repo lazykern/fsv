@@ -1482,9 +1482,10 @@ pub trait ChangeWriter {
         let _ = id;
         Err(Error::other("change readback unavailable"))
     }
-    /// Fingerprint of a fresh edit-form metadata load.
-    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
-        let _ = module_id;
+    /// Fingerprint of a fresh edit-form metadata load (rules of the record's
+    /// own workspace when it carries one).
+    fn edit_fingerprint(&self, module_id: &Json, record_workspace: &Json) -> Result<String> {
+        let _ = (module_id, record_workspace);
         Err(Error::other("change metadata unavailable"))
     }
 }
@@ -1613,7 +1614,7 @@ fn send_form_update(
             "write was sent or outcome unknown; inspect target and journal before retry",
         ));
     }
-    let fresh = writer.edit_fingerprint(&source.meta.module_id)?;
+    let fresh = writer.edit_fingerprint(&source.meta.module_id, &source.meta.record_workspace)?;
     if fresh != source.meta.fingerprint().hash
         || fsv_core::journal::snapshot_hash(Some(&Json::Object(change_row(writer, target)?)))
             .map_err(Error::value)?
@@ -1972,7 +1973,13 @@ pub fn freshen(
     } else {
         "edit"
     };
-    let fresh = source.load_meta(&plan.meta.module, mode, true, &plan.meta.module_id)?;
+    let fresh = source.load_meta_in(
+        &plan.meta.module,
+        mode,
+        true,
+        &plan.meta.module_id,
+        &plan.meta.record_workspace,
+    )?;
     if !fresh.fingerprint().changed(&plan.meta.fingerprint()) {
         return Ok((plan, None));
     }
