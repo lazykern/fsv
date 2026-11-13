@@ -3983,6 +3983,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
         register_ticket_links(sub, lambda: _client())
         from fsv.ticket_trash_cli import register as register_ticket_trash
         register_ticket_trash(sub, lambda: _client())
+        from fsv.ticket_spam_cli import register as register_ticket_spam
+        register_ticket_spam(sub, lambda: _client())
 
     @sub.command("fields", help=f"List discoverable {singular} fields.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} fields  |  fsv {res.name} fields --required  |  fsv {res.name} fields --choices status  |  fsv {res.name} fields --custom"

@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
-| Tickets | 86 | 51 | 33 | 1 | 1 |
+| Tickets | 87 | 51 | 34 | 1 | 1 |
 | Changes | 53 | 36 | 13 | 3 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **275** | **165** | **102** | **6** | **2** |
+| **All** | **276** | **165** | **103** | **6** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -148,7 +148,8 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets trash list | `GET /api/_/tickets?filter=deleted` | UNSURE | no | n/a | capture-only | test_ticket_trash.py | Trash filter captured from the UI; fsv offline only. |
 | tickets restore | `PUT /api/_/tickets/{id}/restore` | UNSURE | no | no | capture-only | test_ticket_trash.py | Captured (then deleted=false); fsv offline only. |
 | tickets delete-forever (explicit IDs, --max-records, --confirm-destructive) | `DELETE /api/_/tickets/delete_forever?ids={id}` (one per ticket) | UNSURE | no | no | capture-only | test_ticket_trash.py | Single-ID wire captured (then 404); fsv offline only. |
-| (missing) tickets spam single / split / share / due-… | `(PUT tickets/{id}/spam ...)` | GAP | no | no | none | — | Not implemented. |
+| tickets spam / unspam (single) | `PUT /api/_/tickets/{id}/spam {}; PUT /api/_/tickets/{id}/unspam` | UNSURE | no | no | capture-only | test_ticket_spam.py | Both wires captured from the ticket page and Spam view; fsv offline only. |
+| (missing) tickets split / due-date shortcuts | — | GAP | no | no | none | — | Not implemented; split is not reachable on the test tenant. |
 
 ## Changes
 

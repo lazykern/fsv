@@ -507,6 +507,8 @@ fsv tickets trash -h
 fsv tickets trash list -h
 fsv tickets restore -h
 fsv tickets delete-forever -h
+fsv tickets spam -h
+fsv tickets unspam -h
 fsv tickets private-views -h
 fsv tickets private-views list -h
 fsv tickets private-views show -h

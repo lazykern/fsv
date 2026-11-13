@@ -141,6 +141,21 @@ ticket, and the run stops at the first failed or unverified ticket with the
 rest listed as not attempted. Permanent deletion cannot be undone; never replay
 an uncertain run.
 
+## Single-ticket spam
+
+```sh
+fsv tickets spam INC-58 --dry-run --json
+fsv tickets spam INC-58 --yes --expect-plan FULL_HASH --confirm-destructive
+fsv tickets unspam INC-58 --dry-run --json
+```
+
+`spam` sends `PUT tickets/<id>/spam` with `{}` and `unspam` sends `PUT
+tickets/<id>/unspam` without a body, the ticket page's wires. A fresh exact
+read must show the opposite `spam` flag (and the ticket not in the trash);
+readback is the `spam` flag on a separate read. Spam hides the ticket from
+every view, so it also needs `--confirm-destructive`. Several tickets: `tickets
+bulk spam|unspam`.
+
 ## Frozen bulk ticket actions
 
 ```sh
