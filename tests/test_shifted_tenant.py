@@ -300,3 +300,19 @@ def test_form_spanning_workspaces_makes_the_default_form_explicit(monkeypatch):
     single = FormMeta("problem", "edit_form", {"problem_fields": problem_fields(5)}, {"business_rules": []}, 5, 0,
                       "fixture", 77, 5)
     assert single.form_notes == []
+
+
+# --- catalog lookup fields fail closed, by name ------------------------------
+
+def test_required_catalog_lookup_on_a_second_workspace_item_is_refused_by_name():
+    from fsv import catalog
+    from fsv.drafts import Draft
+    from fsv.forms import FormState
+    item = {"id": 4400909, "display_id": 909, "name": "Gerät anfordern", "workspace_id": 9, "custom_fields": [
+        {"id": 9000000031, "name": "geraet", "label": "Gerät", "type": 502, "position": 1, "required": True,
+         "account_id": 9000000004, "field_options": {"link": "/lookup_choices"}}]}
+    meta = catalog.ItemMeta(item, {"business_rules": []}, 9, 0)
+    state = FormState(meta.spec, meta.engine(), mode="new")
+    errors = catalog.unsupported_lookup_errors(state, Draft())
+    assert len(errors) == 1 and errors[0].startswith("Gerät (geraet): catalog lookup field (type 502)")
+    assert "Nothing was sent" in errors[0]

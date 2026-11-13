@@ -429,7 +429,10 @@ def rule_diagnostics(meta: ItemMeta, state: FormState) -> tuple[list[str], list[
 
 
 def unsupported_lookup_errors(state: FormState, draft: Draft) -> list[str]:
-    """Never silently discard an answered lookup, even if now hidden."""
+    """Fail closed on catalog lookup fields (formserv types 501/502): no
+    accepted submission wire is captured for them, so an answered lookup
+    (even if now hidden) or a visible required one blocks the request
+    instead of being dropped or "satisfied" by an unsent value."""
     answered = {f.api_name for f in state.spec.fields
                 if f.kind == "lookup" and not f.sent and
                 (not is_empty(state.values.get(f.api_name)) or
@@ -443,8 +446,19 @@ def unsupported_lookup_errors(state: FormState, draft: Draft) -> list[str]:
             continue
         if f.kind == "lookup" and not f.sent:
             answered.add(f.api_name)
-    return [f"{f.label}: catalog lookup submission is unverified; use the web form"
-            for f in state.spec.ordered() if f.api_name in answered]
+    required = {f.api_name for f in state.spec.fields
+                if f.kind == "lookup" and not f.sent and f.api_name in state.evaluated.visible
+                and f.api_name in state.evaluated.required}
+    out = []
+    for f in state.spec.ordered():
+        if f.api_name not in answered | required:
+            continue
+        code = str(f.field_type or "").removeprefix("formserv:")
+        why = "answered" if f.api_name in answered else "required on the form"
+        out.append(f"{f.label} ({f.api_name}): catalog lookup field (type {code}) is {why}, but fsv cannot submit "
+                   "catalog lookup fields: no accepted request wire for this field type has been captured, so the "
+                   "value would be dropped. Nothing was sent; use the web form for this item")
+    return out
 
 
 @dataclass

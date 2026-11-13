@@ -179,14 +179,19 @@ def test_answered_unverified_lookup_never_creates_sendable_plan(visible, code):
     p = catalog.build_sr_plan(m, Draft(answers={"Asset": value}), resolver=None,
                               requester=LookupValue(id=9000000007, email="a@example.com"))
     assert not p.ok and not p.hash and p.to_json()["payload"] is None
-    assert any("lookup submission is unverified" in e for e in p.errors)
+    assert any(e.startswith("Asset (asset): catalog lookup field (type %d) is answered" % code)
+               and "no accepted request wire" in e for e in p.errors)
 
 
 def test_required_unverified_lookup_cannot_be_omitted():
     raw = item()
     raw["custom_fields"].append({"id": 9000000020, "name": "asset", "label": "Asset", "type": 501,
                                  "account_id": 9000000004, "required": True})
-    assert any("Asset is required" in e for e in plan(meta(raw=raw)).errors)
+    errors = plan(meta(raw=raw)).errors
+    assert any("Asset is required" in e for e in errors)
+    # the refusal names the field and the missing capture, not just "required"
+    assert any(e.startswith("Asset (asset): catalog lookup field (type 501) is required on the form")
+               and "no accepted request wire for this field type has been captured" in e for e in errors)
 
 
 def test_execute_rechecks_unverified_lookup_before_any_write(tmp_path):
@@ -201,7 +206,7 @@ def test_execute_rechecks_unverified_lookup_before_any_write(tmp_path):
     assert p.ok
     p.draft.answers["Asset"] = 9000000021
     writes = []
-    with pytest.raises(flow.FlowExit, match="lookup submission is unverified"):
+    with pytest.raises(flow.FlowExit, match="cannot submit catalog lookup fields"):
         catalog.execute(p, object(), upload_fn=lambda *a: (writes.append(a), 9000000022)[1])
     assert not writes
 
