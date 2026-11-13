@@ -19217,3 +19217,160 @@ fn tickets_bulk_set_status_key() {
         "use --status for the status; --set is for the fields its rules require\n",
     );
 }
+
+#[test]
+fn tickets_close_blocking_needs_ack() {
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &["tickets", "close", "124", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        "ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them\n",
+    );
+}
+
+#[test]
+fn tickets_close_ack_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &["tickets", "close", "124", "--ack", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Closed",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/124",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 89
+      }
+    }
+  ],
+  "plan_hash": "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
+  "acknowledged_rule_messages": [
+    "Only the requester closes Acme tickets"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_status_blocking_needs_ack() {
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &["tickets", "status", "124", "Closed", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        "ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them\n",
+    );
+}
+
+#[test]
+fn tickets_status_ack_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &["tickets", "status", "124", "Closed", "--ack", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Closed",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/124",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 89
+      }
+    }
+  ],
+  "plan_hash": "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
+  "acknowledged_rule_messages": [
+    "Only the requester closes Acme tickets"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_close_ack_send() {
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &[
+            "tickets",
+            "close",
+            "124",
+            "--ack",
+            "--yes",
+            "--expect-plan",
+            "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 124,
+  "status_label": "Closed",
+  "plan_hash": "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+  "verified": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
+}
+
+#[test]
+fn tickets_close_acked_hash_without_ack() {
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &[
+            "tickets",
+            "close",
+            "124",
+            "--yes",
+            "--expect-plan",
+            "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        "ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them\n",
+    );
+}

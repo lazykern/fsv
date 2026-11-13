@@ -660,16 +660,16 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v --note-primary --note-secondary --private-primary --public-primary --private-secondary --public-secondary --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
             return 0 ;;
         "tickets resolve")
-            COMPREPLY=( $(compgen -W "--verbose -v --note --set --dry-run --yes --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --note --set --dry-run --yes --expect-plan --ack" -- "$cur") )
             return 0 ;;
         "tickets close")
-            COMPREPLY=( $(compgen -W "--verbose -v --set --dry-run --yes --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --set --dry-run --yes --expect-plan --ack" -- "$cur") )
             return 0 ;;
         "tickets reopen")
-            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --ack" -- "$cur") )
             return 0 ;;
         "tickets status")
-            COMPREPLY=( $(compgen -W "--verbose -v --set --dry-run --yes --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --set --dry-run --yes --expect-plan --ack" -- "$cur") )
             return 0 ;;
         "tickets bulk-priority")
             COMPREPLY=( $(compgen -W "--verbose -v --priority --dry-run --yes --output -o --json --expect-plan" -- "$cur") )

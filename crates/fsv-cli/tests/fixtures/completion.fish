@@ -1031,23 +1031,27 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --expect-plan
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a -v
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --expect-plan
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --expect-plan
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a -v
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --expect-plan
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a -v
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --priority

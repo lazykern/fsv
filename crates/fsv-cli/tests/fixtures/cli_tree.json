@@ -11318,6 +11318,25 @@
        "help": null,
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "acknowledge blocking rule messages (bound to the review hash)",
+       "metavar": null,
+       "envvar": null
       }
      ],
      "commands": []
@@ -11423,6 +11442,25 @@
        "help": null,
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "acknowledge blocking rule messages (bound to the review hash)",
+       "metavar": null,
+       "envvar": null
       }
      ],
      "commands": []
@@ -11507,6 +11545,25 @@
        "default": null,
        "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       }
@@ -11631,6 +11688,25 @@
        "default": null,
        "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       }

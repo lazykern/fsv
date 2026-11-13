@@ -569,13 +569,13 @@ _fsv() {
         "tickets merge")
             compadd -- --verbose -v --note-primary --note-secondary --private-primary --public-primary --private-secondary --public-secondary --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "tickets resolve")
-            compadd -- --verbose -v --note --set --dry-run --yes --expect-plan; return 0 ;;
+            compadd -- --verbose -v --note --set --dry-run --yes --expect-plan --ack; return 0 ;;
         "tickets close")
-            compadd -- --verbose -v --set --dry-run --yes --expect-plan; return 0 ;;
+            compadd -- --verbose -v --set --dry-run --yes --expect-plan --ack; return 0 ;;
         "tickets reopen")
-            compadd -- --verbose -v --dry-run --yes --expect-plan; return 0 ;;
+            compadd -- --verbose -v --dry-run --yes --expect-plan --ack; return 0 ;;
         "tickets status")
-            compadd -- --verbose -v --set --dry-run --yes --expect-plan; return 0 ;;
+            compadd -- --verbose -v --set --dry-run --yes --expect-plan --ack; return 0 ;;
         "tickets bulk-priority")
             compadd -- --verbose -v --priority --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "tickets bulk")

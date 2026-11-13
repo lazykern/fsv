@@ -2444,6 +2444,11 @@ pub struct TicketsResolveArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
 }
 
 // fsv tickets close
@@ -2459,6 +2464,11 @@ pub struct TicketsCloseArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
 }
 
 // fsv tickets reopen
@@ -2472,6 +2482,11 @@ pub struct TicketsReopenArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
 }
 
 // fsv tickets status
@@ -2489,6 +2504,11 @@ pub struct TicketsStatusArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
 }
 
 // fsv tickets bulk-priority
@@ -9600,6 +9620,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 resource: None,
                 value_flag: false,
             },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
         ],
     ),
     (
@@ -9634,6 +9661,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 resource: None,
                 value_flag: false,
             },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
         ],
     ),
     (
@@ -9657,6 +9691,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "expect_plan",
                 flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -9691,6 +9732,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "expect_plan",
                 flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
                 completer: None,
                 resource: None,
                 value_flag: false,

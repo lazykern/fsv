@@ -276,6 +276,7 @@ fn set_answers(sets: &[String]) -> Result<Map<String, Value>> {
 }
 
 /// Port of fsv.ticket_lifecycle_cli's shared `run`.
+#[allow(clippy::too_many_arguments)]
 fn lifecycle(
     target: &str,
     status: &str,
@@ -284,12 +285,13 @@ fn lifecycle(
     dry_run: bool,
     yes: bool,
     expect_plan: Option<&str>,
+    ack: bool,
 ) -> CmdResult {
     let run = || -> Result<()> {
         let answers = set_answers(sets)?;
         let c = client()?;
         let store = DiskStore::current();
-        let plan = ticket_lifecycle::build_plan(
+        let plan = ticket_lifecycle::build_plan_ack(
             c.as_ref(),
             &store,
             target,
@@ -297,6 +299,7 @@ fn lifecycle(
             note,
             Some(&answers),
             lookup_resolver(&c),
+            ack,
         )?;
         if dry_run {
             print_dry_run(plan.review());
@@ -328,6 +331,7 @@ pub fn resolve(a: TicketsResolveArgs) -> CmdResult {
         a.dry_run,
         a.yes,
         a.expect_plan.as_deref(),
+        a.ack,
     )
 }
 
@@ -340,6 +344,7 @@ pub fn close(a: TicketsCloseArgs) -> CmdResult {
         a.dry_run,
         a.yes,
         a.expect_plan.as_deref(),
+        a.ack,
     )
 }
 
@@ -352,6 +357,7 @@ pub fn reopen(a: TicketsReopenArgs) -> CmdResult {
         a.dry_run,
         a.yes,
         a.expect_plan.as_deref(),
+        a.ack,
     )
 }
 
@@ -364,6 +370,7 @@ pub fn status(a: TicketsStatusArgs) -> CmdResult {
         a.dry_run,
         a.yes,
         a.expect_plan.as_deref(),
+        a.ack,
     )
 }
 
