@@ -139,6 +139,12 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
   id, `on` with a literal date): the list looks normal but is unfiltered.
   Check returned rows against the predicate before using a filtered list
   to select records for a write. [VERIFIED LIVE]
+* A Due By filter never returns Pending tickets: on this tenant type the
+  Due By field is hidden and empty while a ticket is Pending, so a "due
+  before/after" range silently skips them even though
+  they are open work. List them separately with a status filter;
+  `fsv tickets ls --where 'Due By...'` without a status filter prints a
+  one-line stderr note saying so. [VERIFIED LIVE]
 * System views include "created in the last six months"; on a quiet tenant
   they are empty while records exist. [VERIFIED LIVE, read-only]
 * Activity feeds page with `start_token` on the **internal** path. The

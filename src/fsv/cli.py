@@ -1199,6 +1199,18 @@ def _pick_view(c: Any, res: Resource, view: str | None, use_default: bool) -> An
     return None
 
 
+DUE_BY_PENDING_NOTE = ("Note: Pending tickets have no Due By on this tenant type (the field is hidden and empty "
+                       "while Pending), so a Due By filter never returns them; list them with --where Status=Pending.")
+
+
+def _due_by_without_status(clauses: Any) -> bool:
+    """A ticket list predicate that filters on Due By but not on status."""
+    if not isinstance(clauses, list):
+        return False
+    names = {str(c.get("condition") or "") for c in clauses if isinstance(c, dict)}
+    return bool(names & {"due_by", "due_by_date"}) and not names & {"status", "status_id"}
+
+
 def list_resource(
     res: Resource,
     filter_name: Optional[str],
@@ -1279,6 +1291,8 @@ def list_resource(
         bad = contradictions(items, query) if not or_grouping else []
         if bad:
             err.print("Warning: returned records contradict the requested predicate; do not use this list for writes. IDs: " + ", ".join(map(str, bad)), markup=False)
+        if res.name == "tickets" and _due_by_without_status(query):
+            err.print(DUE_BY_PENDING_NOTE, markup=False)
     me = V.current_user(c) if fmt != "json" and not json_out else {}
     tz = V.user_tz(me)
     columns = V.list_columns(res, sch, headers)
