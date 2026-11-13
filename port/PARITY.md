@@ -151,6 +151,10 @@ those stay identical.
   Python keeps a typed relative path; its dialogs always pass absolute ones.
 - Form F3 description preview keeps focus on the editor, so F3 toggles back.
   In Textual the preview drops focus and F3 cannot leave it.
+- Change relationship plans: a project row missing its key, name or
+  subject is a plan error. Python's `build_plan` raises `KeyError`.
+- Create failures: a non-object `errors` entry is summarized as `?: ?`.
+  Python's `_api_failure` raises `AttributeError`.
 
 ## fsv-app
 

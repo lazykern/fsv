@@ -181,76 +181,85 @@
    "module": "attachments.py",
    "name": "size_limit",
    "line": 41,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "size_limit"
+   "rust_item": "size_limit",
+   "note": "same byte-key walk, bool rejection, and conflicting-limit refusal"
   },
   {
    "module": "attachments.py",
    "name": "page_limit",
    "line": 63,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "page_limit"
+   "rust_item": "page_limit",
+   "note": "same MAX_ATTACHMENT_LIMIT regex, Decimal MiB truncation, and session/HTTP refusals"
   },
   {
    "module": "attachments.py",
    "name": "Limit",
    "line": 88,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "Limit"
+   "rust_item": "Limit",
+   "note": "same max_bytes, source, and published fields"
   },
   {
    "module": "attachments.py",
    "name": "resolve_limit",
    "line": 94,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "resolve_limit"
+   "rust_item": "resolve_limit",
+   "note": "metadata bytes, else the page limit, with the same --max-bytes override"
   },
   {
    "module": "attachments.py",
    "name": "metadata",
    "line": 108,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "metadata"
+   "rust_item": "metadata",
+   "note": "same ticket_form_fields versus problem_form_fields GET"
   },
   {
    "module": "attachments.py",
    "name": "LocalFile",
    "line": 113,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "LocalFile"
+   "rust_item": "LocalFile",
+   "note": "same path, name, size, mime, and sha256 fields"
   },
   {
    "module": "attachments.py",
    "name": "review",
    "class": "LocalFile",
    "line": 120,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same name, size, content_type, and sha256 object"
   },
   {
    "module": "attachments.py",
    "name": "_over",
    "line": 124,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "over"
+   "rust_item": "over",
+   "note": "true only when a limit is set and the total is strictly greater"
   },
   {
    "module": "attachments.py",
    "name": "local_files",
    "line": 128,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "local_files"
+   "rust_item": "local_files",
+   "note": "same unique-file, empty, control-character, and total-byte refusals"
   },
   {
    "module": "attachments.py",
@@ -291,9 +300,10 @@
    "module": "attachments.py",
    "name": "owner_row",
    "line": 190,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/attachments.rs",
-   "rust_item": "owner_row"
+   "rust_item": "owner_row",
+   "note": "same envelope key and exact positive id, else exact attachment owner unavailable"
   },
   {
    "module": "attachments.py",
@@ -555,97 +565,109 @@
    "module": "catalog.py",
    "name": "norm",
    "line": 61,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "norm"
+   "rust_item": "norm",
+   "note": "NFC, collapsed whitespace, and casefold of str(value)"
   },
   {
    "module": "catalog.py",
    "name": "_rows",
    "line": 71,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "rows"
+   "rust_item": "rows",
+   "note": "dict rows from a list or data[key], otherwise empty"
   },
   {
    "module": "catalog.py",
    "name": "list_categories",
    "line": 81,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "list_categories"
+   "rust_item": "list_categories",
+   "note": "same hierarchy GET and parent_id fill for nested sub-categories"
   },
   {
    "module": "catalog.py",
    "name": "list_items",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "list_items"
+   "rust_item": "list_items",
+   "note": "same popular filter, id dedupe, deleted skip, and total_pages stop"
   },
   {
    "module": "catalog.py",
    "name": "resolve_category",
    "line": 124,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "resolve_category"
+   "rust_item": "resolve_category",
+   "note": "same id, exact name, then unique substring, plus descendant walk and repr error"
   },
   {
    "module": "catalog.py",
    "name": "filter_items",
    "line": 150,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "filter_items"
+   "rust_item": "filter_items",
+   "note": "same category-id set and every-word haystack including falsy category_name fallback"
   },
   {
    "module": "catalog.py",
    "name": "get_item",
    "line": 168,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "get_item"
+   "rust_item": "get_item",
+   "note": "same service_item unwrap and APIError 200 when custom_fields and display_id are both absent"
   },
   {
    "module": "catalog.py",
    "name": "_item_ref",
    "line": 176,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "item_ref"
+   "rust_item": "item_ref",
+   "note": "strip and a single leading # removed"
   },
   {
    "module": "catalog.py",
    "name": "find_item",
    "line": 180,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "find_item"
+   "rust_item": "find_item",
+   "note": "same digit id, exact name, unique partial, and repr match errors"
   },
   {
    "module": "catalog.py",
    "name": "place_request",
    "line": 199,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "place_request"
+   "rust_item": "place_request",
+   "note": "POST catalog/service-items/{id}/place-request with the body"
   },
   {
    "module": "catalog.py",
    "name": "upload",
    "line": 203,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "upload"
+   "rust_item": "upload",
+   "note": "delegates to create.upload_file"
   },
   {
    "module": "catalog.py",
    "name": "created_ref",
    "line": 209,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "created_ref"
+   "rust_item": "created_ref",
+   "note": "same top-level or one-level-down id/display, including SR- fallback"
   },
   {
    "module": "catalog.py",
@@ -905,33 +927,37 @@
    "module": "catalog.py",
    "name": "value_text",
    "line": 794,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "value_text"
+   "rust_item": "value_text",
+   "note": "same list join, mapping keys, Yes/No, and HTML plain-text collapse"
   },
   {
    "module": "catalog.py",
    "name": "is_file_value",
    "line": 807,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "is_file_value"
+   "rust_item": "is_file_value",
+   "note": "non-empty list of ints (bools count) or attachment rows"
   },
   {
    "module": "catalog.py",
    "name": "safe_target",
    "line": 814,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "safe_target"
+   "rust_item": "safe_target",
+   "note": "same empty, .., separator, absolute, control, and parent-escape refusals"
   },
   {
    "module": "catalog.py",
    "name": "domain_url",
    "line": 839,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "domain_url"
+   "rust_item": "domain_url",
+   "note": "https://{domain}{path}"
   },
   {
    "module": "change_approval_actions.py",
@@ -1039,9 +1065,10 @@
    "module": "change_approval_actions.py",
    "name": "_run",
    "line": 266,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/app.rs",
-   "rust_item": "run"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/approvals.rs",
+   "rust_item": "run_action",
+   "note": "pointer was app::run; same dry-run, hash, confirm, stderr review, and status line"
   },
   {
    "module": "change_approval_actions.py",
@@ -1087,25 +1114,28 @@
    "module": "change_approvals.py",
    "name": "_id",
    "line": 48,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/value.rs",
-   "rust_item": "id"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/service.rs",
+   "rust_item": "positive_id",
+   "note": "pointer was LookupValue::id; positive ASCII decimal int or digit string, never a bool"
   },
   {
    "module": "change_approvals.py",
    "name": "_recipient",
    "line": 56,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "recipient"
+   "rust_item": "recipient",
+   "note": "same control-character and email-or-positive-id refusals"
   },
   {
    "module": "change_approvals.py",
    "name": "resolve_approvers",
    "line": 63,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "resolve_approvers"
+   "rust_item": "resolve_approvers",
+   "note": "requester autocomplete, casefold email, and the wrapped lookup refusal"
   },
   {
    "module": "change_approvals.py",
@@ -1173,9 +1203,8 @@
    "name": "change_id",
    "class": "_InventoryPlan",
    "line": 157,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/writer.rs",
-   "rust_item": "change_id"
+   "status": "idiom",
+   "note": "typing Protocol only; inventory takes the change id, and writer.change_id is a different parser"
   },
   {
    "module": "change_approvals.py",
@@ -1221,19 +1250,19 @@
    "module": "change_approvals.py",
    "name": "_legacy_request_cli",
    "line": 434,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/review.rs",
    "rust_item": "legacy_request",
-   "note": "Same refusals/order, dry_run JSON on stdout, review on stderr, --yes/--no-input/confirm, validate then send; unverified result exits 4 via reviewed::print_verified."
+   "note": "same legacy name/message and approver-group refusals; auto still drops name and message"
   },
   {
    "module": "change_approvals.py",
    "name": "_model",
    "line": 466,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/review.rs",
    "rust_item": "approval_model",
-   "note": "auto -> one approval_model::detect GET; LEGACY only when proven, else CHAINS."
+   "note": "auto, chains, or legacy, with one approval-chains detect on auto"
   },
   {
    "module": "change_approvals.py",
@@ -1254,18 +1283,20 @@
    "module": "change_associations.py",
    "name": "_id",
    "line": 22,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/value.rs",
-   "rust_item": "id"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/service.rs",
+   "rust_item": "positive_id",
+   "note": "pointer was LookupValue::id; same positive ASCII decimal rule as the association _id"
   },
   {
    "module": "change_associations.py",
    "name": "AssociationReader",
    "line": 30,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/source.rs",
-   "rust_item": "AssociationReader"
+   "rust_item": "AssociationReader",
+   "note": "page reader that fails the page when any row lacks a positive id"
   },
   {
    "module": "change_associations.py",
@@ -1280,104 +1311,116 @@
    "name": "int_get",
    "class": "AssociationReader",
    "line": 36,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "int_get"
+   "status": "reviewed",
+   "rust": "crates/fsv-views/src/source.rs",
+   "rust_item": "int_get",
+   "note": "pointer was service int_get; API errors pass through and other failures become an unreadable or unavailable page"
   },
   {
    "module": "change_associations.py",
    "name": "inventory",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same per-kind pages, warnings, and complete flag; unavailable is never an empty success"
   },
   {
    "module": "change_associations.py",
    "name": "ticket_ids",
    "line": 66,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "ticket_ids"
+   "rust_item": "ticket_ids",
+   "note": "incomplete initiating-ticket inventory is an error, not an empty set"
   },
   {
    "module": "change_associations.py",
    "name": "AssociationPlan",
    "line": 74,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "AssociationPlan"
+   "rust_item": "AssociationPlan",
+   "note": "same change id, sorted ticket ids, unlink flag, and tenant"
   },
   {
    "module": "change_associations.py",
    "name": "method",
    "class": "AssociationPlan",
    "line": 81,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "method"
+   "rust_item": "method",
+   "note": "DELETE when unlinking, otherwise PUT"
   },
   {
    "module": "change_associations.py",
    "name": "path",
    "class": "AssociationPlan",
    "line": 85,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "path"
+   "rust_item": "path",
+   "note": "changes/{id}/tickets/{ticket} or .../associate"
   },
   {
    "module": "change_associations.py",
    "name": "payload",
    "class": "AssociationPlan",
    "line": 90,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "unlink type, or item_ids plus module_type ticket"
   },
   {
    "module": "change_associations.py",
    "name": "params",
    "class": "AssociationPlan",
    "line": 94,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "params"
+   "rust_item": "params",
+   "note": "module_type ticket only on unlink"
   },
   {
    "module": "change_associations.py",
    "name": "hash",
    "class": "AssociationPlan",
    "line": 98,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "plan hash of tenant, method, path, payload, and params"
   },
   {
    "module": "change_associations.py",
    "name": "review",
    "class": "AssociationPlan",
    "line": 102,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same /api/_/ path, warning, and plan_hash"
   },
   {
    "module": "change_associations.py",
    "name": "build_plan",
    "line": 110,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same display-id parse, positive ticket ids, sort, and single-unlink refusal"
   },
   {
    "module": "change_associations.py",
    "name": "send",
    "line": 124,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/associations.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same dry-run, cancel, already-in-state, one-shot rejection, and readback statuses"
   },
   {
    "module": "change_cli.py",
@@ -1544,33 +1587,37 @@
    "module": "change_delete.py",
    "name": "_exact",
    "line": 19,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_delete.rs",
-   "rust_item": "exact"
+   "rust_item": "exact",
+   "note": "owner_row failure becomes exact change unavailable"
   },
   {
    "module": "change_delete.py",
    "name": "build_plan",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_delete.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "DELETE changes/{id} with body null, deleted false, and a string subject"
   },
   {
    "module": "change_delete.py",
    "name": "review",
    "line": 37,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_delete.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same change_id, subject, and destructive-soft-delete warning"
   },
   {
    "module": "change_delete.py",
    "name": "send",
    "line": 44,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_delete.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same --confirm-destructive gate and deleted matched/mismatched/unavailable readback"
   },
   {
    "module": "change_flow.py",
@@ -1780,9 +1827,10 @@
    "module": "change_flow.py",
    "name": "_hash",
    "line": 336,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same request, planning after-map, optional target, and file digest hash"
   },
   {
    "module": "change_flow.py",
@@ -1796,17 +1844,19 @@
    "module": "change_flow.py",
    "name": "_normcmp",
    "line": 452,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "normcmp"
+   "rust_item": "normcmp",
+   "note": "empty to null, UTC datetime, sorted list text, bool preserved, text stripped"
   },
   {
    "module": "change_flow.py",
    "name": "_encode",
    "line": 471,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "encode"
+   "rust_item": "encode",
+   "note": "empty values are null; encode failures fall back to lookup ids"
   },
   {
    "module": "change_flow.py",
@@ -1933,129 +1983,145 @@
    "name": "hash",
    "class": "FormWritePlan",
    "line": 18,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "hash"
+   "rust_item": "Plan",
+   "note": "pointer was change-flow hash(); this hash is Plan.hash, the source plan hash, not the request hash"
   },
   {
    "module": "change_form_update.py",
    "name": "send",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "send_form_update"
+   "rust_item": "send_form_update",
+   "note": "same combined-send refusal, tenant hash, replay block, and description/date/value readback"
   },
   {
    "module": "change_lifecycle.py",
    "name": "_plain",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "plain"
+   "rust_item": "plain",
+   "note": "strips a customFields. prefix"
   },
   {
    "module": "change_lifecycle.py",
    "name": "state_names",
    "line": 27,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "state_names"
+   "rust_item": "state_names",
+   "note": "state id text to value text, missing values as None"
   },
   {
    "module": "change_lifecycle.py",
    "name": "criteria",
    "line": 32,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "criteria"
+   "rust_item": "criteria",
+   "note": "flattens fields maps and named criteria, skipping falsy names"
   },
   {
    "module": "change_lifecycle.py",
    "name": "locks",
    "line": 46,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "locks"
+   "rust_item": "locks",
+   "note": "field lock names for str(state), empty when the config is absent"
   },
   {
    "module": "change_lifecycle.py",
    "name": "describe",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "describe"
+   "rust_item": "describe",
+   "note": "is_not empty is must be set; other operators use str and repr"
   },
   {
    "module": "change_lifecycle.py",
    "name": "_value",
    "line": 60,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
-   "rust_item": "value"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/change_lifecycle.rs",
+   "rust_item": "field_value",
+   "note": "pointer was formflow value(); body then record, customFields via custom_fields"
   },
   {
    "module": "change_lifecycle.py",
    "name": "_met",
    "line": 74,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "met"
+   "rust_item": "met",
+   "note": "same is, is_not, and empty-is_not results, unknown operators stay unchecked"
   },
   {
    "module": "change_lifecycle.py",
    "name": "_lock_names",
    "line": 89,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "lock_names"
+   "rust_item": "lock_names",
+   "note": "department_id also locks department; custom_fields become customFields keys"
   },
   {
    "module": "change_lifecycle.py",
    "name": "precheck",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "precheck"
+   "rust_item": "precheck",
+   "note": "same lock, missing-edge, disallowed-transition, and criterion error and warning text"
   },
   {
    "module": "change_lifecycle.py",
    "name": "outgoing",
    "line": 138,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_lifecycle.rs",
-   "rust_item": "outgoing"
+   "rust_item": "outgoing",
+   "note": "to-state name with criterion descriptions, in edge order"
   },
   {
    "module": "change_relationships.py",
    "name": "proxy_body",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_relationships.rs",
-   "rust_item": "proxy_body"
+   "rust_item": "proxy_body",
+   "note": "nested status must be the integer 200 and body a dict"
   },
   {
    "module": "change_relationships.py",
    "name": "inventory",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_relationships.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same kind routes, single-page project meta, and sorted unique ids"
   },
   {
    "module": "change_relationships.py",
    "name": "build_plan",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_relationships.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "fixed: project-task remove reports an identity conflict before a missing name; DIVERGENCE: a missing project key, name, or subject is an error instead of KeyError"
   },
   {
    "module": "change_relationships.py",
    "name": "send",
    "line": 144,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_relationships.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "rebuilds from the stored intent and verifies the before/after id set"
   },
   {
    "module": "change_relationships_cli.py",
@@ -2068,58 +2134,65 @@
    "module": "change_task_delete.py",
    "name": "build_plan",
    "line": 12,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_delete.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "PUT changes/{id}/tasks/update with id string and action delete"
   },
   {
    "module": "change_task_delete.py",
    "name": "send",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_delete.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "verified only when the id set is exactly the previous set without that task"
   },
   {
    "module": "change_task_update.py",
    "name": "TaskUpdatePlan",
    "line": 19,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "TaskUpdatePlan"
+   "rust_item": "TaskUpdatePlan",
+   "note": "same task id and sorted inputs json beside the write plan"
   },
   {
    "module": "change_task_update.py",
    "name": "inventory",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "complete pages required, and duplicate task ids are refused"
   },
   {
    "module": "change_task_update.py",
    "name": "reminder",
    "line": 34,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "reminder"
+   "rust_item": "reminder",
+   "note": "one active notify_before choice by id or casefolded label"
   },
   {
    "module": "change_task_update.py",
    "name": "build_plan",
    "line": 46,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "PUT only supplied fields, with the same title, date, closure, and none-clears-id checks"
   },
   {
    "module": "change_task_update.py",
    "name": "send",
    "line": 102,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same field matchers; a missing notify_before warns and still verifies"
   },
   {
    "module": "change_tasks.py",
@@ -2133,73 +2206,82 @@
    "module": "change_tasks.py",
    "name": "_id",
    "line": 37,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/value.rs",
-   "rust_item": "id"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/service.rs",
+   "rust_item": "positive_id",
+   "note": "pointer was LookupValue::id; same positive ASCII decimal rule"
   },
   {
    "module": "change_tasks.py",
    "name": "resolve_owner",
    "line": 45,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "resolve_owner"
+   "rust_item": "resolve_owner",
+   "note": "same id, email, and full-name rules; lookup failures use the ValueError wrap text"
   },
   {
    "module": "change_tasks.py",
    "name": "resolve_group",
    "line": 65,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "resolve_group"
+   "rust_item": "resolve_group",
+   "note": "one exact casefolded group name or a positive id"
   },
   {
    "module": "change_tasks.py",
    "name": "status_label",
    "line": 82,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "status_label"
+   "rust_item": "status_label",
+   "note": "stripped nonempty label with no C0 controls"
   },
   {
    "module": "change_tasks.py",
    "name": "resolve_status",
    "line": 88,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "resolve_status"
+   "rust_item": "resolve_status",
+   "note": "runtime task-status id, or the no-inference TaskError"
   },
   {
    "module": "change_tasks.py",
    "name": "_date",
    "line": 97,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "date"
+   "rust_item": "date",
+   "note": "ISO with an explicit offset and whole seconds, Z as +00:00"
   },
   {
    "module": "change_tasks.py",
    "name": "_effort",
    "line": 112,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "effort"
+   "rust_item": "effort",
+   "note": "1h30m or HH:MM, sent as hours and minutes"
   },
   {
    "module": "change_tasks.py",
    "name": "same_effort",
    "line": 128,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "same_effort"
+   "rust_item": "same_effort",
+   "note": "both sides parse, so 1h matches 1h 0m"
   },
   {
    "module": "change_tasks.py",
    "name": "_note",
    "line": 138,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "note"
+   "rust_item": "note",
+   "note": "blank is none; other C0 and DEL are refused"
   },
   {
    "module": "change_tasks.py",
@@ -2290,10 +2372,10 @@
    "module": "change_tasks.py",
    "name": "check_inputs",
    "line": 272,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-cli/src/cmd/review.rs",
    "rust_item": "check_task_inputs",
-   "note": "Same order (id, title, planned dates, note, effort) and messages; called after status_label as in Python. The TUI caller (tui/app.py) is group C's."
+   "note": "local title, date order, note, and effort checks before any lookup"
   },
   {
    "module": "change_tasks.py",
@@ -2347,9 +2429,10 @@
    "module": "change_tasks.py",
    "name": "send",
    "line": 382,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/tasks.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same guards and readback; a metadata mismatch stays inside the generic prepare refusal, as Python's except Exception swallows it"
   },
   {
    "module": "change_tasks.py",
@@ -5229,113 +5312,127 @@
    "module": "create.py",
    "name": "_planning_key",
    "line": 562,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "planning_key"
+   "rust_item": "planning_key",
+   "note": "casefold, strip one planning-field- or cf_ prefix, keep alphanumerics"
   },
   {
    "module": "create.py",
    "name": "_singular_key",
    "line": 570,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "singular_key"
+   "rust_item": "singular_key",
+   "note": "same prefix strip, then a trailing s dropped from each word"
   },
   {
    "module": "create.py",
    "name": "_is_planning_field",
    "line": 590,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "is_planning_field"
+   "rust_item": "is_planning_field",
+   "note": "planning field type from the metadata"
   },
   {
    "module": "create.py",
    "name": "_norm_label",
    "line": 594,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "norm_label"
+   "rust_item": "norm_label",
+   "note": "HTML unescape, collapsed whitespace, casefold"
   },
   {
    "module": "create.py",
    "name": "planning_definitions",
    "line": 598,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "planning_definitions"
+   "rust_item": "planning_definitions",
+   "note": "planning definitions in metadata order"
   },
   {
    "module": "create.py",
    "name": "planning_server_key",
    "line": 603,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "planning_server_key"
+   "rust_item": "planning_server_key",
+   "note": "truthy name, otherwise id"
   },
   {
    "module": "create.py",
    "name": "resolve_planning_definition",
    "line": 609,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "resolve_planning_definition"
+   "rust_item": "resolve_planning_definition",
+   "note": "exact identity, then unique label, then unique alias, with the same ambiguity text"
   },
   {
    "module": "create.py",
    "name": "resolve_planning_field",
    "line": 642,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "resolve_planning_field"
+   "rust_item": "resolve_planning_field",
+   "note": "server key of the resolved definition"
   },
   {
    "module": "create.py",
    "name": "match_planning_row",
    "line": 647,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "match_planning_row"
+   "rust_item": "match_planning_row",
+   "note": "unique name, then id, then label, with the same conflict refusals"
   },
   {
    "module": "create.py",
    "name": "_planning_description",
    "line": 669,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "planning_description"
+   "rust_item": "planning_description",
+   "note": "first nonempty description, description_text, body, or content"
   },
   {
    "module": "create.py",
    "name": "_default_planning_description",
    "line": 679,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "default_planning_description"
+   "rust_item": "default_planning_description",
+   "note": "comma-joined file names"
   },
   {
    "module": "create.py",
    "name": "_attachment_name",
    "line": 683,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "attachment_name"
+   "rust_item": "attachment_name",
+   "note": "truthy name, otherwise content_file_name"
   },
   {
    "module": "create.py",
    "name": "_attachment_id",
    "line": 687,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "attachment_id"
+   "rust_item": "attachment_id",
+   "note": "int of a present id, including bools, otherwise none"
   },
   {
    "module": "create.py",
    "name": "_prompt_duplicate_action",
    "line": 692,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "prompt_duplicate_action"
+   "rust_item": "prompt_duplicate_action",
+   "note": "same non-tty refusal and skip/replace/append answers"
   },
   {
    "module": "create.py",
@@ -5526,25 +5623,28 @@
    "module": "create.py",
    "name": "_api_failure",
    "line": 1176,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "api_failure"
+   "rust_item": "api_failure",
+   "note": "same field list and description text; DIVERGENCE: a non-dict errors entry is summarized instead of raising AttributeError"
   },
   {
    "module": "create.py",
    "name": "post_change_body",
    "line": 1190,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "post_change_body"
+   "rust_item": "post_change_body",
+   "note": "POST changes and unwrap change, else the body"
   },
   {
    "module": "create.py",
    "name": "put_change_body",
    "line": 1201,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "put_change_body"
+   "rust_item": "put_change_body",
+   "note": "PUT changes/{id} and unwrap change, else the body"
   },
   {
    "module": "drafts.py",

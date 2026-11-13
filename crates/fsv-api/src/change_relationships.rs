@@ -303,6 +303,14 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<Write
                 return Err(refused("project task requires an exact linked project"));
             }
             let name = if args.action == "remove" {
+                // Identity wins over a missing name, matching Python: the
+                // project_id check runs before `not name`.
+                let task_project =
+                    fsv_py::py_str(found[0].get("project_id").unwrap_or(&Value::Null));
+                let project_id = fsv_py::py_str(selected[0].get("id").unwrap_or(&Value::Null));
+                if task_project != project_id {
+                    return Err(refused("task and project identities conflict"));
+                }
                 found[0]
                     .get("name")
                     .or_else(|| found[0].get("title"))
@@ -314,14 +322,6 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<Write
                 return Err(Error::value("project task add needs its exact --name"));
             }
             let name = name.unwrap();
-            if args.action == "remove" {
-                let task_project =
-                    fsv_py::py_str(found[0].get("project_id").unwrap_or(&Value::Null));
-                let project_id = fsv_py::py_str(selected[0].get("id").unwrap_or(&Value::Null));
-                if task_project != project_id {
-                    return Err(refused("task and project identities conflict"));
-                }
-            }
             let mut body = json!({
                 "activity_data": {"key": item, "name": name},
                 "placeholder": {
@@ -910,6 +910,61 @@ mod tests {
             }
             assert!(posts(&c).is_empty());
         }
+    }
+
+    /// Python checks project_id before `not name`, so a conflicting task
+    /// with no name/title reports the identity error.
+    #[test]
+    fn project_task_identity_conflict_precedes_missing_name() {
+        let mut conflict = empty_world();
+        conflict.rows.insert(
+            "project".into(),
+            vec![json!({"id": 81, "key": "ACME", "name": "Acme project"})],
+        );
+        conflict.rows.insert(
+            "project-task".into(),
+            vec![json!({"id": 91, "key": "ACME-1", "project_id": 99})],
+        );
+        let c = api(Arc::new(Mutex::new(conflict)));
+        let err = build_plan(
+            &c,
+            "CHN-123",
+            &args(
+                "project-task",
+                "remove",
+                Some("ACME-1"),
+                None,
+                Some("ACME"),
+                None,
+            ),
+        )
+        .unwrap_err();
+        assert_eq!(err.to_string(), "task and project identities conflict");
+
+        let mut unnamed = empty_world();
+        unnamed.rows.insert(
+            "project".into(),
+            vec![json!({"id": 81, "key": "ACME", "name": "Acme project"})],
+        );
+        unnamed.rows.insert(
+            "project-task".into(),
+            vec![json!({"id": 91, "key": "ACME-1", "project_id": 81})],
+        );
+        let c = api(Arc::new(Mutex::new(unnamed)));
+        let err = build_plan(
+            &c,
+            "CHN-123",
+            &args(
+                "project-task",
+                "remove",
+                Some("ACME-1"),
+                None,
+                Some("ACME"),
+                None,
+            ),
+        )
+        .unwrap_err();
+        assert_eq!(err.to_string(), "project task add needs its exact --name");
     }
 
     #[test]
