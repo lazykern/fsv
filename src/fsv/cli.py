@@ -3389,20 +3389,28 @@ def cache_clear(
 
     if target is None or target not in {"schema", "views", "filters", "groups", "all"}:
         _err("choose schema|views|groups|all")
+    def remove_tree(path: Any) -> bool:
+        """Remove a cache directory, tolerating a parallel process that
+        removes it (or entries in it) first: a vanished path is cleared."""
+        def ignore_missing(_func: Any, _path: Any, exc: BaseException) -> None:
+            if not isinstance(exc, FileNotFoundError):
+                raise exc
+        if not path.exists():
+            return False
+        shutil.rmtree(path, onexc=ignore_missing)
+        return True
+
     if target in ("schema", "all"):
-        if config.SCHEMA_DIR.exists():
-            shutil.rmtree(config.SCHEMA_DIR)
+        if remove_tree(config.SCHEMA_DIR):
             console.print("schema cache cleared")
     if target in ("views", "filters", "all"):
-        fd = config.CONFIG_DIR / "filters"
-        if fd.exists():
-            shutil.rmtree(fd)
+        if remove_tree(config.CONFIG_DIR / "filters"):
             console.print("views cache cleared")
     if target in ("groups", "all"):
         removed = False
         for gp in config.groups_cache_candidates():
             if gp.exists():
-                gp.unlink()
+                gp.unlink(missing_ok=True)
                 removed = True
         if removed:
             console.print("groups cache cleared")
