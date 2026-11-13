@@ -1142,7 +1142,24 @@ pub fn update_item(c: &dyn Api, resource: &Resource, item_id: i64, body: &Value)
     ))
 }
 
-/// `add_note`: changes and problems carry `private`; tickets do not.
+pub const PROBLEM_NOTE_VISIBILITY: &str = "problem notes accept only a body (captured `{body}`; the tenant rejects `private` with HTTP 400): visibility is not controllable and the tenant default applies";
+
+/// Port of service.note_payload: the legacy add-note body. Problem notes
+/// have no visibility key (the captured browser body is `{"body": ...}` and
+/// the tenant answers HTTP 400 to `private`); change notes carry `private`.
+pub fn note_payload(resource: &Resource, body: &str, public: bool) -> Result<Map<String, Value>> {
+    let mut payload = obj(json!({"body": body}));
+    if resource.name == "problems" {
+        if public {
+            return Err(Error::usage(format!("--public: {PROBLEM_NOTE_VISIBILITY}")));
+        }
+    } else if resource.name == "changes" {
+        payload.insert("private".into(), json!(!public));
+    }
+    Ok(payload)
+}
+
+/// `add_note`: the [`note_payload`] body.
 pub fn add_note(
     c: &dyn Api,
     resource: &Resource,
@@ -1150,10 +1167,7 @@ pub fn add_note(
     body: &str,
     public: bool,
 ) -> Result<Value> {
-    let mut payload = obj(json!({"body": body}));
-    if matches!(resource.name, "changes" | "problems") {
-        payload.insert("private".into(), json!(!public));
-    }
+    let payload = note_payload(resource, body, public)?;
     Ok(unwrap_key(
         c.int_post(
             &format!("{}/{item_id}/notes", resource.api_path),
@@ -2310,7 +2324,8 @@ mod tests {
                 json!({"change": {"id": 3, "subject": "s"}}),
             )
             .ok("POST tickets/3/reply", json!({"conversation": {"id": 8}}))
-            .ok("POST problems/3/notes", json!({"id": 1}));
+            .ok("POST changes/3/notes", json!({"id": 1}))
+            .ok("POST problems/3/notes", json!({"id": 2}));
         assert_eq!(
             update_item(&api, &CHANGES, 3, &json!({"subject": "s"})).unwrap(),
             json!({"id": 3, "subject": "s"})
@@ -2320,8 +2335,19 @@ mod tests {
             json!({"id": 8})
         );
         assert_eq!(
-            add_note(&api, &PROBLEMS, 3, "n", true).unwrap(),
+            add_note(&api, &CHANGES, 3, "n", true).unwrap(),
             json!({"id": 1})
+        );
+        // e80a922: problem notes carry no visibility key; --public is refused.
+        assert_eq!(
+            add_note(&api, &PROBLEMS, 3, "p", false).unwrap(),
+            json!({"id": 2})
+        );
+        assert!(
+            add_note(&api, &PROBLEMS, 3, "p", true)
+                .unwrap_err()
+                .to_string()
+                .contains("not controllable")
         );
         let bodies: Vec<Value> = api.writes().into_iter().map(|c| c.body.unwrap()).collect();
         assert_eq!(
@@ -2329,7 +2355,8 @@ mod tests {
             [
                 json!({"subject": "s"}),
                 json!({"body": "hi"}),
-                json!({"body": "n", "private": false})
+                json!({"body": "n", "private": false}),
+                json!({"body": "p"})
             ]
         );
     }

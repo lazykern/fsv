@@ -1,0 +1,29 @@
+[
+ {
+  "method": "POST",
+  "path": "/api/_/problems/12/notes",
+  "status": 201,
+  "json": {
+   "note": {
+    "id": 9000000077,
+    "body": "Acme evidence"
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/3/notes",
+  "status": 201,
+  "json": {
+   "note": {
+    "id": 9000000078,
+    "body": "Acme change note"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ }
+]

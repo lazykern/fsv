@@ -1313,14 +1313,27 @@ pub fn notes(res: &'static Resource, a: ResNotesArgs) -> CmdResult {
 /// `note_resource` (changes, problems).
 pub fn add_note(res: &'static Resource, a: ResAddNoteArgs) -> CmdResult {
     let id = cid(&a.id_, res)?;
+    let payload = match service::note_payload(res, &a.body, a.public) {
+        Ok(p) => p,
+        Err(Error::Value(m)) => return Err(usage(&m)),
+        Err(e) => return Err(e),
+    };
     let risks = safety::note_risks(a.public);
+    let problem = res.name == PROBLEMS.name;
     if a.dry_run {
-        emit_dry_run(
+        let warnings: Vec<String> = if problem {
+            vec![format!("visibility: {}", service::PROBLEM_NOTE_VISIBILITY)]
+        } else {
+            Vec::new()
+        };
+        crate::util::emit_dry_run_full(
             res,
             id,
-            json!({"body": a.body, "private": !a.public}),
+            Value::Object(payload),
             "add_note",
             &risks,
+            None,
+            &warnings,
         );
         return Ok(());
     }
@@ -1332,9 +1345,18 @@ pub fn add_note(res: &'static Resource, a: ResAddNoteArgs) -> CmdResult {
     )?;
     let c = client()?;
     let n = service::add_note(c.as_ref(), res, id, &a.body, a.public).map_err(fail_exc)?;
-    let visibility = if a.public { "public" } else { "private" };
+    let visibility = match (problem, a.public) {
+        (true, _) => "",
+        (false, true) => "public ",
+        (false, false) => "private ",
+    };
+    let suffix = if problem {
+        " (visibility: tenant default; not controllable on problem notes)"
+    } else {
+        ""
+    };
     let nid = n.get("id").map_or("None".to_string(), fsv_py::py_str);
-    out().print(&format!("[green]added[/] {visibility} note {nid}"));
+    out().print(&format!("[green]added[/] {visibility}note {nid}{suffix}"));
     Ok(())
 }
 
