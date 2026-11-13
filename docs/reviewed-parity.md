@@ -576,6 +576,46 @@ responses without claiming to exhaust any undocumented pagination.
 All tests use synthetic sources and offline transports. Blocked browser wires
 establish shape only, not accepted live sends or portable template schemas.
 
+## Ticket-side associations
+
+```sh
+fsv tickets problems candidates INC-41 --search outage --json
+fsv tickets problems link INC-41 PRB-7 --dry-run --json
+fsv tickets problems unlink INC-41 PRB-7 --dry-run --json
+fsv tickets changes candidates INC-41 --kind initiating --json
+fsv tickets changes link INC-41 CHN-9 --kind initiating --dry-run --json
+fsv tickets changes link INC-41 CHN-9 --kind initiated-by --dry-run --json
+fsv tickets changes unlink INC-41 CHN-9 --kind initiated-by --dry-run --json
+fsv tickets children candidates INC-41 --search printer --json
+fsv tickets children link INC-41 INC-42 --dry-run --json
+fsv tickets children unlink INC-41 INC-42 --dry-run --json
+fsv tickets children list INC-41 --json
+```
+
+These are the wires the ticket page sends. `problems link|unlink` sends `PUT
+tickets/<id>/problems/<problem>` with `{"type": "link"|"unlink"}` and is
+limited to verified incidents. `changes link` sends `PUT
+tickets/<id>/changes/associate` with `{"item_ids": [change], "change_type",
+"type": "link"}`; `--kind initiating` is `change_cause` (the change caused
+this ticket) and `--kind initiated-by` is `change` (this ticket initiated the
+change); `unlink` sends `PUT tickets/<id>/changes/<change>` with `{"type":
+"unlink", "change_type"}`. `children link` sends `POST
+tickets/<parent>/associate-child-tickets {"ticket_ids": [child]}` (one child
+per plan) and `children unlink` sends `DELETE
+tickets/<parent>/remove_child?ticket_id=<child>`.
+
+Each plan reads the exact ticket and the exact problem, change or child (404 is
+a one-line refusal), and the complete associated list, and refuses when the
+requested state already holds. Children also read the `related_tickets` tab
+`hierarchy` of both tickets: a child cannot take children and a ticket that
+already has a parent cannot be linked again. Readback uses the associated
+lists (`GET tickets/<id>/problems`, `GET tickets/<id>/changes?change_type=`,
+`GET tickets/<parent>/child-tickets?type=active` plus the child's
+`hierarchy`), never the picker lists. `candidates` prints one picker page or
+search result (read-only; search is token based and new records can take a
+short time to be indexed; the child suggestion list is filtered locally).
+Single attempt, full `--expect-plan` hash, journal and no resend as everywhere.
+
 ## Private ticket and change views
 
 ```sh

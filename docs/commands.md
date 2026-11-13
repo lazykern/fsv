@@ -222,6 +222,9 @@ fsv tickets canned folders
 fsv tickets scenarios list
 fsv tickets private-views list
 fsv changes private-views list
+fsv tickets problems link INC-1234 PRB-7 --dry-run
+fsv tickets changes link INC-1234 CHN-9 --kind initiating --dry-run
+fsv tickets children link INC-1234 INC-1235 --dry-run
 fsv tickets time list INC-1234
 ```
 
@@ -483,6 +486,21 @@ fsv tickets tasks add -h
 fsv tickets tasks update -h
 fsv tickets tasks status -h
 fsv tickets tasks delete -h
+fsv tickets problems -h
+fsv tickets problems list -h
+fsv tickets problems candidates -h
+fsv tickets problems link -h
+fsv tickets problems unlink -h
+fsv tickets changes -h
+fsv tickets changes list -h
+fsv tickets changes candidates -h
+fsv tickets changes link -h
+fsv tickets changes unlink -h
+fsv tickets children -h
+fsv tickets children list -h
+fsv tickets children candidates -h
+fsv tickets children link -h
+fsv tickets children unlink -h
 fsv tickets private-views -h
 fsv tickets private-views list -h
 fsv tickets private-views show -h

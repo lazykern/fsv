@@ -359,7 +359,10 @@ instead, for tickets, service requests, changes and problems alike; fsv's
 | Change ↔ problem | `PUT /api/_/changes/<id>/problems/associate` | `{"item_ids": [<problem>], "module_type": "problem"}` | 200; `GET /api/_/changes/<id>/problems` | VERIFIED LIVE |
 | Unlink problem | `DELETE /api/_/changes/<id>/problems/<problem>` | `{"type": "unlink"}` | 204 | VERIFIED LIVE |
 | Ticket → initiating change | `PUT /api/_/tickets/<id>/changes/associate` | `{"item_ids": [<change>], "change_type": "change_cause", "type": "link"}` | 200; `GET /api/_/tickets/<id>/changes?change_type=change_cause` | VERIFIED LIVE |
-| Unlink | `PUT /api/_/tickets/<id>/changes/<change>` | `{"type": "unlink", "change_type": "change_cause"}` | 200 | VERIFIED LIVE |
+| Ticket → change initiated by it | `PUT /api/_/tickets/<id>/changes/associate` | `{"item_ids": [<change>], "change_type": "change", "type": "link"}` | 200; `GET /api/_/tickets/<id>/changes?change_type=change` | CAPTURED |
+| Unlink | `PUT /api/_/tickets/<id>/changes/<change>` | `{"type": "unlink", "change_type": "change_cause"}` (or `"change"`) | 200 | VERIFIED LIVE |
+| Ticket pickers | `GET /api/_/tickets/<id>/problems?filter=list&page=1&per_page=30`, `GET /api/_/problems/search?q=`, `GET /api/_/tickets/<id>/changes?filter=list&change_type=<type>&page=1&per_page=30&ticket_id=<id>`, `GET /api/_/changes/search?q=`, `GET /api/_/tickets/<id>/suggest_child_tickets[?search_term=]` | none | picker rows; search is token based with a short indexing lag for new records; the child suggestion list is not filtered by the term | CAPTURED |
+| Ticket hierarchy | `GET /api/_/tickets/<id>/tabs` | none | the `related_tickets` tab carries `hierarchy`: 2 parent (with `child_tickets_count`), 1 child, 0 none | CAPTURED |
 | Ticket ↔ problem | `PUT /api/_/tickets/<id>/problems/<problem>` | `{"type": "link"}` / `{"type": "unlink"}` | 200; `GET /api/_/tickets/<id>/problems` | VERIFIED LIVE |
 | Problem ← incidents | `PUT /api/_/problems/<id>/tickets/associate` | `{"item_ids": [...]}` | not delivered | CAPTURED |
 | Child tickets | `POST /api/_/tickets/<parent>/associate-child-tickets` | `{"ticket_ids": [...]}` | 200; `GET /api/_/tickets/<parent>/child-tickets?page=1&per_page=30&type=active` | VERIFIED LIVE |
@@ -373,7 +376,10 @@ instead, for tickets, service requests, changes and problems alike; fsv's
 * The candidate pickers (`filter=list&module_type=...`) are not
   association reads; do not verify with them. [VERIFIED LIVE]
 * `child-tickets` answers **400 when there are none**; the changes read
-  needs `change_type` (400 without). [VERIFIED LIVE]
+  needs `change_type` (400 without). [VERIFIED LIVE] Use the tab
+  `hierarchy` to tell "not a parent" from a failed read. `GET
+  /api/_/tickets/<id>/associations` is 404; the ticket-side readback is
+  `/problems` plus `/changes?change_type=`. [CAPTURED]
 * Freshrelease proxy answers wrap the real status in `{status, body}`;
   check the nested body and the linked inventory. [VERIFIED LIVE]
 

@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
-| Tickets | 81 | 51 | 27 | 2 | 1 |
+| Tickets | 83 | 51 | 30 | 1 | 1 |
 | Changes | 53 | 36 | 13 | 3 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **270** | **165** | **96** | **7** | **2** |
+| **All** | **272** | **165** | **99** | **6** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -138,7 +138,9 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets columns set | `POST /api/_/tickets/headers` | COVERED | yes | yes | none | test_list_preferences.py | Live send verified by an independent readback. |
 | tickets export | `POST /api/_/tickets/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
 | tickets associations (list) | `GET /api/_/tickets/{id}/associations ({id} for INC on prod)` | UNSURE | yes (read) | n/a | read-verified | test_ticket_details.py | Read verified live; row-by-row comparison with the web UI pending. |
-| (missing) ticket-side associate: problem/change/parent/child | `PUT tickets/{id}/problems/{pid}; PUT tickets/{id}/changes/associate; POST tickets/{id}/associate-child-ticket…` | GAP | no | no | none | — | Not implemented. |
+| tickets problems list/candidates/link/unlink | `PUT /api/_/tickets/{id}/problems/{pid} {type}; GET tickets/{id}/problems` | UNSURE | no | no | capture-only | test_ticket_associations.py | Wire captured from the ticket page (link and unlink read back in the UI); fsv offline only. |
+| tickets changes list/candidates/link/unlink --kind initiating\|initiated-by | `PUT /api/_/tickets/{id}/changes/associate; PUT tickets/{id}/changes/{cid}; GET tickets/{id}/changes?change_type=` | UNSURE | no | no | capture-only | test_ticket_associations.py | Both directions captured; fsv offline only. |
+| tickets children list/candidates/link/unlink | `POST /api/_/tickets/{id}/associate-child-tickets; DELETE tickets/{id}/remove_child?ticket_id=; GET child-tickets + tabs hierarchy` | UNSURE | no | no | capture-only | test_ticket_associations.py | Captured; fsv offline only. Parent-side link (`associate-parent-ticket`) is not a command. |
 | tickets approvals (list) | `GET /api/_/tickets/{id}/approvals` | UNSURE | yes (read) | n/a | read-verified | test_ticket_details.py, test_approval_model.py, test_legacy_approvals.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets assets list | `GET associated-cis / associated_assets (driver probes endpoint)` | UNSURE | yes (read) | n/a | read-verified | test_asset_association_driver.py, test_legacy_asset_association.py | Needs seeded CMDB devices or services on the test tenant. |
 | tickets assets candidates | `GET itam/core/<device\|businessservice>/api/?q= (integrated; legacy GET assets-to-associate only on legacy records, 403/404 falls back)` | UNSURE | no | n/a | read-verified | test_asset_candidates.py, test_legacy_asset_association.py | Live run failed on the legacy-only path (HTTP 403); now uses the integrated search; not re-run live. |
