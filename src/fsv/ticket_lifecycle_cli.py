@@ -7,6 +7,7 @@ from typing import Any, Callable, Optional
 import typer
 
 from fsv import ticket_lifecycle as flow
+from fsv.forms import FormError
 from fsv.reviewed_write import ReviewedWriteError
 
 
@@ -27,7 +28,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
             typer.echo(json.dumps(flow.send(plan, client, reviewed_hash=expect_plan), indent=2))
-        except (ValueError, ReviewedWriteError) as exc:
+        except (ValueError, ReviewedWriteError, FormError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
 

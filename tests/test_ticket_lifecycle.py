@@ -321,3 +321,34 @@ def test_blocking_rule_message_needs_explicit_ack_bound_to_review(monkeypatch, a
 def test_unacknowledged_plans_keep_their_context_identity():
     plan = flow.build_plan(Client(), 123, "Pending", answers={"reason": "Waiting"})
     assert set(json.loads(plan.context_hash)) == {"record", "metadata"} and plan.acknowledged == []
+
+
+
+def _with_dropdown():
+    m = metadata()
+    field = a._f("kind", "Incident Kind", "custom_dropdown", 4, choices=[
+        {"id": 9000007201, "value": "Service"}, {"id": 9000007202, "value": "Event"}])
+    field["id"] = 9000007104
+    return FormMeta("ticket", "edit_form", {"ticket_fields": [*m.raw_fields, field]}, {"business_rules": []},
+                    1, 0, "fixture", 123)
+
+
+@pytest.mark.parametrize("args", [
+    ["resolve", "123", "--note", "Acme fix"], ["close", "123"], ["status", "123", "Closed"],
+    ["status", "123", "Pending"]])
+@pytest.mark.parametrize("answer,expected", [
+    ("Incident Kind=Incident", "not a valid choice"),        # real live shape: invalid dropdown choice
+    ("No Such Field=x", "did not match"),
+])
+def test_invalid_set_is_a_clean_refusal_not_a_traceback(monkeypatch, args, answer, expected):
+    monkeypatch.setattr(flow, "load_meta", lambda *a_, **k: _with_dropdown())
+    c = Client()
+    c.row["resolution_notes"] = {"notes_html": "Existing fix"}
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    r = CliRunner().invoke(cli.app, ["tickets", *args, "--set", answer, "--dry-run"])
+    assert r.exit_code == 2, r.output
+    assert r.exception is None or isinstance(r.exception, SystemExit)
+    assert "Traceback" not in r.output and not c.writes
+    assert len(r.output.strip().splitlines()) == 1
+    if expected == "not a valid choice":
+        assert "Service" in r.output and "Event" in r.output and "nothing was sent" in r.output

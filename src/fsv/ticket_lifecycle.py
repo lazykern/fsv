@@ -20,6 +20,19 @@ from fsv.ticket_properties import _record
 def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None = None,
             *, resolution: str | None = None, row: dict[str, Any] | None = None,
             warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
+    from fsv.forms import FormError
+    try:
+        return _context(client, cid, status, answers, resolution=resolution, row=row,
+                        warnings_out=warnings_out, ack=ack)
+    except FormError as exc:
+        # An invalid --set value/label (e.g. a choice that does not exist) is
+        # a local refusal listing the valid choices, never a traceback.
+        raise ReviewedWriteError(f"{exc}; nothing was sent") from None
+
+
+def _context(client: Any, cid: int, status: str, answers: dict[str, Any] | None = None,
+             *, resolution: str | None = None, row: dict[str, Any] | None = None,
+             warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
     row = _record(client, cid) if row is None else row
     meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid)
     if meta.rules.get(RULES_UNAVAILABLE_KEY):
