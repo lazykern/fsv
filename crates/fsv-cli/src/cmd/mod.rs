@@ -86,6 +86,8 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         "tickets trash list" => ticket_trash::trash_list(parse(m)?),
         "tickets restore" => ticket_trash::restore(parse(m)?),
         "tickets delete-forever" => ticket_trash::delete_forever(parse(m)?),
+        "tickets spam" => ticket_trash::spam(parse(m)?),
+        "tickets unspam" => ticket_trash::unspam(parse(m)?),
         _ if path.starts_with("form ") => form::dispatch(sub, m),
         _ if path.starts_with("sr ") => {
             inventory::dispatch("sr", sub, m).unwrap_or_else(|| sr::dispatch(sub, m))

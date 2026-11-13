@@ -103,3 +103,52 @@ pub fn delete_forever(a: TicketsDeleteForeverArgs) -> CmdResult {
         finish(&result)
     })())
 }
+
+/// `tickets spam|unspam TICKET`.
+fn spam_command(
+    ticket: &str,
+    spam: bool,
+    confirm_destructive: bool,
+    dry_run_: bool,
+    yes: bool,
+    expect_plan: Option<&str>,
+) -> CmdResult {
+    fail((|| {
+        let c = LazyApi::default();
+        let plan = fsv_api::ticket_spam::build_plan(&c, ticket, spam)?;
+        if dry_run_ {
+            dry_run(plan.review());
+            return Ok(());
+        }
+        if !yes || expect_plan != Some(plan.hash().as_str()) {
+            return Err(refused(
+                "review with --dry-run, then --yes --expect-plan FULL_HASH",
+            ));
+        }
+        let result =
+            fsv_api::ticket_spam::send(&plan, &c, &DiskJournal, expect_plan, confirm_destructive)?;
+        finish(&result)
+    })())
+}
+
+pub fn spam(a: TicketsSpamArgs) -> CmdResult {
+    spam_command(
+        &a.ticket,
+        true,
+        a.confirm_destructive,
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+pub fn unspam(a: TicketsUnspamArgs) -> CmdResult {
+    spam_command(
+        &a.ticket,
+        false,
+        a.confirm_destructive,
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}

@@ -64,6 +64,7 @@ pub mod ticket_kind;
 pub mod ticket_lifecycle;
 pub mod ticket_merge;
 pub mod ticket_note_mutation;
+pub mod ticket_spam;
 pub mod ticket_tasks;
 pub mod ticket_time;
 pub mod ticket_trash;
