@@ -250,6 +250,7 @@ fsv changes views
 fsv changes ls --where status=Open --json
 fsv changes windows list
 fsv changes windows create --name 'Acme freeze' --start '2030-11-21 10:00' --end '2030-11-21 12:00' --criteria change_type=Normal --dry-run
+fsv changes windows create --name 'Acme freeze' --start '2030-11-21 22:00' --end '2030-11-22 00:00' --timezone Asia/Tokyo --criteria change_type=Normal --dry-run
 fsv changes get CHN-1234 --all-tabs
 fsv changes activity CHN-1234 -n 20
 fsv changes tasks CHN-1234

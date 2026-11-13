@@ -411,7 +411,11 @@ overlap check (`POST /api/_/change_windows/overlapping_windows`, read-only in
 effect; the UI sends `type: "blackout_events"`, so it does not see other
 maintenance windows) and refuses when it reports an overlap or its answer
 cannot be read as 'no overlap'. `--allow-overlap` skips both refusals and the
-result then says which windows overlapped (or `unknown`); then one
+result then says which windows overlapped (or `unknown`). The flag is part of
+the reviewed plan (review key `allow_overlap`, bound into the plan hash), so it
+must be given at both the dry-run and the `--yes` run, and its review says
+`overlapping windows exist: <ids>; you chose to create it anyway
+(--allow-overlap)` when the list shows overlaps; then one
 `POST /api/_/maintenance_windows` with the `change_window` body, verified in
 the window list (name, and start/end by instant when the list shows offsets). `delete` is `DELETE /api/_/maintenance_windows/<id>`, verified
 by absence. Matching windows to a change is not implemented (no accepted

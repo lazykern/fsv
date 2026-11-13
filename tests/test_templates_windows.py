@@ -140,8 +140,9 @@ def wapi(request, monkeypatch):
     c.close()
 
 
-def _plan(c):
-    return W.create_plan(c, "Acme release", "Quarterly", "2030-11-21 10:00", "2030-11-21 13:30", ["change_type=Normal"])
+def _plan(c, **kw):
+    return W.create_plan(c, "Acme release", "Quarterly", "2030-11-21 10:00", "2030-11-21 13:30", ["change_type=Normal"],
+                         **kw)
 
 
 def test_window_create_sends_overlap_check_then_captured_body(wapi):
@@ -241,7 +242,9 @@ def test_window_overlap_unknown_answer_refuses_unless_allowed(wapi, answer):
     assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH]
     if "contradictory" in str(exc.value):
         return
-    r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True, rebuild=lambda: _plan(c))
+    pa = _plan(c, allow_overlap=True)
+    assert pa.hash != p.hash
+    r = W.send_create(pa, c, reviewed_hash=pa.hash, rebuild=lambda: _plan(c, allow_overlap=True))
     assert r["verified"] and r["overlaps"] == "unknown"
     assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, W.OVERLAP_PATH, "maintenance_windows"]
 
@@ -263,7 +266,9 @@ def test_window_existing_maintenance_overlap_refuses_whatever_the_check_says(wap
     with pytest.raises(ReviewedWriteError, match=r"overlapping window\(s\) already listed \(63\)"):
         W.send_create(p, c, reviewed_hash=p.hash, rebuild=lambda: _plan(c))
     assert s["writes"] == []
-    r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True, rebuild=lambda: _plan(c))
+    pa = _plan(c, allow_overlap=True)
+    assert pa.hash != p.hash
+    r = W.send_create(pa, c, reviewed_hash=pa.hash, rebuild=lambda: _plan(c, allow_overlap=True))
     assert r["verified"] and r["overlapping_window_ids"] == [63] and r["overlaps"] == 1
     assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, "maintenance_windows"]
 
@@ -297,7 +302,8 @@ def test_window_unreadable_existing_times_fail_closed(wapi, bad):
         W.send_create(p, c, reviewed_hash=p.hash)
     assert "10:00" not in str(exc.value)
     assert s["writes"] == []
-    r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True)
+    pa = _plan(c, allow_overlap=True)
+    r = W.send_create(pa, c, reviewed_hash=pa.hash)
     assert r["verified"] and r["overlaps"] == "unknown" and r["overlapping_window_ids"] == "unknown"
 
 
@@ -465,3 +471,44 @@ def test_window_dry_run_unreadable_times_warn_unknown(wapi):
     rv = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00").review()
     assert rv["overlapping_window_ids"] == "unknown" and rv["overlap_warning"].startswith("overlap unknown")
     assert s["writes"] == []
+
+
+# --- --allow-overlap is part of the reviewed plan (hash and warning)
+def _cli(*extra):
+    return CliRunner().invoke(cli.app, ["changes", "windows", "create", "--name", "Acme", "--start", "2030-11-14 15:00",
+                                        "--end", "2030-11-14 17:00", "--criteria", "change_type=Normal",
+                                        "--timezone", "Asia/Bangkok", *extra])
+
+
+def test_window_allow_overlap_changes_hash_and_warns(wapi):
+    c, s = wapi
+    s["windows"] = [dict(NY_A), dict(NY_C)]
+    s["overlap_answer"] = {"match_found": False}
+    plain = json.loads(_cli("--dry-run").output)
+    allowed = json.loads(_cli("--dry-run", "--allow-overlap").output)
+    assert plain["plan_hash"] != allowed["plan_hash"]
+    assert plain["allow_overlap"] is False and allowed["allow_overlap"] is True
+    assert allowed["overlapping_window_ids"] == [71, 72]
+    assert allowed["overlap_warning"] == ("overlapping windows exist: 71, 72; "
+                                          "you chose to create it anyway (--allow-overlap)")
+    # The flag cannot be added (or dropped) after review.
+    r = _cli("--allow-overlap", "--yes", "--expect-plan", plain["plan_hash"])
+    assert r.exit_code != 0 and s["writes"] == []
+    r = _cli("--yes", "--expect-plan", allowed["plan_hash"])
+    assert r.exit_code != 0 and s["writes"] == []
+    r = _cli("--allow-overlap", "--yes", "--expect-plan", allowed["plan_hash"])
+    assert r.exit_code == 0, r.output
+    out = json.loads(r.output)
+    assert out["verified"] and out["overlapping_window_ids"] == [71, 72]
+    assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, "maintenance_windows"]
+
+
+def test_window_allow_overlap_without_listed_overlap_still_says_so(wapi):
+    c, s = wapi
+    s["windows"] = []
+    rv = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00", allow_overlap=True).review()
+    assert rv["overlapping_window_ids"] == [] and rv["overlap_warning"].startswith("--allow-overlap:")
+    s["windows"] = [{"id": 76, "name": "Acme odd", "start_time": "soon", "end_time": "later"}]
+    rv = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00", allow_overlap=True).review()
+    assert rv["overlap_warning"] == ("overlap unknown: a listed window has unreadable start/end times; "
+                                     "you chose to create it anyway (--allow-overlap)")

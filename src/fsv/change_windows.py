@@ -165,6 +165,7 @@ class WindowPlan:
     # Listed windows intersecting this one at review time (read-only GET);
     # None = some listed window's times are unreadable (overlap unknown).
     overlapping: tuple[int, ...] | None = ()
+    allow_overlap: bool = False  # bound into the plan hash
 
     @property
     def hash(self) -> str:
@@ -194,6 +195,7 @@ class WindowPlan:
                                           "rule": "any listed window whose time range intersects "
                                                   f"{_render(s, tenant)} -> {_render(e, tenant)} refuses; "
                                                   "unreadable window times refuse"},
+                "allow_overlap": self.allow_overlap,
                 "overlapping_window_ids": list(self.overlapping) if self.overlapping is not None else "unknown",
                 **({"overlap_warning": self.overlap_warning()} if self.overlap_warning() else {}),
                 "warning": "The existing-window check and the overlap check run first; any overlapping window, "
@@ -204,17 +206,21 @@ class WindowPlan:
     def overlap_warning(self) -> str:
         """Review-time verdict of the window-list check ('' when clear). The
         blackout overlap POST is not sent while reviewing; it runs at send."""
+        then = ("you chose to create it anyway (--allow-overlap)" if self.allow_overlap
+                else "sending refuses unless --allow-overlap")
         if self.overlapping is None:
-            return ("overlap unknown: a listed window has unreadable start/end times; "
-                    "sending refuses unless --allow-overlap")
+            return f"overlap unknown: a listed window has unreadable start/end times; {then}"
         if self.overlapping:
-            return (f"overlapping windows exist: {', '.join(map(str, self.overlapping))}; "
-                    "sending refuses unless --allow-overlap")
+            return f"overlapping windows exist: {', '.join(map(str, self.overlapping))}; {then}"
+        if self.allow_overlap:
+            return ("--allow-overlap: no overlapping window is listed now, but an overlap found at send "
+                    "or an unreadable overlap answer will not refuse the create")
         return ""
 
 
 def create_plan(client: Any, name: str, description: str, start: str, end: str, criteria: list[str], *,
-                alert_suppression: bool = True, timezone: str | None = None) -> WindowPlan:
+                alert_suppression: bool = True, timezone: str | None = None,
+                allow_overlap: bool = False) -> WindowPlan:
     from fsv import schema as schema_mod
     from fsv.forms.tz import tz_name
     from fsv.query import runtime_workspace
@@ -251,7 +257,8 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
                        json.dumps(payload, sort_keys=True), journal.snapshot_hash(snapshot) or "")
     input_label = f"{tz_name(entered)} ({source})"
     context = journal.snapshot_hash({**snapshot, "tenant_zone": [tz_name(tenant), tenant_raw],
-                                     "input_zone": input_label, "start": s_at.isoformat(), "end": e_at.isoformat()})
+                                     "input_zone": input_label, "start": s_at.isoformat(), "end": e_at.isoformat(),
+                                     "allow_overlap": bool(allow_overlap)})
     write = WritePlan("change_window_create", 0, config.DOMAIN, "POST", "maintenance_windows",
                       json.dumps(payload, sort_keys=True), context or "")
     try:
@@ -259,7 +266,8 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
     except ReviewedWriteError:
         found = None
     return WindowPlan(write, json.dumps(overlap, sort_keys=True), s_wall.isoformat(timespec="minutes"),
-                      e_wall.isoformat(timespec="minutes"), tz_name(tenant), input_label, legacy.hash, found)
+                      e_wall.isoformat(timespec="minutes"), tz_name(tenant), input_label, legacy.hash, found,
+                      bool(allow_overlap))
 
 
 def _instant(value: Any) -> dt.datetime | None:
@@ -368,8 +376,11 @@ def _overlaps(response: Any) -> list[Any]:
                              "Check `fsv changes windows list` yourself; --allow-overlap skips this check")
 
 
-def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, allow_overlap: bool = False,
+def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None,
                 rebuild: Any = None) -> dict[str, Any]:
+    """Send a reviewed create. Whether overlaps refuse is ``plan.allow_overlap``
+    (part of the reviewed hash), never a send-time switch."""
+    allow_overlap = plan.allow_overlap
     if reviewed_hash is None:
         return {"status": "cancelled", "verified": False}
     guards = {plan.hash, plan.legacy_hash} - {""}

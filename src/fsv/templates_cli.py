@@ -68,7 +68,7 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
                criteria: List[str] = typer.Option(..., "--criteria", help="change_type=<label or id> (repeatable; at least one)"),
                description: str = typer.Option("", "--description"),
                no_alert_suppression: bool = typer.Option(False, "--no-alert-suppression"),
-               allow_overlap: bool = typer.Option(False, "--allow-overlap", help="create even if windows overlap or the overlap answer is not understood"),
+               allow_overlap: bool = typer.Option(False, "--allow-overlap", help="create even if windows overlap or the overlap answer is not understood (part of the reviewed plan hash)"),
                dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes", "-y"),
                expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
                json_out: bool = typer.Option(False, "--json")) -> None:
@@ -77,14 +77,15 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
         def run() -> None:
             c = factory()
             build = lambda: W.create_plan(c, name, description, start, end, list(criteria),
-                                          alert_suppression=not no_alert_suppression, timezone=timezone)
+                                          alert_suppression=not no_alert_suppression, timezone=timezone,
+                                          allow_overlap=allow_overlap)
             plan = build()
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2, ensure_ascii=False))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
-            result = W.send_create(plan, c, reviewed_hash=expect_plan, allow_overlap=allow_overlap, rebuild=build)
+            result = W.send_create(plan, c, reviewed_hash=expect_plan, rebuild=build)
             typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
             if not result.get("verified"):
                 raise typer.Exit(4)
