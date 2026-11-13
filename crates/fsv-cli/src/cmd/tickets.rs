@@ -317,7 +317,12 @@ pub fn add_note(a: TicketsAddNoteArgs) -> CmdResult {
     add_note_inner(&a).map_err(note_error)
 }
 
+const ACK_ALONE: &str = "--ack acknowledges blocking rule messages of a --set-status Resolved/Closed transition; pass it together with --set-status";
+
 fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
+    if a.ack && a.set_status.is_none() {
+        return Err(Error::exit(2, ACK_ALONE));
+    }
     let notify = notify_with_agents(a)?;
     if !a.inline_image.is_empty() {
         return crate::cmd::inline_images::add_note(a, &notify);
@@ -372,6 +377,7 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
             notify: &notify,
             format,
             set_status: a.set_status.as_deref(),
+            ack: a.ack,
             ..Default::default()
         };
         let plan = conversations::build_plan(c.as_ref(), &store, &a.id_, &a.body, &args)?;
@@ -528,6 +534,9 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
 }
 
 fn reply(a: TicketsReplyArgs) -> CmdResult {
+    if a.ack && a.set_status.is_none() {
+        return Err(plain_fail(ACK_ALONE, 2));
+    }
     if !a.inline_image.is_empty() {
         return crate::cmd::inline_images::reply(&a).map_err(crate::cmd::reviewed::refusal);
     }
@@ -539,6 +548,7 @@ fn reply(a: TicketsReplyArgs) -> CmdResult {
         && a.sender.is_none()
         && a.set_status.is_none()
         && a.expect_plan.is_none()
+        && !a.ack
     {
         return resource::reply(&TICKETS, &a.id_, &a.body, a.dry_run, a.yes, a.no_input);
     }
@@ -584,6 +594,7 @@ fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
         kind: "reply",
         cc: &cc,
         set_status: a.set_status.as_deref(),
+        ack: a.ack,
         ..Default::default()
     };
     let mail = conversations::MailArgs {

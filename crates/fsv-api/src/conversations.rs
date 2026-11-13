@@ -228,11 +228,29 @@ pub fn status_fields(
     store: &dyn MetaStore,
     cid: i64,
     label: &str,
+    ack: bool,
 ) -> Result<(Map<String, Value>, String)> {
     if closing_label(label) {
-        let (payload, fingerprint, _, _) =
-            crate::ticket_lifecycle::context(c, store, cid, label, &Map::new(), None, None)?;
+        // --ack has the same meaning as tickets close/status --ack: the
+        // reviewer read the blocking rule messages; they are bound into the
+        // returned fingerprint (and so the review hash) only when used.
+        let (payload, fingerprint, _, _) = crate::ticket_lifecycle::context_ack(
+            c,
+            store,
+            cid,
+            label,
+            &Map::new(),
+            None,
+            None,
+            None,
+            ack,
+        )?;
         return Ok((payload, fingerprint));
+    }
+    if ack {
+        return Err(refused(
+            "--ack applies only with --set-status Resolved or Closed; the captured Pending wire has no blocking-rule acknowledgement",
+        ));
     }
     let (status_id, token, record_hash) = status_context(c, store, cid, label)?;
     Ok((
@@ -254,9 +272,26 @@ pub struct ConversationPlan {
     pub canned_id: Option<i64>,
     pub canned_pointer: Option<String>,
     pub canned_hash: Option<String>,
+    /// `--ack` with a closing `--set-status` (bound in `record_hash`).
+    pub ack: bool,
 }
 
 impl ConversationPlan {
+    /// Blocking rule messages acknowledged with --ack (bound in `record_hash`).
+    pub fn acknowledged(&self) -> Vec<Value> {
+        let Some(bound) = self.record_hash.as_deref().filter(|_| self.ack) else {
+            return Vec::new();
+        };
+        match serde_json::from_str::<Value>(bound) {
+            Ok(Value::Object(m)) => m
+                .get("acknowledged")
+                .and_then(Value::as_array)
+                .cloned()
+                .unwrap_or_default(),
+            _ => Vec::new(),
+        }
+    }
+
     pub fn payload(&self) -> Value {
         serde_json::from_str(&self.payload_json).unwrap_or(Value::Null)
     }
@@ -282,11 +317,20 @@ impl ConversationPlan {
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        obj(
+        let mut out = obj(
             json!({"action": format!("ticket_{}", self.kind), "method": "POST", "path": format!("/api/_/{}", self.path()),
                    "payload": self.payload(), "status_label": self.status_label, "plan_hash": self.hash(),
                    "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}),
-        )
+        );
+        let acknowledged = self.acknowledged();
+        if !acknowledged.is_empty() {
+            out.insert("acknowledged_rule_messages".into(), json!(acknowledged));
+            out.insert(
+                "warning".into(),
+                json!("Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition."),
+            );
+        }
+        out
     }
 }
 
@@ -301,6 +345,9 @@ pub struct ConversationArgs<'a> {
     pub notify: &'a [String],
     pub format: BodyFormat,
     pub set_status: Option<&'a str>,
+    /// `--ack`: acknowledge blocking rule messages of a Resolved/Closed
+    /// `set_status`.
+    pub ack: bool,
 }
 
 /// The `bcc` / `sender` keywords of fsv.ticket_conversation.build_plan
@@ -323,6 +370,7 @@ impl Default for ConversationArgs<'_> {
             notify: &[],
             format: BodyFormat::Plain,
             set_status: None,
+            ack: false,
         }
     }
 }
@@ -405,6 +453,11 @@ pub fn build_plan_mail(
     args: &ConversationArgs<'_>,
     mail: &MailArgs<'_>,
 ) -> Result<ConversationPlan> {
+    if args.ack && args.set_status.is_none() {
+        return Err(Error::value(
+            "--ack acknowledges blocking rule messages of a --set-status Resolved/Closed transition; pass it together with --set-status",
+        ));
+    }
     if !matches!(args.kind, "reply" | "note" | "forward") {
         return Err(Error::value("invalid conversation kind"));
     }
@@ -476,7 +529,7 @@ pub fn build_plan_mail(
     };
     let mut record_hash = None;
     if let Some(label) = args.set_status {
-        let (fields, rh) = status_fields(c, store, note.ticket_id, label)?;
+        let (fields, rh) = status_fields(c, store, note.ticket_id, label, args.ack)?;
         record_hash = Some(rh);
         payload["helpdesk_ticket"] = Value::Object(fields);
     }
@@ -490,6 +543,7 @@ pub fn build_plan_mail(
         canned_id: None,
         canned_pointer: None,
         canned_hash: None,
+        ack: args.ack && args.set_status.is_some(),
     })
 }
 
@@ -536,7 +590,7 @@ pub fn send(
         crate::canned::freshen(plan, c)?;
     }
     if let Some(label) = &plan.status_label {
-        let (fields, record_hash) = status_fields(c, store, plan.ticket_id, label)?;
+        let (fields, record_hash) = status_fields(c, store, plan.ticket_id, label, plan.ack)?;
         if Some(&record_hash) != plan.record_hash.as_ref()
             || !payload
                 .get("helpdesk_ticket")
@@ -739,6 +793,7 @@ mod tests {
             canned_id: None,
             canned_pointer: None,
             canned_hash: None,
+            ack: false,
         };
         assert_eq!(plan.payload(), oracle["misc"]["conversation_payload"]);
     }

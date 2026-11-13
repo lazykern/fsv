@@ -26,6 +26,7 @@ struct Wire {
     failure: Value,
     conv_readback: Value,
     writes: Vec<Value>,
+    rules: Value,
 }
 
 fn wire(name: &str, label: Option<&str>) -> Wire {
@@ -42,6 +43,7 @@ fn wire(name: &str, label: Option<&str>) -> Wire {
         failure: Value::Null,
         conv_readback: Value::Null,
         writes: Vec::new(),
+        rules: json!([]),
     };
     if let Some(label) = label {
         w.fields[1]["choices"]
@@ -106,7 +108,7 @@ fn api(w: Arc<Mutex<Wire>>, domain: &str) -> FnApi {
             return Ok(json!({"ticket_fields": w.fields}));
         }
         if path.ends_with("business_rules") {
-            return Ok(json!({"business_rules": []}));
+            return Ok(json!({"business_rules": w.rules}));
         }
         if path == format!("tickets/{cid}/conversations") {
             let mut c = w.conversation.clone();
@@ -263,5 +265,84 @@ fn closure_conversations_match_python() {
             .map(|e| e["event"].clone())
             .collect();
         assert_eq!(json!(events), case["events"], "{name} events");
+    }
+}
+
+/// `test_ticket_closure_conversation.py::test_cli_closure_blocking_rule_ack_bound_to_review`
+/// and `test_cli_ack_requires_closing_set_status` (1c9dca7), at the library level.
+#[test]
+fn closure_blocking_rule_ack_bound_to_review() {
+    for kind in ["reply", "note"] {
+        let w = Arc::new(Mutex::new(wire("acme", Some("Closed"))));
+        let closed = w.lock().unwrap().fields[1]["choices"][2]["id"].clone();
+        w.lock().unwrap().rules = json!([{"id": 9000007120_i64, "name": "Only requester closes",
+            "workspace_id": 1, "module_type": "ticket", "item_id": null, "deleted": false,
+            "user_type": "both", "form_type": "both", "state": "active", "rule_type": "client_side",
+            "description": "", "is_reversible": false, "is_validation": true,
+            "updated_at": "2030-01-03T00:00:00Z",
+            "condition_data": {"all": [{"name": "status", "operator": "is",
+                "value": fsv_py::py_str(&closed), "evaluate_on": "ticket"}]},
+            "action_data": {"action": [{"name": ["Only the requester closes Acme tickets"],
+                "property": "message"}]}}]);
+        let c = api(w.clone(), "acme.example.com");
+        let store = MemStore {
+            workspace: json!(1),
+            ..MemStore::default()
+        };
+        let build = |ack: bool| {
+            let args = ConversationArgs {
+                kind,
+                set_status: Some("Closed"),
+                ack,
+                ..Default::default()
+            };
+            build_plan(&c, &store, "123", "Acme closing", &args)
+        };
+        let refused = build(false).unwrap_err().to_string();
+        assert!(refused.contains("pass --ack"), "{refused}");
+        let p = build(true).unwrap();
+        let review = p.review();
+        assert_eq!(
+            review["acknowledged_rule_messages"],
+            json!(["Only the requester closes Acme tickets"])
+        );
+        assert!(
+            review["warning"]
+                .as_str()
+                .unwrap()
+                .contains("blocks submit")
+        );
+        let journal = MemJournal::default();
+        let result = send(&p, &c, &journal, &store, Some(&p.hash()), true).unwrap();
+        assert_eq!(result["verified"], json!(true), "{result}");
+        let posts = w
+            .lock()
+            .unwrap()
+            .writes
+            .iter()
+            .filter(|r| r["method"] == "POST")
+            .count();
+        assert_eq!(posts, 1);
+
+        let args = ConversationArgs {
+            kind,
+            ack: true,
+            ..Default::default()
+        };
+        let alone = build_plan(&c, &store, "123", "Acme", &args).unwrap_err();
+        assert!(matches!(alone, Error::Value(_)));
+        assert!(alone.to_string().contains("--set-status"));
+        let args = ConversationArgs {
+            kind,
+            set_status: Some("Pending"),
+            ack: true,
+            ..Default::default()
+        };
+        let pending = build_plan(&c, &store, "123", "Acme", &args).unwrap_err();
+        assert!(
+            pending
+                .to_string()
+                .contains("only with --set-status Resolved or Closed")
+        );
     }
 }
