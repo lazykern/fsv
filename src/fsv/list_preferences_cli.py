@@ -43,17 +43,22 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
 
-    @app.command("export", help="Review a native CSV/30-day export request; may email data, job/download contract is unknown.")
+    @app.command("export", help="Review-only: print the native CSV/30-day export request (body keys, recipient "
+                                "mailbox); fsv never sends it (delivery unknown).")
     def export(view: str = typer.Option(..., "--view", help="saved view ID or unique name"),
                field: list[str] = typer.Option(..., "--field", help="captured export field key (repeatable)"),
                dry_run: bool = typer.Option(False, "--dry-run"),
-               yes: bool = typer.Option(False, "--yes"),
-               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               yes: bool = typer.Option(False, "--yes", hidden=True),
+               expect_plan: Optional[str] = typer.Option(None, "--expect-plan", hidden=True),
                output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
                json_out: bool = typer.Option(False, "--json")) -> None:
         try:
+            if yes or expect_plan is not None:
+                raise ReviewedWriteError("export is review-only in fsv (delivery cannot be verified); nothing was "
+                                         "sent; use --dry-run to review, and the web UI to export")
             c = client_factory()
-            finish(flow.export_plan(c, resource.name, view, field), c, dry_run, yes, expect_plan)
+            plan = flow.export_plan(c, resource.name, view, field)
+            typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

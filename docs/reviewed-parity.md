@@ -762,13 +762,16 @@ Only the captured CSV, 30-day, created-at dialog variant is supported. Field key
 are the captured wire keys, labels come from runtime headers, and the full
 ordinary saved-view query is copied without inventing choice IDs. Advanced
 queries/custom export fields/other format-date variants are blocked. Use the
-full hash with `--yes --expect-plan FULL_HASH` for either write.
+full hash with `--yes --expect-plan FULL_HASH` for the column write.
 
-Export requests may email data or launch a job. The source view is read back,
-but **job/delivery/download verification is unavailable**: `verified` remains
-false, and no filename, job ID, polling endpoint or successful download is
-fabricated. An unknown response never causes another export attempt. The
-contracts were browser-aborted; public tests use synthetic HTTP only.
+Export is **review-only**: there is no send path, and `--yes` is refused. The
+dry-run prints the exact captured request body and its keys (`format`,
+`date_filter`, `export_fields`, `custom_fields`, `data_hash`, `state_filter`,
+plus `advanced_data_hash` for changes; tickets use `ticket_state_filter` and
+`selected_filter_view`), the recipient mailbox from the signed-in agent
+profile, and `delivery: unknown`: the request has no recipient field, and the
+job, file and delivery (presumably mail) were never observed because the
+captures were browser-aborted. Run exports from the web UI.
 
 ## Read-only CI/asset picker and task limits
 

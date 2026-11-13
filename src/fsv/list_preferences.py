@@ -22,9 +22,15 @@ class ListPlan(WritePlan):
         recipient = json.loads(self.recipient_json)
         if recipient:
             out["recipient"] = recipient
+        if self.action == "list_export":
+            out.update(body_keys=sorted(self.payload), review_only=True, delivery="unknown",
+                       warning=EXPORT_REVIEW_ONLY)
         return out
 
 
+EXPORT_REVIEW_ONLY = ("Review only: fsv never sends an export. The captured request carries the keys above; the "
+                      "server's job, file and delivery (presumably mail to the recipient below) are unknown, so a "
+                      "send could not be verified. Run the export from the web UI if you need it.")
 _RECIPIENT_NOTE = ("the export request carries no recipient field; the server delivers the export to the requesting "
                    "agent's mailbox, which fsv cannot read back")
 
@@ -129,14 +135,10 @@ def export_plan(client: Any, module: str, view: str, fields: list[str]) -> ListP
 def send(plan: ListPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
     inputs = json.loads(plan.inputs_json)
     columns = plan.action == "list_columns"
+    if not columns:
+        raise ReviewedWriteError("export is review-only in fsv; nothing was sent")
 
     def verify(response: Any) -> dict[str, Any]:
-        if not columns:
-            # No captured job/download lookup: do not invent one or claim a file.
-            _, row = export_source(client, inputs["module"], inputs["view"])
-            return {"verified": False, "source_readback": str(row.get("id")) == inputs["view"],
-                    "job": "unavailable", "download": "unavailable",
-                    "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."}
         rows = headers(client, inputs["module"])
         by_name = {row["name"]: row for row in rows}
         fields = {}
@@ -150,4 +152,4 @@ def send(plan: ListPlan, client: Any, *, reviewed_hash: str | None) -> dict[str,
                 "verified": not omitted and all(value == "matched" for value in fields.values())}
 
     return execute(plan, client, reviewed_hash=reviewed_hash,
-                   rebuild=lambda: columns_plan(client, **inputs) if columns else export_plan(client, **inputs), verify=verify)
+                   rebuild=lambda: columns_plan(client, **inputs), verify=verify)

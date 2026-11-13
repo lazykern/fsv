@@ -92,13 +92,32 @@ def test_exact_export_request_uses_runtime_view_and_labels_not_download_claim(wi
         if wire["module"] == "changes":
             expected["advanced_data_hash"] = None
     assert p.payload == expected
-    result = flow.send(p, wire["client"], reviewed_hash=p.hash)
-    assert not result["verified"] and result["source_readback"]
-    assert result["job"] == result["download"] == "unavailable"
-    assert wire["writes"] == [(wire["module"] + "/export", expected)]
+    review = p.review()
+    assert review["body_keys"] == sorted(expected) and review["review_only"] is True
+    assert review["delivery"] == "unknown" and "never sends" in review["warning"]
+    if wire["module"] != "tickets":
+        assert set(review["body_keys"]) >= {"format", "date_filter", "export_fields", "custom_fields",
+                                            "data_hash", "state_filter"}
+        assert ("advanced_data_hash" in review["body_keys"]) is (wire["module"] == "changes")
+    with pytest.raises(ReviewedWriteError, match="review-only"):
+        flow.send(p, wire["client"], reviewed_hash=p.hash)
+    assert not wire["writes"]
 
 
-@pytest.mark.parametrize("kind", ["columns", "export"])
+def test_export_cli_has_no_send_path(wire, monkeypatch):
+    monkeypatch.setattr(cli, "_client", lambda: wire["client"])
+    args = [wire["module"], "export", "--view", "701", "--field", "subject"]
+    review = CliRunner().invoke(cli.app, args + ["--dry-run"])
+    assert review.exit_code == 0, review.output
+    body = json.loads(review.stdout)
+    assert body["review_only"] is True and "recipient" in body
+    for extra in (["--yes"], ["--yes", "--expect-plan", body["plan_hash"]]):
+        sent = CliRunner().invoke(cli.app, args + extra)
+        assert sent.exit_code == 2 and "review-only" in sent.output
+    assert not wire["writes"]
+
+
+@pytest.mark.parametrize("kind", ["columns"])
 @pytest.mark.parametrize("failure", [403, 429, 500, "disconnect"])
 def test_durable_single_attempt_failure_guards(wire, kind, failure):
     p = plan(wire, kind)

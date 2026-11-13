@@ -12,10 +12,10 @@ plans, roles, forms and workflows differ (see the
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
 | Tickets | 88 | 51 | 35 | 1 | 1 |
-| Changes | 53 | 36 | 13 | 3 | 1 |
+| Changes | 53 | 36 | 14 | 2 | 1 |
 | Problems and service requests | 63 | 42 | 20 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **278** | **165** | **105** | **6** | **2** |
+| **All** | **278** | **165** | **106** | **5** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -137,7 +137,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets private-views write create/rename/delete | `POST\|PUT\|DELETE /api/_/ticket_filters[/{id}]` | UNSURE | no | no | none | test_private_views.py, test_private_views_native.py | Privacy now read from the captured Myself code and the workspace from the read's meta; not re-run live since this change. |
 | tickets columns list | `GET /api/_/tickets/headers` | UNSURE | yes (read) | n/a | read-verified | test_list_preferences.py, test_views_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets columns set | `POST /api/_/tickets/headers` | COVERED | yes | yes | none | test_list_preferences.py | Live send verified by an independent readback. |
-| tickets export | `POST /api/_/tickets/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
+| tickets export | `POST /api/_/tickets/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only: no send path; the dry-run prints the captured body keys, the recipient mailbox and delivery unknown. |
 | tickets associations (list) | `GET /api/_/tickets/{id}/associations ({id} for INC on prod)` | UNSURE | yes (read) | n/a | read-verified | test_ticket_details.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets problems list/candidates/link/unlink | `PUT /api/_/tickets/{id}/problems/{pid} {type}; GET tickets/{id}/problems` | UNSURE | no | no | capture-only | test_ticket_associations.py | Wire captured from the ticket page (link and unlink read back in the UI); fsv offline only. |
 | tickets changes list/candidates/link/unlink --kind initiating\|initiated-by | `PUT /api/_/tickets/{id}/changes/associate; PUT tickets/{id}/changes/{cid}; GET tickets/{id}/changes?change_type=` | UNSURE | no | no | capture-only | test_ticket_associations.py | Both directions captured; fsv offline only. |
@@ -206,7 +206,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | changes views | `GET /api/_/change-filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py, test_tui_views.py | Read verified live; row-by-row comparison with the web UI pending. |
 | changes columns list | `GET /api/_/changes/headers or list prefs` | UNSURE | yes (read) | n/a | read-verified | test_list_preferences.py | Read verified live; row-by-row comparison with the web UI pending. |
 | changes columns set | `POST /api/_/changes/headers` | COVERED | yes | yes | none | test_list_preferences.py | Live send verified by an independent readback. |
-| changes export | `POST /api/_/changes/export` | GAP | no (dry-run only) | no | none | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
+| changes export | `POST /api/_/changes/export` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only: no send path; the dry-run prints the captured body keys, the recipient mailbox and delivery unknown. |
 | changes fields / lookup | `GET /api/_/change_form_fields ; lookup user/group/choices` | UNSURE | yes (read) | n/a | read-verified | test_completion_gen.py, test_change_optional_fields.py | Read verified live; row-by-row comparison with the web UI pending. |
 | changes url | local (browser URL print) | N/A | n/a (local) | n/a | none | test_completion_gen.py | Local only; no wire. |
 
@@ -220,7 +220,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | problems tasks | `GET problems/{id}/tasks` | COVERED | yes (read) | n/a | read-verified | test_module_time_problem_tasks.py | Live read verified. |
 | problems notes | `GET problems/{id}/notes` | UNSURE | yes (read) | n/a | read-verified | test_problem_internal_api.py | Read verified live; row-by-row comparison with the web UI pending. |
 | problems add-note | `POST problems/{id}/notes {body} (reviewed body path; same wire as note)` | COVERED | yes | yes | none | test_problem_internal_api.py, test_attachments_reviewed.py | Live send verified by an independent readback. |
-| problems export | `POST problems/export-ish native CSV request, 30 days, emails data (job/download unknown; code: list_preferenc…` | GAP | no (dry-run only) | no | none | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
+| problems export | `POST problems/export-ish native CSV request, 30 days, emails data (job/download unknown; code: list_preferenc…` | GAP | no (dry-run only) | no | none | test_list_preferences.py | Review-only: no send path; the dry-run prints the captured body keys, the recipient mailbox and delivery unknown. |
 | problems fields | `GET problem_form_fields (cached schema)` | UNSURE | yes (read) | n/a | read-verified | test_schema_cache.py, test_completion_matrix.py | Read verified live; row-by-row comparison with the web UI pending. |
 | problems lookup | `GET search/autocomplete requesters/agents; bootstrap groups; field choices` | UNSURE | yes (read) | n/a | none | test_agent_owner_lookup.py | Read verified live; row-by-row comparison with the web UI pending. |
 | problems views | `GET problem-filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py, test_private_views.py | Read verified live; row-by-row comparison with the web UI pending. |
@@ -315,13 +315,13 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | --view NAME / default view | `filters_path GET then list GET` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets columns list | `GET /api/_/tickets/headers` | COVERED | yes (read) | n/a | capture-only | test_list_preferences.py | Live read verified. |
 | tickets columns set | `POST /api/_/tickets/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
-| tickets export | `POST /api/_/tickets/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
+| tickets export | `POST /api/_/tickets/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only: no send path; the dry-run prints the captured body keys, the recipient mailbox and delivery unknown. |
 | changes columns list | `GET /api/_/changes/headers` | COVERED | yes (read) | n/a | capture-only | test_list_preferences.py | Live read verified. |
 | changes columns set | `POST /api/_/changes/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
-| changes export | `POST /api/_/changes/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
+| changes export | `POST /api/_/changes/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only: no send path; the dry-run prints the captured body keys, the recipient mailbox and delivery unknown. |
 | problems columns list | `GET /api/_/problems/headers` | COVERED | yes (read) | n/a | capture-only | test_list_preferences.py | Live read verified. |
 | problems columns set | `POST /api/_/problems/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
-| problems export | `POST /api/_/problems/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
+| problems export | `POST /api/_/problems/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only: no send path; the dry-run prints the captured body keys, the recipient mailbox and delivery unknown. |
 | tickets canned folders | `GET /api/_/canned_response_folders` | COVERED | yes (read) | n/a | read-verified | test_canned.py | Live read verified. |
 | tickets canned list FOLDER | `GET canned_response_folders/{id}/canned_responses` | COVERED | yes (read) | n/a | none | test_canned.py | Live read verified. |
 | tickets canned show ID | `GET canned_responses/{id}` | COVERED | yes (read) | n/a | none | test_canned.py | Live read verified. |

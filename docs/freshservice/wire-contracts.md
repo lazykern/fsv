@@ -556,7 +556,7 @@ Other filter facts:
 | Private view read | `GET /api/_/ticket_filters/<id>` | `{id, name, default: false, visibility: 3, user_id, group_id: null, group_ids: [], query_hash, advanced_query_hash, order_by, order_type, meta: {workspace_id: [{id, name}]}}`: **no top-level `workspace_id`**, and the workspace condition reads back as a string (`value: "N"`), not the write form | CAPTURED |
 | Change private view create | `POST /api/_/change-filters` → 200 | `{name, workspace_id, visibility: 3, query_hash: null, advanced_query_hash: {all: [..., {condition: "workspace_id", operator: "is", value: N, type: "default"}]}, order_by, order_type}`; read `GET /api/_/change-filters/<id>` → `{change_filter: {..., visibility, user_id, group_ids: [], default: false}}`. Rename/delete wires for change views are not captured | CAPTURED |
 | Column selection | `POST /api/_/<tickets\|changes\|problems>/headers` | `{"columns": {<key>: <position>}, "frozen_columns": [...]}` | CAPTURED |
-| Export | `POST /api/_/<module>/export` | `{format: "csv", date_filter: 30, export_fields: {<key>: <label>}, ...}` | CAPTURED (job and delivery, possibly by email, unknown) |
+| Export | `POST /api/_/<module>/export` | `{format: "csv"\|"excel", date_filter: 30, export_fields: {<key>: <label>}, custom_fields: {}, data_hash: [<the open view's conditions>], state_filter: "created_at"}`; changes add `advanced_data_hash: null`; no recipient key | CAPTURED by blocked submit (job and delivery, possibly by email, unknown); fsv is review-only |
 
 ## Deletes
 
