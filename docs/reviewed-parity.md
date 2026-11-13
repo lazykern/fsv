@@ -961,7 +961,9 @@ submitting, so the schema display cache is not a write authorization source.
 ## Integrated inventory
 
 `fsv assets search Acme --kind devices --json` searches integrated ITAM inventory,
-not legacy asset display IDs. `--kind services` searches business services;
+not legacy asset display IDs. `--page N` past the last page says `no results
+on page N` with the inventory's row count (page 1 is re-read to learn it),
+for devices and services alike. `--kind services` searches business services;
 `--kind assets` is read-only physical-asset search. Unproven type filters and
 physical-asset association writes remain disabled.
 

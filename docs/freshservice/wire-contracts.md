@@ -321,6 +321,7 @@ Two models exist; probe which one a tenant has (see
 |---|---|---|---|---|
 | Candidate devices | `GET /itam/core/device/api/?order=&page=1&page_size=50&q=<text>` | — | `{page, error, total_rows, data: [{device_pk, name: {id, label, url}, ...}]}` | VERIFIED LIVE |
 | Candidate services | `GET /itam/core/businessservice/api/?columns=<list>&page=1&page_size=50&q=<text>` | — | same envelope, `businessservice_pk` | VERIFIED LIVE |
+| Page past the end | same, `page=N` beyond `total_rows` | — | not one stable shape: an `error` text with `data: []` (and `page` reset to 1) was seen on an empty inventory; other answers were reported as unreadable. fsv re-reads page 1 and compares `total_rows` before calling a page empty | VERIFIED LIVE (partial) |
 | Add CIs | `PUT /api/_/<tickets\|problems\|changes>/<id>/associate-ci` | `{"device_ids": [<int>, ...]}` or `{"businessapp_ids": [<int>]}` | 200 `{}` | VERIFIED LIVE (bulk too) |
 | Remove one | `PUT /api/_/<module>/<id>/disassociate-ci` | `{"itam_cmdb_request_id": "<link id from readback>"}` | 204 | VERIFIED LIVE |
 | Read | `GET /api/_/<module>/<id>/associated-cis?page=1&association_type=cis\|services` | — | `{data: [{item_id, item_name, category, itam_cmdb_request_id, ...}], meta: {per_page, total_count, total_pages}}` | VERIFIED LIVE |

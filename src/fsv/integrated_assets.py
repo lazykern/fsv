@@ -19,17 +19,37 @@ def target_id(module: str, target: str | int) -> tuple[str, int]:
     return ("tickets" if module == "sr" else module, positive_id(parse_id(str(target), RESOURCES[module])))
 
 
+def _past_end(kind: str, page: int, total: int) -> ValueError:
+    return ValueError(f"no results on page {page}: the {kind} inventory has {total} row(s) "
+                      f"({max(1, -(-total // PAGE_SIZE))} page(s) of {PAGE_SIZE})")
+
+
+PAGE_SIZE = 50
+
+
 def search(client: Any, query: str = "", *, kind: str = "devices", page: int = 1) -> dict[str, Any]:
     if kind not in FAMILIES or type(page) is not int or page < 1:
         raise ValueError("choose devices, assets or services and a positive page")
-    raw = client._request("GET", f"https://{config.DOMAIN}/itam/core/{FAMILIES[kind]}/api/",
-                          params={"order": "", "page": page, "page_size": 50, "q": query})
+    from fsv.errors import APIError
+    try:
+        raw = client._request("GET", f"https://{config.DOMAIN}/itam/core/{FAMILIES[kind]}/api/",
+                              params={"order": "", "page": page, "page_size": PAGE_SIZE, "q": query})
+    except APIError as exc:
+        if page == 1 or exc.status not in (400, 404):
+            raise
+        raw = None
     if (page > 1 and isinstance(raw, dict) and isinstance(raw.get("error"), str) and raw.get("data") == []
-            and type(raw.get("total_rows")) is int and 0 <= raw["total_rows"] <= (page - 1) * 50):
+            and type(raw.get("total_rows")) is int and 0 <= raw["total_rows"] <= (page - 1) * PAGE_SIZE):
         # Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
-        total = raw["total_rows"]
-        raise ValueError(f"no results on page {page}: the {kind} inventory has {total} row(s) "
-                         f"({max(1, -(-total // 50))} page(s) of 50)")
+        raise _past_end(kind, page, raw["total_rows"])
+    valid = (isinstance(raw, dict) and not raw.get("error") and isinstance(raw.get("data"), list)
+             and raw.get("page") == page and type(raw.get("total_rows")) is int)
+    if page > 1 and not (valid and raw["data"]):
+        # Other past-the-end shapes (404/400, an error without a total, an
+        # empty page): page 1's total decides; a read-only GET, never a guess.
+        first = search(client, query, kind=kind, page=1)
+        if first["total_rows"] <= (page - 1) * PAGE_SIZE:
+            raise _past_end(kind, page, first["total_rows"])
     if not isinstance(raw, dict) or raw.get("error") or not isinstance(raw.get("data"), list):
         raise ReviewedWriteError("integrated inventory unavailable")
     total = raw.get("total_rows")

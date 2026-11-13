@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
-| Tickets | 88 | 51 | 35 | 1 | 1 |
+| Tickets | 91 | 51 | 35 | 4 | 1 |
 | Changes | 53 | 36 | 14 | 2 | 1 |
 | Problems and service requests | 63 | 42 | 20 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **278** | **165** | **106** | **5** | **2** |
+| **All** | **281** | **165** | **106** | **8** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -106,6 +106,8 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets bulk merge | `POST /api/_/merge_tickets/complete_merge` | COVERED | yes | yes | none | test_ticket_bulk.py, test_ticket_merge.py | Live send verified by an independent readback. |
 | tickets bulk spam / unspam | `POST /api/_/tickets/spam_multiple, POST /api/_/tickets/unspam_multiple` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
 | tickets bulk scenario --scenario NAME_OR_ID | `PUT /api/_/tickets/execute_scenario {scenario_id, ids}` | UNSURE | no | no | capture-only | test_ticket_bulk_scenario.py | Wire captured (202, async); effects cannot be verified by design. |
+| (missing) tickets bulk close | `POST /api/_/tickets/close_multiple {ids, disable_notification}` | GAP | no | no | capture-only | — | Request and error shapes captured (207 with per-ticket errors, status unchanged); the success shape needs tickets with a saved resolution note and every closure field, not obtained on the test tenant. |
+| (missing) tickets share | `GET /api/_/tickets/{id}/sharers` (read only) | GAP | no | no | none | — | The add-sharer write needs a second user (the test tenant has one); not captured and not guessed. The public link is client-side only. |
 | tickets bulk delete (soft) | `DELETE /api/_/tickets/delete_multiple?ids=` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
 | tickets bulk ... --where --select-all (filtered) | `expands to <=50 explicit IDs then wires above` | UNSURE | stale (re-test) | no | none | test_ticket_bulk_filter_cli.py, test_ticket_bulk_set.py, test_filter_wires.py | Live result predates later fixes or was partial; re-test. |
 | tickets bulk --json output | stdout JSON only | COVERED | n/a (local) | n/a | none | test_ticket_bulk_set.py | Local command; offline tests. |
@@ -150,6 +152,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets restore | `PUT /api/_/tickets/{id}/restore` | UNSURE | no | no | capture-only | test_ticket_trash.py | Captured (then deleted=false); fsv offline only. |
 | tickets delete-forever (explicit IDs, --max-records, --confirm-destructive) | `DELETE /api/_/tickets/delete_forever?ids={id}` (one per ticket) | UNSURE | no | no | capture-only | test_ticket_trash.py | Single-ID wire captured (then 404); fsv offline only. |
 | tickets spam / unspam (single) | `PUT /api/_/tickets/{id}/spam {}; PUT /api/_/tickets/{id}/unspam` | UNSURE | no | no | capture-only | test_ticket_spam.py | Both wires captured from the ticket page and Spam view; fsv offline only. |
+| (missing) approval delegation | — | GAP | no | no | none | — | No delegate or reassign control on the test tenant's approval card (single active agent); no wire claimed. |
 | (missing) tickets split / due-date shortcuts | — | GAP | no | no | none | — | Not implemented; split is not reachable on the test tenant. |
 
 ## Changes
@@ -286,7 +289,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets\|changes\|problems search QUERY | `GET /search/{tickets\|changes\|problems}` | UNSURE | yes (read) | n/a | none | test_search_routing.py | Read verified live; row-by-row comparison with the web UI pending. |
 | assets search --kind devices | `GET https://{tenant}/itam/core/assets/api/ ?page` | UNSURE | yes (read) | n/a | none | test_integrated_assets.py, test_asset_picker.py | Needs seeded CMDB devices or services on the test tenant. |
 | assets search --kind services | `GET https://{tenant}/itam/core/<services family>/api/` | UNSURE | yes (read) | n/a | none | test_integrated_assets.py | Needs seeded CMDB devices or services on the test tenant. |
-| assets search --page N / pagination, total_rows contract | `as the row above` | UNSURE | yes (read) | n/a | none | test_integrated_assets.py | Needs more than one page of inventory to prove paging. |
+| assets search --page N / pagination, total_rows contract | `as the row above` | UNSURE | partial | n/a | none | test_integrated_assets.py, test_assets_search_pages.py, test_sweep1_messages.py | Past-the-end page now says 'no results on page N' for every answer shape (page 1 total decides); a real second page still needs more inventory. |
 | templates list | `GET /api/_/ticket-templates` | UNSURE | no | n/a | read-verified | test_templates_windows.py | Needs a seeded ticket template. |
 | templates show NAME | `GET /api/_/ticket-templates/{id}` | UNSURE | no | n/a | none | test_templates_windows.py | Needs a seeded ticket template. |
 | tickets create --template NAME (prefill) | `same GET then reviewed create POST tickets` | UNSURE | stale (re-test) | yes | none | test_templates_windows.py, test_ticket_create.py | Live create passed with a seeded template (priority derived by the server); the server-change report is new and not re-run live. |
