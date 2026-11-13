@@ -82,7 +82,7 @@ impl App {
         if req.key != self.filter.lookup_key {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("completion", true, move |b| {
             let values = match (req.kind.as_str(), &req.link) {
                 ("lookup", Some(link)) => b
                     .lookup_choices(link, &req.prefix)

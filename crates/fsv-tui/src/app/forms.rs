@@ -76,7 +76,7 @@ impl App {
             item: data,
             record,
         };
-        self.spawn(move |b| {
+        self.spawn_group("form", true, move |b| {
             Msg::Ui(vec![match b.open_form(&req) {
                 Ok(view) => Ui::Form(OpenedForm {
                     view,
@@ -128,7 +128,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |_| {
+        self.spawn_group("write", false, move |_| {
             Msg::Ui(match send.send() {
                 Err(e) => vec![Ui::Failure(actions::failure_detail(&e))],
                 Ok(out) => {
@@ -153,7 +153,7 @@ impl App {
     }
 
     pub(super) fn load_catalog(&mut self) {
-        self.spawn(|b| {
+        self.spawn_group("catalog", true, |b| {
             Msg::Ui(vec![match b.catalog() {
                 Ok((items, cats)) => Ui::Catalog(items, cats),
                 Err(e) => Ui::Failure(format!("Catalog unavailable: {e}")),

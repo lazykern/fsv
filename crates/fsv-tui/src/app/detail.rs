@@ -13,7 +13,7 @@ impl App {
             return;
         }
         let schema = self.schemas.get(item.res.name).cloned();
-        self.spawn(move |b| {
+        self.spawn_group("detail", true, move |b| {
             let outcome = b
                 .load_detail(item.res, &item.id(), schema.as_ref())
                 .map_err(|e| actions::clean_error(&e));
@@ -280,7 +280,7 @@ impl App {
         let record = self
             .page_for(Some(&item))
             .map_or_else(|| item.data.clone(), |p| p.record.clone());
-        self.spawn(move |b| {
+        self.spawn_group("sub", true, move |b| {
             let data = b.load_tab(res, &record, &tab).unwrap_or_else(|e| TabData {
                 name: tab.clone(),
                 label: site::tab_label(&tab),

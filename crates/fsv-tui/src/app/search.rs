@@ -213,7 +213,7 @@ impl App {
             self.search_sort,
             self.search_page,
         );
-        self.spawn(move |b| {
+        self.spawn_group("list", true, move |b| {
             let mut schemas = Vec::new();
             let outcome = (|| -> Result<SearchResult, String> {
                 for r in ALL_RESOURCES {

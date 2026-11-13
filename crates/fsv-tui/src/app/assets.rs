@@ -216,7 +216,7 @@ impl App {
         if add && self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("asset-inventory", true, move |b| {
             Msg::Ui(vec![match b.inventory_search(&query, &kind) {
                 Err(e) => unavailable(format!("Asset search unavailable: {e}")),
                 Ok(result) if result.assets.is_empty() => Ui::Outcome {
@@ -244,7 +244,7 @@ impl App {
         let module = item.res.name.to_string();
         let target = item.ref_id();
         let item_for_pick = item.clone();
-        self.spawn(move |b| {
+        self.spawn_group("asset-inventory", true, move |b| {
             Msg::Ui(vec![
                 match b.associated_inventory(&module, &target, &kind) {
                     Err(e) => unavailable(format!("Association inventory unavailable: {e}")),
@@ -292,7 +292,7 @@ impl App {
         }
         let module = item.res.name.to_string();
         let target = item.ref_id();
-        self.spawn(move |b| {
+        self.spawn_group("asset-review", true, move |b| {
             Msg::Ui(vec![
                 match b.inventory_association_plan(&module, &target, &ident, &kind, remove) {
                     Err(e) => unavailable(format!("Association review blocked: {e}")),
@@ -326,7 +326,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", true, move |b| {
             Msg::Ui(vec![
                 match b.send_inventory_association(&plan, &module, &ident, &kind, remove) {
                     Err(e) => Ui::Failure(actions::failure_detail(&e)),

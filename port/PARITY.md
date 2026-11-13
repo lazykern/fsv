@@ -34,10 +34,13 @@ those stay identical.
   Textual, hiding the focused editor moves focus away and F3 stops working.
 - The status bar is a row above the key hints. Textual draws the hints on
   top of the status bar.
-- TUI workers keep Python's own staleness guards (`pending_detail_key`,
-  `list_epoch`, the search sequence) but have no `(generation, result)`
-  drop and no change-emit lock. The user-visible risk equals Python's
-  `exclusive=True` workers.
+- TUI workers keep Python's staleness guards (`pending_detail_key`,
+  `list_epoch`, the search sequence). An `exclusive=True` worker also
+  drops an older result from the same Textual group once a newer exclusive
+  worker in that group has started. The in-flight request still finishes;
+  a thread cannot be cancelled. Non-exclusive `write` workers both apply.
+  An exclusive inventory send invalidates earlier `write` results. There
+  is no change-emit lock.
 - `detail_panel` does not wrap a long planning line at 60 columns. Rich
   wraps it. The Rust block leaves wrapping to the console.
 - A plain YAML bool or null key (`true:`, `FALSE:`, `null:`, `~:`) loads
@@ -354,7 +357,7 @@ CLI divergences:
 - Help dialog is clipped on 36-row terminals and does not scroll.
 - Plain ticket replies (`r`, Ctrl+S) go through `ticket_conversation_plan` / `send_ticket_conversation`, as in Python. `Backend::add_reply`, `actions::apply_reply` and the "Confirm reply" write path were unreachable (`can_reply` is tickets-only) and are deleted; `fsv_api::service::add_reply` stays for the CLI.
 - Read-only mode is also enforced at the backend: `fsv_app::run_tui` wraps `LiveBackend` in `fsv_tui::backend::ReadOnly`, whose write methods fail with `read-only mode: writes are disabled (…)` before any request and whose `forms_available()` is false. Python gates read-only only in the UI; nothing changes for the user. The `Backend` network methods have no defaults; test doubles opt into stubs with `backend_stubs!`.
-- Python marks these workers `exclusive=True`, so a second press cancels the first. Rust runs both, like the other TUI workers (see the stale-generation divergence). The same holds for `_load_asset_inventory` (`group="asset-inventory"`).
+- Python `exclusive=True` cancels the previous worker in that group. Rust drops the older result once a newer exclusive worker in the group has started (`spawn_group`). The request itself still finishes. `_load_asset_inventory` is group `asset-inventory`. `_send_inventory_association` is the exclusive member of group `write`.
 - Asset picker: Python calls `asset_picker.select` inside the picker callback, outside the worker's `try`, so a failure there would be an unhandled exception. Rust shows the failure screen `"Asset search unavailable: {exc}"` instead. It is unreachable in practice, because `candidates` already rejects duplicate display IDs. `AssetCandidates::select` and `backend::positive_id` port `asset_picker.select` and `watchers.positive_id` locally; fsv-api now has `asset_picker::select` too.
 - Asset picker failures are pushed as a plain `FailureScreen`, as in Python: they do not set the `!` "last write failure".
 

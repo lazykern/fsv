@@ -2390,3 +2390,37 @@ fn send_form_sends_once_unless_read_only() {
     a.settle();
     assert_eq!(sent.lock().unwrap().len(), 1);
 }
+
+fn review_plan() -> crate::backend::ReviewPlan {
+    crate::backend::ReviewPlan {
+        review: json!({}),
+        hash: "h".into(),
+        public: false,
+        target_id: json!(11),
+        raw: json!({}),
+    }
+}
+
+/// `_prepare_change_status` is `exclusive=True`: the later review replaces the earlier one.
+#[test]
+fn exclusive_status_review_keeps_only_the_latest() {
+    let (mut a, _) = app(1);
+    let before = a.modals.len();
+    let item = change(11);
+    a.prepare_change_status(item.clone(), json!(2));
+    a.prepare_change_status(item, json!(3));
+    a.settle();
+    assert_eq!(a.modals.len(), before + 1);
+}
+
+/// `_send_change_status` is not exclusive: both sends still report.
+#[test]
+fn nonexclusive_status_sends_both_apply() {
+    let (mut a, _) = app(1);
+    let before = a.modals.len();
+    let item = change(11);
+    a.send_change_status(item.clone(), review_plan());
+    a.send_change_status(item, review_plan());
+    a.settle();
+    assert_eq!(a.modals.len(), before + 2);
+}

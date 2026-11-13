@@ -3,6 +3,31 @@
 use super::*;
 
 impl App {
+    /// Textual `@work(group=..., exclusive=...)`.
+    ///
+    /// An exclusive start bumps the group, so an older result from that group
+    /// is dropped. A non-exclusive start keeps the current generation: it does
+    /// not cancel anyone, and an exclusive start that lands first drops it.
+    pub(super) fn spawn_group(
+        &mut self,
+        group: &'static str,
+        exclusive: bool,
+        job: impl FnOnce(&dyn Backend) -> Msg + Send + 'static,
+    ) {
+        let generation = {
+            let slot = self.worker_gen.entry(group).or_insert(0);
+            if exclusive {
+                *slot = slot.saturating_add(1);
+            }
+            *slot
+        };
+        self.spawn(move |b| Msg::Grouped {
+            group,
+            generation,
+            inner: Box::new(job(b)),
+        });
+    }
+
     pub(super) fn spawn(&mut self, job: impl FnOnce(&dyn Backend) -> Msg + Send + 'static) {
         match &mut self.exec {
             Exec::Inline(q) => q.push_back(Box::new(job)),
@@ -201,6 +226,15 @@ impl App {
             Msg::Ui(list) => {
                 for u in list {
                     self.on_ui(u);
+                }
+            }
+            Msg::Grouped {
+                group,
+                generation,
+                inner,
+            } => {
+                if self.worker_gen.get(group).copied() == Some(generation) {
+                    self.on_msg(*inner);
                 }
             }
         }

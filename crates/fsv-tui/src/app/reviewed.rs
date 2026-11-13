@@ -311,17 +311,19 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| match b.ticket_property_fields(&item.ref_id()) {
-            Err(e) => failure(&e),
-            Ok(fields) => {
-                let choices = fields
-                    .iter()
-                    .map(|f| (json!(f.name), f.label.clone()))
-                    .collect();
-                Msg::Ui(vec![push(
-                    Modal::choices(PROPERTY_PICKER, choices),
-                    Step::PropertyField { item, fields },
-                )])
+        self.spawn_group("property-review", true, move |b| {
+            match b.ticket_property_fields(&item.ref_id()) {
+                Err(e) => failure(&e),
+                Ok(fields) => {
+                    let choices = fields
+                        .iter()
+                        .map(|f| (json!(f.name), f.label.clone()))
+                        .collect();
+                    Msg::Ui(vec![push(
+                        Modal::choices(PROPERTY_PICKER, choices),
+                        Step::PropertyField { item, fields },
+                    )])
+                }
             }
         });
     }
@@ -331,15 +333,15 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(
-            move |b| match b.ticket_property_plan(&item.ref_id(), &name, &value) {
+        self.spawn_group("property-review", true, move |b| {
+            match b.ticket_property_plan(&item.ref_id(), &name, &value) {
                 Err(e) => failure(&e),
                 Ok(plan) => Msg::Ui(vec![push(
                     Modal::confirm("Review exact ticket property", vec![dumps(&plan.review)]),
                     Step::PropertyReviewed { item, plan },
                 )]),
-            },
-        );
+            }
+        });
     }
 
     /// `_send_ticket_property`.
@@ -348,7 +350,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             sent(
                 b.send_ticket_property(&plan),
                 "Property result — do not resend",
@@ -366,15 +368,17 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| match b.known_error_plan(&item.ref_id()) {
-            Err(e) => failure(&e),
-            Ok(plan) => Msg::Ui(vec![push(
-                Modal::confirm(
-                    "Review known-error mark",
-                    vec![dumps(&plan.review), KNOWN_ERROR_WARNING.into()],
-                ),
-                Step::KnownErrorReviewed { item, plan },
-            )]),
+        self.spawn_group("known-error-review", true, move |b| {
+            match b.known_error_plan(&item.ref_id()) {
+                Err(e) => failure(&e),
+                Ok(plan) => Msg::Ui(vec![push(
+                    Modal::confirm(
+                        "Review known-error mark",
+                        vec![dumps(&plan.review), KNOWN_ERROR_WARNING.into()],
+                    ),
+                    Step::KnownErrorReviewed { item, plan },
+                )]),
+            }
         });
     }
 
@@ -384,7 +388,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             sent(
                 b.send_known_error(&plan),
                 "Known-error result — do not resend",
@@ -402,7 +406,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("planning-review", true, move |b| {
             let choices = match b.planning_definitions(item.res.name) {
                 Err(e) => return failure(&e),
                 Ok(defs) => planning_choices(&defs),
@@ -427,7 +431,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("planning-read", true, move |b| {
             let before = match b
                 .planning_row(item.res.name, &item.ref_id(), &section)
                 .and_then(|row| site::planning_editable_content(row.as_ref()))
@@ -448,7 +452,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("planning-review", true, move |b| {
             match b.planning_text_plan(item.res.name, &item.ref_id(), &section, &description) {
                 Err(e) => failure(&e),
                 Ok(plan) => Msg::Ui(vec![push(
@@ -465,7 +469,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             let res = item.res;
             sent(
                 b.send_planning_text(&plan),
@@ -549,12 +553,12 @@ impl App {
             return;
         }
         let req = options.request(public, reply);
-        self.spawn(
-            move |b| match b.ticket_conversation_plan(&item.ref_id(), &body, &req) {
+        self.spawn_group("conversation-review", true, move |b| {
+            match b.ticket_conversation_plan(&item.ref_id(), &body, &req) {
                 Err(e) => failure(&e),
                 Ok(plan) => review_ticket_conversation(item, plan, reply),
-            },
-        );
+            }
+        });
     }
 
     /// `_send_ticket_conversation`.
@@ -563,7 +567,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             sent(
                 b.send_ticket_conversation(&plan, public),
                 "Conversation result — do not resend",

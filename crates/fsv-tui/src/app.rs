@@ -2,7 +2,9 @@
 //!
 //! Workers run on threads (or inline in tests) and send a [`Msg`] back; the
 //! staleness guards are Python's (list epoch + entity, search seq, pending
-//! detail / sub keys, completion key). A worker error toasts or opens the
+//! detail / sub keys, completion key). An `exclusive=True` worker also drops
+//! an older result from the same Textual group once a newer one has started.
+//! The in-flight request still finishes. A worker error toasts or opens the
 //! failure screen; it never ends the app.
 
 use std::cell::RefCell;
@@ -493,6 +495,12 @@ pub enum Msg {
         values: Vec<String>,
     },
     Ui(Vec<Ui>),
+    /// A worker result tagged with its Textual group generation.
+    Grouped {
+        group: &'static str,
+        generation: u64,
+        inner: Box<Msg>,
+    },
 }
 
 type Job = Box<dyn FnOnce(&dyn Backend) -> Msg + Send>;
@@ -560,6 +568,8 @@ pub struct App {
     pub detail_fr: u16,
     pub page: i64,
     pub list_epoch: u64,
+    /// Textual `@work` group generation. An exclusive start bumps it.
+    worker_gen: HashMap<&'static str, u64>,
     pub write_failure: Option<String>,
     pub per_page: i64,
     pub has_more: bool,
@@ -657,6 +667,7 @@ impl App {
             detail_fr: 9,
             page: 1,
             list_epoch: 0,
+            worker_gen: HashMap::new(),
             write_failure: None,
             per_page: 100,
             has_more: false,

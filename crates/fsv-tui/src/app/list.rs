@@ -5,7 +5,7 @@ use super::*;
 impl App {
     pub fn load_list(&mut self, append: bool) {
         let job = self.list_job(append);
-        self.spawn(move |b| job.fetch_list(b));
+        self.spawn_group("list", true, move |b| job.fetch_list(b));
     }
 
     pub(super) fn list_job(&self, append: bool) -> ListJob {

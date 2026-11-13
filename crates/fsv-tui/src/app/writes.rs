@@ -109,7 +109,7 @@ impl App {
             return;
         }
         let read_only = self.read_only;
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             let ui = match b.send_ticket_note(&plan, public_confirmed, read_only) {
                 Err(e) => Ui::Failure(actions::failure_detail(&e)),
                 Ok(r) if !r.get("verified").is_some_and(fsv_py::truthy) => Ui::Failure(format!(
@@ -290,7 +290,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("approval-review", true, move |b| {
             let values: Vec<String> = recipients
                 .split(',')
                 .map(|v| v.trim().to_string())
@@ -316,7 +316,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("approval-read", true, move |b| {
             Msg::Ui(vec![match b.approval_targets(&kind, &item.ref_id()) {
                 Ok(rows) => Ui::ApprovalTargets { kind, item, rows },
                 Err(e) => Ui::Failure(format!("Approval inventory unavailable: {e}")),
@@ -389,7 +389,7 @@ impl App {
             return;
         }
         let read_only = self.read_only;
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             Msg::Ui(vec![match b.send_approval(&plan, read_only) {
                 Ok(r) if r.get("verified").is_some_and(fsv_py::truthy) => {
                     Ui::ApprovalResult { item, result: r }
@@ -495,7 +495,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("task-create-review", true, move |b| {
             let ui = match b.change_task_plan(&item.ref_id(), &title, owner.as_deref(), &values) {
                 Ok(plan) => Ui::TaskPlan(item, plan),
                 Err(e) => Ui::Failure(actions::failure_detail(&e)),
@@ -509,7 +509,7 @@ impl App {
             return;
         }
         let read_only = self.read_only;
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             let ui = match b.send_change_task(&plan, read_only) {
                 Err(e) => Ui::Failure(actions::failure_detail(&e)),
                 Ok(r) if !r.get("verified").is_some_and(fsv_py::truthy) || r.get("unverified_fields").is_some_and(fsv_py::truthy) => Ui::Failure(format!(
@@ -524,7 +524,7 @@ impl App {
     }
 
     pub(super) fn load_action_targets(&mut self, kind: String, item: Item, query: String) {
-        self.spawn(move |b| {
+        self.spawn_group("action-read", true, move |b| {
             let outcome = (|| -> Result<(Vec<Value>, Vec<String>), String> {
                 match kind.as_str() {
                     "download" => actions::download_choices(b, &item).map_err(|e| e.to_string()),
@@ -607,7 +607,7 @@ impl App {
     }
 
     pub(super) fn load_task_editor(&mut self, item: Item, target: Value) {
-        self.spawn(move |b| {
+        self.spawn_group("task-read", true, move |b| {
             let tid = target.get("id").cloned().unwrap_or(Value::Null);
             Msg::Ui(vec![match b.task_for_edit(&item.ref_id(), &tid) {
                 Ok((current, fields)) => Ui::TaskEditor {
@@ -734,7 +734,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             Msg::Ui(vec![execute_action_job(
                 b, &kind, item, &target, &body, plan,
             )])
@@ -752,7 +752,7 @@ impl App {
             return;
         }
         let task_id = target.get("id").cloned().unwrap_or(Value::Null);
-        self.spawn(move |b| {
+        self.spawn_group("task-review", true, move |b| {
             let ui = match b.task_mutation_plan(&kind, &item.ref_id(), &task_id, &body) {
                 Ok(plan) => Ui::Push(
                     Box::new(Modal::confirm(
@@ -771,7 +771,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             outcome_msg(
                 b.send_task_mutation(&plan),
                 "Task mutation outcome — do not resend",
@@ -786,7 +786,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("note-review", true, move |b| {
             let ui = match b.problem_note_plan(&item.ref_id(), &body) {
                 Ok(plan) => Ui::Push(
                     Box::new(Modal::confirm(
@@ -808,7 +808,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             outcome_msg(
                 b.send_problem_note(&plan),
                 "Problem note outcome — do not resend",
@@ -823,7 +823,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("status-review", true, move |b| {
             let ui = match b.change_status_plan(&item.ref_id(), &status) {
                 Ok(plan) => Ui::Push(
                     Box::new(Modal::confirm(
@@ -842,7 +842,7 @@ impl App {
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
+        self.spawn_group("write", false, move |b| {
             outcome_msg(
                 b.send_change_status(&plan),
                 "Form outcome — do not resend",
