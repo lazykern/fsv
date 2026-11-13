@@ -23,7 +23,21 @@ pub static GOLDEN: LazyLock<Json> = LazyLock::new(|| {
     serde_json::from_str(&std::fs::read_to_string(p).expect("golden file")).expect("golden json")
 });
 
+/// Point the process-wide config at an empty temp dir (no domain) once,
+/// so no test reads the user's real config.
+pub fn hermetic() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(hermetic_reset);
+}
+
+/// Back to the empty hermetic config (after a test-specific one).
+pub fn hermetic_reset() {
+    static DIR: LazyLock<PathBuf> = LazyLock::new(|| tempfile::tempdir().expect("tempdir").keep());
+    fsv_core::config::use_for_tests(fsv_core::Paths::under(&DIR), "");
+}
+
 pub fn golden(path: &[&str]) -> &'static Json {
+    hermetic();
     path.iter().fold(&*GOLDEN, |v, k| &v[*k])
 }
 
@@ -233,6 +247,7 @@ impl Api for FakeApi {
 }
 
 pub fn fake_client() -> Arc<FakeApi> {
+    hermetic();
     Arc::new(FakeApi::default())
 }
 
