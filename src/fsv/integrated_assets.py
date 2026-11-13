@@ -24,6 +24,12 @@ def search(client: Any, query: str = "", *, kind: str = "devices", page: int = 1
         raise ValueError("choose devices, assets or services and a positive page")
     raw = client._request("GET", f"https://{config.DOMAIN}/itam/core/{FAMILIES[kind]}/api/",
                           params={"order": "", "page": page, "page_size": 50, "q": query})
+    if (page > 1 and isinstance(raw, dict) and isinstance(raw.get("error"), str) and raw.get("data") == []
+            and type(raw.get("total_rows")) is int and 0 <= raw["total_rows"] <= (page - 1) * 50):
+        # Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
+        total = raw["total_rows"]
+        raise ValueError(f"no results on page {page}: the {kind} inventory has {total} row(s) "
+                         f"({max(1, -(-total // 50))} page(s) of 50)")
     if not isinstance(raw, dict) or raw.get("error") or not isinstance(raw.get("data"), list):
         raise ReviewedWriteError("integrated inventory unavailable")
     total = raw.get("total_rows")

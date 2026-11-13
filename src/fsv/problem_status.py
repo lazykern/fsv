@@ -102,7 +102,7 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     if blockers:
         raise ReviewedWriteError("problem rules are unavailable and this write depends on them: " + "; ".join(blockers))
     warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w]
-    status_id, label = task_status.resolve(to, meta.raw_fields)
+    status_id, label = task_status.resolve(to, meta.raw_fields, kind="problem")
     state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, before), resolver=ClientResolver(client))
     field = meta.spec.field("status")
     state.set(field.api_name, status_id)

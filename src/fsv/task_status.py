@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 
-def active_choices(fields: list[dict[str, Any]]) -> list[tuple[int, str]]:
+def active_choices(fields: list[dict[str, Any]], kind: str = "task") -> list[tuple[int, str]]:
     statuses = [f for f in fields if isinstance(f, dict) and f.get("name") == "status"]
     if len(statuses) != 1:
-        raise ValueError("exactly one runtime task-status field is required")
+        raise ValueError(f"exactly one runtime {kind}-status field is required")
     result = []
     for choice in statuses[0].get("choices", []):
         if not isinstance(choice, dict):
@@ -23,11 +23,14 @@ def active_choices(fields: list[dict[str, Any]]) -> list[tuple[int, str]]:
     return result
 
 
-def resolve(value: str, fields: list[dict[str, Any]]) -> tuple[int, str]:
+def resolve(value: str, fields: list[dict[str, Any]], kind: str = "task") -> tuple[int, str]:
+    """``kind`` names the record in messages ("task", "problem")."""
     key = str(value).strip().casefold()
-    matches = [(i, label) for i, label in active_choices(fields) if key in (str(i), label.casefold())]
+    choices = active_choices(fields, kind)
+    matches = [(i, label) for i, label in choices if key in (str(i), label.casefold())]
     if len(matches) != 1:
-        raise ValueError("status must match one active runtime task-status ID or label")
+        raise ValueError(f"status must match one active runtime {kind}-status ID or label; "
+                         f"{value!r} is not one (options: {', '.join(label for _, label in choices)})")
     return matches[0]
 
 

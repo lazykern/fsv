@@ -12,6 +12,7 @@ from fsv.change_tasks import _date
 from fsv.errors import APIError
 from fsv.formmeta import ClientResolver, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta
 from fsv.forms import FormState, build_br_validation_excludes
+from fsv.forms.errors import UnknownFieldError, ValueParseError
 from fsv.forms.payload import TICKET_KEYS, encode_value
 from fsv.resources import TICKETS, parse_id
 
@@ -171,6 +172,13 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
         body["br_validation_excludes"] = build_br_validation_excludes(state.evaluated, "ticket")
     except PropertyError:
         raise
+    except UnknownFieldError as exc:
+        hint = f"; full labels containing it: {', '.join(exc.suggestions)}" if exc.suggestions else \
+            "; see `fsv tickets fields` for the exact labels"
+        raise PropertyError(f"--set field {exc.name!r} did not match a ticket field label exactly{hint}; "
+                            "no update attempted") from None
+    except ValueParseError as exc:
+        raise PropertyError(f"{exc}; no update attempted") from None
     except Exception:
         raise PropertyError("could not evaluate ticket edit form and rules; no update attempted") from None
     return PropertyPlan(cid, config.DOMAIN, json.dumps(body, sort_keys=True, ensure_ascii=False),
