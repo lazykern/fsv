@@ -1443,6 +1443,16 @@ fn get_ticket_bad_tab() {
     );
 }
 
+/// `get_resource`: `elif tab:` / `if tab else None`, so `--tab ""` is no tab.
+#[test]
+fn get_ticket_empty_tab_is_no_tab() {
+    let r = run_fixture("get", &["tickets", "get", "5", "--tab", ""], None);
+    let plain = run_fixture("get", &["tickets", "get", "5"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.out, plain.out);
+    assert_eq!(r.err, plain.err);
+}
+
 #[test]
 fn get_ticket_all_tabs() {
     let r = run_fixture("get", &["tickets", "get", "5", "--all-tabs"], None);

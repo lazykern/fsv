@@ -202,12 +202,49 @@ fn is_digits(s: &str) -> bool {
     !s.is_empty() && s.chars().all(|c| pystr::decimal_value(c).is_some())
 }
 
-fn to_int(v: &Value) -> Option<i64> {
-    match v {
-        Value::Number(n) => n.as_i64(),
-        Value::String(s) => s.trim().parse().ok(),
-        _ => None,
-    }
+/// `int(row[key])`, failing with Python's `KeyError`/`ValueError`/`TypeError` text.
+fn py_int(row: &Value, key: &str) -> Result<i64> {
+    let Some(v) = row.get(key) else {
+        return Err(Error::Other(repr(key)));
+    };
+    let kind = match v {
+        Value::Number(n) => {
+            return n
+                .as_i64()
+                .or_else(|| {
+                    n.as_f64()
+                        .filter(|f| f.is_finite())
+                        .map(|f| f.trunc() as i64)
+                })
+                .ok_or_else(|| Error::Other(format!("cannot convert float {n} to integer")));
+        }
+        Value::Bool(b) => return Ok(i64::from(*b)),
+        Value::String(s) => {
+            // int() skips Unicode White_Space only, not str.isspace()'s U+001C..U+001F.
+            let t = s.trim();
+            let (neg, digits) = match t.strip_prefix('-') {
+                Some(d) => (true, d),
+                None => (false, t.strip_prefix('+').unwrap_or(t)),
+            };
+            let grouped =
+                !digits.starts_with('_') && !digits.ends_with('_') && !digits.contains("__");
+            return pystr::parse_decimal(&digits.replace('_', ""))
+                .filter(|_| !digits.is_empty() && grouped)
+                .map(|n| if neg { -n } else { n })
+                .ok_or_else(|| {
+                    Error::value(format!(
+                        "invalid literal for int() with base 10: {}",
+                        repr(s)
+                    ))
+                });
+        }
+        Value::Null => "NoneType",
+        Value::Array(_) => "list",
+        Value::Object(_) => "dict",
+    };
+    Err(Error::Other(format!(
+        "int() argument must be a string, a bytes-like object or a real number, not '{kind}'"
+    )))
 }
 
 /// `_resolve_requester`: `(id, name)`.
@@ -309,7 +346,7 @@ fn resolve_lookup_user(c: &Client, value: &str, link: Option<&str>) -> Result<Va
     if let Some(link) = link.filter(|l| !l.is_empty()) {
         let rows = c.lookup_choices(link, value)?;
         if rows.len() == 1 {
-            return Ok(json!(to_int(&rows[0]["id"]).unwrap_or(0)));
+            return Ok(json!(py_int(&rows[0], "id")?));
         }
         if rows.len() > 1 {
             return Err(usage(&format!(
@@ -329,7 +366,7 @@ fn resolve_lookup_user(c: &Client, value: &str, link: Option<&str>) -> Result<Va
         })
         .collect();
     if agents.len() == 1 {
-        return Ok(json!(to_int(&agents[0]["user_id"]).unwrap_or(0)));
+        return Ok(json!(py_int(&agents[0], "user_id")?));
     }
     if agents.len() > 1 {
         return Err(usage(&format!(
@@ -347,7 +384,7 @@ fn resolve_lookup_user(c: &Client, value: &str, link: Option<&str>) -> Result<Va
         .filter(|r| !r.get("deleted").is_some_and(fsv_py::truthy))
         .collect();
     if active.len() == 1 {
-        return Ok(json!(to_int(&active[0]["id"]).unwrap_or(0)));
+        return Ok(json!(py_int(&active[0], "id")?));
     }
     if active.len() > 1 {
         return Err(usage(&format!(
@@ -547,7 +584,7 @@ pub fn resolve_set_field(
             let mut out = Vec::new();
             for p in raw_value
                 .split(',')
-                .map(str::trim)
+                .map(pystr::strip)
                 .filter(|p| !p.is_empty())
             {
                 out.push(resolve_lookup_user(c, p, link.as_deref())?);
@@ -557,7 +594,7 @@ pub fn resolve_set_field(
         return Ok((name, resolve_lookup_user(c, raw_value, link.as_deref())?));
     }
     if ftype.contains("checkbox") {
-        let value = pystr::casefold(raw_value.trim());
+        let value = pystr::casefold(pystr::strip(raw_value));
         if !["true", "1", "yes", "on", "false", "0", "no", "off"].contains(&value.as_str()) {
             return Err(usage(&format!(
                 "invalid boolean for {}: {}",
@@ -574,7 +611,7 @@ pub fn resolve_set_field(
         let mut out = Vec::new();
         for p in raw_value
             .split(',')
-            .map(str::trim)
+            .map(pystr::strip)
             .filter(|p| !p.is_empty())
         {
             out.push(choice_value(&f, p, type_)?);
@@ -643,6 +680,45 @@ mod tests {
         assert_eq!(int_id("12"), json!(12));
         assert_eq!(int_id("²"), json!("²"));
         assert_eq!(int_id("-3"), json!(-3));
+    }
+
+    /// `int(rows[0]["id"])` in `_resolve_lookup_user`: a bad id raises
+    /// instead of becoming 0.
+    #[test]
+    fn lookup_user_id_is_python_int() {
+        let ok = [
+            (json!({"id": 7}), 7),
+            (json!({"id": "\u{a0}12\u{3000}"}), 12),
+            (json!({"id": " 1_0 "}), 10),
+            (json!({"id": "-3"}), -3),
+            (json!({"id": 4.9}), 4),
+            (json!({"id": true}), 1),
+        ];
+        for (row, want) in ok {
+            assert_eq!(py_int(&row, "id").unwrap(), want, "{row}");
+        }
+        let bad = [
+            (
+                json!({"id": "abc"}),
+                "invalid literal for int() with base 10: 'abc'",
+            ),
+            (
+                json!({"id": ""}),
+                "invalid literal for int() with base 10: ''",
+            ),
+            (
+                json!({"id": "\u{1c}12"}),
+                "invalid literal for int() with base 10: '\\x1c12'",
+            ),
+            (
+                json!({"id": null}),
+                "int() argument must be a string, a bytes-like object or a real number, not 'NoneType'",
+            ),
+            (json!({}), "'id'"),
+        ];
+        for (row, want) in bad {
+            assert_eq!(py_int(&row, "id").unwrap_err().to_string(), want, "{row}");
+        }
     }
 
     #[test]

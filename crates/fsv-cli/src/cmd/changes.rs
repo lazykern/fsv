@@ -632,9 +632,9 @@ fn create(mut a: ChangesCreateArgs) -> CmdResult {
     ]
     .iter()
     .any(|v| v.is_some());
-    let has_input = a.from_.is_some()
+    let has_input = a.from_.as_deref().is_some_and(|f| !f.is_empty())
         || !a.set_.is_empty()
-        || a.preset.is_some()
+        || a.preset.as_deref().is_some_and(|p| !p.is_empty())
         || legacy
         || !a.attach.is_empty();
     let mut edit = a.edit;

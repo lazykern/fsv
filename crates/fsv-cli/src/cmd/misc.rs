@@ -468,13 +468,9 @@ fn setup_network_completion() -> CmdResult {
         err().print("[yellow]expected on/off; skipping[/yellow]");
         return Ok(());
     }
-    let entry = cfg.entry("completion").or_insert_with(|| json!({}));
-    if !entry.is_object() {
-        *entry = json!({});
-    }
-    if let Some(m) = entry.as_object_mut() {
-        m.insert("network".into(), json!(answer));
-    }
+    crate::util::config_section(&mut cfg, "completion")
+        .map_err(crate::util::uncaught)?
+        .insert("network".into(), json!(answer));
     config::save_config(&cfg)?;
     out().print(&format!("completion.network = {answer}"));
     Ok(())

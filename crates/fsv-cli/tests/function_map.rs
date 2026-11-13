@@ -12,11 +12,9 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-/// Ratchet: the number of `open` entries may only go down.
-const OPEN_CEILING: usize = 0;
 /// Ratchet: `matched` (name match, not yet reviewed line by line) entries
 /// may only go down as they become `reviewed`.
-const UNREVIEWED_CEILING: usize = 265;
+const UNREVIEWED_CEILING: usize = 186;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -126,7 +124,7 @@ fn every_python_module_is_covered() {
 }
 
 #[test]
-fn open_queue_only_shrinks() {
+fn open_queue_stays_empty() {
     let map = load();
     let open = map["entries"]
         .as_array()
@@ -134,10 +132,7 @@ fn open_queue_only_shrinks() {
         .iter()
         .filter(|e| e["status"] == "open")
         .count();
-    assert!(
-        open <= OPEN_CEILING,
-        "open parity items grew to {open} (ceiling {OPEN_CEILING})"
-    );
+    assert_eq!(open, 0, "open parity items reappeared: {open}");
 }
 
 #[test]

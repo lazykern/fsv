@@ -421,7 +421,7 @@ pub fn get(res: &'static Resource, a: ResGetArgs) -> CmdResult {
         fsv_core::output::emit_delimited(&rows, delim)?;
         return Ok(());
     }
-    let active = match a.tab.as_deref() {
+    let active = match a.tab.as_deref().filter(|t| !t.is_empty()) {
         Some(t) if !a.all_tabs => Some(d.resolve_tab(t).map_err(|e| usage(&e.to_string()))?),
         _ => None,
     };
@@ -477,7 +477,7 @@ fn load_detail(
             .into_iter()
             .filter(|n| n != "details")
             .collect()
-    } else if let Some(t) = a.tab.as_deref() {
+    } else if let Some(t) = a.tab.as_deref().filter(|t| !t.is_empty()) {
         vec![d.resolve_tab(t).map_err(|e| usage(&e.to_string()))?]
     } else {
         Vec::new()
@@ -914,10 +914,9 @@ pub fn lookup(res: &'static Resource, a: ResLookupArgs) -> CmdResult {
                     cs.iter()
                         .filter(|x| {
                             a.query.is_empty()
-                                || pystr::casefold(&first_str(
+                                || pystr::casefold(&crate::util::or_chain_str(
                                     x,
                                     &["value", "label", "name", "id"],
-                                    "None",
                                 ))
                                 .contains(&q)
                         })

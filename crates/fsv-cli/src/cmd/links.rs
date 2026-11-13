@@ -202,7 +202,7 @@ fn cat_name(cat: &Category) -> String {
 
 /// Port of fsv.cli._resolve_asset_category.
 fn resolve_asset_category(value: &str, c: &Client) -> Result<Category, Error> {
-    let raw = value.split_whitespace().collect::<Vec<_>>().join(" ");
+    let raw = fsv_core::pystr::collapse_ws(value);
     if raw.is_empty() {
         return Err(usage("empty asset category"));
     }
@@ -645,7 +645,7 @@ pub fn assets(o: AssetOpts) -> CmdResult {
     }
     let fmt = effective(o.fmt, o.json_out);
     let c = client()?;
-    let category = match &o.category {
+    let category = match o.category.as_deref().filter(|n| !n.is_empty()) {
         Some(name) => Some(resolve_asset_category(name, &c).map_err(fail_exc)?),
         None => None,
     };
@@ -1326,6 +1326,18 @@ mod tests {
                 "{case}"
             );
         }
+    }
+
+    /// `" ".join(value.split())` splits on U+001C..U+001F too.
+    #[test]
+    fn resolve_asset_category_python_whitespace() {
+        let (_env, t) = links();
+        fresh();
+        assert_eq!(
+            outcome(|| resolve_asset_category("\u{1f}all\u{1c}", &t.client)),
+            json!({"ok": {"name": "All assets", "filter": "all_assets", "ci_type_id": ""}, "text": ""})
+        );
+        assert!(t.requests().is_empty());
     }
 
     /// `str.isdigit()` then `int`: `१२` is display id 12 and never a name search.

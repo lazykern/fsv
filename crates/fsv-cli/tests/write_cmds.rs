@@ -2465,6 +2465,24 @@ fn change_create_plan_changed() {
     );
 }
 
+/// `create_command`: `has_input = bool(from_file or sets or preset or ...)`,
+/// so empty `--from`/`--preset` are no input.
+#[test]
+fn change_create_empty_from_is_no_input() {
+    let plain = run_fixture("change_create", &["changes", "create", "--dry-run"], None);
+    for flag in ["--from", "--preset"] {
+        let r = run_fixture(
+            "change_create",
+            &["changes", "create", flag, "", "--dry-run"],
+            None,
+        );
+        assert_eq!((r.code, &r.out), (0, &plain.out), "{flag}: {}", r.err);
+        let r = run_fixture("change_create", &["changes", "create", flag, ""], None);
+        assert_eq!(r.code, 2, "{flag}: {}", r.err);
+        assert!(r.err.contains("nothing to create"), "{flag}: {}", r.err);
+    }
+}
+
 #[test]
 fn change_create_template() {
     let r = run_fixture("change_create", &["changes", "create", "--dry-run"], None);

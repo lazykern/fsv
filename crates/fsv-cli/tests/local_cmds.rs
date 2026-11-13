@@ -221,6 +221,35 @@ tui.read_only = (unset)  # open the TUI without write actions
     assert_eq!(r.err, r#""#);
 }
 
+/// `cfg.setdefault(section, {})[prop] = value` raises `TypeError` on a
+/// non-dict section (traceback, exit 1) and saves nothing.
+#[test]
+fn config_set_non_object_section() {
+    let env = Env::new(fixture("local"));
+    let cfg = env.config_dir();
+    std::fs::create_dir_all(&cfg).unwrap();
+    let file = cfg.join("config.json");
+    let before = r#"{"domain": "acme.freshservice.com", "completion": "x"}"#;
+    std::fs::write(&file, before).unwrap();
+    let r = env.run(&["config", "set", "completion.network", "on"]);
+    assert_eq!(r.code, 1, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(
+        r.err,
+        "error: 'str' object does not support item assignment\n"
+    );
+    assert_eq!(std::fs::read_to_string(&file).unwrap(), before);
+}
+
+/// `defaults_show`: `[resource] if resource else list(REGISTRY)`.
+#[test]
+fn config_defaults_show_empty_resource_is_all() {
+    let all = run_fixture("local", &["config", "defaults", "show"], None);
+    let r = run_fixture("local", &["config", "defaults", "show", ""], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.out, all.out);
+}
+
 #[test]
 fn config_set_prints_value() {
     let r = run_fixture(

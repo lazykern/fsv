@@ -93,12 +93,9 @@ pub fn set(a: ConfigSetArgs) -> CmdResult {
         return Err(unknown_key(&a.key));
     }
     let mut cfg = config::load_config();
-    let entry = cfg
-        .entry(section.to_string())
-        .or_insert_with(|| Value::Object(Map::new()));
-    if let Value::Object(m) = entry {
-        m.insert(prop.to_string(), Value::String(a.value.clone()));
-    }
+    crate::util::config_section(&mut cfg, section)
+        .map_err(crate::util::uncaught)?
+        .insert(prop.to_string(), Value::String(a.value.clone()));
     config::save_config(&cfg)?;
     out().print(&format!("{} = {}", a.key, a.value));
     Ok(())
@@ -106,7 +103,7 @@ pub fn set(a: ConfigSetArgs) -> CmdResult {
 
 /// `fsv config defaults show [RESOURCE]`.
 pub fn defaults_show(a: ConfigDefaultsShowArgs) -> CmdResult {
-    let names: Vec<String> = match a.resource {
+    let names: Vec<String> = match a.resource.filter(|r| !r.is_empty()) {
         Some(r) => vec![r],
         None => REGISTRY.iter().map(|r| r.name.to_string()).collect(),
     };

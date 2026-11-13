@@ -154,12 +154,22 @@ fn sr_print_plan(plan: &SrReviewed, as_json: bool, display_id: &Value) {
     }
 }
 
+/// `cli_sr._yaml_norm`: `norm(str(v))`, so falsy `0`/`false` stay distinct.
+fn yaml_norm(v: Option<&Value>) -> Value {
+    let n = |x: &Value| json!(fsv_core::safety::norm(&fsv_py::py_str(x)));
+    match v {
+        Some(Value::Array(items)) => Value::Array(items.iter().map(n).collect()),
+        None | Some(Value::Null) => Value::Null,
+        Some(Value::String(s)) if s.is_empty() => Value::Null,
+        Some(other) => n(other),
+    }
+}
+
 /// `cli_sr.edit_loop`.
 fn sr_edit_loop(
     build: &dyn Fn(&SrDraft) -> Result<cat::SRPlan, Error>,
     draft: SrDraft,
 ) -> Result<(SrDraft, cat::SRPlan), Error> {
-    use fsv_flows::change::yaml_norm;
     let mut draft = draft;
     let mut plan = build(&draft)?;
     let mut errors: Vec<String> = Vec::new();
@@ -1547,6 +1557,26 @@ fn same_email(found: &str, given: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Values from `cli_sr._yaml_norm`.
+    #[test]
+    fn yaml_norm_matches_python() {
+        let cases = [
+            (Some(json!(0)), json!("0")),
+            (Some(json!(false)), json!("false")),
+            (Some(json!("")), Value::Null),
+            (Some(Value::Null), Value::Null),
+            (None, Value::Null),
+            (Some(json!("  A\u{1f} b ")), json!("a b")),
+            (
+                Some(json!([0, "X", null, ""])),
+                json!(["0", "x", "none", ""]),
+            ),
+        ];
+        for (v, want) in cases {
+            assert_eq!(yaml_norm(v.as_ref()), want, "{v:?}");
+        }
+    }
 
     #[test]
     fn cc_exact_match_casefolds_like_python() {

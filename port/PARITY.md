@@ -198,6 +198,18 @@ those stay identical.
   `OSError`.
 - Planning attachment download skips an `attachments` value that is not a
   list. Python raises `TypeError`.
+- A `FormError` raised while building a change or SR plan prints with its
+  whitespace collapsed, like a value error. Python prints it unchanged.
+  fsv-api and fsv-app fold `FormError` into `Error::Value`, so the CLI
+  cannot tell the two apart (open: needs a separate error variant).
+- CLI line prompts stand in for prompt_toolkit's text and checkbox dialogs
+  (`_prompt_text`, `_prompt_multi_select`); EOF or empty input cancels.
+- `completion doctor` with `fsv` off PATH shows the program basename, not
+  the full `sys.argv[0]`.
+- `setup` escapes the echoed defaults list. Python renders it as Rich
+  markup, so a value like `[bold]` disappears.
+- `--where` digit ids that `int()` rejects (superscripts) or that overflow
+  stay text.
 
 ## fsv-app
 

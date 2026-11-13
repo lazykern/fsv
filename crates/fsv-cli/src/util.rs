@@ -278,6 +278,44 @@ pub fn first_str(v: &Value, keys: &[&str], default: &str) -> String {
         .map_or_else(|| default.to_string(), fsv_py::py_str)
 }
 
+/// `str(d.get(a) or ... or d.get(last))`: the last key is taken as is.
+pub fn or_chain_str(v: &Value, keys: &[&str]) -> String {
+    let Some((last, rest)) = keys.split_last() else {
+        return "None".into();
+    };
+    rest.iter()
+        .find_map(|k| v.get(*k).filter(|x| fsv_py::truthy(x)))
+        .or_else(|| v.get(*last))
+        .map_or_else(|| "None".to_string(), fsv_py::py_str)
+}
+
+/// `cfg.setdefault(section, {})` used for item assignment: a non-dict value
+/// fails with Python's `TypeError` text.
+pub fn config_section<'a>(
+    cfg: &'a mut Map<String, Value>,
+    section: &str,
+) -> Result<&'a mut Map<String, Value>> {
+    let entry = cfg
+        .entry(section.to_string())
+        .or_insert_with(|| Value::Object(Map::new()));
+    let kind = match entry {
+        Value::Object(m) => return Ok(m),
+        Value::Array(_) => {
+            return Err(Error::Other(
+                "list indices must be integers or slices, not str".into(),
+            ));
+        }
+        Value::Null => "NoneType",
+        Value::Bool(_) => "bool",
+        Value::Number(n) if n.is_f64() => "float",
+        Value::Number(_) => "int",
+        Value::String(_) => "str",
+    };
+    Err(Error::Other(format!(
+        "'{kind}' object does not support item assignment"
+    )))
+}
+
 /// Python's `repr()` of a list of strings.
 pub fn py_list(items: &[String]) -> String {
     fsv_py::py_repr(&json!(items))
@@ -326,5 +364,46 @@ mod tests {
         }
         fsv_core::runtime::set_no_input(false);
         env.set_env("FSV_TEST_TTY", None);
+    }
+
+    /// `str(x.get("value") or x.get("label") or x.get("id"))`.
+    #[test]
+    fn or_chain_str_keeps_last_raw() {
+        let keys = ["value", "label", "id"];
+        assert_eq!(or_chain_str(&json!({"value": "", "id": 0}), &keys), "0");
+        assert_eq!(or_chain_str(&json!({"label": "L", "id": 0}), &keys), "L");
+        assert_eq!(or_chain_str(&json!({"id": false}), &keys), "False");
+        assert_eq!(or_chain_str(&json!({}), &keys), "None");
+    }
+
+    /// `cfg.setdefault(section, {})[prop] = value` on a non-dict section.
+    #[test]
+    fn config_section_type_errors() {
+        let cases = [
+            (json!("x"), "'str' object does not support item assignment"),
+            (
+                json!([1]),
+                "list indices must be integers or slices, not str",
+            ),
+            (
+                json!(null),
+                "'NoneType' object does not support item assignment",
+            ),
+            (json!(1), "'int' object does not support item assignment"),
+            (
+                json!(true),
+                "'bool' object does not support item assignment",
+            ),
+        ];
+        for (v, want) in cases {
+            let mut cfg = obj(vec![("completion", v)]);
+            let e = config_section(&mut cfg, "completion").unwrap_err();
+            assert_eq!(e.to_string(), want);
+        }
+        let mut cfg = Map::new();
+        config_section(&mut cfg, "completion")
+            .unwrap()
+            .insert("network".into(), json!("on"));
+        assert_eq!(Value::Object(cfg), json!({"completion": {"network": "on"}}));
     }
 }
