@@ -755,7 +755,10 @@ impl Backend for LiveBackend {
             order_by: Some(&req.order_by),
             order_type: Some(&req.order_type),
             query_hash: req.query_hash.as_deref().filter(|q| !q.is_empty()),
-            or_grouping: false,
+            or_grouping: req
+                .query_hash
+                .as_deref()
+                .is_some_and(|q| q.starts_with('{')),
         };
         Ok(svc::list_page(self.api(), req.res, &args)?)
     }

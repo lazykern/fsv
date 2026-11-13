@@ -98,23 +98,27 @@ fn build_query_hash(
             value: raw.to_string(),
         });
     }
+    let mut sch = None;
     if !where_.is_empty() {
-        let sch = schema::load(res, c, false)?;
+        let loaded = schema::load(res, c, false)?;
         for expr in where_ {
-            query.push(filters::resolve_where(c, res, &sch, expr, &mut explain)?);
+            query.push(filters::resolve_where(c, res, &loaded, expr, &mut explain)?);
         }
+        sch = Some(loaded);
     }
-    let query = merge_same_conditions(filters::merge_date_ranges(query));
+    let query = merge_same_conditions(filters::merge_date_ranges(query)?);
     if query.is_empty() {
         return Ok((None, query, explain));
     }
-    let payload = if or_grouping {
-        json!({"any": query})
+    let advanced = or_grouping || fsv_api::adv_needed(&query);
+    let workspace = if advanced {
+        fsv_api::runtime_workspace(fsv_api::configured_workspace(), sch.as_ref())
     } else {
-        Value::Array(query.clone())
+        Value::Null
     };
-    let text = fsv_py::Dumps::default().separators(",", ":").dump(&payload);
-    Ok((Some(text), query, explain))
+    let (payload, _, clean) = fsv_api::serialize(res.name, &query, or_grouping, &workspace)
+        .map_err(|e| Error::value(e.0))?;
+    Ok((payload, if advanced { query } else { clean }, explain))
 }
 
 /// `_show_query_explain`.
@@ -135,8 +139,13 @@ fn show_query_explain(explain: &[fsv_api::Explain], query: &[Value], or_grouping
     }
     out().print_table(&t);
     let grouping = if or_grouping { "OR" } else { "AND" };
+    let param = if or_grouping || fsv_api::adv_needed(query) {
+        "advanced_query_hash"
+    } else {
+        "query_hash"
+    };
     out().print(&format!(
-        "api: internal /api/_/ with query_hash ({} conditions, {grouping})",
+        "api: internal /api/_/ with {param} ({} conditions, {grouping})",
         query.len()
     ));
 }
@@ -179,11 +188,11 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
         show_query_explain(&explain, &query, a.or_grouping);
         return Ok(());
     }
-    if a.or_grouping && res.name != fsv_core::resource::CHANGES.name {
-        return Err(usage(&format!(
-            "OR grouping not supported for {}; use AND filters",
-            res.name
-        )));
+    let advanced = a.or_grouping || fsv_api::adv_needed(&query);
+    for x in &explain {
+        if x.value.contains("no strict operator exists") {
+            err().print(&escape(&format!("note: {} {}", x.field, x.value)));
+        }
     }
     let view = pick_view(
         &c,
@@ -238,7 +247,7 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
                 order_by: Some(&ob),
                 order_type: Some(&ot),
                 query_hash: qh.as_deref(),
-                or_grouping: a.or_grouping,
+                or_grouping: advanced,
             },
         )
     };

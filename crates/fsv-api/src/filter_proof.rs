@@ -138,8 +138,53 @@ fn scalar(value: &Value) -> Result<String> {
     }
 }
 
+const NUMBER_OPS: [&str; 4] = [
+    "is",
+    "is_not",
+    "is_greater_than_or_equal",
+    "is_less_than_or_equal",
+];
+
+/// `_number_matches`: the captured `custom_number` wire (string value,
+/// inclusive comparisons).
+fn number_matches(
+    row: &Map<String, Value>,
+    name: &str,
+    op: &str,
+    value: Option<&Value>,
+) -> Result<bool> {
+    let shown = fsv_py::py_repr_str(name);
+    let Some(actual) = row
+        .get("custom_fields")
+        .and_then(Value::as_object)
+        .and_then(|s| s.get(name))
+    else {
+        return Err(Error::value(format!(
+            "predicate field unavailable in exact record: {shown}"
+        )));
+    };
+    let unverifiable = || {
+        Error::value(format!(
+            "predicate cannot be independently verified for {shown}"
+        ))
+    };
+    let Some(Value::String(expected)) = value else {
+        return Err(unverifiable());
+    };
+    if actual.is_null() || actual.is_boolean() {
+        return Err(unverifiable());
+    }
+    let ord = fsv_py::decimal_cmp(&py_str(actual), expected).ok_or_else(unverifiable)?;
+    Ok(match op {
+        "is" => ord.is_eq(),
+        "is_not" => ord.is_ne(),
+        "is_greater_than_or_equal" => ord.is_ge(),
+        _ => ord.is_le(),
+    })
+}
+
 /// Port of `filter_proof.matches`: whether the exact record satisfies every
-/// `is_in` / `is_not_in` clause. Anything else cannot be proven.
+/// `is_in` / `is_not_in` and number clause. Anything else cannot be proven.
 pub fn matches(row: &Map<String, Value>, clauses: &[Value]) -> Result<bool> {
     if clauses.is_empty() {
         return Err(Error::value(
@@ -150,6 +195,14 @@ pub fn matches(row: &Map<String, Value>, clauses: &[Value]) -> Result<bool> {
         let name = clause.get("condition");
         let kind = clause.get("type").and_then(Value::as_str);
         let op = clause.get("operator").and_then(Value::as_str);
+        if let (Some(op), Some("custom_field"), Some(Value::String(field))) = (op, kind, name)
+            && NUMBER_OPS.contains(&op)
+        {
+            if !number_matches(row, field, op, clause.get("value"))? {
+                return Ok(false);
+            }
+            continue;
+        }
         let values = clause.get("value").and_then(Value::as_array);
         let (
             Some(Value::String(field)),

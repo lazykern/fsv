@@ -1985,14 +1985,28 @@ fn ls_where_filtered() {
     );
 }
 
+/// Python `406ca71`: `--or` works on tickets too; with no filters it is the
+/// plain default-view list.
 #[test]
-fn ls_or_not_changes() {
+fn ls_or_tickets_without_filters() {
     let r = run_fixture("ls", &["tickets", "ls", "--or"], None);
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"Open in my groups · 1-2 of 3 · Sort by: Created Date
+┏━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃Subject    ┃ Requester ┃ State ┃ Status   ┃ Priority ┃ Assigned to┃
+┡━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━┩
+│Item 1     │ Ann       │ --    │ Open     │ Low      │ None       │
+│#INC-1     │           │       │          │          │            │
+│Second [x] │ Ann       │ --    │ Resolved │ Low      │ None       │
+│#INC-2     │           │       │          │          │            │
+└───────────┴───────────┴───────┴──────────┴──────────┴────────────┘
+"#
+    );
     assert_eq!(
         r.err,
-        r#"error: OR grouping not supported for tickets; use AND filters
+        r#"2 rows
 "#
     );
 }
@@ -2057,7 +2071,7 @@ fn ls_changes_or_debug() {
 ┡━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩
 │ status │ status    │ is_in    │ default │ 1     │
 └────────┴───────────┴──────────┴─────────┴───────┘
-api: internal /api/_/ with query_hash (1 conditions, OR)
+api: internal /api/_/ with advanced_query_hash (1 conditions, OR)
 "#
     );
     assert_eq!(r.err, r#""#);

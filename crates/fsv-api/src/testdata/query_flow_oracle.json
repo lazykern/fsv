@@ -81,14 +81,8 @@
    "cf_tier=gold": {
     "ok": "[{\"value\":[\"Gold\"],\"condition\":\"cf_tier\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
    },
-   "Count=12": {
-    "ok": "[{\"value\":[12],\"condition\":\"cf_count\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
-   },
-   "Count=-12": {
-    "ok": "[{\"value\":[\"-12\"],\"condition\":\"cf_count\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
-   },
    "Subject='Acme = ready'": {
-    "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+    "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv changes search TEXT` for a keyword search"
    },
    "group=Acme Ops": {
     "ok": "[{\"value\":[\"93\"],\"condition\":\"group_id\",\"operator\":\"is_in\",\"type\":\"default\"}]"
@@ -147,16 +141,28 @@
     "err": "operator '~=' not supported on ID fields; use = or !="
    },
    "created_at!=2026-01-01": {
-    "err": "operator '!=' is not supported for date field 'created_at'; use a range such as `>=` / `<=`"
+    "err": "date operator '!=' is not supported; use = > >= < <= (whole days)"
    },
    "created_at>2026-01-01": {
-    "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+    "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
    },
    "created_at<2026-01-01": {
-    "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+    "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
+   },
+   "created_at>=2026-01-01": {
+    "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
+   },
+   "created_at<=2026-01-01": {
+    "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
+   },
+   "created_at>2026-01-01T10:00": {
+    "err": "date filters take a whole day YYYY-MM-DD (the server ignores time of day) or a relative on:/last:/next: period; nothing was sent"
    },
    "created_at~=2026": {
-    "err": "unsupported date operator '~='; use = >= <="
+    "err": "date filters take a whole day YYYY-MM-DD (the server ignores time of day) or a relative on:/last:/next: period; nothing was sent"
+   },
+   "created_at~=2026-01-01": {
+    "err": "date operator '~=' is not supported; use = > >= < <= (whole days)"
    }
   },
   "date_bounds": [
@@ -164,36 +170,33 @@
     "field": "created_at",
     "lower": ">=",
     "upper": "<=",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"created_at\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "updated_at",
     "lower": ">=",
     "upper": "<=",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"updated_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"updated_at\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "due_by",
     "lower": ">=",
     "upper": "<=",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "planned_start_date",
     "lower": ">=",
     "upper": "<=",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_start_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_start_date\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "planned_end_date",
     "lower": ">=",
     "upper": "<=",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_end_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_end_date\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    }
   ],
-  "exact_date": {
-   "ok": "[{\"value\":{\"from\":\"2026-02-01\",\"to\":\"2026-01-01\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
-  },
   "find_field": [
    {
     "fields": [
@@ -275,7 +278,7 @@
   "people": {
    "changes": {
     "ok": [
-     "{\"any\":[{\"value\":[{\"id\":71,\"name\":\"Alex Acme\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"171\"],\"condition\":\"agent_id\",\"operator\":\"is_in\",\"type\":\"default\"}]}",
+     "{\"any\":[{\"value\":[{\"id\":71,\"name\":\"Alex Acme\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"171\"],\"condition\":\"agent_id\",\"operator\":\"is_in\",\"type\":\"default\"}],\"all\":[]}",
      [
       {
        "value": [
@@ -331,7 +334,7 @@
    },
    "tickets": {
     "ok": [
-     "{\"any\":[{\"value\":[{\"id\":71,\"name\":\"Alex Acme\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"171\"],\"condition\":\"responder_id\",\"operator\":\"is_in\",\"type\":\"default\"}]}",
+     "{\"any\":[{\"value\":[{\"id\":71,\"name\":\"Alex Acme\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"171\"],\"condition\":\"responder_id\",\"operator\":\"is_in\",\"type\":\"default\"}],\"all\":[]}",
      [
       {
        "value": [
@@ -586,71 +589,71 @@
    "builder": {
     "changes": {
      "created_at>2030-01-01": {
-      "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "created_at<2030-01-01": {
-      "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "Subject~=Acme": {
-      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+      "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv changes search TEXT` for a keyword search"
      },
      "Count>12": {
-      "err": "operator '>' not supported for this field; use = or !="
+      "err": "operator '>' not supported for number field 'Count'; use = != >= <= (the filter builder has no strict > or <)"
      },
      "status~=Open": {
       "err": "operator ~= (contains) not supported; use = or !="
      },
      "created_at>=2030-01-01": {
-      "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "Subject='=Acme'": {
-      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+      "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv changes search TEXT` for a keyword search"
      }
     },
     "tickets": {
      "created_at>2030-01-01": {
-      "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "created_at<2030-01-01": {
-      "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "Subject~=Acme": {
-      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+      "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search"
      },
      "Count>12": {
-      "err": "operator '>' not supported for this field; use = or !="
+      "err": "operator '>' not supported for number field 'Count'; use = != >= <= (the filter builder has no strict > or <)"
      },
      "status~=Open": {
       "err": "operator ~= (contains) not supported; use = or !="
      },
      "created_at>=2030-01-01": {
-      "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "Subject='=Acme'": {
-      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+      "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search"
      }
     },
     "problems": {
      "created_at>2030-01-01": {
-      "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "created_at<2030-01-01": {
-      "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "Subject~=Acme": {
-      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+      "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv problems search TEXT` for a keyword search"
      },
      "Count>12": {
-      "err": "operator '>' not supported for this field; use = or !="
+      "err": "operator '>' not supported for number field 'Count'; use = != >= <= (the filter builder has no strict > or <)"
      },
      "status~=Open": {
       "err": "operator ~= (contains) not supported; use = or !="
      },
      "created_at>=2030-01-01": {
-      "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+      "err": "a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
      },
      "Subject='=Acme'": {
-      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+      "err": "no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv problems search TEXT` for a keyword search"
      }
     }
    }
@@ -758,6 +761,22 @@
     []
    ],
    "from_schema": null
+  },
+  "number": {
+   "Count=12": {
+    "ok": "{\"all\":[{\"value\":\"12\",\"condition\":\"cf_count\",\"operator\":\"is\",\"type\":\"custom_field\"}],\"any\":[]}"
+   },
+   "Count=-12": {
+    "ok": "{\"all\":[{\"value\":\"-12\",\"condition\":\"cf_count\",\"operator\":\"is\",\"type\":\"custom_field\"}],\"any\":[]}"
+   }
+  },
+  "repeated_bound": {
+   "due_by=2026-01-01|due_by>=2026-02-01": {
+    "err": "two 'from' bounds for due_by; give one lower and one upper bound"
+   },
+   "due_by>=2026-02-01|due_by<=2026-01-01": {
+    "err": "empty date range on due_by: from 2026-02-01 is after to 2026-01-01"
+   }
   }
  },
  "state_flow": {

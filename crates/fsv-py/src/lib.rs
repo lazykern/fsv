@@ -6,6 +6,7 @@
 //! `str()`/`repr()` of JSON values. Everything here reproduces CPython's
 //! output byte for byte for values that come from JSON (`serde_json::Value`).
 
+mod decimal;
 mod float;
 pub mod html_entities;
 mod json;
@@ -14,6 +15,7 @@ mod provenance_tests;
 mod repr;
 mod value;
 
+pub use decimal::decimal_cmp;
 pub use float::float_repr;
 pub use json::{Dumps, canonical, compact, dumps, pretty};
 pub use repr::{py_repr, py_repr_str, py_str};

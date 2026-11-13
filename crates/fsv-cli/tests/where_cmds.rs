@@ -25,14 +25,20 @@ fn query_hash_bad_json() {
 
 /// `query_hash` sent to `/api/_/RES`, and how many `/api/v2/agents/me` calls.
 fn sent(r: &common::Run, res: &str) -> (String, usize) {
+    sent_param(r, res, "query_hash")
+}
+
+/// `PARAM` sent to `/api/_/RES`, and how many `/api/v2/agents/me` calls.
+fn sent_param(r: &common::Run, res: &str, param: &str) -> (String, usize) {
     let list = format!("/api/_/{res}?");
+    let key = format!("{param}=");
     let hash = r
         .calls()
         .iter()
         .find_map(|(_, p)| p.strip_prefix(&list).map(str::to_string))
         .and_then(|q| {
             q.split('&')
-                .find_map(|kv| kv.strip_prefix("query_hash=").map(str::to_string))
+                .find_map(|kv| kv.strip_prefix(key.as_str()).map(str::to_string))
         })
         .map(|v| fsv_core::pystr::unquote(&v.replace('+', " ")))
         .unwrap_or_default();
@@ -71,7 +77,7 @@ fn where_payload_merges_dates_and_choices() {
     assert_eq!(
         sent(&r, "tickets"),
         (
-            r#"[{"value":{"from":"2026-01-01","to":"2026-02-01"},"condition":"created_at","operator":"custom_date","type":"default"},{"value":["0"],"condition":"responder_id","operator":"is_in","type":"default"},{"value":["-1"],"condition":"group_id","operator":"is_in","type":"default"},{"value":[2,4],"condition":"status","operator":"is_in","type":"default"}]"#.into(),
+            r#"[{"value":{"from":"2026-01-01","to":"2026-02-01"},"condition":"created_at","operator":"is_in_the_range","type":"default"},{"value":["0"],"condition":"responder_id","operator":"is_in","type":"default"},{"value":["-1"],"condition":"group_id","operator":"is_in","type":"default"},{"value":[2,4],"condition":"status","operator":"is_in","type":"default"}]"#.into(),
             1
         )
     );
@@ -94,10 +100,11 @@ fn where_payload_requester_me_custom_fields() {
         None,
     );
     assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(sent(&r, "tickets"), (String::new(), 1));
     assert_eq!(
-        sent(&r, "tickets"),
+        sent_param(&r, "tickets", "advanced_query_hash"),
         (
-            r#"[{"value":[{"id":99,"name":"Me Agent"}],"condition":"requester_id","operator":"is_in","type":"default"},{"value":[5],"condition":"cf_count","operator":"is_in","type":"custom_field"},{"value":["Prod"],"condition":"cf_env","operator":"is_in","type":"custom_field"}]"#.into(),
+            r#"{"all":[{"value":[{"id":99,"name":"Me Agent"}],"condition":"requester_id","operator":"is_in","type":"default"},{"value":"5","condition":"cf_count","operator":"is","type":"custom_field"},{"value":["Prod"],"condition":"cf_env","operator":"is_in","type":"custom_field"}],"any":[]}"#.into(),
             1
         )
     );
@@ -194,7 +201,7 @@ fn where_period_token_lt() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: date operator '<' is not supported; use =, >= or <= (inclusive)
+        r#"error: relative date periods support only = or >=; no inverse period wire is proven
 "#
     );
 }
@@ -210,7 +217,7 @@ fn where_date_strict_gt_rejected() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: date operator '>' is not supported; use =, >= or <= (inclusive)
+        r#"error: a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent
 "#
     );
 }
@@ -226,7 +233,7 @@ fn where_date_period_gt_rejected() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: date operator '>' is not supported; use =, >= or <= (inclusive)
+        r#"error: relative date periods support only = or >=; no inverse period wire is proven
 "#
     );
 }
@@ -242,7 +249,7 @@ fn where_change_date_lt_rejected() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: date operator '<' is not supported; use =, >= or <= (inclusive)
+        r#"error: a date range on created_at needs both ends (e.g. created_at>=2030-01-01 and created_at<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent
 "#
     );
 }
@@ -265,13 +272,13 @@ fn where_date_range_merged() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"                             query                              
-┏━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ field      ┃ condition  ┃ operator    ┃ type    ┃ value      ┃
-┡━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
-│ created    │ created_at │ custom_date │ default │ 2026-01-01 │
-│ created_at │ created_at │ custom_date │ default │ 2026-02-01 │
-└────────────┴────────────┴─────────────┴─────────┴────────────┘
+        r#"                               query                                
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ field      ┃ condition  ┃ operator        ┃ type    ┃ value      ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
+│ created    │ created_at │ is_in_the_range │ default │ 2026-01-01 │
+│ created_at │ created_at │ is_in_the_range │ default │ 2026-02-01 │
+└────────────┴────────────┴─────────────────┴─────────┴────────────┘
 api: internal /api/_/ with query_hash (1 conditions, AND)
 "#
     );
@@ -295,7 +302,7 @@ fn where_date_not_equal() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: date operator '!=' is not supported; use =, >= or <= (inclusive)
+        r#"error: date operator '!=' is not supported; use = > >= < <= (whole days)
 "#
     );
 }
@@ -311,7 +318,7 @@ fn where_date_contains_rejected() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: unsupported date operator '~='; use = >= <=
+        r#"error: date filters take a whole day YYYY-MM-DD (the server ignores time of day) or a relative on:/last:/next: period; nothing was sent
 "#
     );
 }
@@ -329,19 +336,101 @@ fn where_due_label() {
         ],
         None,
     );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: a date range on due_by needs both ends (e.g. due_by>=2030-01-01 and due_by<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent
+"#
+    );
+}
+
+/// Python `406ca71` through the CLI on the same schema.
+#[test]
+fn where_due_label_range() {
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "Due Date>=2026-02-01",
+            "--where",
+            "Due Date<=2026-02-28",
+            "--debug",
+        ],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"                            query                            
-┏━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ field    ┃ condition ┃ operator    ┃ type    ┃ value      ┃
-┡━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
-│ Due Date │ due_by    │ custom_date │ default │ 2026-02-01 │
-└──────────┴───────────┴─────────────┴─────────┴────────────┘
+        r#"                              query                              
+┏━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ field    ┃ condition ┃ operator        ┃ type    ┃ value      ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
+│ Due Date │ due_by    │ is_in_the_range │ default │ 2026-02-01 │
+│ Due Date │ due_by    │ is_in_the_range │ default │ 2026-02-28 │
+└──────────┴───────────┴─────────────────┴─────────┴────────────┘
 api: internal /api/_/ with query_hash (1 conditions, AND)
 "#
     );
     assert_eq!(r.err, r#""#);
+}
+
+/// Python `406ca71` through the CLI on the same schema: relative `on` and
+/// number conditions go to `advanced_query_hash`.
+#[test]
+fn where_advanced_debug() {
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "created=on:yesterday",
+            "--where",
+            "Count=3",
+            "--debug",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"                              query                              
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ field   ┃ condition  ┃ operator ┃ type         ┃ value        ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ created │ created_at │ on       │ default      │ on:yesterday │
+│ Count   │ cf_count   │ is       │ custom_field │ 3            │
+└─────────┴────────────┴──────────┴──────────────┴──────────────┘
+api: internal /api/_/ with advanced_query_hash (2 conditions, AND)
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+/// Python `406ca71`: text fields have no list filter.
+#[test]
+fn where_text_field_refused() {
+    let r = run_fixture(
+        "where",
+        &["tickets", "ls", "--where", "Note=hi", "--debug"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: no list filter exists for text field 'Note': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword 
+search
+"#
+    );
+    assert!(
+        r.calls()
+            .iter()
+            .all(|(_, p)| !p.starts_with("/api/_/tickets?"))
+    );
 }
 
 #[test]
@@ -774,7 +863,7 @@ fn where_number_and_text() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: filter operator unavailable in runtime metadata for 'cf_note'; refusing an unproven filter (use explicit IDs)
+        r#"error: number filter 'Count' takes an integer value
 "#
     );
 }
@@ -916,7 +1005,7 @@ fn where_or_grouping() {
 │ status   │ status    │ is_in     │ default │ 2     │
 │ priority │ priority  │ is_not_in │ default │ 1     │
 └──────────┴───────────┴───────────┴─────────┴───────┘
-api: internal /api/_/ with query_hash (2 conditions, OR)
+api: internal /api/_/ with advanced_query_hash (2 conditions, OR)
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -967,4 +1056,78 @@ api: internal /api/_/ with query_hash (1 conditions, AND)
 "#
     );
     assert_eq!(r.err, r#""#);
+}
+
+/// `test_filter_wires.test_cli_refusals_send_no_list_request` (a text field
+/// of this schema stands in for `Subject`).
+#[test]
+fn where_refusals_send_no_list_request() {
+    for args in [
+        ["tickets", "ls", "--where", "Note=Acme"],
+        ["changes", "ls", "--where", "created_at>=2030-01-01"],
+        ["tickets", "ls", "--where", "Created=on:fortnight"],
+    ] {
+        let r = run_fixture("where", &[&args[..], &["--json"]].concat(), None);
+        assert_eq!(r.code, 2, "{args:?}: {}", r.err);
+        let list = format!("/api/_/{}?", args[0]);
+        assert!(
+            r.calls().iter().all(|(_, p)| !p.starts_with(&list)),
+            "{args:?}"
+        );
+        assert!(r.writes().is_empty(), "{args:?}");
+    }
+}
+
+/// `test_filter_wires.test_cli_strict_date_shift_is_sent_and_noted`.
+#[test]
+fn where_strict_date_shift_is_sent_and_noted() {
+    let r = run_fixture(
+        "where",
+        &[
+            "changes",
+            "ls",
+            "--where",
+            "created_at>2030-01-31",
+            "--where",
+            "created_at<2030-03-01",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        sent(&r, "changes").0,
+        r#"[{"value":{"from":"2030-02-01","to":"2030-02-28"},"condition":"created_at","operator":"is_in_the_range","type":"default"}]"#
+    );
+    assert_eq!(
+        r.err,
+        "note: created_at 2030-01-31 (no strict operator exists: sent as from 2030-02-01, whole days)\n\
+         note: created_at 2030-03-01 (no strict operator exists: sent as to 2030-02-28, whole days)\n"
+    );
+}
+
+/// Python `406ca71`: `--or` on tickets sends `advanced_query_hash` (no
+/// workspace is configured or named by this schema, so `all` is empty).
+#[test]
+fn where_or_sends_advanced_query_hash() {
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "status=Open",
+            "--where",
+            "Priority!=Low",
+            "--or",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(sent(&r, "tickets").0, "");
+    assert_eq!(
+        sent_param(&r, "tickets", "advanced_query_hash").0,
+        r#"{"any":[{"value":[2],"condition":"status","operator":"is_in","type":"default"},{"value":[1],"condition":"priority","operator":"is_not_in","type":"default"}],"all":[]}"#
+    );
 }

@@ -4,10 +4,10 @@
 //! ("Agents", "Created"), periods ("Last 6 months"), `me` and empty values
 //! are accepted here only.
 
-use serde_json::{Map, Value, json};
+use serde_json::{Value, json};
 
 use fsv_api::Explain;
-use fsv_core::resource::Resource;
+use fsv_core::resource::{PROBLEMS, Resource};
 use fsv_core::{Client, Result, pystr};
 use fsv_py::{py_repr_str, py_str};
 
@@ -180,20 +180,16 @@ fn query_item(
     json!({"value": value, "condition": condition, "operator": operator, "type": type_})
 }
 
-/// Port of fsv.cli._date_condition.
+/// Port of fsv.cli._date_condition: the web's period labels, else
+/// `query.date_condition`.
 pub fn date_condition(
     field_name: &str,
     op: &str,
     raw: &str,
     explain: &mut Vec<Explain>,
     shown: &str,
+    res_name: &str,
 ) -> Result<Value> {
-    if matches!(op, ">" | "<" | "!=") {
-        return Err(usage(&format!(
-            "date operator {} is not supported; use =, >= or <= (inclusive)",
-            py_repr_str(op)
-        )));
-    }
     let trimmed = pystr::strip(raw);
     let token = lookup_in(PERIODS, &pystr::casefold(trimmed))
         .or_else(|| is_period_token(trimmed).then_some(trimmed));
@@ -201,6 +197,11 @@ pub fn date_condition(
         if !matches!(op, "=" | ">=") {
             return Err(usage(
                 "relative date periods support only = or >=; no inverse period wire is proven",
+            ));
+        }
+        if res_name == PROBLEMS.name && (token != "today" || field_name != "created_at") {
+            return Err(usage(
+                "only Created=today is a proven relative date filter on problems (other shapes returned 0 rows silently); use a created_at>=YYYY-MM-DD and created_at<=YYYY-MM-DD range. Nothing was sent",
             ));
         }
         return Ok(query_item(
@@ -213,26 +214,7 @@ pub fn date_condition(
             raw,
         ));
     }
-    let value = match op {
-        ">=" => json!({"from": raw}),
-        "<=" => json!({"to": raw}),
-        "=" => json!({"from": raw, "to": raw}),
-        _ => {
-            return Err(usage(&format!(
-                "unsupported date operator {}; use = >= <=",
-                py_repr_str(op)
-            )));
-        }
-    };
-    Ok(query_item(
-        field_name,
-        "custom_date",
-        value,
-        "default",
-        explain,
-        shown,
-        raw,
-    ))
+    fsv_api::date_condition(res_name, field_name, op, raw, explain, shown).map_err(|e| usage(&e.0))
 }
 
 /// Port of fsv.cli._where_schema_field: exact name or label, then the
@@ -290,7 +272,7 @@ pub fn resolve_where(
         )
     };
     if let Some(name) = date_name {
-        return date_condition(name, &op, &raw, explain, &field_text);
+        return date_condition(name, &op, &raw, explain, &field_text, res.name);
     }
     if field_text.ends_with("_id") {
         if matches!(op.as_str(), ">" | "<" | ">=" | "<=" | "~=") {
@@ -327,7 +309,12 @@ pub fn resolve_where(
         .filter(|v| fsv_py::truthy(v))
         .map_or_else(|| field_text.clone(), py_str);
     if PSEUDO_DATES.contains(&name.as_str()) {
-        return date_condition(&name, &op, &raw, explain, &field_text);
+        return date_condition(&name, &op, &raw, explain, &field_text, res.name);
+    }
+    if let Some(typed) = fsv_api::typed_condition(res.name, &f, &op, &raw, explain, &field_text)
+        .map_err(|e| usage(&e.0))?
+    {
+        return Ok(typed);
     }
     let type_ = if f.get("default_field").is_some_and(fsv_py::truthy) {
         "default"
@@ -536,39 +523,9 @@ pub fn load_query_hash(raw: &str) -> Result<Vec<Value>> {
     }
 }
 
-/// Port of fsv.cli._merge_date_ranges: one `{from, to}` per condition and type.
-pub fn merge_date_ranges(query: Vec<Value>) -> Vec<Value> {
-    let mut out: Vec<Value> = Vec::new();
-    let mut ranges: Vec<((Value, Value), usize)> = Vec::new();
-    for item in query {
-        let range = item
-            .get("value")
-            .and_then(Value::as_object)
-            .filter(|v| v.contains_key("from") || v.contains_key("to"))
-            .cloned();
-        let Some(range) = range else {
-            out.push(item);
-            continue;
-        };
-        let key = (
-            item.get("condition").cloned().unwrap_or(Value::Null),
-            item.get("type").cloned().unwrap_or(Value::Null),
-        );
-        let at = match ranges.iter().find(|(k, _)| *k == key) {
-            Some((_, at)) => *at,
-            None => {
-                let mut merged = item.as_object().cloned().unwrap_or_default();
-                merged.insert("value".into(), Value::Object(Map::new()));
-                ranges.push((key, out.len()));
-                out.push(Value::Object(merged));
-                out.len() - 1
-            }
-        };
-        if let Some(Value::Object(v)) = out[at].get_mut("value") {
-            v.extend(range);
-        }
-    }
-    out
+/// Port of fsv.cli._merge_date_ranges (`query.merge_date_ranges`).
+pub fn merge_date_ranges(query: Vec<Value>) -> Result<Vec<Value>> {
+    fsv_api::merge_date_ranges(query).map_err(|e| fsv_core::Error::value(e.0))
 }
 
 #[cfg(test)]
@@ -606,43 +563,63 @@ mod tests {
     #[test]
     fn date_condition_periods_and_ranges() {
         let mut ex = Vec::new();
-        assert!(date_condition("created_at", "<=", "last 7 days", &mut ex, "Created").is_err());
-        let a = date_condition("created_at", "<=", "2026-01-31", &mut ex, "Created").unwrap();
-        let b = date_condition("due_by", "=", "Five_minutes", &mut ex, "due").unwrap();
-        let c = date_condition("due_by", ">=", "five_minutes", &mut ex, "due").unwrap();
+        for (field, op, raw, res) in [
+            ("created_at", "<=", "last 7 days", "changes"),
+            ("due_by", "=", "Five_minutes", "changes"),
+            ("due_by", "=", "today", "problems"),
+            ("created_at", "=", "on:yesterday", "problems"),
+        ] {
+            assert!(
+                date_condition(field, op, raw, &mut ex, field, res).is_err(),
+                "{raw}"
+            );
+        }
+        let a = date_condition(
+            "created_at",
+            "<=",
+            "2026-01-31",
+            &mut ex,
+            "Created",
+            "changes",
+        )
+        .unwrap();
+        let b = date_condition(
+            "created_at",
+            ">",
+            "2026-01-31",
+            &mut ex,
+            "Created",
+            "changes",
+        )
+        .unwrap();
+        let c = date_condition("due_by", ">=", "five_minutes", &mut ex, "due", "changes").unwrap();
+        let d = date_condition("created_at", "=", "today", &mut ex, "Created", "problems").unwrap();
         assert_eq!(
             a,
-            json!({"value": {"to": "2026-01-31"}, "condition": "created_at", "operator": "custom_date", "type": "default"})
+            json!({"value": {"to": "2026-01-31"}, "condition": "created_at", "operator": "is_in_the_range", "type": "default"})
         );
         assert_eq!(
             b,
-            json!({"value": {"from": "Five_minutes", "to": "Five_minutes"}, "condition": "due_by", "operator": "custom_date", "type": "default"})
+            json!({"value": {"from": "2026-02-01"}, "condition": "created_at", "operator": "is_in_the_range", "type": "default"})
         );
         assert_eq!(
             c,
             json!({"value": "five_minutes", "condition": "due_by", "operator": "is_greater_than", "type": "default"})
         );
+        assert_eq!(d["value"], "today");
         assert_eq!(
             ex,
             [
-                row("Created", "created_at", "custom_date", "2026-01-31"),
-                row("due", "due_by", "custom_date", "Five_minutes"),
+                row("Created", "created_at", "is_in_the_range", "2026-01-31"),
+                row(
+                    "Created",
+                    "created_at",
+                    "is_in_the_range",
+                    "2026-01-31 (no strict operator exists: sent as from 2026-02-01, whole days)"
+                ),
                 row("due", "due_by", "is_greater_than", "five_minutes"),
+                row("Created", "created_at", "is_greater_than", "today"),
             ]
-        );
-    }
-
-    #[test]
-    fn merge_date_ranges_per_condition_and_type() {
-        let q = vec![
-            json!({"condition": "a", "type": "default", "operator": "custom_date", "value": {"from": "1"}}),
-            json!({"condition": "b", "type": "default", "operator": "is_in", "value": [1]}),
-            json!({"condition": "a", "type": "default", "operator": "custom_date", "value": {"to": "2", "from": "3"}}),
-            json!({"condition": "a", "type": "custom_field", "operator": "custom_date", "value": {"to": "9"}}),
-        ];
-        assert_eq!(
-            serde_json::to_string(&merge_date_ranges(q)).unwrap(),
-            r#"[{"condition":"a","type":"default","operator":"custom_date","value":{"from":"3","to":"2"}},{"condition":"b","type":"default","operator":"is_in","value":[1]},{"condition":"a","type":"custom_field","operator":"custom_date","value":{"to":"9"}}]"#
         );
     }
 

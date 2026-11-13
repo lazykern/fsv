@@ -74,8 +74,9 @@ pub use schema::{
 };
 
 pub use query::{
-    Directory, Explain, build_query_hash, build_query_hash_from_schema, load_query_hash,
-    merge_same_conditions, resolve_group,
+    Directory, Explain, adv_needed, build_query_hash, build_query_hash_from_schema,
+    configured_workspace, date_condition, load_query_hash, merge_date_ranges,
+    merge_same_conditions, resolve_group, runtime_workspace, serialize, typed_condition,
 };
 pub use task_status::{active_choices, display, fields_from_payload, resolve};
 

@@ -1,22 +1,71 @@
 //! Filter expressions → Freshservice `query_hash` (`query.py`).
 //!
-//! Date bounds are inclusive on both ends: `>` is sent as `>=` because the
-//! API has no strict bound. A raw `query_hash` is percent-decoded at most
-//! once, and only when it is not already JSON.
+//! The wires follow what the web's filter panel and advanced builder send:
+//!
+//! * Dates: `is_in_the_range` with `{"from": D, "to": D}`. The server reads
+//!   whole days with BOTH ends inclusive; a one-sided `{from}` or `{to}`
+//!   answers HTTP 500, so a range must carry both ends. There is no strict
+//!   `>`/`<` operator: `> D` is sent as `from D+1` and `< D` as `to D-1`.
+//!   `on` + a relative token and `in_the_last`/`in_the_next` + a period
+//!   exist only in the advanced builder (tickets, changes).
+//! * Numbers (`custom_number`): `is`/`is_not`/`is_greater_than_or_equal`/
+//!   `is_less_than_or_equal` with a STRING value, advanced builder only.
+//! * Multi-select dropdowns: `is_in` with the INTEGER choice id, advanced.
+//! * Text (subject, description, custom text/paragraph): no list filter
+//!   exists in any list UI; refused rather than invented.
+//!
+//! A raw `query_hash` is percent-decoded at most once, and only when it is
+//! not already JSON.
 
 use serde_json::{Map, Value, json};
 
 use crate::QueryError;
 use fsv_core::pystr;
-use fsv_py::py_repr_str;
+use fsv_py::{py_repr, py_repr_str, py_str};
 
-const DATE_FIELDS: &[&str] = &[
+pub const DATE_FIELDS: &[&str] = &[
     "created_at",
     "updated_at",
     "due_by",
     "planned_start_date",
     "planned_end_date",
 ];
+const ON_TOKENS: &[&str] = &["today", "yesterday", "tomorrow", "week", "month", "year"];
+const RANGE_TOKENS: &[&str] = &[
+    "five_minutes",
+    "one_week",
+    "one_month",
+    "two_months",
+    "six_months",
+    "one_year",
+];
+const ADVANCED_MODULES: &[&str] = &["tickets", "changes"];
+/// Date conditions offered by the advanced builder (due date is `due_by_date` there).
+const ADVANCED_DATE_CONDITIONS: &[(&str, &str)] = &[
+    ("created_at", "created_at"),
+    ("due_by", "due_by_date"),
+    ("planned_start_date", "planned_start_date"),
+    ("planned_end_date", "planned_end_date"),
+];
+/// Problems: only the created range is proven; other shapes returned 0 rows silently.
+const PROBLEM_DATE_FIELDS: &[&str] = &["created_at"];
+const NUMBER_OPERATORS: &[(&str, &str)] = &[
+    ("=", "is"),
+    ("!=", "is_not"),
+    (">=", "is_greater_than_or_equal"),
+    ("<=", "is_less_than_or_equal"),
+];
+const TEXT_FIELD_TYPES: &[&str] = &[
+    "default_subject",
+    "default_description",
+    "default_text",
+    "custom_text",
+    "custom_paragraph",
+    "custom_url",
+    "default_email",
+];
+/// Internal marker on items that need the advanced builder; never sent.
+const ADV: &str = "_advanced";
 
 /// One row of the `--debug` explanation.
 #[derive(Clone, Debug, PartialEq)]
@@ -47,6 +96,16 @@ pub fn build_query_hash_from_schema(
     schema: &Value,
     filters: &[String],
 ) -> Result<Option<String>, QueryError> {
+    build_from_schema(dir, resource, schema, filters, &configured_workspace)
+}
+
+fn build_from_schema(
+    dir: Option<&dyn Directory>,
+    resource: &str,
+    schema: &Value,
+    filters: &[String],
+    configured: &dyn Fn() -> Value,
+) -> Result<Option<String>, QueryError> {
     if filters.is_empty() {
         return Ok(None);
     }
@@ -55,11 +114,13 @@ pub fn build_query_hash_from_schema(
     for expr in filters {
         query.push(resolve_where(dir, resource, schema, expr, &mut explain)?.0);
     }
-    let query = merge_date_ranges(query);
-    if query.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(dump(&Value::Array(query))))
+    let query = merge_date_ranges(query)?;
+    let workspace = if adv_needed(&query) {
+        runtime_workspace(configured(), Some(schema))
+    } else {
+        Value::Null
+    };
+    Ok(serialize(resource, &query, false, &workspace)?.0)
 }
 
 /// `build_query_hash`. Schema is loaded by the caller (`schema.load` in Python).
@@ -71,6 +132,27 @@ pub fn build_query_hash(
     filters: &[String],
     raw: Option<&str>,
     or_grouping: bool,
+) -> Result<(Option<String>, Vec<Value>, Vec<Explain>), QueryError> {
+    build_hash(
+        dir,
+        resource,
+        schema,
+        filters,
+        raw,
+        or_grouping,
+        &configured_workspace,
+    )
+}
+
+#[allow(clippy::type_complexity)]
+fn build_hash(
+    dir: Option<&dyn Directory>,
+    resource: &str,
+    schema: Option<&Value>,
+    filters: &[String],
+    raw: Option<&str>,
+    or_grouping: bool,
+    configured: &dyn Fn() -> Value,
 ) -> Result<(Option<String>, Vec<Value>, Vec<Explain>), QueryError> {
     let mut query = Vec::new();
     let mut explain = Vec::new();
@@ -86,23 +168,452 @@ pub fn build_query_hash(
             value: raw.to_string(),
         });
     }
+    let mut loaded = None;
     if !filters.is_empty() {
         let schema =
             schema.ok_or_else(|| QueryError("field not found: schema was not loaded".into()))?;
         for expr in filters {
             query.push(resolve_where(dir, resource, schema, expr, &mut explain)?.0);
         }
+        loaded = Some(schema);
     }
-    let query = merge_date_ranges(query);
-    if query.is_empty() {
-        return Ok((None, query, explain));
-    }
-    let payload = if or_grouping {
-        json!({"any": query})
+    let query = merge_date_ranges(query)?;
+    let workspace = if or_grouping || adv_needed(&query) {
+        runtime_workspace(configured(), loaded)
     } else {
-        Value::Array(query.clone())
+        Value::Null
     };
-    Ok((Some(dump(&payload)), query, explain))
+    let (payload, _, clean) = serialize(resource, &query, or_grouping, &workspace)?;
+    Ok((payload, clean, explain))
+}
+
+/// `is_text_field`: subject, description and free-text field types.
+pub fn is_text_field(field: &Value) -> bool {
+    let ftype = py_or_empty(field.get("field_type"));
+    let name = py_or_empty(field.get("name"));
+    TEXT_FIELD_TYPES.contains(&ftype.as_str()) || matches!(name.as_str(), "subject" | "description")
+}
+
+/// `text_filter_refusal`.
+pub fn text_filter_refusal(resource: &str, field: &Value) -> QueryError {
+    let label = field
+        .get("label")
+        .filter(|v| fsv_py::truthy(v))
+        .or_else(|| field.get("name"))
+        .map_or_else(|| "None".to_string(), py_repr);
+    QueryError(format!(
+        "no list filter exists for text field {label}: the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv {resource} search TEXT` for a keyword search"
+    ))
+}
+
+fn advanced(mut item: Value) -> Value {
+    if let Some(obj) = item.as_object_mut() {
+        obj.insert(ADV.into(), Value::Bool(true));
+    }
+    item
+}
+
+/// `_adv_needed`: whether any item needs the advanced builder.
+pub fn adv_needed(query: &[Value]) -> bool {
+    query.iter().any(|i| i.get(ADV).is_some_and(fsv_py::truthy))
+}
+
+/// `re.fullmatch(r"\d{4}-\d{2}-\d{2}")` (`\d` is any Unicode decimal digit).
+fn iso_day_shape(text: &str) -> bool {
+    let chars: Vec<char> = text.chars().collect();
+    chars.len() == 10
+        && chars.iter().enumerate().all(|(i, &c)| match i {
+            4 | 7 => c == '-',
+            _ => pystr::decimal_value(c).is_some(),
+        })
+}
+
+/// `datetime.date.fromisoformat` for a `YYYY-MM-DD` shape (ASCII digits only).
+fn iso_day(text: &str) -> Option<jiff::civil::Date> {
+    if !text.is_ascii() {
+        return None;
+    }
+    let year: i16 = text[..4].parse().ok()?;
+    let month: i8 = text[5..7].parse().ok()?;
+    let day: i8 = text[8..].parse().ok()?;
+    if year < 1 {
+        return None;
+    }
+    jiff::civil::Date::new(year, month, day).ok()
+}
+
+/// `date + timedelta(days=n)`, bounded like Python's `date` (years 1 to 9999).
+fn shift_day(day: jiff::civil::Date, days: i64) -> Result<String, QueryError> {
+    day.checked_add(jiff::Span::new().days(days))
+        .ok()
+        .filter(|d| (1..=9999).contains(&d.year()))
+        .map(|d| d.to_string())
+        .ok_or_else(|| QueryError("date value out of range".into()))
+}
+
+/// `date_condition`: one captured date condition (see the module notes).
+pub fn date_condition(
+    resource: &str,
+    field: &str,
+    op: &str,
+    raw: &str,
+    explain: &mut Vec<Explain>,
+    shown: &str,
+) -> Result<Value, QueryError> {
+    let text = pystr::strip(raw);
+    let low = pystr::casefold(text);
+    for (prefix, operator, tokens) in [
+        ("on:", "on", ON_TOKENS),
+        ("last:", "in_the_last", RANGE_TOKENS),
+        ("next:", "in_the_next", RANGE_TOKENS),
+    ] {
+        let Some(rest) = low.strip_prefix(prefix) else {
+            continue;
+        };
+        let token = pystr::split_ws(rest).join("_");
+        if op != "=" {
+            return Err(QueryError(format!(
+                "relative date {prefix}PERIOD takes only ="
+            )));
+        }
+        if !tokens.contains(&token.as_str()) {
+            return Err(QueryError(format!(
+                "unknown {operator} period {}; use one of: {}",
+                py_repr_str(&token),
+                tokens.join(", ")
+            )));
+        }
+        if !ADVANCED_MODULES.contains(&resource) {
+            return Err(QueryError(format!(
+                "{operator} date filters exist only in the tickets/changes advanced filter; {resource} has none, nothing was sent"
+            )));
+        }
+        let Some(cond) = lookup(ADVANCED_DATE_CONDITIONS, field) else {
+            return Err(QueryError(format!(
+                "{field} is not a date in the advanced filter builder; nothing was sent"
+            )));
+        };
+        return Ok(advanced(query_item(
+            cond,
+            operator,
+            json!(token),
+            "default",
+            explain,
+            shown,
+            text,
+        )));
+    }
+    if !iso_day_shape(text) {
+        return Err(QueryError(
+            "date filters take a whole day YYYY-MM-DD (the server ignores time of day) or a relative on:/last:/next: period; nothing was sent"
+                .into(),
+        ));
+    }
+    let Some(day) = iso_day(text) else {
+        return Err(QueryError(format!("invalid date {}", py_repr_str(text))));
+    };
+    if resource == "problems" && !PROBLEM_DATE_FIELDS.contains(&field) {
+        return Err(QueryError(format!(
+            "{field} date filters are unproven on problems (the list returned 0 rows silently); only created_at ranges are supported there, nothing was sent"
+        )));
+    }
+    let mut note = String::new();
+    let value = match op {
+        "=" => json!({"from": text, "to": text}),
+        ">=" => json!({"from": text}),
+        "<=" => json!({"to": text}),
+        ">" => {
+            let shifted = shift_day(day, 1)?;
+            note = format!(" (no strict operator exists: sent as from {shifted}, whole days)");
+            json!({"from": shifted})
+        }
+        "<" => {
+            let shifted = shift_day(day, -1)?;
+            note = format!(" (no strict operator exists: sent as to {shifted}, whole days)");
+            json!({"to": shifted})
+        }
+        _ => {
+            return Err(QueryError(format!(
+                "date operator {} is not supported; use = > >= < <= (whole days)",
+                py_repr_str(op)
+            )));
+        }
+    };
+    Ok(query_item(
+        field,
+        "is_in_the_range",
+        value,
+        "default",
+        explain,
+        shown,
+        &format!("{text}{note}"),
+    ))
+}
+
+fn lookup<'a>(table: &[(&str, &'a str)], key: &str) -> Option<&'a str> {
+    table.iter().find(|(k, _)| *k == key).map(|(_, v)| *v)
+}
+
+/// `_int_choice_id`: a positive int, or an ASCII digit string of one.
+fn int_choice_id(value: Option<&Value>) -> Option<i64> {
+    match value? {
+        Value::Number(n) => n.as_i64().filter(|n| *n > 0),
+        Value::String(s) if ascii_digits(s) => s.parse::<i64>().ok().filter(|n| *n > 0),
+        _ => None,
+    }
+}
+
+/// `typed_condition`: text refusal, number and multi-select wires; `None`
+/// when the field is none of these.
+pub fn typed_condition(
+    resource: &str,
+    field: &Value,
+    op: &str,
+    raw: &str,
+    explain: &mut Vec<Explain>,
+    shown: &str,
+) -> Result<Option<Value>, QueryError> {
+    let ftype = py_or_empty(field.get("field_type"));
+    let name = field
+        .get("name")
+        .filter(|v| fsv_py::truthy(v))
+        .map_or_else(|| shown.to_string(), py_str);
+    let label = field
+        .get("label")
+        .filter(|v| fsv_py::truthy(v))
+        .map_or_else(|| py_repr_str(&name), py_repr);
+    if is_text_field(field) {
+        return Err(text_filter_refusal(resource, field));
+    }
+    if ftype == "custom_number" {
+        let Some(operator) = lookup(NUMBER_OPERATORS, op) else {
+            return Err(QueryError(format!(
+                "operator {} not supported for number field {label}; use = != >= <= (the filter builder has no strict > or <)",
+                py_repr_str(op)
+            )));
+        };
+        let value = pystr::strip(raw);
+        let digits = value.strip_prefix('-').unwrap_or(value);
+        if !ascii_digits(digits) {
+            return Err(QueryError(format!(
+                "number filter {label} takes an integer value"
+            )));
+        }
+        if !ADVANCED_MODULES.contains(&resource) {
+            return Err(QueryError(
+                "number filters exist only in the tickets/changes advanced filter; nothing was sent"
+                    .into(),
+            ));
+        }
+        return Ok(Some(advanced(query_item(
+            &name,
+            operator,
+            json!(value),
+            "custom_field",
+            explain,
+            shown,
+            value,
+        ))));
+    }
+    if ftype.contains("multi_select") {
+        if !matches!(op, "=" | "!=") {
+            return Err(QueryError(format!(
+                "operator {} not supported for multi-select {label}; use = or !=",
+                py_repr_str(op)
+            )));
+        }
+        if !ADVANCED_MODULES.contains(&resource) {
+            return Err(QueryError(
+                "multi-select filters exist only in the tickets/changes advanced filter; nothing was sent"
+                    .into(),
+            ));
+        }
+        let wanted = pystr::strip(raw);
+        let folded = pystr::casefold(wanted);
+        let choices: &[Value] = field
+            .get("choices")
+            .and_then(Value::as_array)
+            .map_or(&[], Vec::as_slice);
+        let found: Vec<&Value> = choices
+            .iter()
+            .filter(|ch| ch.is_object())
+            .filter(|ch| {
+                py_str(ch.get("id").unwrap_or(&Value::Null)) == wanted
+                    || ["value", "name", "label"]
+                        .iter()
+                        .any(|k| pystr::casefold(pystr::strip(&py_or_empty(ch.get(*k)))) == folded)
+            })
+            .collect();
+        let mut ids: Vec<Option<i64>> =
+            found.iter().map(|ch| int_choice_id(ch.get("id"))).collect();
+        ids.sort();
+        ids.dedup();
+        let cid = match ids.as_slice() {
+            [Some(cid)] => *cid,
+            _ => {
+                let options: Vec<String> = choices
+                    .iter()
+                    .take(12)
+                    .filter(|ch| ch.is_object())
+                    .map(|ch| {
+                        let v = ch
+                            .get("value")
+                            .filter(|v| fsv_py::truthy(v))
+                            .or_else(|| ch.get("id"));
+                        py_str(v.unwrap_or(&Value::Null))
+                    })
+                    .collect();
+                return Err(QueryError(format!(
+                    "no unique integer choice id for {} in {label} runtime metadata; options: {}",
+                    py_repr_str(raw),
+                    options.join(", ")
+                )));
+            }
+        };
+        let operator = if op == "=" { "is_in" } else { "is_not_in" };
+        return Ok(Some(advanced(query_item(
+            &name,
+            operator,
+            json!([cid]),
+            "custom_field",
+            explain,
+            shown,
+            &format!("{raw} ({cid})"),
+        ))));
+    }
+    Ok(None)
+}
+
+/// `merge_date_ranges`: join `>=`/`<=` halves per (condition, type); refuse
+/// duplicate or missing ends.
+pub fn merge_date_ranges(query: Vec<Value>) -> Result<Vec<Value>, QueryError> {
+    let mut out: Vec<Value> = Vec::new();
+    let mut ranges: Vec<((Value, Value), usize)> = Vec::new();
+    for item in query {
+        let range = item
+            .get("value")
+            .and_then(Value::as_object)
+            .filter(|v| v.contains_key("from") || v.contains_key("to"))
+            .cloned();
+        let Some(range) = range else {
+            out.push(item);
+            continue;
+        };
+        let key = (
+            item.get("condition").cloned().unwrap_or(Value::Null),
+            item.get("type").cloned().unwrap_or(Value::Null),
+        );
+        let at = match ranges.iter().find(|(k, _)| *k == key) {
+            Some((_, at)) => *at,
+            None => {
+                let mut merged = item.as_object().cloned().unwrap_or_default();
+                merged.insert("value".into(), Value::Object(Map::new()));
+                ranges.push((key.clone(), out.len()));
+                out.push(Value::Object(merged));
+                out.len() - 1
+            }
+        };
+        if let Some(Value::Object(v)) = out[at].get_mut("value") {
+            if let Some(end) = range.keys().find(|end| v.contains_key(*end)) {
+                return Err(QueryError(format!(
+                    "two '{end}' bounds for {}; give one lower and one upper bound",
+                    py_str(&key.0)
+                )));
+            }
+            v.extend(range);
+        }
+    }
+    for ((cond, _), at) in &ranges {
+        let cond = py_str(cond);
+        let value = out[*at]
+            .get("value")
+            .and_then(Value::as_object)
+            .cloned()
+            .unwrap_or_default();
+        if value.len() != 2 || !value.contains_key("from") || !value.contains_key("to") {
+            return Err(QueryError(format!(
+                "a date range on {cond} needs both ends (e.g. {cond}>=2030-01-01 and {cond}<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent"
+            )));
+        }
+        let (from, to) = (py_str(&value["from"]), py_str(&value["to"]));
+        if from > to {
+            return Err(QueryError(format!(
+                "empty date range on {cond}: from {from} is after to {to}"
+            )));
+        }
+    }
+    Ok(out)
+}
+
+/// `workspace_item`: tickets take `is_in [{id}]`, changes `is <id>`.
+fn workspace_item(resource: &str, workspace: &Value) -> Option<Value> {
+    let id = int_choice_id(Some(workspace))?;
+    Some(if resource == "tickets" {
+        json!({"condition": "workspace_id", "operator": "is_in", "value": [{"id": id}], "type": "default"})
+    } else {
+        json!({"condition": "workspace_id", "operator": "is", "value": id, "type": "default"})
+    })
+}
+
+/// `formmeta.configured_workspace()` from the current profile's config.
+pub fn configured_workspace() -> Value {
+    crate::formmeta::configured_workspace_in(&fsv_core::config::load_config())
+}
+
+/// `runtime_workspace`: the configured workspace, else the form metadata's.
+pub fn runtime_workspace(configured: Value, schema: Option<&Value>) -> Value {
+    if fsv_py::truthy(&configured) {
+        return configured;
+    }
+    let fields: &[Value] = schema
+        .and_then(|s| s.get("fields"))
+        .and_then(Value::as_array)
+        .map_or(&[], Vec::as_slice);
+    crate::formmeta::workspace_from_fields(fields)
+}
+
+/// `serialize`: `(payload, advanced, clean items)`. Advanced payloads go in
+/// `advanced_query_hash`; `--or` puts the conditions in `any` and the
+/// workspace in `all`.
+pub fn serialize(
+    resource: &str,
+    query: &[Value],
+    or_grouping: bool,
+    workspace: &Value,
+) -> Result<(Option<String>, bool, Vec<Value>), QueryError> {
+    let is_advanced = or_grouping || adv_needed(query);
+    let clean: Vec<Value> = query
+        .iter()
+        .map(|i| match i {
+            Value::Object(m) => Value::Object(
+                m.iter()
+                    .filter(|(k, _)| *k != ADV)
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect(),
+            ),
+            other => other.clone(),
+        })
+        .collect();
+    if clean.is_empty() {
+        return Ok((None, false, clean));
+    }
+    if !is_advanced {
+        return Ok((Some(dump(&Value::Array(clean.clone()))), false, clean));
+    }
+    if !ADVANCED_MODULES.contains(&resource) {
+        return Err(QueryError(format!(
+            "{resource} has no advanced filter (OR, relative on/last/next dates, numbers, multi-select); nothing was sent"
+        )));
+    }
+    let extra: Vec<Value> = workspace_item(resource, workspace).into_iter().collect();
+    let body = if or_grouping {
+        json!({"any": clean, "all": extra})
+    } else {
+        let mut all = clean.clone();
+        all.extend(extra);
+        json!({"all": all, "any": []})
+    };
+    Ok((Some(dump(&body)), true, clean))
 }
 
 fn refuse_unsupported_filter(resource: &str, condition: &str) -> Result<(), QueryError> {
@@ -166,39 +677,8 @@ pub fn resolve_where(
         ));
     }
     if DATE_FIELDS.contains(&field_text.as_str()) {
-        let value = match op.as_str() {
-            ">" | "<" => {
-                return Err(QueryError(format!(
-                    "strict date operator {} is not supported; use >= or <= for inclusive bounds",
-                    py_repr_str(&op)
-                )));
-            }
-            ">=" => json!({"from": raw}),
-            "<=" => json!({"to": raw}),
-            "!=" => {
-                return Err(QueryError(format!(
-                    "operator '!=' is not supported for date field {}; use a range such as `>=` / `<=`",
-                    py_repr_str(&field_text)
-                )));
-            }
-            "=" => json!({"from": raw, "to": raw}),
-            _ => {
-                return Err(QueryError(format!(
-                    "unsupported date operator {}; use = >= <=",
-                    py_repr_str(&op)
-                )));
-            }
-        };
         return Ok((
-            query_item(
-                &field_text,
-                "custom_date",
-                value,
-                "default",
-                explain,
-                &field_text,
-                &raw,
-            ),
+            date_condition(resource, &field_text, &op, &raw, explain, &field_text)?,
             (),
         ));
     }
@@ -243,6 +723,15 @@ pub fn resolve_where(
         .get("field_type")
         .and_then(Value::as_str)
         .unwrap_or("");
+    if DATE_FIELDS.contains(&name.as_str()) {
+        return Ok((
+            date_condition(resource, &name, &op, &raw, explain, &field_text)?,
+            (),
+        ));
+    }
+    if let Some(typed) = typed_condition(resource, &field, &op, &raw, explain, &field_text)? {
+        return Ok((typed, ()));
+    }
     crate::filter_proof::require_filterable_field(&field)?;
     let operator = where_operator(&op)?;
 
@@ -745,58 +1234,6 @@ fn pick_lookup<'a>(
     )))
 }
 
-fn merge_date_ranges(query: Vec<Value>) -> Vec<Value> {
-    let mut out: Vec<Value> = Vec::new();
-    let mut index: std::collections::HashMap<(String, String), usize> =
-        std::collections::HashMap::new();
-    for item in query {
-        let value = item.get("value").cloned().unwrap_or(Value::Null);
-        let is_range = value
-            .as_object()
-            .is_some_and(|o| o.contains_key("from") || o.contains_key("to"));
-        if is_range {
-            let key = (
-                item.get("condition")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-                item.get("type")
-                    .and_then(Value::as_str)
-                    .unwrap_or("")
-                    .to_string(),
-            );
-            if let Some(at) = index.get(&key) {
-                if let (Some(dst), Some(src)) = (
-                    out[*at].get_mut("value").and_then(Value::as_object_mut),
-                    value.as_object(),
-                ) {
-                    for (k, v) in src {
-                        dst.insert(k.clone(), v.clone());
-                    }
-                }
-            } else {
-                let mut merged = item;
-                if let Some(obj) = merged.as_object_mut() {
-                    obj.insert("value".into(), Value::Object(Map::new()));
-                }
-                if let (Some(dst), Some(src)) = (
-                    merged.get_mut("value").and_then(Value::as_object_mut),
-                    value.as_object(),
-                ) {
-                    for (k, v) in src {
-                        dst.insert(k.clone(), v.clone());
-                    }
-                }
-                index.insert(key, out.len());
-                out.push(merged);
-            }
-        } else {
-            out.push(item);
-        }
-    }
-    out
-}
-
 fn dump(value: &Value) -> String {
     fsv_py::Dumps::default().separators(",", ":").dump(value)
 }
@@ -867,6 +1304,10 @@ fn unquote(raw: &str) -> String {
 mod matrix_tests;
 
 #[cfg(test)]
+#[path = "query_wire_tests.rs"]
+mod wire_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -888,11 +1329,7 @@ mod tests {
             &mut explain,
         )
         .unwrap_err();
-        assert!(
-            err.0.contains("'!=' is not supported for date field"),
-            "{}",
-            err.0
-        );
+        assert!(err.0.contains("'!=' is not supported"), "{}", err.0);
     }
 
     #[test]
@@ -905,17 +1342,15 @@ mod tests {
             one("created_at<=2026-02-01")["value"],
             json!({"to": "2026-02-01"})
         );
-        for op in [">", "<"] {
-            let err = resolve_where(
-                None,
-                "changes",
-                &json!({"fields": []}),
-                &format!("created_at{op}2026-01-01"),
-                &mut Vec::new(),
-            )
-            .unwrap_err();
-            assert!(err.0.contains("strict date operator"), "{}", err.0);
-        }
+        // No strict operator exists: a whole-day shift, still one half of a range.
+        assert_eq!(
+            one("created_at>2026-01-01")["value"],
+            json!({"from": "2026-01-02"})
+        );
+        assert_eq!(
+            one("created_at<2026-01-01")["value"],
+            json!({"to": "2025-12-31"})
+        );
         assert_eq!(
             one("created_at=2026-01-01")["value"],
             json!({"from": "2026-01-01", "to": "2026-01-01"})
@@ -933,7 +1368,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             merged,
-            r#"[{"value":{"from":"2026-01-01","to":"2026-02-01"},"condition":"created_at","operator":"custom_date","type":"default"}]"#
+            r#"[{"value":{"from":"2026-01-01","to":"2026-02-01"},"condition":"created_at","operator":"is_in_the_range","type":"default"}]"#
         );
     }
 
@@ -1138,7 +1573,7 @@ mod tests {
             {"condition": "created_at", "type": "default", "operator": "custom_date", "value": {"from": "z"}},
         ]);
         let merged = merge_date_ranges(input.as_array().unwrap().clone());
-        assert_eq!(Value::Array(merged), q["merge_date_ranges"]);
+        assert_eq!(outcome(merged), q["merge_date_ranges"]);
 
         let schema = &o["schema"];
         let raw = r#"[{"condition":"x","operator":"is_in","value":[1],"type":"default"}]"#;
@@ -1161,7 +1596,16 @@ mod tests {
         for (name, filters, raw, or_grouping) in cases {
             let filters: Vec<String> = filters.iter().map(|s| s.to_string()).collect();
             let got = outcome(
-                build_query_hash(None, "changes", Some(schema), &filters, raw, or_grouping).map(
+                build_hash(
+                    None,
+                    "changes",
+                    Some(schema),
+                    &filters,
+                    raw,
+                    or_grouping,
+                    &|| Value::Null,
+                )
+                .map(
                     |(hash, query, explain)| {
                         let explain: Vec<Value> = explain
                             .iter()

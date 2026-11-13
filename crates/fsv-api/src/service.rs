@@ -1727,6 +1727,21 @@ mod tests {
         assert_eq!(p["query_hash"], "");
     }
 
+    /// `test_filter_wires.test_advanced_payload_uses_advanced_param`.
+    #[test]
+    fn advanced_payload_uses_advanced_param() {
+        let a = ListArgs {
+            page: 1,
+            per_page: 30,
+            query_hash: Some(r#"{"all":[]}"#),
+            or_grouping: true,
+            ..Default::default()
+        };
+        let p = list_params(&TICKETS, &a, false);
+        assert_eq!(p["advanced_query_hash"], r#"{"all":[]}"#);
+        assert_eq!(p["query_hash"], "");
+    }
+
     #[test]
     fn search_rows_normalize() {
         let row = json!({"ticket_path": "/a/tickets/42", "ticket_display_id": "INC-42", "subject": "<b>Disk</b> &amp; CPU",

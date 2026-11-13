@@ -1,6 +1,7 @@
 //! Query payload matrix (Python `bd6f6bd`: `tests/test_query_matrix.py`,
-//! `tests/test_strict_filter_contract.py`, `tests/test_query_edge_cases.py`).
-//! Expected values come from `port/golden/gen_fsv_api_query_flow_matrix.py`.
+//! `tests/test_strict_filter_contract.py`, `tests/test_query_edge_cases.py`;
+//! the filter-wire cases as of `406ca71`). Expected values come from
+//! `port/golden/gen_fsv_api_query_flow_matrix.py`. No workspace is configured.
 
 use std::cell::RefCell;
 use std::sync::LazyLock;
@@ -32,8 +33,25 @@ fn want(case: &Value) -> Value {
     }
 }
 
+fn hash_from(resource: &str, schema: &Value, exprs: &[String]) -> Value {
+    outcome(build_from_schema(None, resource, schema, exprs, &|| Value::Null).map(|h| json!(h)))
+}
+
 fn from_schema(exprs: &[String]) -> Value {
-    outcome(build_query_hash_from_schema(None, "changes", &q()["schema"], exprs).map(|h| json!(h)))
+    hash_from("changes", &q()["schema"], exprs)
+}
+
+fn build(
+    dir: Option<&dyn Directory>,
+    resource: &str,
+    schema: Option<&Value>,
+    filters: &[String],
+    raw: Option<&str>,
+    or_grouping: bool,
+) -> Result<Built, QueryError> {
+    build_hash(dir, resource, schema, filters, raw, or_grouping, &|| {
+        Value::Null
+    })
 }
 
 type Built = (Option<String>, Vec<Value>, Vec<Explain>);
@@ -111,9 +129,19 @@ fn date_bounds_are_inclusive_merged_and_do_not_erase_other_fields() {
 }
 
 #[test]
-fn exact_date_and_last_repeated_bound_are_preserved() {
-    let exprs = ["due_by=2026-01-01".into(), "due_by>=2026-02-01".into()];
-    assert_eq!(from_schema(&exprs), q()["exact_date"]);
+fn number_filters_use_captured_advanced_is_with_string() {
+    for (expr, case) in q()["number"].as_object().unwrap() {
+        let got = hash_from("tickets", &q()["schema"], std::slice::from_ref(expr));
+        assert_eq!(got, *case, "{expr}");
+    }
+}
+
+#[test]
+fn repeated_bound_and_inverted_range_are_refused() {
+    for (pair, case) in q()["repeated_bound"].as_object().unwrap() {
+        let exprs: Vec<String> = pair.split('|').map(String::from).collect();
+        assert_eq!(from_schema(&exprs), *case, "{pair}");
+    }
 }
 
 #[test]
@@ -141,7 +169,7 @@ fn named_people_resolve_server_ids_not_display_names() {
             "requester=alex@example.com".into(),
             "agent=Alex Acme".into(),
         ];
-        let got = built(build_query_hash(
+        let got = built(build(
             Some(&dir),
             res,
             Some(&q()["schema"]),
@@ -192,7 +220,7 @@ fn group_lookup_exact_then_unique_and_missing_id() {
 fn raw_query_hash_decodes_only_once_and_combines_with_schema() {
     for case in q()["raw"].as_array().unwrap() {
         let raw = case["raw"].as_str().unwrap();
-        let got = built(build_query_hash(
+        let got = built(build(
             None,
             "changes",
             Some(&q()["schema"]),
@@ -209,14 +237,7 @@ fn raw_query_hash_decodes_only_once_and_combines_with_schema() {
 #[test]
 fn malformed_raw_query_hash_is_rejected() {
     for (raw, case) in q()["malformed_raw"].as_object().unwrap() {
-        let got = built(build_query_hash(
-            None,
-            "changes",
-            None,
-            &[],
-            Some(raw),
-            false,
-        ));
+        let got = built(build(None, "changes", None, &[], Some(raw), false));
         let want = case["err"].as_str().unwrap();
         let got = got["err"]
             .as_str()
@@ -234,7 +255,7 @@ fn malformed_raw_query_hash_is_rejected() {
 fn empty_filters_do_not_load_schema() {
     let e = &q()["empty"];
     assert_eq!(
-        built(build_query_hash(None, "changes", None, &[], None, false)),
+        built(build(None, "changes", None, &[], None, false)),
         json!({"ok": e["build"]})
     );
     assert_eq!(
@@ -263,13 +284,8 @@ fn shared_builder_blocks_unproven_strict_and_contains() {
     let strict = &q()["strict"];
     for (resource, cases) in strict["builder"].as_object().unwrap() {
         for (expr, case) in cases.as_object().unwrap() {
-            let got = build_query_hash_from_schema(
-                None,
-                resource,
-                &strict["schema"],
-                std::slice::from_ref(expr),
-            );
-            assert_eq!(outcome(got.map(|h| json!(h))), *case, "{resource} {expr}");
+            let got = hash_from(resource, &strict["schema"], std::slice::from_ref(expr));
+            assert_eq!(got, *case, "{resource} {expr}");
         }
     }
 }

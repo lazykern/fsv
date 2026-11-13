@@ -11388,7 +11388,8 @@ fn where_strict_quoted_operator_value() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: filter operator unavailable in runtime metadata for 'cf_note'; refusing an unproven filter (use explicit IDs)
+        r#"error: no list filter exists for text field 'Note': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword 
+search
 "#
     );
 }
@@ -16268,7 +16269,7 @@ fn tickets_bulk_subject_filter_acme_status_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16299,7 +16300,7 @@ fn tickets_bulk_subject_filter_acme_status_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16327,7 +16328,7 @@ fn tickets_bulk_subject_filter_acme_spam_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16357,7 +16358,7 @@ fn tickets_bulk_subject_filter_acme_spam_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16385,7 +16386,7 @@ fn tickets_bulk_subject_filter_acme_delete_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16415,7 +16416,7 @@ fn tickets_bulk_subject_filter_acme_delete_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16444,7 +16445,7 @@ fn tickets_bulk_subject_filter_globex_status_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16475,7 +16476,7 @@ fn tickets_bulk_subject_filter_globex_status_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16503,7 +16504,7 @@ fn tickets_bulk_subject_filter_globex_spam_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16533,7 +16534,7 @@ fn tickets_bulk_subject_filter_globex_spam_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16561,7 +16562,7 @@ fn tickets_bulk_subject_filter_globex_delete_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }
@@ -16591,7 +16592,7 @@ fn tickets_bulk_subject_filter_globex_delete_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
 "#
     );
 }

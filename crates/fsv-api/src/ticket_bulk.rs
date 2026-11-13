@@ -114,6 +114,11 @@ pub fn selection_bounded(
         let (query, clauses, _) =
             crate::query::build_query_hash(None, "tickets", Some(&schema), where_, None, false)
                 .map_err(|e| Error::value(e.0))?;
+        if query.as_deref().is_none_or(|q| q.starts_with('{')) {
+            return Err(Error::value(
+                "filtered writes take only basic list filters (status, priority, people, groups, date ranges); advanced-only conditions cannot select a write",
+            ));
+        }
         let mut params = Map::new();
         params.insert(
             "query_hash".into(),
@@ -1126,7 +1131,10 @@ mod tests {
                 }
                 let c = api(Arc::new(Mutex::new(w)));
                 let where_ = if bad == "unsupported" {
-                    vec!["created_at>=2026-01-01".to_string()]
+                    vec![
+                        "created_at>=2026-01-01".to_string(),
+                        "created_at<=2026-01-31".to_string(),
+                    ]
                 } else {
                     GROUP.iter().map(|s| s.to_string()).collect()
                 };
@@ -1148,6 +1156,21 @@ mod tests {
                 assert!(posts(&c).is_empty());
             }
         }
+    }
+
+    #[test]
+    fn advanced_only_filters_cannot_select_a_write() {
+        let c = api(Arc::new(Mutex::new(filtered_world())));
+        let where_ = vec!["created_at=on:today".to_string()];
+        let mut bulk = args("spam");
+        bulk.where_ = &where_;
+        bulk.select_all = true;
+        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+        assert_eq!(
+            msg(&err),
+            "filtered writes take only basic list filters (status, priority, people, groups, date ranges); advanced-only conditions cannot select a write"
+        );
+        assert!(posts(&c).is_empty());
     }
 
     #[test]
