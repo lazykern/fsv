@@ -27,7 +27,8 @@ those stay identical.
   the cache.
 - Commands that crash with a Python traceback (no domain on `url` and
   `changes associations`, `form explain --id` with a bad id, `completion
-  show powershell`), and an API error that escapes a command (`canned show`
+  show powershell`, `completion install powershell`, whose Typer fallback
+  is unreachable because `build_script` raises first), and an API error that escapes a command (`canned show`
   on a 404, `problems columns list` with no route) exit 1 with the same
   message and no traceback. The exit code stays.
 - Boolean flag pairs (`--billable/--non-billable`, `--pager/--no-pager`,
