@@ -29,6 +29,7 @@ pub mod downloads;
 pub mod email_addr;
 pub mod filter_proof;
 pub mod formmeta;
+pub mod inline_images;
 pub mod integrated_assets;
 pub mod legacy_approvals;
 pub mod list_preferences;

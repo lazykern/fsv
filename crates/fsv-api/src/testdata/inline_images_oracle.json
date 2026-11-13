@@ -1,0 +1,212 @@
+{
+ "acme.example.com note": {
+  "hash": "348ff6cd652a0c16447f6a8f9fb4cf02359934a1f1058984518d53e59fdf1a2e",
+  "review": {
+   "action": "ticket_note_inline_images",
+   "method": "POST",
+   "path": "/api/_/tickets/123/notes",
+   "payload": {
+    "body": "<div>Acme evidence</div>",
+    "conversation_from_summary": false,
+    "notify_emails": [],
+    "private": true
+   },
+   "plan_hash": "348ff6cd652a0c16447f6a8f9fb4cf02359934a1f1058984518d53e59fdf1a2e",
+   "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
+   "files": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    }
+   ],
+   "max_attachment_size_bytes": 4096,
+   "attachment_size_limit": {
+    "max_bytes": 4096,
+    "source": "tenant form metadata (bytes)",
+    "published_bytes": 4096,
+    "total_bytes": 58,
+    "applies_to": "total of all files in this submit"
+   },
+   "upload": "POST /api/_/solutions/inline_images, multipart field `file`, once per image; each returned link is embedded as <img src=link data-id=fileid> after the body (no attachment IDs)",
+   "inline_images": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif"
+    }
+   ]
+  }
+ },
+ "acme.example.com reply": {
+  "hash": "92f4d41acdbc0fc84f775cb9436fdf2d535855f2b0126bcb7fcee46c29607b6c",
+  "review": {
+   "action": "ticket_reply_inline_images",
+   "method": "POST",
+   "path": "/api/_/tickets/123/reply",
+   "payload": {
+    "body": "<div>Acme evidence</div>",
+    "cc_emails": [],
+    "conversation_from_summary": false,
+    "freddy_message_id": null,
+    "from_email": "support@example.com",
+    "full_text": "<div>Acme evidence</div>",
+    "translate_reply": false
+   },
+   "plan_hash": "92f4d41acdbc0fc84f775cb9436fdf2d535855f2b0126bcb7fcee46c29607b6c",
+   "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
+   "files": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    }
+   ],
+   "max_attachment_size_bytes": 4096,
+   "attachment_size_limit": {
+    "max_bytes": 4096,
+    "source": "tenant form metadata (bytes)",
+    "published_bytes": 4096,
+    "total_bytes": 58,
+    "applies_to": "total of all files in this submit"
+   },
+   "upload": "POST /api/_/solutions/inline_images, multipart field `file`, once per image; each returned link is embedded as <img src=link data-id=fileid> after the body (no attachment IDs)",
+   "inline_images": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif"
+    }
+   ]
+  }
+ },
+ "globex.example.com note": {
+  "hash": "2931b5f4ea99eb75dea0f52da3b36d35326c836cddb77084581e154038b35931",
+  "review": {
+   "action": "ticket_note_inline_images",
+   "method": "POST",
+   "path": "/api/_/tickets/123/notes",
+   "payload": {
+    "body": "<div>Acme evidence</div>",
+    "conversation_from_summary": false,
+    "notify_emails": [],
+    "private": true
+   },
+   "plan_hash": "2931b5f4ea99eb75dea0f52da3b36d35326c836cddb77084581e154038b35931",
+   "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
+   "files": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    }
+   ],
+   "max_attachment_size_bytes": 4096,
+   "attachment_size_limit": {
+    "max_bytes": 4096,
+    "source": "tenant form metadata (bytes)",
+    "published_bytes": 4096,
+    "total_bytes": 58,
+    "applies_to": "total of all files in this submit"
+   },
+   "upload": "POST /api/_/solutions/inline_images, multipart field `file`, once per image; each returned link is embedded as <img src=link data-id=fileid> after the body (no attachment IDs)",
+   "inline_images": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif"
+    }
+   ]
+  }
+ },
+ "globex.example.com reply": {
+  "hash": "9c2fea3233c2926fdec17f1e85d868cb4baf2d916d7cfbc8a709246fdc7148f2",
+  "review": {
+   "action": "ticket_reply_inline_images",
+   "method": "POST",
+   "path": "/api/_/tickets/123/reply",
+   "payload": {
+    "body": "<div>Acme evidence</div>",
+    "cc_emails": [],
+    "conversation_from_summary": false,
+    "freddy_message_id": null,
+    "from_email": "support@example.com",
+    "full_text": "<div>Acme evidence</div>",
+    "translate_reply": false
+   },
+   "plan_hash": "9c2fea3233c2926fdec17f1e85d868cb4baf2d916d7cfbc8a709246fdc7148f2",
+   "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
+   "files": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif",
+     "sha256": "fd76e71fe80dd6ad09552ad1b55680cb6b6fe2cc17ca74119437e79db49e4c92"
+    }
+   ],
+   "max_attachment_size_bytes": 4096,
+   "attachment_size_limit": {
+    "max_bytes": 4096,
+    "source": "tenant form metadata (bytes)",
+    "published_bytes": 4096,
+    "total_bytes": 58,
+    "applies_to": "total of all files in this submit"
+   },
+   "upload": "POST /api/_/solutions/inline_images, multipart field `file`, once per image; each returned link is embedded as <img src=link data-id=fileid> after the body (no attachment IDs)",
+   "inline_images": [
+    {
+     "name": "acme.png",
+     "size": 29,
+     "content_type": "image/png"
+    },
+    {
+     "name": "globex.gif",
+     "size": 29,
+     "content_type": "image/gif"
+    }
+   ]
+  }
+ }
+}

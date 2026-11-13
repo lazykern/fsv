@@ -56,6 +56,20 @@ pub trait Api: Sync {
         params: Option<Map<String, Value>>,
         csrf: &str,
     ) -> Result<Value>;
+    /// `_request` with exact bytes under its own `Content-Type` (and
+    /// `Accept: application/json`): one request, never replayed. The
+    /// default sends the bytes through [`Api::send_once`].
+    fn send_once_typed(
+        &self,
+        method: &str,
+        path: &str,
+        raw: Vec<u8>,
+        content_type: &str,
+        csrf: &str,
+    ) -> Result<Value> {
+        let _ = content_type;
+        self.send_once(method, path, Body::Raw(raw), None, csrf)
+    }
     /// `_client.get(url, follow_redirects=True)`: raw download, no status mapping.
     fn fetch(&self, url: &str) -> Result<Response>;
     /// `_send("GET", f"https://{DOMAIN}{path}", follow_redirects=False)`
@@ -154,6 +168,27 @@ impl Api for fsv_core::Client {
             method,
             &url,
             opts.header("Content-Type", "application/json")
+                .header("X-CSRF-Token", csrf),
+        )
+    }
+    fn send_once_typed(
+        &self,
+        method: &str,
+        path: &str,
+        raw: Vec<u8>,
+        content_type: &str,
+        csrf: &str,
+    ) -> Result<Value> {
+        let url = format!("{}/{}", self.tenant().api_int, path.trim_start_matches('/'));
+        let opts = RequestOpts {
+            body: Body::Raw(raw),
+            ..Default::default()
+        };
+        self.request(
+            method,
+            &url,
+            opts.header("Content-Type", content_type)
+                .header("Accept", "application/json")
                 .header("X-CSRF-Token", csrf),
         )
     }

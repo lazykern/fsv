@@ -10,6 +10,7 @@ pub mod deletes;
 pub mod download;
 pub mod form;
 pub mod formflow;
+pub mod inline_images;
 pub mod inventory;
 pub mod journal;
 pub mod links;

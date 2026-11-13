@@ -319,6 +319,9 @@ pub fn add_note(a: TicketsAddNoteArgs) -> CmdResult {
 
 fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
     let notify = notify_with_agents(a)?;
+    if !a.inline_image.is_empty() {
+        return crate::cmd::inline_images::add_note(a, &notify);
+    }
     if !a.attach.is_empty() {
         if a.read_only && !a.dry_run {
             return Err(Error::exit(2, "read-only mode: no upload attempted"));
@@ -525,6 +528,9 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
 }
 
 fn reply(a: TicketsReplyArgs) -> CmdResult {
+    if !a.inline_image.is_empty() {
+        return crate::cmd::inline_images::reply(&a).map_err(crate::cmd::reviewed::refusal);
+    }
     if !a.attach.is_empty() {
         return reply_attached(&a).map_err(crate::cmd::reviewed::refusal);
     }
