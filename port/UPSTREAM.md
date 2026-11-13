@@ -3654,7 +3654,7 @@ Still not triaged: commits after `406ca71`.
 
 Porting target: Python `31a9103` (`port/UPSTREAM_TARGET`). The CLI surface
 (clap tree, completion fixtures, `command_flags.txt`, `command_help.txt`) was
-regenerated from it first; behavior lands per batch. `UPSTREAM_BASE` moves to
+regenerated from `72b4716` (same surface; `31a9103` is docs only); behavior lands per batch. `UPSTREAM_BASE` moves to
 the target when every row below is ported. New Python commits after the
 target: `git -C ../fsv log --reverse $(cat port/UPSTREAM_TARGET)..main`.
 
@@ -3724,4 +3724,4 @@ target: `git -C ../fsv log --reverse $(cat port/UPSTREAM_TARGET)..main`.
 | `4ad278d` | 11-13 20:25 | problems/solutions delete-forever: explicit IDs with --max-records bound (required for >1, cap 50), printed ID list, stop at first failure | pending | deletes |
 | `041d865` | 11-13 20:27 | delete plans bind a record-state token (server updated_at + journaled restores): delete after restore is a fresh plan; true replays and unknown outcomes still refused | pending | deletes |
 | `72b4716` | 11-13 20:29 | docs/coverage.md: regenerate from the current matrices (292 rows: 217 covered, 63 unsure, 10 gap); seeded rows leave the gap list | n/a (docs/tests only) | docs |
-| `31a9103` | 11-13 22:51 | docs/coverage.md: regenerate with a separate COVERED (read) status (292 rows: 224 covered, 40 covered-read, 18 unsure, 8 gap); exports shown as review-only UNSURE; known gaps list the remaining UNSURE reasons | pending | wave 2 |
+| `31a9103` | 11-13 22:51 | docs/coverage.md: regenerate with a separate COVERED (read) status (292 rows: 224 covered, 40 covered-read, 18 unsure, 8 gap); exports shown as review-only UNSURE; known gaps list the remaining UNSURE reasons | n/a (docs/tests only) | docs |
