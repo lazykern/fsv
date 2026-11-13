@@ -13,7 +13,8 @@ use fsv_core::pystr::casefold;
 use fsv_py::truthy;
 
 static EMAIL: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("regex"));
+    // `\z`, not `$`: Python `fullmatch` + `\Z` rejects a trailing newline.
+    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\z").expect("regex"));
 
 /// Port of `agent_lookup.is_email`.
 pub fn is_email(value: &str) -> bool {
@@ -193,6 +194,7 @@ mod tests {
         ];
         assert!(is_email("agent@example.com"));
         assert!(!is_email("Alex Acme"));
+        assert!(!is_email("agent@example.com\n"));
         for (name, rows, value, by_name) in cases {
             let got = match exact_agent_id(rows.as_array().unwrap(), value, by_name) {
                 Ok(id) => json!({"ok": id}),

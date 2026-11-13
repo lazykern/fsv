@@ -155,6 +155,14 @@ those stay identical.
   subject is a plan error. Python's `build_plan` raises `KeyError`.
 - Create failures: a non-object `errors` entry is summarized as `?: ?`.
   Python's `_api_failure` raises `AttributeError`.
+- Schema lookups: a schema without `fields`, or a field row without `name`,
+  has no such field. Python's `schema.field` raises `KeyError`. A choice
+  that is not an object is skipped by `choice_label`, where Python raises
+  `AttributeError`.
+- Ticket assignment ids: a superscript digit string is no id. Python's
+  `ticket_assignment._positive` raises `ValueError` from `int()`.
+- SR recipient readback: a submitted address that is not text is a value
+  error. Python's `recipient_fields` raises `AttributeError`.
 
 ## fsv-app
 

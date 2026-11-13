@@ -56,7 +56,15 @@ pub fn recipient_fields(
                 if obj.contains_key("id")
                     && let Some(expected_id) = expected_id
                 {
-                    matches.push(positive_id(&obj["id"])? == positive_id(expected_id)?);
+                    // `positive_id` raises `ReviewedWriteError` (propagates) or,
+                    // for a digit `int()` rejects, `ValueError` (a mismatch).
+                    let cmp = match (positive_id(&obj["id"]), positive_id(expected_id)) {
+                        (Ok(a), Ok(b)) => a == b,
+                        (Err(Error::Value(_)), _) | (_, Err(Error::Value(_))) => false,
+                        (Err(e), _) => return Err(e),
+                        (_, Err(e)) => return Err(e),
+                    };
+                    matches.push(cmp);
                 }
             } else if !value.is_null() {
                 matches.push(false);
@@ -162,6 +170,18 @@ mod tests {
         let missing = fields(json!({"id": 123}));
         assert_eq!(missing["email"], "unavailable");
         assert_eq!(missing["requested_for"], "unavailable");
+
+        let superscript_row = obj(
+            json!({"requested_for": {"id": "²", "email": "actor@example.com"}, "requested_for_id": 11}),
+        );
+        let superscript = recipient_fields(&superscript_row, &body(), &identity()).unwrap();
+        assert_eq!(superscript["requested_for"], "mismatched");
+        let bad_row = obj(json!({"requested_for": {"id": "abc"}, "requested_for_id": 11}));
+        let bad = recipient_fields(&bad_row, &body(), &identity());
+        assert_eq!(
+            bad.unwrap_err().to_string(),
+            "expected a positive numeric identity"
+        );
 
         let mut cc_body = body();
         cc_body.insert(

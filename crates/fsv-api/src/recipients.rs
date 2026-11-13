@@ -10,11 +10,12 @@ use crate::service::has_control;
 
 /// Port of fsv.ticket_notes._EMAIL: one plain address (`fullmatch`).
 pub static EMAIL: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("regex"));
+    // `\z`, not `$`: Python `fullmatch` + `\Z` rejects a trailing newline.
+    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\z").expect("regex"));
 
 /// Port of fsv.ticket_notes._FORMATTED_EMAIL: `Name <address>`.
 static FORMATTED_EMAIL: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[^<>\r\n]+ <([^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+)>$").expect("regex")
+    Regex::new(r"^[^<>\r\n]+ <([^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+)>\z").expect("regex")
 });
 
 /// Port of fsv.ticket_notes._valid_recipient: no C0 control or DEL, and a
@@ -51,5 +52,7 @@ mod tests {
                 "{v:?}"
             );
         }
+        assert!(!EMAIL.is_match("a@example.com\n"));
+        assert!(!FORMATTED_EMAIL.is_match("Name <a@example.com>\n"));
     }
 }

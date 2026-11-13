@@ -46,7 +46,8 @@ pub fn inventory(c: &dyn Api, target: i64) -> Result<Vec<Value>> {
 
 /// Port of fsv.ticket_time._duration: a positive `HH:MM` manual time.
 pub fn duration(value: &str) -> Result<String> {
-    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{2,}:[0-5]\d$").expect("regex"));
+    // `\z`, not `$`: Python `fullmatch` rejects a trailing newline.
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{2,}:[0-5]\d\z").expect("regex"));
     let zero = value
         .chars()
         .all(|c| c == ':' || fsv_core::pystr::decimal_value(c) == Some(0));
@@ -316,6 +317,7 @@ mod tests {
             "",
             "12:3a",
             "٠١:٣٠",
+            "01:00\n",
         ] {
             assert_eq!(
                 duration(bad).unwrap_err().to_string(),

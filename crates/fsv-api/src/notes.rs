@@ -157,18 +157,18 @@ pub(crate) fn returned_note(response: &Value) -> Option<&Value> {
 }
 
 /// `_note_id`: a positive int, or a digit string kept as a string.
+/// Python `int` is unbounded, so a digit string is an id when it is not all zeros.
 pub(crate) fn note_id(note: Option<&Value>) -> Option<Value> {
     match note?.get("id")? {
-        v @ Value::Number(n) if n.as_i64().is_some_and(|i| i > 0) => Some(v.clone()),
-        v @ Value::String(s)
-            if !s.is_empty()
-                && s.bytes().all(|b| b.is_ascii_digit())
-                && s.parse::<u128>().is_ok_and(|n| n > 0) =>
-        {
-            Some(v.clone())
-        }
+        v @ Value::Number(n) if n.as_u64().is_some_and(|i| i > 0) => Some(v.clone()),
+        v @ Value::String(s) if positive_digit_str(s) => Some(v.clone()),
         _ => None,
     }
+}
+
+/// ASCII digits that `int(s) > 0` accepts, including values past `u128`.
+fn positive_digit_str(s: &str) -> bool {
+    !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) && s.bytes().any(|b| b != b'0')
 }
 
 /// `send`: at most one POST after exact-body review and separate public
@@ -587,6 +587,8 @@ mod tests {
             json!({"id": true}),
             json!({"id": "7a"}),
             json!({"id": 1.0}),
+            json!({"id": "001"}),
+            json!({"id": "9".repeat(40)}),
         ];
         let got: Vec<Option<Value>> = ids.iter().map(|n| note_id(Some(n))).collect();
         assert_eq!(
@@ -598,7 +600,9 @@ mod tests {
                 None,
                 None,
                 None,
-                None
+                None,
+                Some(json!("001")),
+                Some(json!("9".repeat(40))),
             ]
         );
         assert_eq!(note_id(None), None);

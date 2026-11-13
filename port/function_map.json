@@ -61,17 +61,19 @@
    "module": "agent_lookup.py",
    "name": "is_email",
    "line": 10,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/agent_lookup.rs",
-   "rust_item": "is_email"
+   "rust_item": "is_email",
+   "note": "fixed: fullmatch now rejects a trailing newline, matching Python \\Z"
   },
   {
    "module": "agent_lookup.py",
    "name": "exact_agent_id",
    "line": 14,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/agent_lookup.rs",
-   "rust_item": "exact_agent_id"
+   "rust_item": "exact_agent_id",
+   "note": "same casefold match, inactive flags, disagreeing emails, and the exact-one user-id error"
   },
   {
    "module": "approval_model.py",
@@ -93,82 +95,91 @@
    "module": "approval_model.py",
    "name": "is_absent",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_model.rs",
    "rust_item": "is_absent",
-   "note": "Was inlined as matches!(e.status, 400 | 404); now a named fn (direct Error::Api only, like isinstance(exc, APIError)) used by detect and approvals::get_change_approval_groups; test is_absent_only_for_direct_400_and_404."
+   "note": "same 400/404-only absence check; wrapped and non-API errors are not absent"
   },
   {
    "module": "approval_model.py",
    "name": "describe",
    "line": 41,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_model.rs",
-   "rust_item": "describe"
+   "rust_item": "describe",
+   "note": "same legacy-label sentence, with ? when the status is missing"
   },
   {
    "module": "approval_model.py",
    "name": "detect",
    "line": 45,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_model.rs",
-   "rust_item": "detect"
+   "rust_item": "detect",
+   "note": "same chains/legacy/unknown result; only 400/404 are legacy and session errors propagate"
   },
   {
    "module": "approval_model.py",
    "name": "require_chains",
    "line": 63,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_model.rs",
-   "rust_item": "require_chains"
+   "rust_item": "require_chains",
+   "note": "same refusal naming the action, HTTP status, and not-yet-supported label"
   },
   {
    "module": "approval_recipients.py",
    "name": "_rows",
    "line": 9,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "rows"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/approval_recipients.rs",
+   "rust_item": "rows_of",
+   "note": "pointer corrected from catalog.rows; same unavailable, incomplete, count, and duplicate-id refusals"
   },
   {
    "module": "approval_recipients.py",
    "name": "members",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_recipients.rs",
-   "rust_item": "members"
+   "rust_item": "members",
+   "note": "same group page totals and CAB dual-envelope conflict check"
   },
   {
    "module": "approval_recipients.py",
    "name": "resolve",
    "line": 63,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_recipients.rs",
-   "rust_item": "resolve"
+   "rust_item": "resolve",
+   "note": "same casefold name-or-id match, sorted member union, and sort_keys context JSON"
   },
   {
    "module": "approval_recipients.py",
    "name": "validate",
    "line": 84,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_recipients.rs",
-   "rust_item": "validate"
+   "rust_item": "validate",
+   "note": "same membership-changed refusal against the reviewed member list"
   },
   {
    "module": "asset_picker.py",
    "name": "candidates",
    "line": 12,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/asset_picker.rs",
-   "rust_item": "candidates"
+   "rust_item": "candidates",
+   "note": "same one search page, duplicate display-id refusal, and selection-only warning"
   },
   {
    "module": "asset_picker.py",
    "name": "select",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/asset_picker.rs",
-   "rust_item": "select"
+   "rust_item": "select",
+   "note": "same unique positive display-id selection on the page"
   },
   {
    "module": "asset_picker_cli.py",
@@ -389,43 +400,48 @@
    "name": "BulkPriorityPlan",
    "line": 15,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/bulk_priority.rs",
-   "rust_item": "BulkPriorityPlan"
+   "rust_item": "BulkPriorityPlan",
+   "note": "same write, label, and before_json fields"
   },
   {
    "module": "bulk_priority.py",
    "name": "hash",
    "class": "BulkPriorityPlan",
    "line": 21,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/bulk_priority.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same hash as the inner write plan"
   },
   {
    "module": "bulk_priority.py",
    "name": "review",
    "class": "BulkPriorityPlan",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/bulk_priority.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same before list, priority label, and bulk warning"
   },
   {
    "module": "bulk_priority.py",
    "name": "build_plan",
    "line": 30,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/bulk_priority.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same 1-100 unique ticket ids, one shared priority enum, and the bulk PUT body"
   },
   {
    "module": "bulk_priority.py",
    "name": "send",
    "line": 48,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/bulk_priority.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same per-ticket priority readback, with a failed read marked unavailable"
   },
   {
    "module": "bulk_priority_cli.py",
@@ -2445,9 +2461,10 @@
    "module": "choice_ids.py",
    "name": "runtime_choice_id",
    "line": 13,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/choice_ids.rs",
-   "rust_item": "runtime_choice_id"
+   "rust_item": "runtime_choice_id",
+   "note": "same int or ASCII-digit string, rejecting bools and values below the minimum"
   },
   {
    "module": "cli.py",
@@ -11263,97 +11280,109 @@
    "module": "integrated_assets.py",
    "name": "target_id",
    "line": 16,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "target_id"
+   "rust_item": "target_id",
+   "note": "same supported modules and positive parsed target id"
   },
   {
    "module": "integrated_assets.py",
    "name": "search",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "search"
+   "rust_item": "search",
+   "note": "same device/asset/service query, page, and unreadable-page refusal"
   },
   {
    "module": "integrated_assets.py",
    "name": "_present",
    "line": 54,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "present"
+   "rust_item": "present",
+   "note": "same present-id check against the association inventory"
   },
   {
    "module": "integrated_assets.py",
    "name": "driver",
    "line": 65,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "driver"
+   "rust_item": "driver",
+   "note": "same integrated-versus-legacy driver probe and 404 both-missing message"
   },
   {
    "module": "integrated_assets.py",
    "name": "legacy_inventory",
    "line": 80,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "legacy_inventory"
+   "rust_item": "legacy_inventory",
+   "note": "same unreadable, incomplete, and duplicate legacy-association refusals"
   },
   {
    "module": "integrated_assets.py",
    "name": "legacy_candidates",
    "line": 109,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "legacy_candidates"
+   "rust_item": "legacy_candidates",
+   "note": "same candidate paging, totals, and page-limit refusal"
   },
   {
    "module": "integrated_assets.py",
    "name": "legacy_plan",
    "line": 144,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "legacy_plan"
+   "rust_item": "legacy_plan",
+   "note": "same captured legacy add wire and the no-remove-wire refusal"
   },
   {
    "module": "integrated_assets.py",
    "name": "listing",
    "line": 162,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "listing"
+   "rust_item": "listing",
+   "note": "same integrated listing versus the legacy devices-only list"
   },
   {
    "module": "integrated_assets.py",
    "name": "inventory",
    "line": 171,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same associated-cis paging, category check, and duplicate-id refusal"
   },
   {
    "module": "integrated_assets.py",
    "name": "build_plan",
    "line": 212,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same add/remove payload, already-associated check, and distinct-id rule"
   },
   {
    "module": "integrated_assets.py",
    "name": "send",
    "line": 234,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same one write and subset readback, including the legacy driver path"
   },
   {
    "module": "integrated_assets.py",
    "name": "verify_devices",
    "line": 252,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/integrated_assets.rs",
-   "rust_item": "verify_devices"
+   "rust_item": "verify_devices",
+   "note": "same subset check; any inventory failure is unverified and not resent"
   },
   {
    "module": "integrated_assets_cli.py",
@@ -11501,91 +11530,102 @@
    "module": "legacy_approvals.py",
    "name": "refuse",
    "line": 39,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "refuse"
+   "rust_item": "refuse",
+   "note": "same web-UI refusal naming the action and the legacy model"
   },
   {
    "module": "legacy_approvals.py",
    "name": "inventory",
    "line": 44,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same flat-list shape, continuation, and duplicate-id checks"
   },
   {
    "module": "legacy_approvals.py",
    "name": "_status_id",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "status_id"
+   "rust_item": "status_id",
+   "note": "same raw int status or type id; names are ignored"
   },
   {
    "module": "legacy_approvals.py",
    "name": "LegacyPlan",
    "line": 75,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "LegacyPlan"
+   "rust_item": "LegacyPlan",
+   "note": "same write plan plus module, inputs, and before inventory"
   },
   {
    "module": "legacy_approvals.py",
    "name": "review",
    "class": "LegacyPlan",
    "line": 80,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same driver, provenance, inputs, and irreversible-email warning"
   },
   {
    "module": "legacy_approvals.py",
    "name": "_template",
    "line": 89,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "template"
+   "rust_item": "template",
+   "note": "same nonempty template string from the approval-template read"
   },
   {
    "module": "legacy_approvals.py",
    "name": "build_request",
    "line": 98,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "build_request"
+   "rust_item": "build_request",
+   "note": "same POST body, observed rules, and sorted distinct recipients"
   },
   {
    "module": "legacy_approvals.py",
    "name": "build_remind",
    "line": 123,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "build_remind"
+   "rust_item": "build_remind",
+   "note": "same bodyless resend PUT and requested-status-0 guard"
   },
   {
    "module": "legacy_approvals.py",
    "name": "_instant",
    "line": 140,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "instant"
+   "rust_item": "instant",
+   "note": "same aware-instant parse; bad or naive text is None, not an error"
   },
   {
    "module": "legacy_approvals.py",
    "name": "verify",
    "line": 150,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "verify"
+   "rust_item": "verify",
+   "note": "same baseline-subset, exact-recipient, and reminder-advance checks"
   },
   {
    "module": "legacy_approvals.py",
    "name": "send",
    "line": 179,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/legacy_approvals.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same rebuild and independent flat-list verify, with provenance on the result"
   },
   {
    "module": "list_preferences.py",
@@ -11663,33 +11703,37 @@
    "module": "module_time.py",
    "name": "inventory",
    "line": 18,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/module_time.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same v2 complete inventory, duplicate-id refusal, and id sort"
   },
   {
    "module": "module_time.py",
    "name": "_duration",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_time.rs",
-   "rust_item": "duration"
+   "rust_item": "duration",
+   "note": "fixed: shared duration() now rejects a trailing newline, matching fullmatch"
   },
   {
    "module": "module_time.py",
    "name": "build_plan",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/module_time.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same change CRUD and problem create/delete wires, billable default, and HH:MM update"
   },
   {
    "module": "module_time.py",
    "name": "send",
    "line": 92,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/module_time.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same semantic time and instant readback, and type-and-value equality for other fields"
   },
   {
    "module": "module_time_cli.py",
@@ -11948,76 +11992,85 @@
    "module": "planning_text.py",
    "name": "definitions",
    "line": 21,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "definitions"
+   "rust_item": "definitions",
+   "note": "same change schema definitions and the three titled problem sections"
   },
   {
    "module": "planning_text.py",
    "name": "inventory",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete-page check, identity requirement, and total mismatch"
   },
   {
    "module": "planning_text.py",
    "name": "section_content",
    "line": 43,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "section_content"
+   "rust_item": "section_content",
+   "note": "same first string among description, content, html, text, and body"
   },
   {
    "module": "planning_text.py",
    "name": "PlanningTextPlan",
    "line": 53,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "PlanningTextPlan"
+   "rust_item": "PlanningTextPlan",
+   "note": "same write plan plus the reviewed baseline text"
   },
   {
    "module": "planning_text.py",
    "name": "hash",
    "class": "PlanningTextPlan",
    "line": 57,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same hash of the wire plan plus the stable snapshot of the baseline"
   },
   {
    "module": "planning_text.py",
    "name": "review",
    "class": "PlanningTextPlan",
    "line": 60,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same clear/edit/create operation, before text, and after description"
   },
   {
    "module": "planning_text.py",
    "name": "editable_content",
    "line": 66,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "editable_content"
+   "rust_item": "editable_content",
+   "note": "same empty file inventory, alias agreement, and contradictory-empty refusal"
   },
   {
    "module": "planning_text.py",
    "name": "build_plan",
    "line": 87,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same POST/PUT/DELETE choice, quoted section key, and clear-versus-description rule"
   },
   {
    "module": "planning_text.py",
    "name": "send",
    "line": 120,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/planning_text.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same section readback, including a known-empty placeholder after delete"
   },
   {
    "module": "private_view_cli.py",
@@ -12078,262 +12131,294 @@
    "module": "problem_incidents.py",
    "name": "_inventory",
    "line": 13,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_incidents.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete ticket pages and duplicate-id refusal"
   },
   {
    "module": "problem_incidents.py",
    "name": "build_plan",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_incidents.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same INC-not-SR check, incident proof, and associate versus unlink wires"
   },
   {
    "module": "problem_incidents.py",
    "name": "send",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_incidents.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same inventory readback of linked versus unlinked"
   },
   {
    "module": "problem_known_error.py",
    "name": "record",
    "line": 13,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_known_error.rs",
-   "rust_item": "record"
+   "rust_item": "record",
+   "note": "same exact problem id and boolean known_error"
   },
   {
    "module": "problem_known_error.py",
    "name": "build_plan",
    "line": 21,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_known_error.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same PUT {known_error: true} bound to the problem snapshot"
   },
   {
    "module": "problem_known_error.py",
    "name": "send",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_known_error.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same already-marked no-op and verified readback after the write"
   },
   {
    "module": "problem_properties.py",
    "name": "PlanningPlan",
    "line": 30,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_properties.rs",
-   "rust_item": "PlanningPlan"
+   "rust_item": "PlanningPlan",
+   "note": "same write plan plus before and warnings JSON"
   },
   {
    "module": "problem_properties.py",
    "name": "review",
    "class": "PlanningPlan",
    "line": 34,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_properties.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same before, after, side effects, and warnings only when present"
   },
   {
    "module": "problem_properties.py",
    "name": "_instant",
    "line": 43,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "instant"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/problem_properties.rs",
+   "rust_item": "precedes",
+   "note": "pointer corrected from change_task_update.instant; bad or naive timestamps skip the comparison instead of raising"
   },
   {
    "module": "problem_properties.py",
    "name": "build_plan",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_properties.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same dirty planning keys, deleted-record refusal, and form-rule gate"
   },
   {
    "module": "problem_properties.py",
    "name": "send",
    "line": 100,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_properties.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same instant and effort readback of the dirty keys"
   },
   {
    "module": "problem_status.py",
    "name": "StatusPlan",
    "line": 22,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "StatusPlan"
+   "rust_item": "StatusPlan",
+   "note": "same status write plus label, before, and warnings"
   },
   {
    "module": "problem_status.py",
    "name": "review",
    "class": "StatusPlan",
    "line": 27,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same status review fields"
   },
   {
    "module": "problem_status.py",
    "name": "_rules_path",
    "line": 41,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "rules_path"
+   "rust_item": "rules_path",
+   "note": "same closure-rules storage path"
   },
   {
    "module": "problem_status.py",
    "name": "proven_closure_rules",
    "line": 45,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "proven_closure_rules"
+   "rust_item": "proven_closure_rules",
+   "note": "same remembered rule names"
   },
   {
    "module": "problem_status.py",
    "name": "remember_closure_rules",
    "line": 55,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "remember_closure_rules"
+   "rust_item": "remember_closure_rules",
+   "note": "same persisted proven rule set"
   },
   {
    "module": "problem_status.py",
    "name": "closure_context",
    "line": 66,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "closure_context"
+   "rust_item": "closure_context",
+   "note": "same closure-field context used by the closed transition"
   },
   {
    "module": "problem_status.py",
    "name": "build_plan",
    "line": 93,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same PUT status, deleted-record refusal, and missing closure fields"
   },
   {
    "module": "problem_status.py",
    "name": "status_readback",
    "line": 134,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "status_readback"
+   "rust_item": "status_readback",
+   "note": "same verified rewrite when the new status is neither the sent nor the prior value"
   },
   {
    "module": "problem_status.py",
    "name": "_activity_rows",
    "line": 151,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "activity_rows"
+   "rust_item": "activity_rows",
+   "note": "same aware-timestamp rows, stripped content, and actor name"
   },
   {
    "module": "problem_status.py",
    "name": "_set_status",
    "line": 170,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "set_status"
+   "rust_item": "set_status",
+   "note": "same set-status-as label from collapsed activity text"
   },
   {
    "module": "problem_status.py",
    "name": "workflow_activity_note",
    "line": 175,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "workflow_activity_note"
+   "rust_item": "workflow_activity_note",
+   "note": "same workflow-after-write note, including the requested-label order check"
   },
   {
    "module": "problem_status.py",
    "name": "rejection",
    "line": 213,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "rejection"
+   "rust_item": "rejection",
+   "note": "same closure-rule details, 405 trash hint, and generic HTTP rejection"
   },
   {
    "module": "problem_status.py",
    "name": "send",
    "line": 229,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same status readback, activity note, and single-attempt rejection"
   },
   {
    "module": "problem_task_update.py",
    "name": "TaskUpdatePlan",
    "line": 21,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/change_task_update.rs",
-   "rust_item": "TaskUpdatePlan"
+   "rust_item": "TaskUpdatePlan",
+   "note": "same shared plan shape: write, task id, and inputs JSON"
   },
   {
    "module": "problem_task_update.py",
    "name": "inventory",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete problem-task inventory and duplicate-id refusal"
   },
   {
    "module": "problem_task_update.py",
    "name": "fields_from",
    "line": 34,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "fields_from"
+   "rust_item": "fields_from",
+   "note": "same problem_task_fields, task_fields, or fields envelope"
   },
   {
    "module": "problem_task_update.py",
    "name": "exact_task",
    "line": 42,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "exact_task"
+   "rust_item": "exact_task",
+   "note": "same id, parent display id, and Itil::Problem type"
   },
   {
    "module": "problem_task_update.py",
    "name": "build_plan",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same captured fields, closure-only completion, and planned-end order"
   },
   {
    "module": "problem_task_update.py",
    "name": "send",
    "line": 114,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same exact-task field readback after one PUT"
   },
   {
    "module": "problem_task_update.py",
    "name": "delete_plan",
    "line": 142,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "delete_plan"
+   "rust_item": "delete_plan",
+   "note": "same bodyless delete of the exact task"
   },
   {
    "module": "problem_task_update.py",
    "name": "delete",
    "line": 155,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_task_update.rs",
-   "rust_item": "delete"
+   "rust_item": "delete",
+   "note": "same delete then absence in the complete inventory"
   },
   {
    "module": "problem_task_update_cli.py",
@@ -12347,74 +12432,83 @@
    "name": "ProblemPlan",
    "line": 21,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "ProblemPlan"
+   "rust_item": "ProblemPlan",
+   "note": "same write plan plus inputs"
   },
   {
    "module": "problem_workflows.py",
    "name": "review",
    "class": "ProblemPlan",
    "line": 25,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same problem-plan review"
   },
   {
    "module": "problem_workflows.py",
    "name": "record",
    "line": 33,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "record"
+   "rust_item": "record",
+   "note": "same exact problem identity"
   },
   {
    "module": "problem_workflows.py",
    "name": "inventory",
    "line": 41,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete child inventory and duplicate-id refusal"
   },
   {
    "module": "problem_workflows.py",
    "name": "create_plan",
    "line": 54,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "create_plan"
+   "rust_item": "create_plan",
+   "note": "same subject, description, status, priority, impact, requester, and custom fields"
   },
   {
    "module": "problem_workflows.py",
    "name": "_choice",
    "line": 99,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "choice"
+   "rust_item": "choice",
+   "note": "same unique active runtime choice"
   },
   {
    "module": "problem_workflows.py",
    "name": "child_plan",
    "line": 115,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "child_plan"
+   "rust_item": "child_plan",
+   "note": "same child kind, required text, and uncaptured required-field refusal"
   },
   {
    "module": "problem_workflows.py",
    "name": "_requester_identity",
    "line": 149,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "requester_identity"
+   "rust_item": "requester_identity",
+   "note": "same resolved requester email and unique requester field"
   },
   {
    "module": "problem_workflows.py",
    "name": "send",
    "line": 169,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_workflows.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same create or child send and readback"
   },
   {
    "module": "query.py",
@@ -12668,65 +12762,73 @@
    "module": "readback.py",
    "name": "same_text",
    "line": 11,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "same_text"
+   "rust_item": "same_text",
+   "note": "same one-line equality of two strings"
   },
   {
    "module": "readback.py",
    "name": "resolution_text",
    "line": 18,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "resolution_text"
+   "rust_item": "resolution_text",
+   "note": "same notes_html unwrap and resolution_notes_html alias"
   },
   {
    "module": "readback.py",
    "name": "submitted_value_matches",
    "line": 29,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "submitted_value_matches"
+   "rust_item": "submitted_value_matches",
+   "note": "same key-only compare, bool text, and Decimal normalization"
   },
   {
    "module": "readback.py",
    "name": "custom_fields_match",
    "line": 58,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "custom_fields_match"
+   "rust_item": "custom_fields_match",
+   "note": "same lookup {id, value} unwrap to the id"
   },
   {
    "module": "readback.py",
    "name": "same_instant",
    "line": 77,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "same_instant"
+   "rust_item": "same_instant",
+   "note": "same UTC instant; naive, date-only, and non-text values do not match"
   },
   {
    "module": "readback.py",
    "name": "bounded_readback",
    "line": 97,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "bounded_readback"
+   "rust_item": "bounded_readback",
+   "note": "same four delays and the last failed observation"
   },
   {
    "module": "readback.py",
    "name": "duration_seconds",
    "line": 119,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "duration_seconds"
+   "rust_item": "duration_seconds",
+   "note": "fixed: fullmatch now rejects a trailing newline; Unicode hours still parse"
   },
   {
    "module": "readback.py",
    "name": "same_duration",
    "line": 127,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/readback.rs",
-   "rust_item": "same_duration"
+   "rust_item": "same_duration",
+   "note": "same false result when either duration is invalid, including a trailing newline"
   },
   {
    "module": "render.py",
@@ -12980,17 +13082,19 @@
    "module": "reviewed_inventory.py",
    "name": "complete_inventory",
    "line": 14,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_inventory.rs",
-   "rust_item": "complete_inventory"
+   "rust_item": "complete_inventory",
+   "note": "same page identity, continuation, total, and duplicate-id checks, sorted by id"
   },
   {
    "module": "reviewed_inventory.py",
    "name": "single_page_inventory",
    "line": 82,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_inventory.rs",
-   "rust_item": "single_page_inventory"
+   "rust_item": "single_page_inventory",
+   "note": "same one captured page and the extra-read refusal"
   },
   {
    "module": "reviewed_snapshot.py",
@@ -13021,44 +13125,49 @@
    "name": "WritePlan",
    "line": 21,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_write.rs",
-   "rust_item": "WritePlan"
+   "rust_item": "WritePlan",
+   "note": "same action, target, tenant, method, path, payload, and context"
   },
   {
    "module": "reviewed_write.py",
    "name": "payload",
    "class": "WritePlan",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_write.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "same JSON payload, with null for a bodyless write"
   },
   {
    "module": "reviewed_write.py",
    "name": "hash",
    "class": "WritePlan",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_write.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same plan hash over action, target, tenant, method, path, payload, and context"
   },
   {
    "module": "reviewed_write.py",
    "name": "review",
    "class": "WritePlan",
    "line": 40,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_write.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same /api/_/ path, payload, hash, and single-attempt warning"
   },
   {
    "module": "reviewed_write.py",
    "name": "execute",
    "line": 46,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/reviewed_write.rs",
-   "rust_item": "execute"
+   "rust_item": "execute",
+   "note": "same cancel, journal guards, definite 4xx rejection, and unverified warning"
   },
   {
    "module": "safety.py",
@@ -13760,65 +13869,73 @@
    "name": "SolutionPlan",
    "line": 21,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "SolutionPlan"
+   "rust_item": "SolutionPlan",
+   "note": "same write plan plus inputs JSON"
   },
   {
    "module": "solutions.py",
    "name": "metadata",
    "line": 25,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "metadata"
+   "rust_item": "metadata",
+   "note": "same complete non-deleted rows sorted by id"
   },
   {
    "module": "solutions.py",
    "name": "folder",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "folder"
+   "rust_item": "folder",
+   "note": "same unique category and folder, and the category-id conflict"
   },
   {
    "module": "solutions.py",
    "name": "article",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "article"
+   "rust_item": "article",
+   "note": "same exact non-deleted article"
   },
   {
    "module": "solutions.py",
    "name": "create_plan",
    "line": 58,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "create_plan"
+   "rust_item": "create_plan",
+   "note": "same draft POST, escaped description, and permanent/workaround types"
   },
   {
    "module": "solutions.py",
    "name": "send_create",
    "line": 69,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "send_create"
+   "rust_item": "send_create",
+   "note": "same title, description, status, type, and folder readback"
   },
   {
    "module": "solutions.py",
    "name": "link_plan",
    "line": 87,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "link_plan"
+   "rust_item": "link_plan",
+   "note": "same link or unlink PUT and already-linked guard"
   },
   {
    "module": "solutions.py",
    "name": "send_link",
    "line": 103,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/solutions.rs",
-   "rust_item": "send_link"
+   "rust_item": "send_link",
+   "note": "same solution-inventory readback of the link or unlink"
   },
   {
    "module": "solutions_cli.py",
@@ -13839,57 +13956,64 @@
    "name": "ApprovalPlan",
    "line": 17,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "ApprovalPlan"
+   "rust_item": "ApprovalPlan",
+   "note": "same write plan plus rebuild inputs"
   },
   {
    "module": "sr_approvals.py",
    "name": "inventory",
    "line": 21,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same ticket approval groups, with ApprovalError kept as a refusal"
   },
   {
    "module": "sr_approvals.py",
    "name": "listing",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "listing"
+   "rust_item": "listing",
+   "note": "same chains groups or the legacy flat list and describe() note"
   },
   {
    "module": "sr_approvals.py",
    "name": "_status_id",
    "line": 40,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "status_id"
+   "rust_item": "status_id",
+   "note": "same raw int status id; labels are not compared"
   },
   {
    "module": "sr_approvals.py",
    "name": "recipients",
    "line": 48,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "recipients"
+   "rust_item": "recipients",
+   "note": "same positive id or one active exact-email requester"
   },
   {
    "module": "sr_approvals.py",
    "name": "build_plan",
    "line": 73,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same request, decision, cancel, and remind paths and payloads"
   },
   {
    "module": "sr_approvals.py",
    "name": "send",
    "line": 116,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_approvals.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same new-group, cancel, remind-advance, and remark readback"
   },
   {
    "module": "sr_approvals_cli.py",
@@ -13902,49 +14026,55 @@
    "module": "sr_recipient_readback.py",
    "name": "recipient_fields",
    "line": 6,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_recipient_readback.rs",
-   "rust_item": "recipient_fields"
+   "rust_item": "recipient_fields",
+   "note": "DIVERGENCE: a non-text submitted address returns a value error instead of AttributeError; fixed non-decimal digit ids to count as a mismatch while a bad numeric id still errors"
   },
   {
    "module": "sr_requested_items.py",
    "name": "inventory",
    "line": 20,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_requested_items.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same requested-item list for the service request"
   },
   {
    "module": "sr_requested_items.py",
    "name": "detail",
    "line": 30,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_requested_items.rs",
-   "rust_item": "detail"
+   "rust_item": "detail",
+   "note": "same exact requested-item read"
   },
   {
    "module": "sr_requested_items.py",
    "name": "text_answers",
    "line": 37,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_requested_items.rs",
-   "rust_item": "text_answers"
+   "rust_item": "text_answers",
+   "note": "same text answers without treating ids as emails"
   },
   {
    "module": "sr_requested_items.py",
    "name": "build_plan",
    "line": 65,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_requested_items.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same reviewed requested-item update plan"
   },
   {
    "module": "sr_requested_items.py",
    "name": "send",
    "line": 123,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/sr_requested_items.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same send and answer readback"
   },
   {
    "module": "sr_requested_items_cli.py",
@@ -13957,41 +14087,46 @@
    "module": "state_flow.py",
    "name": "get_state_flow",
    "line": 13,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/state_flow.rs",
-   "rust_item": "get_state_flow"
+   "rust_item": "get_state_flow",
+   "note": "same workspace-then-plain state-flow fetch"
   },
   {
    "module": "state_flow.py",
    "name": "render_flow",
    "line": 32,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/state_flow.rs",
-   "rust_item": "render_flow"
+   "rust_item": "render_flow",
+   "note": "same flow table, gates, and approval rows"
   },
   {
    "module": "state_flow.py",
    "name": "render_compact",
    "line": 136,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/state_flow.rs",
-   "rust_item": "render_compact"
+   "rust_item": "render_compact",
+   "note": "same compact window around the current state"
   },
   {
    "module": "state_flow.py",
    "name": "render_state_diagram",
    "line": 192,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/state_flow.rs",
-   "rust_item": "render_state_diagram"
+   "rust_item": "render_state_diagram",
+   "note": "same progress diagram text"
   },
   {
    "module": "state_flow.py",
    "name": "_try_get_approvals",
    "line": 260,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/state_flow.rs",
-   "rust_item": "try_get_approvals"
+   "rust_item": "try_get_approvals",
+   "note": "same approval list that stays empty when the read fails"
   },
   {
    "module": "task_status.py",
@@ -14029,68 +14164,76 @@
    "module": "ticket_assignment.py",
    "name": "_positive",
    "line": 14,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "positive"
+   "rust_item": "positive",
+   "note": "DIVERGENCE: a superscript digit returns None instead of ValueError from int(); decimal digit strings still match"
   },
   {
    "module": "ticket_assignment.py",
    "name": "_resolve",
    "line": 20,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "resolve"
+   "rust_item": "resolve",
+   "note": "same one active id, name, or email match"
   },
   {
    "module": "ticket_assignment.py",
    "name": "_member",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "member"
+   "rust_item": "member",
+   "note": "same explicit two-sided membership lists"
   },
   {
    "module": "ticket_assignment.py",
    "name": "AssignmentPlan",
    "line": 44,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "AssignmentPlan"
+   "rust_item": "AssignmentPlan",
+   "note": "same write, intent, and before JSON"
   },
   {
    "module": "ticket_assignment.py",
    "name": "hash",
    "class": "AssignmentPlan",
    "line": 50,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same inner write hash"
   },
   {
    "module": "ticket_assignment.py",
    "name": "review",
    "class": "AssignmentPlan",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same before snapshot and assignment warning"
   },
   {
    "module": "ticket_assignment.py",
    "name": "build_plan",
    "line": 58,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same pickup, assign, and unassign wires, including the group-clears-agent rule"
   },
   {
    "module": "ticket_assignment.py",
    "name": "send",
    "line": 118,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_assignment.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same intent rebuild and per-ticket submitted-value readback"
   },
   {
    "module": "ticket_assignment_cli.py",
@@ -14103,60 +14246,67 @@
    "module": "ticket_bulk.py",
    "name": "selection",
    "line": 17,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "selection"
+   "rust_item": "selection",
+   "note": "same explicit selection and ignored-filter refusal"
   },
   {
    "module": "ticket_bulk.py",
    "name": "BulkPlan",
    "line": 47,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "BulkPlan"
+   "rust_item": "BulkPlan",
+   "note": "same bulk write plan fields"
   },
   {
    "module": "ticket_bulk.py",
    "name": "hash",
    "class": "BulkPlan",
    "line": 56,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same full selection hash"
   },
   {
    "module": "ticket_bulk.py",
    "name": "review",
    "class": "BulkPlan",
    "line": 60,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same selected ids, subjects, and destructive warning"
   },
   {
    "module": "ticket_bulk.py",
    "name": "build_plan",
    "line": 66,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same spam, delete, and status plans, including confirm-destructive"
   },
   {
    "module": "ticket_bulk.py",
    "name": "send",
    "line": 152,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same one-shot send and no automatic replay"
   },
   {
    "module": "ticket_bulk.py",
    "name": "_send_each",
    "line": 195,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_bulk.rs",
-   "rust_item": "send_each"
+   "rust_item": "send_each",
+   "note": "same per-ticket send with the bulk outcome left unknown after a partial failure"
   },
   {
    "module": "ticket_bulk_cli.py",
@@ -14194,267 +14344,299 @@
    "module": "ticket_conversation.py",
    "name": "_email_set",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "email_set"
+   "rust_item": "email_set",
+   "note": "same stripped valid recipients normalized with parseaddr and casefold"
   },
   {
    "module": "ticket_conversation.py",
    "name": "_recipient_readback",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "recipient_readback"
+   "rust_item": "recipient_readback",
+   "note": "same notify/to alias and distinct CC/BCC compare"
   },
   {
    "module": "ticket_conversation.py",
    "name": "sender_readback",
    "line": 46,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "sender_readback"
+   "rust_item": "sender_readback",
+   "note": "same from_email match after parseaddr"
   },
   {
    "module": "ticket_conversation.py",
    "name": "recipients",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "recipients"
+   "rust_item": "recipients",
+   "note": "fixed: a trailing newline is not a plain email; the lookup failure message is unchanged"
   },
   {
    "module": "ticket_conversation.py",
    "name": "status_context",
    "line": 73,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "status_context"
+   "rust_item": "status_context",
+   "note": "same Pending-only status id, rule token, and record hash"
   },
   {
    "module": "ticket_conversation.py",
    "name": "status_fields",
    "line": 102,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "status_fields"
+   "rust_item": "status_fields",
+   "note": "same status payload fields from that context"
   },
   {
    "module": "ticket_conversation.py",
    "name": "ConversationPlan",
    "line": 116,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "ConversationPlan"
+   "rust_item": "ConversationPlan",
+   "note": "same conversation write plan"
   },
   {
    "module": "ticket_conversation.py",
    "name": "payload",
    "class": "ConversationPlan",
    "line": 128,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "same reviewed JSON payload"
   },
   {
    "module": "ticket_conversation.py",
    "name": "path",
    "class": "ConversationPlan",
    "line": 132,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "path"
+   "rust_item": "path",
+   "note": "same notes or reply path"
   },
   {
    "module": "ticket_conversation.py",
    "name": "hash",
    "class": "ConversationPlan",
    "line": 136,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same plan hash"
   },
   {
    "module": "ticket_conversation.py",
    "name": "review",
    "class": "ConversationPlan",
    "line": 144,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same visibility, path, and public-confirmation warning"
   },
   {
    "module": "ticket_conversation.py",
    "name": "forward_source",
    "line": 150,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "forward_source"
+   "rust_item": "forward_source",
+   "note": "same exact forward source from the complete history"
   },
   {
    "module": "ticket_conversation.py",
    "name": "build_plan",
    "line": 166,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same reply, note, forward, and BCC wires and the unproven combinations"
   },
   {
    "module": "ticket_conversation.py",
    "name": "send",
    "line": 216,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/conversations.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same one send, journal guards, and exact conversation-id readback"
   },
   {
    "module": "ticket_flow.py",
    "name": "build_create_plan",
    "line": 17,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/ticket.rs",
-   "rust_item": "build_create_plan"
+   "rust_item": "build_create_plan",
+   "note": "same requester, status, CC, device, and business-rule errors on the incident plan"
   },
   {
    "module": "ticket_flow.py",
    "name": "check_duplicate",
    "line": 106,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/ticket.rs",
-   "rust_item": "check_duplicate"
+   "rust_item": "check_duplicate",
+   "note": "same exit 4 for an unknown started create and for a recent plan"
   },
   {
    "module": "ticket_flow.py",
    "name": "execute",
    "line": 115,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/ticket.rs",
-   "rust_item": "execute"
+   "rust_item": "execute",
+   "note": "same one POST, exit 5 on an unknown outcome, and CC plus device readback"
   },
   {
    "module": "ticket_flow.py",
    "name": "send",
    "line": 168,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/ticket.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same freshen-and-expect gate before execute"
   },
   {
    "module": "ticket_kind.py",
    "name": "exact_ticket_type",
    "line": 9,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_kind.rs",
-   "rust_item": "exact_ticket_type"
+   "rust_item": "exact_ticket_type",
+   "note": "same collapsed casefold type, with conflicting representations refused"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "context",
    "line": 20,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "context"
+   "rust_item": "context",
+   "note": "same rules, status metadata, and required-field context"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "LifecyclePlan",
    "line": 104,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "LifecyclePlan"
+   "rust_item": "LifecyclePlan",
+   "note": "same transition plan"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "payload",
    "class": "LifecyclePlan",
    "line": 116,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "same transition payload"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "hash",
    "class": "LifecyclePlan",
    "line": 120,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same full review hash"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "review",
    "class": "LifecyclePlan",
    "line": 123,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same review text and acknowledgement"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "acknowledged",
    "class": "LifecyclePlan",
    "line": 142,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "acknowledged"
+   "rust_item": "acknowledged",
+   "note": "same acknowledgement flag"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "build_plan",
    "line": 146,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same resolve and close plans, including the resolution-note requirement"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "readback",
    "line": 160,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "readback"
+   "rust_item": "readback",
+   "note": "same status and resolution readback"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "matches",
    "line": 192,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "matches"
+   "rust_item": "matches",
+   "note": "same submitted-value match of the transition"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "send",
    "line": 205,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same note-then-status send and the stayed-put workflow message"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "_status_text",
    "line": 278,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "status_text"
+   "rust_item": "status_text",
+   "note": "same status text used in the partial report"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "_next_step",
    "line": 285,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "next_step"
+   "rust_item": "next_step",
+   "note": "same next-step hint after a partial transition"
   },
   {
    "module": "ticket_lifecycle.py",
    "name": "_partial_report",
    "line": 291,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_lifecycle.rs",
-   "rust_item": "partial_report"
+   "rust_item": "partial_report",
+   "note": "same partial-failure lines when the note saved and the status did not"
   },
   {
    "module": "ticket_lifecycle_cli.py",
@@ -14467,49 +14649,55 @@
    "module": "ticket_merge.py",
    "name": "_id",
    "line": 17,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/value.rs",
-   "rust_item": "id"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/ticket_merge.rs",
+   "rust_item": "ticket_id",
+   "note": "pointer corrected from forms LookupValue::id; same positive ticket display id"
   },
   {
    "module": "ticket_merge.py",
    "name": "_history",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_merge.rs",
-   "rust_item": "history"
+   "rust_item": "history",
+   "note": "same complete unique conversation history"
   },
   {
    "module": "ticket_merge.py",
    "name": "_closed",
    "line": 36,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_merge.rs",
-   "rust_item": "closed"
+   "rust_item": "closed",
+   "note": "same unique visible Closed status id and metadata hash"
   },
   {
    "module": "ticket_merge.py",
    "name": "build_plan",
    "line": 47,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_merge.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same complete_merge POST, distinct tickets, and boolean note visibility"
   },
   {
    "module": "ticket_merge.py",
    "name": "review",
    "line": 70,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_merge.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same surviving ticket, merged ids, and irreversible warning"
   },
   {
    "module": "ticket_merge.py",
    "name": "send",
    "line": 76,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_merge.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same bounded readback of notes, moved conversations, and closed secondaries"
   },
   {
    "module": "ticket_merge_cli.py",
@@ -14522,33 +14710,37 @@
    "module": "ticket_note_mutation.py",
    "name": "_note",
    "line": 15,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_note_mutation.rs",
-   "rust_item": "note"
+   "rust_item": "note",
+   "note": "same exact source-2 note with a boolean private flag"
   },
   {
    "module": "ticket_note_mutation.py",
    "name": "build_plan",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_note_mutation.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same PUT of the escaped body or a bodyless DELETE"
   },
   {
    "module": "ticket_note_mutation.py",
    "name": "review",
    "line": 41,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_note_mutation.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same prior note, refused when the snapshot changed"
   },
   {
    "module": "ticket_note_mutation.py",
    "name": "send",
    "line": 48,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_note_mutation.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same delete-absence or body-text readback"
   },
   {
    "module": "ticket_note_mutation_cli.py",
@@ -14561,9 +14753,10 @@
    "module": "ticket_notes.py",
    "name": "_valid_recipient",
    "line": 30,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/recipients.rs",
-   "rust_item": "valid_recipient"
+   "rust_item": "valid_recipient",
+   "note": "fixed: plain and Name <email> fullmatch now reject a trailing newline"
   },
   {
    "module": "ticket_notes.py",
@@ -14578,93 +14771,104 @@
    "name": "NotePlan",
    "line": 41,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "NotePlan"
+   "rust_item": "NotePlan",
+   "note": "same ticket, body, visibility, recipients, and tenant"
   },
   {
    "module": "ticket_notes.py",
    "name": "path",
    "class": "NotePlan",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "path"
+   "rust_item": "path",
+   "note": "same tickets/{id}/notes path"
   },
   {
    "module": "ticket_notes.py",
    "name": "payload",
    "class": "NotePlan",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "same body, private flag, and notify_emails"
   },
   {
    "module": "ticket_notes.py",
    "name": "hash",
    "class": "NotePlan",
    "line": 59,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same tenant, path, and payload hash"
   },
   {
    "module": "ticket_notes.py",
    "name": "review",
    "class": "NotePlan",
    "line": 62,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same visibility, risks, and empty-notify warning"
   },
   {
    "module": "ticket_notes.py",
    "name": "build_plan",
    "line": 71,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same escaped plain paragraphs and HTML visible-text check"
   },
   {
    "module": "ticket_notes.py",
    "name": "_check_plan",
    "line": 107,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "check_plan"
+   "rust_item": "check_plan",
+   "note": "same rebuild-as-HTML equality check"
   },
   {
    "module": "ticket_notes.py",
    "name": "_duplicate",
    "line": 115,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "duplicate"
+   "rust_item": "duplicate",
+   "note": "same started-or-done journal block"
   },
   {
    "module": "ticket_notes.py",
    "name": "_returned_note",
    "line": 122,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "returned_note"
+   "rust_item": "returned_note",
+   "note": "same note, conversation, or top-level id envelope"
   },
   {
    "module": "ticket_notes.py",
    "name": "_note_id",
    "line": 132,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "note_id"
+   "rust_item": "note_id",
+   "note": "fixed: digit strings past u128 stay ids when they are not all zeros"
   },
   {
    "module": "ticket_notes.py",
    "name": "send",
    "line": 141,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/notes.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same one POST, public confirmation, and exact returned-id readback"
   },
   {
    "module": "ticket_notes.py",
@@ -14685,144 +14889,161 @@
    "module": "ticket_properties.py",
    "name": "_record",
    "line": 25,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "record"
+   "rust_item": "record",
+   "note": "same exact ticket record"
   },
   {
    "module": "ticket_properties.py",
    "name": "PropertyPlan",
    "line": 36,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "PropertyPlan"
+   "rust_item": "PropertyPlan",
+   "note": "same property update plan"
   },
   {
    "module": "ticket_properties.py",
    "name": "payload",
    "class": "PropertyPlan",
    "line": 47,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "same update payload"
   },
   {
    "module": "ticket_properties.py",
    "name": "before",
    "class": "PropertyPlan",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "before"
+   "rust_item": "before",
+   "note": "same pre-write field snapshot"
   },
   {
    "module": "ticket_properties.py",
    "name": "hash",
    "class": "PropertyPlan",
    "line": 55,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "same review hash"
   },
   {
    "module": "ticket_properties.py",
    "name": "acknowledged",
    "class": "PropertyPlan",
    "line": 66,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "acknowledged"
+   "rust_item": "acknowledged",
+   "note": "same acknowledgement of rule warnings"
   },
   {
    "module": "ticket_properties.py",
    "name": "review",
    "class": "PropertyPlan",
    "line": 69,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "same before, after, and warning review"
   },
   {
    "module": "ticket_properties.py",
    "name": "build_plan",
    "line": 79,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same set, tag, and planned-date rules, including the resolve/close refusal"
   },
   {
    "module": "ticket_properties.py",
    "name": "send",
    "line": 182,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/properties.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same form-change refusal and field readback"
   },
   {
    "module": "ticket_tasks.py",
    "name": "TaskPlan",
    "line": 17,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "TaskPlan"
+   "rust_item": "TaskPlan",
+   "note": "same task write plan"
   },
   {
    "module": "ticket_tasks.py",
    "name": "inventory",
    "line": 21,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete ticket-task inventory"
   },
   {
    "module": "ticket_tasks.py",
    "name": "fields_from",
    "line": 32,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "fields_from"
+   "rust_item": "fields_from",
+   "note": "same runtime task-field metadata"
   },
   {
    "module": "ticket_tasks.py",
    "name": "required_for_create",
    "line": 45,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "required_for_create"
+   "rust_item": "required_for_create",
+   "note": "same required create fields"
   },
   {
    "module": "ticket_tasks.py",
    "name": "reminder",
    "line": 52,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "reminder"
+   "rust_item": "reminder",
+   "note": "same unique active notify_before choice"
   },
   {
    "module": "ticket_tasks.py",
    "name": "custom_values",
    "line": 65,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "custom_values"
+   "rust_item": "custom_values",
+   "note": "same custom field name-or-label match and choice check"
   },
   {
    "module": "ticket_tasks.py",
    "name": "build_plan",
    "line": 99,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same create and update fields, title, and group resolution"
   },
   {
    "module": "ticket_tasks.py",
    "name": "send",
    "line": 168,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_tasks.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same task readback after one write"
   },
   {
    "module": "ticket_tasks_cli.py",
@@ -14835,33 +15056,37 @@
    "module": "ticket_time.py",
    "name": "inventory",
    "line": 17,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_time.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete time-entry inventory sorted by id"
   },
   {
    "module": "ticket_time.py",
    "name": "_duration",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_time.rs",
-   "rust_item": "duration"
+   "rust_item": "duration",
+   "note": "fixed: fullmatch now rejects a trailing newline; Unicode decimal HH:MM still passes"
   },
   {
    "module": "ticket_time.py",
    "name": "build_plan",
    "line": 34,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_time.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same nonbillable self-owned create, update, and delete wires"
   },
   {
    "module": "ticket_time.py",
    "name": "send",
    "line": 84,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/ticket_time.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same semantic duration and instant readback"
   },
   {
    "module": "ticket_time_cli.py",
@@ -17752,41 +17977,46 @@
    "module": "watchers.py",
    "name": "positive_id",
    "line": 12,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/watchers.rs",
-   "rust_item": "positive_id"
+   "rust_item": "positive_id",
+   "note": "same positive decimal id, including Unicode digits, and the int() error for superscripts"
   },
   {
    "module": "watchers.py",
    "name": "self_id",
    "line": 18,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/watchers.rs",
-   "rust_item": "self_id"
+   "rust_item": "self_id",
+   "note": "same fresh signed-in agent id"
   },
   {
    "module": "watchers.py",
    "name": "inventory",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/watchers.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "same complete sorted watcher ids and duplicate or total mismatch"
   },
   {
    "module": "watchers.py",
    "name": "build_plan",
    "line": 39,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/watchers.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same ticket and change watch and unwatch methods, paths, and bodies"
   },
   {
    "module": "watchers.py",
    "name": "send",
    "line": 56,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/watchers.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same rebuild-before-noop and full membership readback"
   },
   {
    "module": "yamlio.py",

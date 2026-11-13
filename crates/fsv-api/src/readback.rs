@@ -90,7 +90,8 @@ pub fn bounded_readback(
 pub fn duration_seconds(value: &Value) -> Result<i64> {
     // Python `\d` is a Unicode decimal digit. `[0-5]` stays ASCII.
     static RE: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^(\d{2,}):([0-5]\d)(?::([0-5]\d))?$").expect("regex"));
+        // `\z`, not `$`: Python `fullmatch` rejects a trailing newline.
+        LazyLock::new(|| Regex::new(r"^(\d{2,}):([0-5]\d)(?::([0-5]\d))?\z").expect("regex"));
     let bad = || Error::value("duration must be HH:MM or HH:MM:SS");
     let caps = value
         .as_str()
@@ -374,6 +375,11 @@ mod tests {
             duration_seconds(&json!("1:00")).unwrap_err().to_string(),
             "duration must be HH:MM or HH:MM:SS"
         );
+        assert_eq!(
+            duration_seconds(&json!("00:05\n")).unwrap_err().to_string(),
+            "duration must be HH:MM or HH:MM:SS"
+        );
+        assert!(!same_duration(&json!("00:05\n"), &json!("00:05\n")));
     }
 
     /// `tests/test_readback_normalization.py::test_timestamp_semantics`.
