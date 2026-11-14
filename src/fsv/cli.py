@@ -3006,7 +3006,8 @@ def auth_status() -> None:
     from fsv.session import session_age_hours
     age = session_age_hours()
     if age is None:
-        _err("no session; run `fsv auth login`")
+        _err(f"no session for tenant {config.DOMAIN or '(none configured)'} "
+             f"(config {config.display_path(config.CONFIG_DIR)}); run `fsv auth login`")
     c = _client()
     agent, (rem, tot) = _api(lambda: (c.check_session(), c.rate_limit_remaining()))
     name = f"{agent.get('first_name', '')} {agent.get('last_name', '')}".strip()
@@ -3017,6 +3018,7 @@ def auth_status() -> None:
     team = (agent.get("custom_fields") or {}).get("team") or ""
     dept_display = f"{dept}  ({team})" if dept and team else dept or team
     console.print(f"[bold]{name}[/bold]  <{email}>" if email else f"[bold]{name}[/bold]")
+    _print_tenant_lines()
     console.print("session:     valid")
     if dept_display:
         console.print(f"department:  {dept_display}")
@@ -3028,6 +3030,30 @@ def auth_status() -> None:
 
 
 app.add_typer(auth_app, name="auth")
+
+
+def _print_tenant_lines() -> None:
+    from rich.markup import escape as _esc
+    console.print(f"tenant:      [bold]{_esc(config.DOMAIN or '(none configured)')}[/bold]", highlight=False, soft_wrap=True)
+    console.print(f"config dir:  {_esc(config.display_path(config.CONFIG_DIR))}", highlight=False, soft_wrap=True)
+
+
+@app.command("whoami", epilog="[bold]Examples:[/bold]  fsv whoami  |  fsv whoami --json")
+def whoami(json_out: bool = typer.Option(False, "--json", help="print JSON")) -> None:
+    """Show the signed-in agent and the tenant/config dir this shell targets (read-only)."""
+    c = _client()
+    agent = _api(c.check_session)
+    name = f"{agent.get('first_name') or ''} {agent.get('last_name') or ''}".strip()
+    data = {"name": name or None, "email": agent.get("email") or None,
+            "tenant": config.DOMAIN, "config_dir": str(config.CONFIG_DIR)}
+    if json_out:
+        typer.echo(tenant_json(data, indent=2, ensure_ascii=False))
+        return
+    if agent:
+        console.print(f"[bold]{escape(name)}[/bold]  <{escape(data['email'] or '')}>", highlight=False)
+    else:
+        console.print("identity unavailable (agent profile is not readable)")
+    _print_tenant_lines()
 
 from fsv.integrated_assets_cli import register_search as _register_inventory_search
 _inventory_app = typer.Typer(help="Integrated inventory search (read-only).")
@@ -3280,6 +3306,28 @@ def config_list() -> None:
         section, _, prop = key.partition(".")
         val = (cfg.get(section) or {}).get(prop, "(unset)")
         console.print(f"{key} = {val}  [dim]# {desc}[/]")
+
+
+@config_app.command("show", epilog="[bold]Examples:[/bold]  fsv config show  |  fsv config show --json")
+def config_show(json_out: bool = typer.Option(False, "--json", help="print JSON")) -> None:
+    """Show the target tenant, config dir, write confirmation and all config values."""
+    from fsv import tenant
+    cfg = completion._config_load()
+    values = {}
+    for key in _CONFIG_KEYS:
+        section, _, prop = key.partition(".")
+        values[key] = (cfg.get(section) or {}).get(prop)
+    source = tenant.confirmation()
+    if json_out:
+        typer.echo(tenant_json({"tenant": config.DOMAIN, "config_dir": str(config.CONFIG_DIR),
+                                "writes_confirmed_by": source, "values": values}, indent=2))
+        return
+    _print_tenant_lines()
+    console.print("writes:      " + (f"confirmed by {source}" if source else
+                                     "not confirmed (pass --tenant DOMAIN with --yes, or "
+                                     "`fsv config set tenant.confirmed DOMAIN`)"), highlight=False)
+    for key, val in values.items():
+        console.print(f"{key} = {'(unset)' if val is None else val}  [dim]# {_CONFIG_KEYS[key]}[/]")
 
 
 @config_app.command("get", epilog="[bold]Examples:[/bold]  fsv config get completion.network")
