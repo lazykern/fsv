@@ -9,8 +9,12 @@ import httpx
 import pytest
 from typer.testing import CliRunner
 
-from fsv import cli, create
+from fsv import cli, config, create
 from fsv.client import Client
+
+
+def TENANT_FIELDS():
+    return {"tenant": config.DOMAIN, "config_dir": str(config.CONFIG_DIR)}
 
 
 @pytest.fixture
@@ -79,7 +83,7 @@ def test_partial_clone_preserves_new_identity_and_attempts_each_step_once(clone_
 def test_clone_dry_run_counts_side_effects_without_creating(clone_wire):
     result = CliRunner().invoke(cli.app, [*ARGS, "--dry-run", "--keep-task-owners"])
     assert result.exit_code == 0, result.output
-    assert json.loads(result.stdout) == {"subject": "Acme maintenance", "status": 1}
+    assert json.loads(result.stdout) == {"subject": "Acme maintenance", "status": 1, **TENANT_FIELDS()}
     assert "owners/past dates kept" in result.stderr
     assert "1 asset(s)" in result.stderr and "1 planning field(s)" in result.stderr
     assert "0 attachment(s)" in result.stderr
@@ -90,7 +94,7 @@ def test_clone_missing_returned_id_does_not_guess_side_effect_target(clone_wire)
     clone_wire["missing_id"] = True
     result = CliRunner().invoke(cli.app, ARGS)
     assert result.exit_code == 0, result.output
-    assert json.loads(result.stdout) == {}
+    assert json.loads(result.stdout) == TENANT_FIELDS()
     assert "response had no id" in result.stderr
     assert len(clone_wire["writes"]) == 1
     assert clone_wire["reads"] == ["changes/123"]

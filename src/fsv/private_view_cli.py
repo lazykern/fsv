@@ -1,6 +1,8 @@
 """Reviewed private saved-view lifecycle (tickets, changes); no shared/default mutations."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -27,7 +29,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = 
     def list_(output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
               json_out: bool = typer.Option(False, "--json")) -> None:
         try:
-            typer.echo(json.dumps(private_views.own_views(client_factory(), kind), indent=2))
+            typer.echo(tenant_json(private_views.own_views(client_factory(), kind), indent=2))
         except (ReviewedWriteError, APIError) as exc:
             _fail(exc)
 
@@ -36,7 +38,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = 
              output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
              json_out: bool = typer.Option(False, "--json")) -> None:
         try:
-            typer.echo(json.dumps(private_views.assess(client_factory(), id_, kind), indent=2))
+            typer.echo(tenant_json(private_views.assess(client_factory(), id_, kind), indent=2))
         except (ReviewedWriteError, APIError) as exc:
             _fail(exc)
 
@@ -53,11 +55,11 @@ def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = 
             c = client_factory()
             plan = private_views.build_plan(c, id_, action=action, name=name, kind=kind)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(private_views.send(plan, c, reviewed_hash=expect_plan), indent=2))
+            typer.echo(tenant_json(private_views.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             _fail(exc)
         except APIError as exc:

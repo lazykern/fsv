@@ -107,7 +107,9 @@ def fmt_value(v: Any) -> str:
 
 
 def emit_json(obj: Any) -> None:
-    json.dump(_strip_internal(obj), sys.stdout, indent=2, default=str)
+    from fsv.tenant import annotate
+
+    json.dump(annotate(_strip_internal(obj)), sys.stdout, indent=2, default=str)
     sys.stdout.write("\n")
 
 

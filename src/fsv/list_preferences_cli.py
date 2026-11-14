@@ -1,6 +1,8 @@
 """Native list preferences/export requests, separate from local ls CSV output."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -17,16 +19,16 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
 
     def finish(plan, client, dry_run, yes, expect_plan):
         if dry_run:
-            typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+            typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
             return
         if not yes or expect_plan != plan.hash:
             raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-        typer.echo(json.dumps(flow.send(plan, client, reviewed_hash=expect_plan), indent=2))
+        typer.echo(tenant_json(flow.send(plan, client, reviewed_hash=expect_plan), indent=2))
 
     @group.command("list")
     def list_(output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
               json_out: bool = typer.Option(False, "--json")) -> None:
-        typer.echo(json.dumps(flow.headers(client_factory(), resource.name), indent=2))
+        typer.echo(tenant_json(flow.headers(client_factory(), resource.name), indent=2))
 
     @group.command("set")
     def set_(column: list[str] = typer.Option(..., "--column", help="exact runtime column name, in desired order (repeatable)"),
@@ -58,7 +60,7 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
                                          "sent; use --dry-run to review, and the web UI to export")
             c = client_factory()
             plan = flow.export_plan(c, resource.name, view, field)
-            typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+            typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

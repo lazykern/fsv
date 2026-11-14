@@ -1,6 +1,8 @@
 """CLI for the captured explicit-ticket bulk-priority subset."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Callable, Optional
 
@@ -26,12 +28,12 @@ def register(app: typer.Typer, client_factory: Callable) -> None:
             c = client_factory()
             plan = bulk_priority.build_plan(c, ids, priority)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
             result = bulk_priority.send(plan, c, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(1)
         except (ValueError, ReviewedWriteError, PropertyError) as exc:

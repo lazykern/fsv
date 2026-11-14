@@ -1,6 +1,8 @@
 """Read-only asset candidate picker for scripts."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -23,7 +25,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             result = asset_picker.candidates(client_factory(), target, search, page=page)
             if select is not None:
                 result["selected"] = asset_picker.select(result, select)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

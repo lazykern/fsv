@@ -9,6 +9,8 @@ Mounted by ``fsv.cli`` as ``fsv sr``.
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 import os
 from pathlib import Path
@@ -81,7 +83,7 @@ def _guard(fn: Callable[[], Any]) -> Any:
 
 
 def _json(obj: Any) -> None:
-    print(json.dumps(obj, indent=2, default=str, ensure_ascii=False))
+    print(tenant_json(obj, indent=2, default=str, ensure_ascii=False))
 
 
 # ---------------------------------------------------------------------------
@@ -513,7 +515,7 @@ def _print_plan(plan: cat.SRPlan, *, as_json: bool) -> None:
     else:
         console.print(f"[bold]Payload[/bold] (POST /api/_/catalog/service-items/{plan.meta.display_id}/place-request; "
                       "<upload N: name> becomes the attachment id after upload)", highlight=False)
-        print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(plan.payload, indent=2, default=str, ensure_ascii=False))
     if plan.hash:
         console.print(f"plan_hash: {plan.hash}", highlight=False)
         console.print(f"[dim]send exactly this with: --yes --expect-plan {plan.hash[:16]}[/dim]", highlight=False)

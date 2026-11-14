@@ -1,6 +1,8 @@
 """Frozen bulk ticket selection CLI."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Optional
 import typer
@@ -48,13 +50,13 @@ def register(app, client_factory):
                 chosen = plan.review()["scenario"]
                 typer.echo(f"Scenario to run: {chosen['id']} ({chosen['name']}); its effects cannot be verified", err=True)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = ticket_bulk.send(plan, client, reviewed_hash=expect_plan, confirm_destructive=confirm_destructive)
             result = {**result, "selected_tickets": json.loads(plan.selected_json)}
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, PropertyError, ReviewedWriteError) as exc:

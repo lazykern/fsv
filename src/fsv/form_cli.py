@@ -8,6 +8,8 @@
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 import time
 from typing import Any, List, Mapping, Optional
@@ -161,7 +163,7 @@ def explain(
            "conflicts": [c.describe() for c in real_conflicts(ev)], "errors": errors,
            "metadata": meta.as_of(), "form_notes": list(getattr(meta, "form_notes", []) or [])}
     if output == "json":
-        print(json.dumps(out, indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(out, indent=2, default=str, ensure_ascii=False))
         return
     t = Table(title=f"{mod} form" + (" (edit)" if record else " (new)"))
     for col in ("Field", "State", "Value", "Why"):
@@ -208,7 +210,7 @@ def fields(
             _fail(f"{f.label}: choose the upper level first (its choices depend on it)")
         data = [{"label": ch.label, "value": ch.value, "id": ch.id, "description": ch.description} for ch in pool]
         if output == "json":
-            print(json.dumps({"field": f.api_name, "label": f.label, "choices": data}, indent=2, default=str,
+            print(tenant_json({"field": f.api_name, "label": f.label, "choices": data}, indent=2, default=str,
                              ensure_ascii=False))
             return
         t = Table(title=f"{f.label} ({f.api_name}): {len(data)} choices")
@@ -231,7 +233,7 @@ def fields(
                                     for c in f.choices if c.visible and c.description],
         })
     if output == "json":
-        print(json.dumps(rows, indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(rows, indent=2, default=str, ensure_ascii=False))
         return
     t = Table(title=f"{mod} form fields (web order; state on a new form)")
     for col in ("Label", "Name", "Type", "On load", "Help"):
@@ -278,7 +280,7 @@ def dump(
         "fields": meta.raw_fields,
         "business_rules": meta.rules.get("business_rules") or [],
     }
-    print(json.dumps(snap, indent=2, default=str, ensure_ascii=False))
+    print(tenant_json(snap, indent=2, default=str, ensure_ascii=False))
 
 
 def _choice_labels(f: Mapping[str, Any]) -> list[str]:
@@ -365,7 +367,7 @@ def diff(
         new = {"fields": meta.raw_fields, "business_rules": meta.rules.get("business_rules") or []}
     changes = diff_snapshots(old, new)
     if output == "json":
-        print(json.dumps(changes, indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(changes, indent=2, default=str, ensure_ascii=False))
         return
     if not changes:
         console.print("no changes", highlight=False)

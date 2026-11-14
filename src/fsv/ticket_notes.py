@@ -5,6 +5,8 @@ from TICKETS.has_notes, which also controls conversation-reading behavior.
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import html
 import json
 import re
@@ -299,9 +301,9 @@ def register(app: typer.Typer) -> None:
                                               body_format="html" if html_body else "plain", set_status=set_status,
                                               ack=ack)
                     if dry_run:
-                        typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+                        typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                         return
-                    typer.echo(json.dumps(plan.review(), ensure_ascii=False, indent=2), err=True)
+                    typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
                     if expected is not None and expected != plan.hash:
                         raise ConversationError("note review hash does not match; review again")
                     if yes:
@@ -320,16 +322,16 @@ def register(app: typer.Typer) -> None:
                             return
                         confirm_public = True
                     result = send_conversation(plan, c, reviewed_hash=plan.hash, public_confirmed=confirm_public)
-                    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+                    typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
                     return
                 except ConversationError as exc:
                     raise NoteError(str(exc)) from None
             plan = build_plan(id_, body, public=public, notify_emails=notify,
                               body_format="html" if html_body else "plain")
             if dry_run:
-                typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), ensure_ascii=False, indent=2))
+                typer.echo(tenant_json(send(plan, reviewed_hash=None, dry_run=True), ensure_ascii=False, indent=2))
                 return
-            typer.echo(json.dumps(plan.review(), ensure_ascii=False, indent=2), err=True)
+            typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
             if read_only:
                 raise NoteError("read-only mode: no note was sent")
             if expected is not None and expected != plan.hash:
@@ -351,7 +353,7 @@ def register(app: typer.Typer) -> None:
                 confirm_public = True
             result = send(plan, reviewed_hash=plan.hash, public_confirmed=confirm_public)
             if json_out:
-                typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+                typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
             else:
                 typer.echo(f"Note {result['note_id']} submitted on ticket {plan.ticket_id}; exact-ID read-back: {result.get('identity_verified', result['verified'])}; all fields verified: {result['verified']}")
                 if result.get("warning"):

@@ -70,8 +70,10 @@ def plan_hash(payload: Mapping[str, Any], files: Mapping[str, Any] | Sequence[An
     """sha256 hex over the canonical payload and each file's name, size and
     sha256. ``files``: ``{field: path | [paths]}`` or a list of general
     attachment paths."""
-    doc = {"v": PLAN_VERSION, "payload": payload, "files": _file_entries(files)}
-    return hashlib.sha256(canonical_json(doc)).hexdigest()
+    from fsv import tenant
+
+    doc = {"v": PLAN_VERSION, "payload": tenant.unbind(payload), "files": _file_entries(files)}
+    return tenant.bind_plan(hashlib.sha256(canonical_json(doc)).hexdigest())
 
 
 def plan_matches(expected: str, actual: str) -> bool:

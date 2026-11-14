@@ -1,6 +1,8 @@
 """CLI: ticket-side problem, change and child-ticket associations (reviewed)."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -39,7 +41,7 @@ def _group(kind: str, metavar: str, help_text: str, client_factory: Callable[[],
         try:
             if needs_type and not ctype:
                 raise ValueError("--kind is required: " + KIND_HELP)
-            typer.echo(json.dumps(links.listing(client_factory(), ticket, kind, ctype), indent=2))
+            typer.echo(tenant_json(links.listing(client_factory(), ticket, kind, ctype), indent=2))
         except (ValueError, ReviewedWriteError, APIError) as exc:
             _fail(exc)
 
@@ -51,7 +53,7 @@ def _group(kind: str, metavar: str, help_text: str, client_factory: Callable[[],
         try:
             if needs_type and not ctype and not search:
                 raise ValueError("--kind is required for the picker list: " + KIND_HELP)
-            typer.echo(json.dumps(links.candidates(client_factory(), ticket, kind, search, ctype or "change"
+            typer.echo(tenant_json(links.candidates(client_factory(), ticket, kind, search, ctype or "change"
                                                    if needs_type else None), indent=2))
         except (ValueError, ReviewedWriteError, APIError) as exc:
             _fail(exc)
@@ -71,12 +73,12 @@ def _group(kind: str, metavar: str, help_text: str, client_factory: Callable[[],
                 c = client_factory()
                 plan = links.build_plan(c, ticket, kind, item, unlink=unlink, ctype=ctype)
                 if dry_run:
-                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                    typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                     return
                 if not yes or expect_plan != plan.hash:
                     raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
                 result = links.send(plan, c, reviewed_hash=expect_plan)
-                typer.echo(json.dumps(result, indent=2))
+                typer.echo(tenant_json(result, indent=2))
                 if not result.get("verified"):
                     raise typer.Exit(4)
             except (ValueError, ReviewedWriteError, APIError) as exc:

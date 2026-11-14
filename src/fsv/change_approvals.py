@@ -5,6 +5,8 @@ or replay a POST to recover an identifier. Chains can additionally verify group 
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import html
 import json
 import re
@@ -445,9 +447,9 @@ def _legacy_request_cli(id_: str, name: str | None, message: str | None, approve
     plan = legacy_approvals.build_request(client, "changes", cid, sorted(set(direct) | set(extra)), rule=rule,
                                           recipient_context_json=context)
     if dry_run:
-        typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+        typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
         return
-    typer.echo(json.dumps(plan.review(), indent=2), err=True)
+    typer.echo(tenant_json(plan.review(), indent=2), err=True)
     if yes:
         if expected != plan.hash:
             raise ApprovalError("--yes requires the full --expect-plan from a prior approval review")
@@ -458,7 +460,7 @@ def _legacy_request_cli(id_: str, name: str | None, message: str | None, approve
         return
     approval_recipients.validate(client, cid, context)
     result = legacy_approvals.send(plan, client, reviewed_hash=plan.hash)
-    typer.echo(json.dumps(result, indent=2))
+    typer.echo(tenant_json(result, indent=2))
     if not result.get("verified"):
         raise typer.Exit(4)
 
@@ -512,9 +514,9 @@ def register(app: typer.Typer) -> None:
             direct = resolve_approvers(approver) if approver else ()
             plan = build_plan(id_, name, message, approver_ids=sorted(set(direct) | set(extra)), rule=rule, recipient_context_json=context)
             if dry_run:
-                typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
+                typer.echo(tenant_json(send(plan, reviewed_hash=None, dry_run=True), indent=2))
                 return
-            typer.echo(json.dumps(plan.review(), indent=2), err=True)
+            typer.echo(tenant_json(plan.review(), indent=2), err=True)
             if expected is not None and expected != plan.hash:
                 raise ApprovalError("approval review hash does not match; review the exact request again")
             if yes:
@@ -527,7 +529,7 @@ def register(app: typer.Typer) -> None:
                 return
             result = send(plan, reviewed_hash=plan.hash)
             if json_out:
-                typer.echo(json.dumps(result, indent=2))
+                typer.echo(tenant_json(result, indent=2))
             else:
                 typer.echo(f"Approval requested on change {plan.change_id}; approval record IDs: {result['approval_ids']}; complete inventory verification: {result['verified']}; group name verified: {result['group_name_verified']}")
         except (ValueError, ApprovalError, ReviewedWriteError) as exc:
@@ -560,12 +562,12 @@ def register(app: typer.Typer) -> None:
                 raise ApprovalError(CHAINS_REMIND_GAP)
             plan = legacy_approvals.build_remind(client, "changes", cid, approval_id)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expected != plan.hash:
                 raise ApprovalError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = legacy_approvals.send(plan, client, reviewed_hash=expected)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ApprovalError, ReviewedWriteError) as exc:

@@ -1,6 +1,8 @@
 """CLI for irreversible, reviewed ticket merges."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -31,11 +33,11 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                                    note_secondary=note_secondary, private_primary=private_primary,
                                    private_secondary=private_secondary)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **flow.review(plan)}, indent=2, ensure_ascii=False))
+                typer.echo(tenant_json({"status": "dry_run", **flow.review(plan)}, indent=2, ensure_ascii=False))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(flow.send(plan, client, reviewed_hash=expect_plan), indent=2, ensure_ascii=False))
+            typer.echo(tenant_json(flow.send(plan, client, reviewed_hash=expect_plan), indent=2, ensure_ascii=False))
         except (ValueError, PropertyError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

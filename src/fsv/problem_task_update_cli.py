@@ -1,6 +1,8 @@
 """Captured problem-task update, status-only completion and native deletion."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Optional
 import typer
@@ -35,14 +37,14 @@ def register(app, client_factory):
                 inputs = {"status": "Completed"}
             plan = flow.delete_plan(client, target, task) if action == "delete" else flow.build_plan(client, target, task, inputs)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review(),
+                typer.echo(tenant_json({"status": "dry_run", **plan.review(),
                     "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible."}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             sender = flow.delete if action == "delete" else flow.send
             result = sender(plan, client, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ReviewedWriteError) as exc:

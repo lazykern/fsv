@@ -34,7 +34,8 @@ def test_review_and_send_output_aliases(monkeypatch, args, module, flags):
     runner = CliRunner()
     review = runner.invoke(cli.app, args + flags + ["--dry-run"])
     assert review.exit_code == 0, review.output
-    assert json.loads(review.output) == {"status": "dry_run", "plan_hash": plan.hash}
+    assert json.loads(review.output) == {"status": "dry_run", "plan_hash": plan.hash,
+                                         "tenant": cli.config.DOMAIN, "config_dir": str(cli.config.CONFIG_DIR)}
     assert not calls
     refused = runner.invoke(cli.app, args + flags + ["--yes"])
     assert refused.exit_code == 2 and not calls

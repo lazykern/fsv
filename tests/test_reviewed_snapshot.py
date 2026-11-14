@@ -59,5 +59,7 @@ def test_signed_rich_text_urls_only_strip_delivery_query(query1, query2):
 
 def test_unchanged_legacy_payload_and_context_hashes_preserved():
     plain = {"id": 123, "body": "Acme", "private": True, "attachments": [{"id": 701, "name": "acme.txt", "size": 12}]}
-    assert journal.snapshot_hash(plain) == journal.plan_hash(plain)
+    # Plan hashes bind the tenant on top of the unchanged canonical hash.
+    from fsv import tenant
+    assert journal.plan_hash(plain) == tenant.bind_plan(journal.snapshot_hash(plain))
     assert journal.plan_hash(None) is None

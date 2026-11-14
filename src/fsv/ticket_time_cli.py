@@ -1,6 +1,8 @@
 """Ticket time-entry CLI."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -20,7 +22,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     def list_(id_: str = typer.Argument(..., metavar="ID"),
               output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
               json_out: bool = typer.Option(False, "--json", help="alias for --output json")) -> None:
-        typer.echo(json.dumps(ticket_time.inventory(client_factory(), parse_id(id_, TICKETS)), indent=2))
+        typer.echo(tenant_json(ticket_time.inventory(client_factory(), parse_id(id_, TICKETS)), indent=2))
 
     @group.command("write")
     def write(id_: str = typer.Argument(..., metavar="ID"),
@@ -39,11 +41,11 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             plan = ticket_time.build_plan(c, id_, action=action, entry_id=entry, spent=spent,
                                           executed_at=executed_at, note=note)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(ticket_time.send(plan, c, reviewed_hash=expect_plan), indent=2))
+            typer.echo(tenant_json(ticket_time.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

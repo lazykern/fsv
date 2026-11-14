@@ -1,6 +1,8 @@
 """Reviewed attachment CLI and shared output gate."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -13,12 +15,12 @@ from fsv.reviewed_write import ReviewedWriteError
 def finish(plan: flow.AttachedPlan, client: Any, *, dry_run: bool, yes: bool,
            expected: str | None, rebuild: Callable[[], flow.AttachedPlan]) -> None:
     if dry_run:
-        typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+        typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
         return
     if not yes or expected != plan.hash:
         raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
     result = flow.send(plan, client, reviewed_hash=expected, rebuild=rebuild)
-    typer.echo(json.dumps(result, indent=2))
+    typer.echo(tenant_json(result, indent=2))
     if not result.get("verified"):
         raise typer.Exit(4)
 
@@ -37,12 +39,12 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             client = client_factory()
             plan = flow.delete_plan(client, ident, owner, child=child, section=section)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review(), "owner": owner, "child": child, "section": section}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review(), "owner": owner, "child": child, "section": section}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = flow.delete(plan, client, owner, child=child, section=section, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ReviewedWriteError) as exc:

@@ -1,6 +1,8 @@
 """Command-line face for reviewed incident creation."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable
 
@@ -15,12 +17,12 @@ from fsv.render import console, err
 
 def print_plan(plan: flow.Plan, as_json: bool) -> None:
     if as_json:
-        print(json.dumps(plan.to_json(), indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(plan.to_json(), indent=2, default=str, ensure_ascii=False))
         return
     plan.review.render(console)
     if plan.ok and plan.payload is not None:
         console.print("Payload (POST /api/_/tickets)")
-        print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(plan.payload, indent=2, default=str, ensure_ascii=False))
         console.print(f"plan_hash: {plan.hash}\nSend with --yes --expect-plan {plan.hash[:16]}")
     else:
         console.print("No payload: fix the problems above.")
@@ -159,7 +161,7 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
             err.print("not in the ticket read-back: " + ", ".join(template_check["unavailable"]),
                       markup=False, highlight=False)
     if as_json:
-        print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"],
+        print(tenant_json({"created": result["result"], "plan_hash": result["plan_hash"],
                           **({"template_readback": template_check} if template_check is not None else {}),
                           **({"verification": result["verification"]} if "verification" in result else {}),
                           **({"device_verification": result["device_verification"]} if "device_verification" in result else {})}, default=str))

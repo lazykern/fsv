@@ -1,6 +1,8 @@
 """Reviewed change relationship list/add/remove CLI."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Optional
 import typer
@@ -18,7 +20,7 @@ def register(app, client_factory):
     @sub.command("list")
     def list_(target: str, kind: str, json_out: bool = typer.Option(False, "--json")):
         try:
-            typer.echo(json.dumps(flow.inventory(client_factory(), parse_id(target, CHANGES), kind), indent=2))
+            typer.echo(tenant_json(flow.inventory(client_factory(), parse_id(target, CHANGES), kind), indent=2))
         except APIError as exc:
             typer.echo(str(flow._refusal(exc, f"the {kind} relationships of {target}")).replace("; nothing was sent", ""),
                        err=True)
@@ -39,12 +41,12 @@ def register(app, client_factory):
             plan = flow.build_plan(client, target, kind=kind, action=action, item=item,
                                    project=json.loads(project) if project else None, project_key=project_key, name=name)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = flow.send(plan, client, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except APIError as exc:

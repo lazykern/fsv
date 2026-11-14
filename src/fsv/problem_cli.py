@@ -1,6 +1,8 @@
 """Problem form create and reviewed captured child workflows."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -22,11 +24,11 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     register_problems(app, client_factory)
     def finish(plan, client, dry_run, yes, expect_plan):
         if dry_run:
-            typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+            typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
             return
         if not yes or expect_plan != plan.hash:
             raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-        typer.echo(json.dumps(flow.send(plan, client, reviewed_hash=expect_plan), indent=2))
+        typer.echo(tenant_json(flow.send(plan, client, reviewed_hash=expect_plan), indent=2))
 
     def incident_action(problem: str, incident: str, unlink: bool, dry_run: bool, yes: bool, expect_plan: str | None) -> None:
         from fsv import problem_incidents
@@ -36,12 +38,12 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             client = client_factory()
             plan = problem_incidents.build_plan(client, problem, incident, unlink=unlink)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review(), "problem_id": plan.target,
+                typer.echo(tenant_json({"status": "dry_run", **plan.review(), "problem_id": plan.target,
                                        "incident_id": incident}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(problem_incidents.send(plan, client, incident, reviewed_hash=expect_plan), indent=2))
+            typer.echo(tenant_json(problem_incidents.send(plan, client, incident, reviewed_hash=expect_plan), indent=2))
         except (ValueError, AssociationError, ReviewedWriteError, APIError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
@@ -90,12 +92,12 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             client = client_factory()
             plan = problem_status.build_plan(client, target, to)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = problem_status.send(plan, client, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, FormError, ReviewedWriteError, APIError) as exc:

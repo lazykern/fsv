@@ -1,5 +1,7 @@
 """Reviewed service-request approval commands."""
 from __future__ import annotations
+
+from fsv.tenant import tenant_json
 import json
 from typing import Any, Callable
 import typer
@@ -20,7 +22,7 @@ def register(app: typer.Typer, factory: Callable[[], Any]) -> None:
             if "approvals" in out:  # the flat (legacy) list: same row keys as `tickets approvals`
                 out = {**out, "approvals": approval_model.with_flat(out["approvals"])}
             if json_out or "approvals" not in out:
-                typer.echo(json.dumps(out, indent=2))
+                typer.echo(tenant_json(out, indent=2))
                 return
             from fsv.render import console, err
             console.print(approval_model.flat_table(out["approvals"]))

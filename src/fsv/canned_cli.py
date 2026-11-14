@@ -1,6 +1,8 @@
 """Captured template/scenario discovery and source-bound canned replies."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -18,19 +20,19 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     @templates.command("folders")
     def folders(output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
                 json_out: bool = typer.Option(False, "--json")) -> None:
-        typer.echo(json.dumps(canned.folders(client_factory()), indent=2))
+        typer.echo(tenant_json(canned.folders(client_factory()), indent=2))
 
     @templates.command("list")
     def list_(folder: int = typer.Option(..., "--folder", min=1),
               output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
               json_out: bool = typer.Option(False, "--json")) -> None:
-        typer.echo(json.dumps(canned.responses(client_factory(), folder), indent=2))
+        typer.echo(tenant_json(canned.responses(client_factory(), folder), indent=2))
 
     @templates.command("show")
     def show(id_: int = typer.Argument(..., min=1),
              output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
              json_out: bool = typer.Option(False, "--json")) -> None:
-        typer.echo(json.dumps(canned.show(client_factory(), id_), indent=2))
+        typer.echo(tenant_json(canned.show(client_factory(), id_), indent=2))
 
     @templates.command("reply")
     def reply(target: str = typer.Argument(..., metavar="TICKET"),
@@ -46,14 +48,14 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             c = client_factory()
             plan = canned.reply_plan(c, target, response, content_pointer, sender=sender)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review(),
+                typer.echo(tenant_json({"status": "dry_run", **plan.review(),
                            "source": {"id": plan.canned_id, "hash": plan.canned_hash},
                            "insertion": "Literal selected HTML only; no attachments, signatures or placeholder expansion."}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ticket_conversation.ConversationError("review with --dry-run, then pass --yes and the full --expect-plan hash")
             result = ticket_conversation.send(plan, c, reviewed_hash=expect_plan, public_confirmed=True)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
         except (ValueError, ReviewedWriteError, ticket_conversation.ConversationError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
@@ -61,14 +63,14 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     @scenarios.command("list")
     def scenario_list(output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
                       json_out: bool = typer.Option(False, "--json")) -> None:
-        typer.echo(json.dumps(canned.scenarios(client_factory()), indent=2))
+        typer.echo(tenant_json(canned.scenarios(client_factory()), indent=2))
 
     @scenarios.command("show")
     def scenario_show(id_: int = typer.Argument(..., min=1),
                       output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
                       json_out: bool = typer.Option(False, "--json")) -> None:
         try:
-            typer.echo(json.dumps(canned.scenario(client_factory(), id_), indent=2))
+            typer.echo(tenant_json(canned.scenario(client_factory(), id_), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             raise typer.BadParameter(str(exc)) from None
 
@@ -85,13 +87,13 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             c = client_factory()
             plan = native.build_plan(c, target, scenario_id)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review(),
+                typer.echo(tenant_json({"status": "dry_run", **plan.review(),
                            "definition": canned.scenario(c, scenario_id),
                            "warning": "Native automation may send mail or change records. No complete side-effect verification contract is captured."}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(native.send(plan, c, reviewed_hash=expect_plan), indent=2))
+            typer.echo(tenant_json(native.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

@@ -1,6 +1,8 @@
 """CLI for reviewed problem/article deletion (see fsv.record_delete)."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, List, Optional
 
@@ -15,13 +17,13 @@ def _run(build: Callable[[], Any], client: Any, *, dry_run: bool, yes: bool, exp
          confirm_destructive: bool) -> None:
     plan = build()
     if dry_run:
-        typer.echo(json.dumps({"status": "dry_run", **flow.review(plan, client)}, indent=2, ensure_ascii=False))
+        typer.echo(tenant_json({"status": "dry_run", **flow.review(plan, client)}, indent=2, ensure_ascii=False))
         return
     if not yes or expect_plan != plan.hash:
         raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH"
                                  " (plus --confirm-destructive where the review requires it)")
     result = flow.send(plan, client, reviewed_hash=expect_plan, confirm_destructive=confirm_destructive)
-    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+    typer.echo(tenant_json(result, indent=2, ensure_ascii=False))
     if not result.get("verified"):
         raise typer.Exit(4)
 
@@ -64,12 +66,12 @@ def _forever_command(app: typer.Typer, kind: str, factory: Callable[[], Any], me
             for row in batch.rows:
                 typer.echo(f"  {row['id']}: {row['title']}", err=True)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **batch.review()}, indent=2, ensure_ascii=False))
+                typer.echo(tenant_json({"status": "dry_run", **batch.review()}, indent=2, ensure_ascii=False))
                 return
             if not yes or expect_plan != batch.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH --confirm-destructive")
             result = flow.send_forever(batch, c, reviewed_hash=expect_plan, confirm_destructive=confirm_destructive)
-            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+            typer.echo(tenant_json(result, indent=2, ensure_ascii=False))
             if not result.get("verified"):
                 raise typer.Exit(4)
         guard(run)

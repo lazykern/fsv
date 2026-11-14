@@ -1,6 +1,8 @@
 """CLI registration for self-watch management."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -21,7 +23,7 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
               output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
               json_out: bool = typer.Option(False, "--json", help="alias for --output json")) -> None:
         try:
-            typer.echo(json.dumps({"watcher_ids": watchers.inventory(client_factory(), resource.name,
+            typer.echo(tenant_json({"watcher_ids": watchers.inventory(client_factory(), resource.name,
                                  watchers.positive_id(parse_id(id_, resource)))}))
         except (ValueError, ReviewedWriteError) as exc:
             raise typer.BadParameter(str(exc)) from None
@@ -38,11 +40,11 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
             c = client_factory()
             plan = watchers.build_plan(c, resource.name, id_, watch=watch)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(watchers.send(plan, c, reviewed_hash=expect_plan), indent=2))
+            typer.echo(tenant_json(watchers.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

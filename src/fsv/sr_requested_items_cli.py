@@ -1,6 +1,8 @@
 """Requested-item review CLI; not ticket-property editing."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Optional
 import typer
@@ -17,7 +19,7 @@ def register(app, client_factory):
     @sub.command("list")
     def list_(target: str, json_out: bool = typer.Option(False, "--json")):
         try:
-            typer.echo(json.dumps(flow.inventory(client_factory(), parse_id(target, TICKETS)), indent=2))
+            typer.echo(tenant_json(flow.inventory(client_factory(), parse_id(target, TICKETS)), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
@@ -38,12 +40,12 @@ def register(app, client_factory):
             plan = flow.build_plan(client, target, action=action, item=item, catalog_item=catalog_item,
                                    answers=values, stage=stage)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = flow.send(plan, client, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ReviewedWriteError) as exc:

@@ -2,6 +2,8 @@
 engine: inputs -> plan -> review -> confirmation -> freshness -> send."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 import os
 from typing import Any, Callable
@@ -19,12 +21,12 @@ from fsv.review import NO_PAYLOAD
 
 
 def _emit(obj: Any) -> None:
-    console.print_json(json.dumps(obj, default=str, ensure_ascii=False), indent=2)
+    console.print_json(tenant_json(obj, default=str, ensure_ascii=False), indent=2)
 
 
 def _print_plan(plan: Plan, *, as_json: bool, to_stdout: bool = True) -> None:
     if as_json:
-        print(json.dumps(plan.to_json(), indent=2, default=str, ensure_ascii=False))
+        print(tenant_json(plan.to_json(), indent=2, default=str, ensure_ascii=False))
         return
     out = console if to_stdout else err
     plan.review.render(out)
@@ -36,7 +38,7 @@ def _print_plan(plan: Plan, *, as_json: bool, to_stdout: bool = True) -> None:
                                                  else " (POST /api/_/changes)")
                       + "",
                       highlight=False)
-            print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
+            print(tenant_json(plan.payload, indent=2, default=str, ensure_ascii=False))
         if plan.hash:
             out.print(f"plan_hash: {plan.hash}", highlight=False)
             out.print(f"[dim]send exactly this with: --yes --expect-plan {plan.hash[:16]}[/dim]", highlight=False)
@@ -378,7 +380,7 @@ def create_command(
 def _report_created(result: dict[str, Any], *, as_json: bool, portal_url: str) -> None:
     cid = result["id"]
     if as_json:
-        print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
+        print(tenant_json({"created": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
                           "uploaded": result["uploaded"],
                           **({"device_verification": result["device_verification"]} if "device_verification" in result else {})}, indent=2, default=str, ensure_ascii=False))
         return
@@ -512,11 +514,11 @@ def update_command(
     except ReviewedWriteError as e:
         # A failed send always names the server's status and message.
         if as_json:
-            print(json.dumps({"updated": None, "plan_hash": plan.hash, "verified": False, **e.as_dict()},
+            print(tenant_json({"updated": None, "plan_hash": plan.hash, "verified": False, **e.as_dict()},
                              indent=2, default=str, ensure_ascii=False))
         raise FlowExit(5 if e.http_status else 1, f"{subject}: {e}") from None
     if as_json:
-        print(json.dumps({"updated": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
+        print(tenant_json({"updated": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
                           "verified": result.get("verified", False), "fields": result.get("fields", {}),
                           "warning": result.get("warning")}, indent=2, default=str, ensure_ascii=False))
         if not result.get("verified"):

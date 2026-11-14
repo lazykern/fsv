@@ -4,6 +4,8 @@ Accepted native request and task envelopes; never replay POST to recover an ID.
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import html
 import json
 import re
@@ -531,9 +533,9 @@ def register(app: typer.Typer) -> None:
             plan = build_plan(id_, title, owner_id=resolve_owner(owner), group_id=resolve_group(group),
                               status=status, status_id=resolve_status(status), custom_fields=custom, fields=fields, **options)
             if dry_run:
-                typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
+                typer.echo(tenant_json(send(plan, reviewed_hash=None, dry_run=True), indent=2))
                 return
-            typer.echo(json.dumps(plan.review(), indent=2), err=True)
+            typer.echo(tenant_json(plan.review(), indent=2), err=True)
             if expected is not None and expected != plan.hash:
                 raise TaskError("task review hash does not match; review the exact task again")
             if yes:
@@ -546,7 +548,7 @@ def register(app: typer.Typer) -> None:
                 return
             result = send(plan, reviewed_hash=plan.hash)
             if json_out:
-                typer.echo(json.dumps(result, indent=2))
+                typer.echo(tenant_json(result, indent=2))
             else:
                 typer.echo(f"Task {result['task_id']} submitted on change {plan.change_id}; exact-ID/state read-back: {result['verified']}")
                 if result.get("warning"):

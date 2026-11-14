@@ -17,6 +17,8 @@ every step is single-attempt and journaled; never replay.
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import hashlib
 import json
 import mimetypes
@@ -204,11 +206,11 @@ def finish(p: InlinePlan, client: Any, *, dry_run: bool, yes: bool, expected: st
            rebuild: Callable[[], InlinePlan]) -> None:
     import typer
     if dry_run:
-        typer.echo(json.dumps({"status": "dry_run", **p.review()}, indent=2))
+        typer.echo(tenant_json({"status": "dry_run", **p.review()}, indent=2))
         return
     if not yes or expected != p.hash:
         raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
     result = send(p, client, reviewed_hash=expected, rebuild=rebuild)
-    typer.echo(json.dumps(result, indent=2))
+    typer.echo(tenant_json(result, indent=2))
     if not result.get("verified"):
         raise typer.Exit(4)

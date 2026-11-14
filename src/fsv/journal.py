@@ -34,19 +34,27 @@ def journal_path() -> Path:
     return Path(base) / "fsv" / "journals" / profile / tenant / "journal.jsonl"
 
 
-def plan_hash(body: Any) -> str | None:
-    """sha256 of the body as canonical JSON (sorted keys, no whitespace)."""
-    if body is None:
-        return None
+def _raw_hash(body: Any) -> str:
     raw = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def plan_hash(body: Any) -> str | None:
+    """sha256 of the body as canonical JSON (sorted keys, no whitespace),
+    bound to the configured tenant: a plan reviewed on one tenant never
+    matches on another (``fsv.tenant.bind_plan``)."""
+    if body is None:
+        return None
+    from fsv import tenant
+
+    return tenant.bind_plan(_raw_hash(tenant.unbind(body)))
 
 
 def snapshot_hash(body: Any) -> str | None:
     """Hash stable read-side state; keep plan_hash exact for wire payloads."""
     from fsv.reviewed_snapshot import stable_snapshot
 
-    return plan_hash(stable_snapshot(body))
+    return _raw_hash(stable_snapshot(body))
 
 
 def _split_path(url: str) -> list[str]:
@@ -126,6 +134,7 @@ def record(method: str, url: str, body: Any, *, status: int | None, ok: bool,
             "method": method.upper(),
             "path": path,
             "plan_hash": plan_hash(body),
+            "tenant_bound": True,
             "status": status,
             "ok": ok,
             "created_id": _created_id(response) if ok and method.upper() == "POST" else None,
@@ -147,12 +156,22 @@ def read(limit: int | None = None) -> list[dict[str, Any]]:
     p = journal_path()
     if not p.exists():
         return []
+    from fsv.tenant import bind_legacy
+
     rows: list[dict[str, Any]] = []
     for line in p.read_text(encoding="utf-8").splitlines():
         try:
-            rows.append(json.loads(line))
+            row = json.loads(line)
         except ValueError:
             continue
+        if isinstance(row, dict) and not row.get("tenant_bound"):
+            # Written before plan hashes were tenant-bound: this journal is
+            # per tenant, so bind its hashes to compare with current plans
+            # (an unresolved older submission must still refuse a replay).
+            for key in ("plan", "plan_hash"):
+                if key in row:
+                    row[key] = bind_legacy(row[key])
+        rows.append(row)
     return rows[-limit:] if limit else rows
 
 
@@ -233,6 +252,7 @@ def record_plan(event: str, plan: str, *, action: str, target: Any = None, creat
             "kind": f"plan:{action}",
             "event": event,
             "plan": plan,
+            "tenant_bound": True,
             "target": _safe_target(target),
             "created_id": _safe_id(created_id),
         }

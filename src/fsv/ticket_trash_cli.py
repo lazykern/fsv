@@ -1,6 +1,8 @@
 """CLI: ticket trash list, restore, and permanent deletion (reviewed)."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, List, Optional
 
@@ -25,7 +27,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     def trash_list(page: int = typer.Option(1, "--page", min=1), per_page: int = typer.Option(30, "--per-page", min=1, max=100),
                    json_out: bool = typer.Option(False, "--json")) -> None:
         try:
-            typer.echo(json.dumps(ticket_trash.trash(client_factory(), page=page, per_page=per_page), indent=2))
+            typer.echo(tenant_json(ticket_trash.trash(client_factory(), page=page, per_page=per_page), indent=2))
         except (ValueError, ReviewedWriteError, APIError) as exc:
             _fail(exc)
 
@@ -40,12 +42,12 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             c = client_factory()
             plan = ticket_trash.build_restore(c, ticket)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = ticket_trash.send_restore(plan, c, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ReviewedWriteError, APIError) as exc:
@@ -66,13 +68,13 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             for row in json.loads(plan.subjects_json):
                 typer.echo(f"  {row['id']}: {row['subject']}", err=True)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH --confirm-destructive")
             result = ticket_trash.send_forever(plan, c, reviewed_hash=expect_plan,
                                                confirm_destructive=confirm_destructive)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ReviewedWriteError, APIError) as exc:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import copy
 import os
 import re
@@ -29,7 +31,8 @@ else:
     escape = str  # type: ignore[assignment]
     Table = None  # type: ignore[assignment,misc]
 
-_ROOT_FLAGS_ANYWHERE = {"-v", "--verbose"}
+_ROOT_FLAGS_ANYWHERE = {"-v", "--verbose", "--quiet"}
+_ROOT_VALUE_OPTIONS_ANYWHERE = {"--tenant"}
 _GLOBAL_HELP_PANEL = "Global options"
 
 
@@ -55,7 +58,12 @@ def _reorder_root_flags(root: TyperGroup, args: list[str]) -> list[str]:
     command_started = False
     skip = 0
     passthrough = False
+    take_value = False
     for token in args:
+        if take_value:
+            moved.append(token)
+            take_value = False
+            continue
         if passthrough:
             kept.append(token)
             continue
@@ -69,6 +77,10 @@ def _reorder_root_flags(root: TyperGroup, args: list[str]) -> list[str]:
             continue
         if command_started and token in _ROOT_FLAGS_ANYWHERE:
             moved.append(token)
+            continue
+        if command_started and token.split("=", 1)[0] in _ROOT_VALUE_OPTIONS_ANYWHERE:
+            moved.append(token)
+            take_value = "=" not in token
             continue
         if token.startswith("-"):
             skip = _option_arity(current, token)
@@ -92,7 +104,7 @@ def _global_help_params(current: TyperGroup | TyperCommand, ctx: typer.Context) 
     for param in getattr(root_command, "params", []):
         if not isinstance(param, TyperOption):
             continue
-        if not _ROOT_FLAGS_ANYWHERE.intersection([*param.opts, *param.secondary_opts]):
+        if not (_ROOT_FLAGS_ANYWHERE | _ROOT_VALUE_OPTIONS_ANYWHERE).intersection([*param.opts, *param.secondary_opts]):
             continue
         clone = copy.copy(param)
         clone.rich_help_panel = _GLOBAL_HELP_PANEL
@@ -116,7 +128,15 @@ class _FSVHelpMixin:
 
 
 class FSVCommand(_FSVHelpMixin, TyperCommand):
-    pass
+    def invoke(self, ctx: typer.Context) -> Any:
+        # The one shared startup hook (fsv.tenant): tenant banner, --tenant
+        # assertion, cross-tenant --expect-plan refusal, write confirmation.
+        from fsv import tenant
+        try:
+            tenant.enter_command(self, ctx)
+            return super().invoke(ctx)
+        finally:
+            tenant.leave_command()
 
 
 class FSVGroup(_FSVHelpMixin, TyperGroup):
@@ -228,6 +248,8 @@ def main(
     no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="print debug info to stderr"),
     version: bool = typer.Option(False, "--version", "-V", help="print version and exit", is_eager=True),
+    quiet: bool = typer.Option(False, "--quiet", help="do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)"),
+    tenant: Optional[str] = typer.Option(None, "--tenant", metavar="DOMAIN", help="assert the target tenant; confirms it for --yes writes when it equals the configured domain"),
 ) -> None:
     """Freshservice CLI."""
     global NO_INPUT, VERBOSE
@@ -2674,12 +2696,12 @@ def _problem_planning_update(id_: str, planned_start: Optional[str], planned_end
         plan = problem_properties.build_plan(c, id_, planned_start=planned_start, planned_end=planned_end,
                                              planned_effort=planned_effort)
         if dry_run:
-            typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+            typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
             return
         if not yes or expect_plan != plan.hash:
             raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
         result = problem_properties.send(plan, c, reviewed_hash=expect_plan)
-        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+        typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
         if not result.get("verified"):
             raise typer.Exit(4)
     except (ValueError, ReviewedWriteError, APIError) as exc:
@@ -3455,7 +3477,7 @@ def _journal_rows(rows: list[dict[str, Any]], json_out: bool) -> None:
     from rich.table import Table
     if json_out:
         for r in rows:
-            print(json.dumps(r, ensure_ascii=False))
+            print(tenant_json(r, ensure_ascii=False))
         return
     if not rows:
         console.print("[dim]journal is empty[/dim]")
@@ -4503,9 +4525,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     plan = build_plan(c, id_, tags=list(tag) if tag else None,
                                       planned_start=planned_start, planned_end=planned_end, answers=answers, ack=ack)
                     if dry_run:
-                        typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+                        typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                         return
-                    typer.echo(json.dumps(plan.review(), ensure_ascii=False, indent=2), err=True)
+                    typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
                     if expect_plan is not None and expect_plan != plan.hash:
                         raise PropertyError("review hash changed; review again")
                     if yes:
@@ -4517,7 +4539,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         typer.echo("Cancelled; no update attempted.")
                         return
                     result = send(plan, c, reviewed_hash=plan.hash)
-                    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+                    typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
                 except (ValueError, PropertyError) as exc:
                     typer.echo(str(exc), err=True)
                     raise typer.Exit(2) from None
@@ -4927,9 +4949,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 plan = build_plan(c, id_, body, cc=recipients(c, list(cc or [])), bcc=tuple(bcc or ()),
                                   sender=sender, set_status=set_status, ack=ack)
                 if dry_run:
-                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+                    typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                     return
-                typer.echo(json.dumps(plan.review(), ensure_ascii=False, indent=2), err=True)
+                typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
                 if expect_plan is not None and expect_plan != plan.hash:
                     raise ConversationError("review hash changed; review again")
                 if yes:
@@ -4941,7 +4963,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     typer.echo("Cancelled; no reply sent.")
                     return
                 result = send(plan, c, reviewed_hash=plan.hash, public_confirmed=True)
-                typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+                typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
             except (ValueError, ConversationError) as exc:
                 typer.echo(str(exc), err=True)
                 raise typer.Exit(2) from None
@@ -4966,11 +4988,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 recipients(c, to)
                 plan = build_plan(c, id_, body, kind="forward", notify=tuple(to), sender=sender, conversation_id=conversation)
                 if dry_run:
-                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                    typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                     return
                 if not yes or expect_plan != plan.hash:
                     raise ConversationError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-                typer.echo(json.dumps(send(plan, c, reviewed_hash=expect_plan, public_confirmed=True), indent=2))
+                typer.echo(tenant_json(send(plan, c, reviewed_hash=expect_plan, public_confirmed=True), indent=2))
             except (ValueError, ConversationError) as exc:
                 typer.echo(str(exc), err=True)
                 raise typer.Exit(2) from None

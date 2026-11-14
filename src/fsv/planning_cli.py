@@ -1,6 +1,8 @@
 """CLI for reviewed native planning text, separate from attachment workflows."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -39,11 +41,11 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
                 c = client_factory()
                 plan = problem_known_error.build_plan(c, id_)
                 if dry_run:
-                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                    typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                     return
                 if not yes or expect_plan != plan.hash:
                     raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-                typer.echo(json.dumps(problem_known_error.send(plan, c, reviewed_hash=expect_plan), indent=2))
+                typer.echo(tenant_json(problem_known_error.send(plan, c, reviewed_hash=expect_plan), indent=2))
             except (ValueError, ReviewedWriteError) as exc:
                 typer.echo(str(exc), err=True)
                 raise typer.Exit(2) from None
@@ -62,11 +64,11 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
             c = client_factory()
             plan = planning_text.build_plan(c, resource.name, id_, section, description, clear=clear)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
-            typer.echo(json.dumps(planning_text.send(plan, c, reviewed_hash=expect_plan), indent=2))
+            typer.echo(tenant_json(planning_text.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

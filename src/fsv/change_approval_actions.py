@@ -5,6 +5,8 @@ Read-back reports raw status evidence, never mappings inferred from write values
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from dataclasses import dataclass
 from typing import Any
@@ -268,7 +270,7 @@ def _run(plan: ActionPlan, *, dry_run: bool, read_only: bool, yes: bool,
     if read_only and not dry_run:
         raise ApprovalError("read-only mode: no approval action was sent")
     if dry_run:
-        typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
+        typer.echo(tenant_json(send(plan, reviewed_hash=None, dry_run=True), indent=2))
         return
     if expected is not None and expected != plan.hash:
         raise ApprovalError("approval action review hash does not match; review the exact action again")
@@ -280,13 +282,13 @@ def _run(plan: ActionPlan, *, dry_run: bool, read_only: bool, yes: bool,
     review = plan.review()
     if plan.operation == "cancel":
         review["group"] = _cancel_group(get_client(), plan)
-    typer.echo(json.dumps(review, indent=2), err=True)
+    typer.echo(tenant_json(review, indent=2), err=True)
     if not yes and not typer.confirm("Send this exact approval action (notifies people; may move workflow; cancel irreversible)?", default=False):
         typer.echo("Cancelled; no approval action was sent.")
         return
     result = send(plan, reviewed_hash=plan.hash, read_only=read_only)
     if json_out:
-        typer.echo(json.dumps(result, indent=2))
+        typer.echo(tenant_json(result, indent=2))
     else:
         typer.echo(f"Approval {'group' if plan.operation == 'cancel' else 'record'} {plan.target_id} submitted on change {plan.change_id}; "
                    f"observed raw status: {json.dumps(result['observed_status'])}; "

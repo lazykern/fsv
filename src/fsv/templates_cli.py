@@ -1,6 +1,8 @@
 """CLI: ticket templates (read-only) and change maintenance windows."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, List, Optional
 
@@ -19,7 +21,7 @@ def register_templates(app: typer.Typer, factory: Callable[[], Any]) -> None:
         def run() -> None:
             rows = T.list_templates(factory())
             if json_out:
-                typer.echo(json.dumps(rows, indent=2, ensure_ascii=False))
+                typer.echo(tenant_json(rows, indent=2, ensure_ascii=False))
                 return
             for r in rows:
                 typer.echo(f"{r['id']}\t{r['name']}\t{r.get('type') or ''}")
@@ -34,7 +36,7 @@ def register_templates(app: typer.Typer, factory: Callable[[], Any]) -> None:
             _draft, applied, ignored = T.to_draft(row)
             doc = {"id": row["id"], "name": row.get("name"), "prefills": applied, "not_applied": ignored,
                    "template_data": row["template_data"]}
-            typer.echo(json.dumps(doc, indent=2, ensure_ascii=False))
+            typer.echo(tenant_json(doc, indent=2, ensure_ascii=False))
         guard(run)
 
 
@@ -48,7 +50,7 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
         def run() -> None:
             rows = W.list_windows(factory())
             if json_out:
-                typer.echo(json.dumps(rows, indent=2, ensure_ascii=False))
+                typer.echo(tenant_json(rows, indent=2, ensure_ascii=False))
                 return
             for r in rows:
                 typer.echo(f"{r.get('id')}\t{r.get('name')}\t{r.get('start_time')} -> {r.get('end_time')}")
@@ -81,12 +83,12 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
                                           allow_overlap=allow_overlap)
             plan = build()
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2, ensure_ascii=False))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2, ensure_ascii=False))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = W.send_create(plan, c, reviewed_hash=expect_plan, rebuild=build)
-            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+            typer.echo(tenant_json(result, indent=2, ensure_ascii=False))
             if not result.get("verified"):
                 raise typer.Exit(4)
         guard(run)
@@ -102,12 +104,12 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
             c = factory()
             plan = W.delete_plan(c, ident)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2, ensure_ascii=False))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2, ensure_ascii=False))
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = W.send_delete(plan, c, reviewed_hash=expect_plan)
-            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+            typer.echo(tenant_json(result, indent=2, ensure_ascii=False))
             if not result.get("verified"):
                 raise typer.Exit(4)
         guard(run)

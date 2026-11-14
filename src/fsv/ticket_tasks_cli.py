@@ -1,6 +1,8 @@
 """Ticket task CLI: all writes require an exact full-hash review."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -17,7 +19,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
 
     @tasks.command("list")
     def list_(target: str, json_out: bool = typer.Option(False, "--json")) -> None:
-        typer.echo(json.dumps(flow.inventory(client_factory(), parse_id(target, TICKETS)), indent=2))
+        typer.echo(tenant_json(flow.inventory(client_factory(), parse_id(target, TICKETS)), indent=2))
 
     def run(target, action, task, title, status, sets, dry_run, yes, expected, owner=None, group=None):
         try:
@@ -30,12 +32,12 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             client = client_factory()
             plan = flow.build_plan(client, target, action=action, task=task, title=title, status=status, values=values, owner=owner, group=group)
             if dry_run:
-                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expected != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = flow.send(plan, client, reviewed_hash=expected)
-            typer.echo(json.dumps(result, indent=2))
+            typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
         except (ValueError, ReviewedWriteError) as exc:

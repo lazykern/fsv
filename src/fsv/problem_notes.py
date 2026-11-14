@@ -7,6 +7,8 @@ tenant default applies.
 """
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 import re
 from typing import Any, Callable
@@ -89,7 +91,7 @@ def add_note(client_factory: Callable[[], Any], id_: str, body: str, *, public: 
         plan = build_plan(id_, body)
         doc = review(plan)
         if dry_run:
-            typer.echo(json.dumps({"status": "dry_run", "dry_run": True, **doc}, ensure_ascii=False, indent=2))
+            typer.echo(tenant_json({"status": "dry_run", "dry_run": True, **doc}, ensure_ascii=False, indent=2))
             return
         if expect_plan is not None and expect_plan != plan.hash:
             raise ReviewedWriteError("note review hash does not match; review the exact body again")
@@ -99,13 +101,13 @@ def add_note(client_factory: Callable[[], Any], id_: str, body: str, *, public: 
         elif no_input:
             raise ReviewedWriteError("sending requires --yes and --expect-plan in no-input mode")
         else:
-            typer.echo(json.dumps(doc, ensure_ascii=False, indent=2), err=True)
+            typer.echo(tenant_json(doc, ensure_ascii=False, indent=2), err=True)
             if not typer.confirm("Add this exact reviewed note?", default=False):
                 typer.echo("Cancelled; no note was sent.")
                 return
         result = send(plan, client_factory(), reviewed_hash=plan.hash)
         if json_out:
-            typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+            typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
         else:
             typer.echo(f"added note {result.get('note_id')} on problem {plan.target} "
                        f"(visibility: tenant default; not controllable on problem notes); "

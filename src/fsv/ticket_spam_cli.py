@@ -1,6 +1,8 @@
 """CLI: single-ticket spam / not spam (reviewed)."""
 from __future__ import annotations
 
+from fsv.tenant import tenant_json
+
 import json
 from typing import Any, Callable, Optional
 
@@ -23,12 +25,12 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                 c = client_factory()
                 plan = ticket_spam.build_plan(c, ticket, spam=spam)
                 if dry_run:
-                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                    typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                     return
                 if not yes or expect_plan != plan.hash:
                     raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
                 result = ticket_spam.send(plan, c, reviewed_hash=expect_plan, confirm_destructive=confirm_destructive)
-                typer.echo(json.dumps(result, indent=2))
+                typer.echo(tenant_json(result, indent=2))
                 if not result.get("verified"):
                     raise typer.Exit(4)
             except (ValueError, ReviewedWriteError, APIError) as exc:

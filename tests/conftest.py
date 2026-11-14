@@ -74,6 +74,9 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     monkeypatch.setenv("FSV_NO_KEYCHAIN", "1")
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "fsv-state"))
     monkeypatch.delenv("FSV_COMPLETION_NETWORK", raising=False)
+    # The `fsv: tenant ...` stderr line would interleave with CliRunner's
+    # mixed output; banner tests delete this to see it.
+    monkeypatch.setenv("FSV_QUIET", "1")
 
     config = sys.modules.get("fsv.config")
     if config is None:
