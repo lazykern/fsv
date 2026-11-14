@@ -109,10 +109,12 @@ pub fn sha256_hex(data: &[u8]) -> String {
 
 /// Journal file for the current profile and tenant.
 pub fn journal_path() -> PathBuf {
-    let base = std::env::var_os("XDG_STATE_HOME")
-        .filter(|v| !v.is_empty())
-        .map(PathBuf::from)
-        .unwrap_or_else(|| config::home_dir().join(".local").join("state"));
+    let base = config::test_state_home().unwrap_or_else(|| {
+        std::env::var_os("XDG_STATE_HOME")
+            .filter(|v| !v.is_empty())
+            .map(PathBuf::from)
+            .unwrap_or_else(|| config::home_dir().join(".local").join("state"))
+    });
     let profile = sha256_hex(&path_bytes(&resolve_path(&config::config_dir())));
     let domain = config::domain();
     let tenant = if domain.is_empty() {
