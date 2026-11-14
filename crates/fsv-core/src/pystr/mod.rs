@@ -129,6 +129,11 @@ pub fn py_int(s: &str) -> Option<String> {
     })
 }
 
+/// `int(s)` as a JSON number, exact past 64 bits.
+pub fn int_json(s: &str) -> Option<serde_json::Value> {
+    py_int(s)?.parse::<serde_json::Number>().ok().map(serde_json::Value::Number)
+}
+
 /// `str.casefold()`.
 pub fn casefold(s: &str) -> String {
     caseless::default_case_fold_str(s)

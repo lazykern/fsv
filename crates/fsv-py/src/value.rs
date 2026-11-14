@@ -13,6 +13,24 @@ use crate::py_str;
 
 static EMPTY_OBJ: LazyLock<Map<String, Value>> = LazyLock::new(Map::new);
 
+/// The digits of an integer past 64 bits (Python's big `int`), kept exact by
+/// serde_json's `arbitrary_precision`. `None` for a float or an `i64`/`u64`.
+pub fn big_int(n: &serde_json::Number) -> Option<String> {
+    if n.is_i64() || n.is_u64() {
+        return None;
+    }
+    let text = n.to_string();
+    let digits = text.strip_prefix('-').unwrap_or(&text);
+    (!digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())).then_some(text)
+}
+
+/// The number as Python's `float`: a literal past `f64` (`1E400`) is
+/// `inf`, as `json.loads` reads it.
+pub(crate) fn number_f64(n: &serde_json::Number) -> f64 {
+    n.as_f64()
+        .unwrap_or_else(|| n.to_string().parse().unwrap_or(f64::NAN))
+}
+
 /// CPython `bool(value)` for a JSON value. `0.0` and `-0.0` are false.
 pub fn truthy(value: &Value) -> bool {
     match value {
@@ -23,8 +41,10 @@ pub fn truthy(value: &Value) -> bool {
                 i != 0
             } else if let Some(u) = n.as_u64() {
                 u != 0
+            } else if big_int(n).is_some() {
+                true
             } else {
-                n.as_f64().is_some_and(|f| f != 0.0)
+                number_f64(n) != 0.0
             }
         }
         Value::String(s) => !s.is_empty(),

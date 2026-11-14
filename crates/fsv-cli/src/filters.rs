@@ -84,10 +84,6 @@ fn is_period_token(s: &str) -> bool {
 }
 
 /// Python `int(s)` for a `str.isdigit()` string; text when it does not fit.
-fn int_or_text(s: &str) -> Value {
-    pystr::parse_decimal(s).map_or_else(|| json!(s), |n| json!(n))
-}
-
 /// Port of fsv.cli._strip_quotes.
 fn strip_quotes(value: &str) -> &str {
     let v = pystr::strip(value);
@@ -304,7 +300,7 @@ pub fn resolve_where(
         }
         let operator = if op == "=" { "is_in" } else { "is_not_in" };
         let val = if pystr::is_digit(&raw) {
-            int_or_text(&raw)
+            lookup::int_literal(&raw).map_err(|e| usage(&e.to_string()))?
         } else {
             json!(raw)
         };
@@ -520,7 +516,7 @@ pub fn resolve_where(
         ));
     }
     let val = if pystr::is_digit(&raw) && ftype.ends_with("number") {
-        int_or_text(&raw)
+        lookup::int_literal(&raw).map_err(|e| usage(&e.to_string()))?
     } else {
         json!(raw)
     };

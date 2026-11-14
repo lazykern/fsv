@@ -176,8 +176,6 @@ those stay identical.
 - `filter_proof.contradictions` skips a row that is not an object.
 - Service list readers (`list_items`, activities, notes, tasks, approvals,
   assets) treat a null or non-list body as no rows.
-- CLI choice values: a digit string beyond `i64`, or a superscript digit
-  that `int()` rejects, stays text. Python's `_choice_value` raises.
 - CLI error lines: an exception with a blank message prints `Error`.
   Python's `_err_exc` prints the exception class name.
 - `form explain` with a bad `--id` exits 1 with the message. Python prints
@@ -213,8 +211,6 @@ those stay identical.
   the full `sys.argv[0]`.
 - `setup` escapes the echoed defaults list. Python renders it as Rich
   markup, so a value like `[bold]` disappears.
-- `--where` digit ids that `int()` rejects (superscripts) or that overflow
-  stay text.
 - `changes windows create` overlap check: listed window times without a UTC
   offset are compared as instants in the tenant zone. Python compares
   same-tzinfo datetimes by wall clock, so the two differ only inside the
@@ -307,7 +303,7 @@ Gaps:
 - `create` planning-field resolution and `--duplicate` errors are `Error::value` (Python `UsageError`, `820af12`): the bare message, exit 2. Other `APIError(0, …)` sites keep `ApiError` status 0, which `fsv_core::ApiError` renders as Python does: `Error: …` (`Error <what>: …` with a request).
 
 Divergences:
-- `readback::duration_seconds` accepts Unicode decimal digits in the hours and in the second digit of minutes and seconds, matching Python's `\d`. The first minute and second digit stays ASCII `[0-5]`, so `१२:३०` is refused and `१२:05` is 12 hours. Hours that overflow `i64` are an error rather than a big int. `ticket_time::duration`, `watchers::positive_id`, catalog item ids, CLI `int()` of a digit string, change-asset ids (`raw.isdigit()`), `forms.workspace_id`, merge conversation ids, and the TUI asset picker take Unicode decimal digits as Python does (`"१२"` is 12). A superscript digit is not a decimal id. An id past `i64` is refused where Python returns the big int. A task group or owner id typed in the TUI uses `str.isdecimal()` the same way.
+- `readback::duration_seconds` accepts Unicode decimal digits in the hours and in the second digit of minutes and seconds, matching Python's `\d`. The first minute and second digit stays ASCII `[0-5]`, so `१२:३०` is refused and `१२:05` is 12 hours. Hours that overflow `i64` are an error rather than a big int. `ticket_time::duration`, `watchers::positive_id`, catalog item ids, CLI `int()` of a digit string, change-asset ids (`raw.isdigit()`), `forms.workspace_id`, merge conversation ids, and the TUI asset picker take Unicode decimal digits as Python does (`"१२"` is 12). A superscript digit is not a decimal id. An id past `i64` is refused where Python returns the big int, except `--where` ids and numbers, `query.resolve_where` and CLI `_choice_value`, which send it exact. A task group or owner id typed in the TUI uses `str.isdecimal()` the same way.
 - `conversations::parseaddr` uses `email_addr::parseaddr`, a port of Python 3.12's strict `email.utils.parseaddr` (`AddrlistClass`, parenthesis and domain-literal checks, one address only). Golden: `port/golden/gen_fsv_api_parseaddr.py` → `src/testdata/parseaddr_oracle.json` (76 inputs: quoted local parts, comments, several `<>`, groups, routes, malformed values).
 - `attachments::LocalFile` content types come from `mime_guess` (as `create::upload_file`), not Python's platform `mimetypes` table. The golden covers `.txt`, `.csv`, `.png`, `.json` and no extension, which agree.
 - `attachments::page_limit` refuses a published limit whose byte value does not fit an `i64` (over about 8.8e12 MiB) as "ambiguous or invalid"; Python accepts the big int.
@@ -424,6 +420,8 @@ CLI divergences:
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
 - `--query-hash` with bad JSON prints `error: invalid --query-hash JSON: ` as Python does, then serde_json's message (`[{` gives `EOF while parsing an object at line 1 column 2`) where Python prints `json.JSONDecodeError`'s (`Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`). Exit 2 in both.
+- `--query-hash` with the bare tokens `NaN`, `Infinity` or `-Infinity` is refused as bad JSON (exit 2). Python's `json.loads` accepts them and sends them on, which is not JSON. A literal past `f64` (`1E400`) is sent as `Infinity`, as Python does.
+- `ls --debug` with a value that is bad Rich markup (`--where "group_id=[/x]"`) prints the explain table, the unmatched tag dropped. Python raises `MarkupError` (traceback, exit 1).
 - `fsv tui` exits 1: the full-screen TUI is not in the Rust port (see fsv-tui below).
 - `--show-completion` / `--install-completion` with an undetectable shell print `error: could not detect shell; ...` and exit 1. Typer prints `Shell  not supported.` or `Shell None is not supported.`, also exit 1. Shell detection reads only `$SHELL`; Typer asks shellingham about the parent process first.
 - `form explain --id x` (not an ID) prints `error: invalid id: x` and exits 1; Python raises an uncaught `ValueError` (traceback, exit 1).

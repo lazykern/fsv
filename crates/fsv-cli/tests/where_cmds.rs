@@ -1395,3 +1395,37 @@ fn no_due_by_note_with_status_filter_other_fields_or_other_modules() {
         assert!(!r.err.contains("Pending tickets have no Due By"), "{args:?}");
     }
 }
+
+/// Python `cli._resolve_where`: an `_id` digit string is `int(raw)`, exact
+/// past 64 bits and for Unicode decimal digits; a superscript digit that
+/// `int()` rejects is the `ValueError` text, exit 2. A `--query-hash` big
+/// int is sent as written. Expected values from the Python run.
+#[test]
+fn where_id_ints_match_python_int() {
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "group_id=99999999999999999999999",
+            "--where",
+            "group_id!=\u{661}\u{662}",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        sent(&r, "tickets").0,
+        r#"[{"value":[99999999999999999999999],"condition":"group_id","operator":"is_in","type":"default"},{"value":[12],"condition":"group_id","operator":"is_not_in","type":"default"}]"#
+    );
+    let r = run_fixture("where", &["tickets", "ls", "--where", "group_id=\u{b2}"], None);
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (2, "", "error: invalid literal for int() with base 10: '\u{b2}'\n")
+    );
+    let raw = r#"[{"condition":"group_id","operator":"is_in","type":"default","value":[99999999999999999999999]}]"#;
+    let r = run_fixture("where", &["tickets", "ls", "--query-hash", raw], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(sent(&r, "tickets").0, raw);
+}
