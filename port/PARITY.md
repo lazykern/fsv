@@ -17,6 +17,10 @@ those stay identical.
 
 - Files are written with LF on every platform. Python on Windows writes CRLF.
 - YAML parse errors say `YAML error: …` but the line wording is not PyYAML's.
+- JSON numbers keep their parsed text (serde_json `arbitrary_precision`), so an
+  integer past 64 bits is sent exactly as Python's big int. A parsed float
+  re-serializes as written (`1.50`, `1e5`, `1E400`); Python writes `1.5`,
+  `100000.0`, `Infinity`.
 - Human terminal output matches content, order, wording and columns. Box
   glyphs, Rich number/URL highlighting and `:emoji:` substitution may differ.
 - Click prompt abort prints `Aborted!`. `_err_exc` prints `Aborted.`
