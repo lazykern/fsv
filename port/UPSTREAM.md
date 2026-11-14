@@ -3,24 +3,19 @@
 Python commits that landed while the port ran, and what the Rust port still
 needs for each.
 
-- **Last triaged Python commit: `92002d7`** (2026-11-12 06:17 +0700,
-  `Guard native planning text creates against existing content`; see
-  "Ledger: `b7d96a7..6797301`", "Ledger: `6797301..dbe553c`" and
-  "Ledger: `dbe553c..92002d7`" at the end).
-  Range: `273ffde~1..b7d96a7`, 32 commits.
-- Rust state graded: `rust-port` at `8790060` **plus the uncommitted/staged
-  working tree** at triage time (other workers had edits in `fsv-api`,
-  `fsv-core`, `fsv-forms`, `fsv-flows`, `fsv-views`, `fsv-completion`).
-  Re-check a row if its file changed since then.
-- Python had uncommitted work after `b7d96a7`, not graded here:
-  `src/fsv/canned.py`, `canned_cli.py`, `scenarios.py`,
-  `tests/test_canned.py`, and edits to `cli.py` / `ticket_conversation.py`.
-- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse 92002d7..HEAD`.
+- **Last triaged Python commit: `31a9103`** (2026-11-13 22:51 +0700,
+  `docs/coverage.md: regenerate with a separate COVERED (read) status ...`;
+  see "Ledger: `406ca71..31a9103`" at the end). `port/UPSTREAM_BASE` is
+  `31a9103`.
+- Rust state graded: `rust-port` at `3c6cf61` (all eight batches merged).
+- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse 31a9103..main`.
+- Older sections below keep their own triage notes (base `92002d7` and
+  earlier) for history.
 
 Statuses: `ported` (Rust has the behavior), `partial` (some is missing),
 `missing` (nothing in Rust).
 
-Counts: **32 ported, 0 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778c3` landed after triage; the fsv-cli/fsv-completion half after that, with goldens captured from Python `dbe553c`; see the per-commit notes.)
+Counts for the first ledger below (`273ffde~1..b7d96a7`): **32 ported, 0 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778c3` landed after triage; the fsv-cli/fsv-completion half after that, with goldens captured from Python `dbe553c`; see the per-commit notes.)
 
 ## Ledger
 
@@ -3650,19 +3645,24 @@ Python `406ca71` on every case. Docs (`commands.md`,
 
 Still not triaged: commits after `406ca71`.
 
-## Ledger: `406ca71..31a9103` (in progress)
+## Ledger: `406ca71..31a9103`
 
-Porting target: Python `31a9103` (`port/UPSTREAM_TARGET`). The CLI surface
-(clap tree, completion fixtures, `command_flags.txt`, `command_help.txt`) was
-regenerated from `72b4716` (same surface; `31a9103` is docs only); behavior lands per batch. `UPSTREAM_BASE` moves to
-the target when every row below is ported. New Python commits after the
-target: `git -C ../fsv log --reverse $(cat port/UPSTREAM_TARGET)..main`.
+Porting target reached: `port/UPSTREAM_BASE` is `31a9103`
+(`port/UPSTREAM_TARGET`). Code commits were ported in eight batches (status,
+misc, filters, forms, links, deletes, views, windows), all merged into
+`rust-port` by `3c6cf61`; docs-only commits are `n/a`. `cli_tree.json`,
+`completion_tree.json`, `command_flags.txt` and `command_help.txt` were
+regenerated from a clean `git archive 31a9103` (only the stamps changed
+from `72b4716`). `function_map.json` and `module_map.json` are stamped
+`31a9103`: every def new or changed in the range was re-compared.
 
-| commit | date | subject | status | batch |
+Counts: **52 ported, 0 partial, 13 n/a.**
+
+| commit | date | subject | status | batch: Rust commits |
 |---|---|---|---|---|
-| `520bb68` | 11-13 12:49 | feat: reviewed inline images in ticket replies and notes (solutions/inline_images upload, embedded img, body readback) | pending | wave 2 |
-| `cfc6257` | 11-13 13:00 | feat: reviewed problem delete/restore/delete-forever and solution article delete/delete-forever | pending | deletes |
-| `b5185c4` | 11-13 13:23 | feat: read-only ticket templates (+ create --template prefill), maintenance windows list/create/delete, --notify-agent | pending | windows |
+| `520bb68` | 11-13 12:49 | feat: reviewed inline images in ticket replies and notes (solutions/inline_images upload, embedded img, body readback) | ported | status: `da435d3` |
+| `cfc6257` | 11-13 13:00 | feat: reviewed problem delete/restore/delete-forever and solution article delete/delete-forever | ported | deletes: `418ade0` |
+| `b5185c4` | 11-13 13:23 | feat: read-only ticket templates (+ create --template prefill), maintenance windows list/create/delete, --notify-agent | ported | windows: `34f108f`, `f64f087`, `fb081e8` |
 | `f0ecbea` | 11-13 14:42 | docs: Freshservice knowledge base overview (product model, API families, session, ids, UI, feature probes) | n/a (docs/tests only) | docs |
 | `ec1c8af` | 11-13 14:43 | docs: Freshservice forms, field metadata and business rules knowledge base page | n/a (docs/tests only) | docs |
 | `3c7add5` | 11-13 14:45 | docs: Freshservice lifecycles, status models, workflow side effects and SLA page | n/a (docs/tests only) | docs |
@@ -3671,57 +3671,90 @@ target: `git -C ../fsv log --reverse $(cat port/UPSTREAM_TARGET)..main`.
 | `80cf562` | 11-13 14:51 | docs: live-testing methodology (reviewed writes, blocked captures, trial replication, cleanup, probing) | n/a (docs/tests only) | docs |
 | `bb1bb3f` | 11-13 14:52 | docs: contributing guidance for coding agents (layout, reviewed writes, offline tests, hygiene) | n/a (docs/tests only) | docs |
 | `a8e2069` | 11-13 14:52 | docs: link the Freshservice knowledge base, live-testing and agent contributing pages from the index and README | n/a (docs/tests only) | docs |
-| `3b339bd` | 11-13 15:07 | fix(windows): accept real overlap-check answer shapes, refuse unknown ones with a type-only outline | pending | windows |
-| `3ad6041` | 11-13 15:07 | fix(filters): send due/closed/resolved date ranges through the advanced builder under its condition names | pending | wave 2 |
-| `a3f2a1a` | 11-13 15:07 | fix(journal): say a completed identical plan was already sent (with its time) instead of 'outcome unknown' | pending | wave 2 |
-| `cf4d6c1` | 11-13 15:07 | fix(problems): report the unexposed requester email as 'not exposed by the server' | pending | wave 2 |
-| `cdf4f77` | 11-13 15:07 | docs(approvals): name the exact change-reminder gap on approval-chains tenants | n/a (docs/tests only) | docs |
-| `0208fdb` | 11-13 15:07 | fix(problems): print a plan_hash on update --dry-run and bind --expect-plan to it | pending | wave 2 |
-| `de47710` | 11-13 15:07 | fix(sr items): ignore the rotating CDN shard host in catalog metadata snapshots | pending | wave 2 |
-| `f081c97` | 11-13 15:07 | fix(filters): CLI approval_status uses the proven change wire; raw query-hash shapes refuse cleanly | pending | wave 2 |
-| `c692ce2` | 11-13 15:07 | fix(messages): accurate wording for problem status labels, empty inventory pages and partial --set labels | pending | wave 2 |
-| `7f1e537` | 11-13 15:50 | fix(tickets): tag readback compares native {id,name} tag objects by name, case-insensitively | pending | wave 2 |
-| `1c9dca7` | 11-13 15:50 | fix(tickets): reply/add-note --set-status Resolved/Closed accept --ack bound to the review hash | pending | wave 2 |
-| `892494f` | 11-13 15:53 | fix(tasks): create readback treats the never-returned notify_before as not exposed; verified when every readable field matches | pending | wave 2 |
-| `8060e50` | 11-13 15:53 | fix(changes windows): accept the native {match_found: bool} overlap answer | pending | windows |
-| `618593b` | 11-13 15:53 | fix(changes relationships): missing parent/candidate ids are one-line refusals instead of tracebacks | pending | links |
-| `92b7a55` | 11-13 15:57 | fix(problems status): Closed rewritten by a workflow is verified with a note (skew-tolerant, checked against the readback status) | pending | wave 2 |
-| `e80a922` | 11-13 15:58 | fix(problems add-note): send the captured {body} only; problem-note visibility is not controllable | pending | wave 2 |
-| `15bcf8e` | 11-13 16:01 | fix(tickets lifecycle): invalid --set choices/labels are one-line refusals listing valid choices | pending | wave 2 |
-| `b417668` | 11-13 16:01 | fix(cache clear): tolerate cache directories removed by a parallel process | pending | wave 2 |
-| `c559119` | 11-13 16:04 | fix(private views): name the endpoints checked when private visibility cannot be proven | pending | views |
-| `84813b6` | 11-13 16:04 | feat(problems status): Closed reviews show the closure preflight up front, including the remembered solution rule | pending | wave 2 |
-| `77ef015` | 11-13 16:04 | fix(download): default attachment downloads go under ./downloads/<ID> and the directory is announced | pending | wave 2 |
-| `7229332` | 11-13 16:05 | feat(export): review shows the signed-in agent's mailbox as the export recipient | pending | views |
-| `3aace06` | 11-13 17:03 | fix(windows): refuse a new maintenance window that overlaps a listed one | pending | windows |
-| `e15e02d` | 11-13 17:11 | fix(tickets): --set-status refusal lists the valid choices | pending | wave 2 |
-| `38ee07d` | 11-13 17:11 | feat(ls): note that Due By filters never return Pending tickets | pending | wave 2 |
+| `3b339bd` | 11-13 15:07 | fix(windows): accept real overlap-check answer shapes, refuse unknown ones with a type-only outline | ported | windows: `f64f087` |
+| `3ad6041` | 11-13 15:07 | fix(filters): send due/closed/resolved date ranges through the advanced builder under its condition names | ported | filters: `8da51e9` |
+| `a3f2a1a` | 11-13 15:07 | fix(journal): say a completed identical plan was already sent (with its time) instead of 'outcome unknown' | ported | misc: `019d9d0` |
+| `cf4d6c1` | 11-13 15:07 | fix(problems): report the unexposed requester email as 'not exposed by the server' | ported | status: `6fc0d77` |
+| `cdf4f77` | 11-13 15:07 | docs(approvals): name the exact change-reminder gap on approval-chains tenants | ported | forms: `160bf5e` |
+| `0208fdb` | 11-13 15:07 | fix(problems): print a plan_hash on update --dry-run and bind --expect-plan to it | ported | status: `e8d8042` |
+| `de47710` | 11-13 15:07 | fix(sr items): ignore the rotating CDN shard host in catalog metadata snapshots | ported | forms: `b024ab1` |
+| `f081c97` | 11-13 15:07 | fix(filters): CLI approval_status uses the proven change wire; raw query-hash shapes refuse cleanly | ported | filters: `05204af` |
+| `c692ce2` | 11-13 15:07 | fix(messages): accurate wording for problem status labels, empty inventory pages and partial --set labels | ported | status (inventory part in misc): `e2e8454`, `3838403` |
+| `7f1e537` | 11-13 15:50 | fix(tickets): tag readback compares native {id,name} tag objects by name, case-insensitively | ported | status: `5c2f6e1` |
+| `1c9dca7` | 11-13 15:50 | fix(tickets): reply/add-note --set-status Resolved/Closed accept --ack bound to the review hash | ported | status: `a0c618f` |
+| `892494f` | 11-13 15:53 | fix(tasks): create readback treats the never-returned notify_before as not exposed; verified when every readable field matches | ported | misc: `e003a93` |
+| `8060e50` | 11-13 15:53 | fix(changes windows): accept the native {match_found: bool} overlap answer | ported | windows: `f64f087` |
+| `618593b` | 11-13 15:53 | fix(changes relationships): missing parent/candidate ids are one-line refusals instead of tracebacks | ported | links: `433ea84` |
+| `92b7a55` | 11-13 15:57 | fix(problems status): Closed rewritten by a workflow is verified with a note (skew-tolerant, checked against the readback status) | ported | status: `4f2c38f` |
+| `e80a922` | 11-13 15:58 | fix(problems add-note): send the captured {body} only; problem-note visibility is not controllable | ported | status: `5ff36ea` |
+| `15bcf8e` | 11-13 16:01 | fix(tickets lifecycle): invalid --set choices/labels are one-line refusals listing valid choices | ported | status: `e2b2e2a` |
+| `b417668` | 11-13 16:01 | fix(cache clear): tolerate cache directories removed by a parallel process | ported | misc: `caa1cfb` |
+| `c559119` | 11-13 16:04 | fix(private views): name the endpoints checked when private visibility cannot be proven | ported | views: `7fecb49` |
+| `84813b6` | 11-13 16:04 | feat(problems status): Closed reviews show the closure preflight up front, including the remembered solution rule | ported | status: `a96ebfd` |
+| `77ef015` | 11-13 16:04 | fix(download): default attachment downloads go under ./downloads/<ID> and the directory is announced | ported | misc: `e2f00c3` |
+| `7229332` | 11-13 16:05 | feat(export): review shows the signed-in agent's mailbox as the export recipient | ported | views: `7fecb49` |
+| `3aace06` | 11-13 17:03 | fix(windows): refuse a new maintenance window that overlaps a listed one | ported | windows: `f64f087` |
+| `e15e02d` | 11-13 17:11 | fix(tickets): --set-status refusal lists the valid choices | ported | status: `a7b9d64` |
+| `38ee07d` | 11-13 17:11 | feat(ls): note that Due By filters never return Pending tickets | ported | filters: `e06b4d2` |
 | `17d545f` | 11-13 17:17 | docs: public command coverage matrix | n/a (docs/tests only) | docs |
-| `768eee9` | 11-13 17:40 | windows create: convert entered times to the tenant (agent profile) zone; --timezone | pending | windows |
-| `e4b4b25` | 11-13 17:47 | windows create: dry-run evaluates the window-list overlap and warns | pending | windows |
-| `9ad8a75` | 11-13 17:54 | windows create: bind --allow-overlap into the plan hash and warn in review | pending | windows |
+| `768eee9` | 11-13 17:40 | windows create: convert entered times to the tenant (agent profile) zone; --timezone | ported | windows: `f64f087` |
+| `e4b4b25` | 11-13 17:47 | windows create: dry-run evaluates the window-list overlap and warns | ported | windows: `f64f087` |
+| `9ad8a75` | 11-13 17:54 | windows create: bind --allow-overlap into the plan hash and warn in review | ported | windows: `f64f087` |
 | `7f9043f` | 11-13 18:03 | docs(coverage): windows create is covered after the time-zone and overlap live re-test | n/a (docs/tests only) | docs |
-| `b6b741f` | 11-13 18:32 | status: derive resolve/close/pending meaning from built-in internal ids | pending | wave 2 |
-| `e12c5ea` | 11-13 18:35 | tickets: prove incident/SR kind from the record's own fields | pending | links |
-| `936e767` | 11-13 18:37 | labels: priority/impact/risk/source from runtime choices | pending | wave 2 |
-| `fb2b13c` | 11-13 18:41 | forms: record workspace beats the global override; say when forms differ | pending | wave 2 |
-| `18d91aa` | 11-13 18:44 | catalog, formui: report truncation instead of silently cutting | pending | wave 2 |
-| `cc81f93` | 11-13 18:47 | form: fields/explain/dump/diff for problems and sr catalog items | pending | wave 2 |
-| `e9c9b08` | 11-13 18:49 | sr create: name the field and the missing capture for catalog lookups | pending | wave 2 |
-| `ebfbdd5` | 11-13 18:53 | approvals: one flat row shape for tickets approvals and sr approvals list | pending | wave 2 |
+| `b6b741f` | 11-13 18:32 | status: derive resolve/close/pending meaning from built-in internal ids | ported | status: `d8c7ce7` |
+| `e12c5ea` | 11-13 18:35 | tickets: prove incident/SR kind from the record's own fields | ported | links: `0216edb` |
+| `936e767` | 11-13 18:37 | labels: priority/impact/risk/source from runtime choices | ported | filters: `6885107` |
+| `fb2b13c` | 11-13 18:41 | forms: record workspace beats the global override; say when forms differ | ported | forms: `3ffb918` |
+| `18d91aa` | 11-13 18:44 | catalog, formui: report truncation instead of silently cutting | ported | forms: `73efda2` |
+| `cc81f93` | 11-13 18:47 | form: fields/explain/dump/diff for problems and sr catalog items | ported | forms: `2ab7c62` |
+| `e9c9b08` | 11-13 18:49 | sr create: name the field and the missing capture for catalog lookups | ported | forms: `eb2ef54` |
+| `ebfbdd5` | 11-13 18:53 | approvals: one flat row shape for tickets approvals and sr approvals list | ported | forms: `b8050d4` |
 | `bc40d7e` | 11-13 18:54 | tests, docs: shifted tenant covers form explain on a second workspace | n/a (docs/tests only) | docs |
-| `37d1d80` | 11-13 19:22 | private views: read the captured Myself code and the view's workspace; add changes private-views create | pending | views |
-| `dd2c480` | 11-13 19:30 | assets candidates: use the integrated inventory search when the legacy list is absent or 403 | pending | wave 2 |
-| `7ea60aa` | 11-13 19:53 | tickets: link and unlink problems, changes (both directions) and child tickets | pending | links |
-| `8c4ee36` | 11-13 19:53 | tickets: trash list, restore and delete-forever as reviewed writes | pending | deletes |
-| `9309b1b` | 11-13 19:53 | tickets: reviewed single-ticket spam and unspam | pending | deletes |
-| `2ffd5f0` | 11-13 19:53 | tickets bulk scenario: run one exactly named scenario on explicit tickets | pending | wave 2 |
-| `2092e44` | 11-13 19:53 | problems time update: captured PUT of time_spent and note | pending | wave 2 |
-| `5fe7752` | 11-13 19:53 | export: review-only with the captured body keys, recipient and unknown delivery | pending | views |
-| `70e1a68` | 11-13 19:53 | tickets create --template: report fields the server changed | pending | windows |
-| `3c005b6` | 11-13 19:53 | assets search: 'no results on page N' for every past-the-end answer; coverage gaps | pending | wave 2 |
-| `68ea4a4` | 11-13 20:23 | time write create: billable only when --billable is passed (default non-billable); --no-billable alias | pending | wave 2 |
-| `4ad278d` | 11-13 20:25 | problems/solutions delete-forever: explicit IDs with --max-records bound (required for >1, cap 50), printed ID list, stop at first failure | pending | deletes |
-| `041d865` | 11-13 20:27 | delete plans bind a record-state token (server updated_at + journaled restores): delete after restore is a fresh plan; true replays and unknown outcomes still refused | pending | deletes |
+| `37d1d80` | 11-13 19:22 | private views: read the captured Myself code and the view's workspace; add changes private-views create | ported | views: `7fecb49` |
+| `dd2c480` | 11-13 19:30 | assets candidates: use the integrated inventory search when the legacy list is absent or 403 | ported | misc: `185e609` |
+| `7ea60aa` | 11-13 19:53 | tickets: link and unlink problems, changes (both directions) and child tickets | ported | links: `c3ce3ea`, `9dafd12` |
+| `8c4ee36` | 11-13 19:53 | tickets: trash list, restore and delete-forever as reviewed writes | ported | deletes: `39d6a89` |
+| `9309b1b` | 11-13 19:53 | tickets: reviewed single-ticket spam and unspam | ported | deletes: `202741f` |
+| `2ffd5f0` | 11-13 19:53 | tickets bulk scenario: run one exactly named scenario on explicit tickets | ported | misc: `705ecd9` |
+| `2092e44` | 11-13 19:53 | problems time update: captured PUT of time_spent and note | ported | misc: `95fc7c8` |
+| `5fe7752` | 11-13 19:53 | export: review-only with the captured body keys, recipient and unknown delivery | ported | views: `7fecb49` |
+| `70e1a68` | 11-13 19:53 | tickets create --template: report fields the server changed | ported | windows: `34f108f`, `fb081e8` |
+| `3c005b6` | 11-13 19:53 | assets search: 'no results on page N' for every past-the-end answer; coverage gaps | ported | misc: `3838403` |
+| `68ea4a4` | 11-13 20:23 | time write create: billable only when --billable is passed (default non-billable); --no-billable alias | ported | misc: `2217aa2` |
+| `4ad278d` | 11-13 20:25 | problems/solutions delete-forever: explicit IDs with --max-records bound (required for >1, cap 50), printed ID list, stop at first failure | ported | deletes: `418ade0` |
+| `041d865` | 11-13 20:27 | delete plans bind a record-state token (server updated_at + journaled restores): delete after restore is a fresh plan; true replays and unknown outcomes still refused | ported | deletes: `e8c34da` |
 | `72b4716` | 11-13 20:29 | docs/coverage.md: regenerate from the current matrices (292 rows: 217 covered, 63 unsure, 10 gap); seeded rows leave the gap list | n/a (docs/tests only) | docs |
 | `31a9103` | 11-13 22:51 | docs/coverage.md: regenerate with a separate COVERED (read) status (292 rows: 224 covered, 40 covered-read, 18 unsure, 8 gap); exports shown as review-only UNSURE; known gaps list the remaining UNSURE reasons | n/a (docs/tests only) | docs |
+
+### Batch notes for `406ca71..31a9103`
+
+Divergences are in `port/PARITY.md`. Provenance debt left as is:
+
+- deletes: `delete_cmds.rs`, `ticket_trash_cmds.rs` and `ticket_spam_cmds.rs`
+  goldens are stamped `041d865`, `8c4ee36`, `9309b1b`, not `31a9103`. Those
+  commits already descend from `a3f2a1a` and the delete/trash/spam modules
+  did not change after them, so only the stamps lag. The
+  `change_delete_oracle` and `bulk_readback_oracle` stamps predate `a3f2a1a`.
+  Three hashes in `upstream_cmds.rs` were hand-patched from `041d865`.
+- misc: four oracles (`bulk_readback`, `workflows`, `ticket_bulk_set`,
+  `change_delete`) carry `a3f2a1a` text hand-patched under older `_python`
+  stamps.
+- views: `workflows_oracle.json` is stamped `7530df6` with `_regenerated`
+  subtrees at `72b4716`; `upstream_cmds.rs` has a `7fcdea4` header with
+  private-view and list-preference blocks from `72b4716`. Their generator
+  (`gen_private_views_native.py`) is not committed. `diff_cases.json` was
+  not extended for the new commands.
+- filters: the opt-in `tests/differential.rs` had 80 differing cases at
+  both `e12c5ea` and `936e767` mid-port. Final check on `3c6cf61` plus this
+  change against a clean `git archive 31a9103`: passes, 1022 cases (471
+  exit 0 on the Python side).
+- The golden generators under `crates/fsv-cli/tests/golden/*.py` stay
+  untracked.
+- links: a session expiry on the ticket read of a ticket-association plan
+  exits 2 (refusal), as in Python; later reads exit 1. `EXIT_SESSION` (3)
+  only covers a missing session.
+- b6b741f: the English status-word heuristics (`is_terminal_label`,
+  `is_open_label`, `TERMINAL_STATUS_WORDS`, `OPEN_STATUS_WORDS`,
+  `terminal_status_ids`, the label-based `status_closes`) are removed from
+  `fsv-core/src/safety.rs`; `safety.status_closes` maps to
+  `fsv_api::status_semantics::status_closes`.

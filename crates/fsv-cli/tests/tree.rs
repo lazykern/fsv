@@ -138,13 +138,7 @@ fn tree_matches_python() {
 /// Fixtures still stamped with an older Python commit. Each one must be
 /// regenerated against `port/UPSTREAM_BASE` before its stamp moves; until
 /// then the debt is named here instead of hidden behind a false stamp.
-///
-/// Both trees are ahead of `UPSTREAM_BASE` for now: the command surface was
-/// regenerated from Python `72b4716` before the commands' behavior landed.
-const STAMP_DEBT: &[(&str, &str)] = &[
-    ("cli_tree", "72b4716d470a853a4080698b01a1254db27951dc"),
-    ("completion_tree", "72b4716d470a853a4080698b01a1254db27951dc"),
-];
+const STAMP_DEBT: &[(&str, &str)] = &[];
 
 /// Every JSON oracle records the Python commit it was dumped from.
 #[test]

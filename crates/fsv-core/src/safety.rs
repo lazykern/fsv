@@ -10,41 +10,8 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::pystr;
 
-// Python b6b741f removed the English status-word heuristics below (status
-// meaning now comes from built-in internal ids: `fsv_api::status_semantics`,
-// including `safety.status_closes`). They have no callers here and stay only
-// until the function map is repointed.
-pub const TERMINAL_STATUS_WORDS: &[&str] =
-    &["closed", "resolved", "rejected", "cancelled", "canceled"];
-/// Labels known NOT to close a record. A label that is neither known
-/// terminal nor known open (localized/custom) counts as possibly terminal:
-/// confirming one extra time beats closing silently.
-pub const OPEN_STATUS_WORDS: &[&str] = &[
-    "open",
-    "pending",
-    "in progress",
-    "waiting",
-    "on hold",
-    "new",
-    "planning",
-    "awaiting",
-    "assigned",
-    "scheduled",
-    "review",
-    "reopened",
-];
 pub const ASSIGNEE_KEYS: &[&str] = &["agent_id", "responder_id", "owner_id"];
 pub const GROUP_KEYS: &[&str] = &["group_id"];
-
-/// Freshservice API default terminal status ids (tickets: 4 Resolved,
-/// 5 Closed; problems: 3 Closed), used when the label is unknown.
-pub fn terminal_status_ids(resource: &str) -> &'static [&'static str] {
-    match resource {
-        "tickets" => &["4", "5"],
-        "problems" => &["3"],
-        _ => &[],
-    }
-}
 
 /// NFC-normalized, case-folded, whitespace-collapsed.
 pub fn norm(text: &str) -> String {
@@ -59,32 +26,6 @@ pub fn norm_value(value: &Value) -> String {
     } else {
         String::new()
     }
-}
-
-pub fn is_terminal_label(label: &str) -> bool {
-    let folded = norm(label);
-    TERMINAL_STATUS_WORDS.iter().any(|w| folded.contains(w))
-}
-
-pub fn is_open_label(label: &str) -> bool {
-    let folded = norm(label);
-    !is_terminal_label(label) && OPEN_STATUS_WORDS.iter().any(|w| folded.contains(w))
-}
-
-/// `Some(true)`: the status closes/resolves the record; `Some(false)`: known
-/// open; `None`: unknown (e.g. a localized or custom label). Python keeps
-/// it, but `write_risks` no longer asks it.
-#[doc(hidden)]
-pub fn status_closes(resource: &str, value: &Value, label: &str) -> Option<bool> {
-    if is_terminal_label(label)
-        || terminal_status_ids(resource).contains(&fsv_py::py_str(value).as_str())
-    {
-        return Some(true);
-    }
-    if is_open_label(label) {
-        return Some(false);
-    }
-    None
 }
 
 fn plain(v: &Value) -> &Value {
@@ -411,38 +352,6 @@ mod tests {
         assert_eq!(norm_value(&Value::Null), "");
         assert_eq!(norm_value(&json!(0)), "");
         assert_eq!(norm_value(&json!(5)), "5");
-    }
-
-    #[test]
-    fn terminal_and_open_labels() {
-        for (label, terminal, open) in [
-            ("Closed", true, false),
-            ("Resolved by agent", true, false),
-            ("Pending", false, true),
-            ("Awaiting approval", false, true),
-            ("Reopened", false, true),
-            ("Unclosed", true, false),
-            ("Geschlossen", false, false),
-            ("", false, false),
-            ("Open but rejected", true, false),
-        ] {
-            assert_eq!(
-                (is_terminal_label(label), is_open_label(label)),
-                (terminal, open),
-                "{label:?}"
-            );
-        }
-    }
-
-    #[test]
-    fn status_closes_by_id_or_label() {
-        assert_eq!(status_closes("tickets", &json!(4), "Custom"), Some(true));
-        assert_eq!(status_closes("tickets", &json!("5"), ""), Some(true));
-        assert_eq!(status_closes("tickets", &json!(2), "Open"), Some(false));
-        assert_eq!(status_closes("problems", &json!(3), "x"), Some(true));
-        assert_eq!(status_closes("changes", &json!(4), "Weird"), None);
-        assert_eq!(status_closes("changes", &json!(1), "Planning"), Some(false));
-        assert_eq!(status_closes("changes", &json!(5), "Closed"), Some(true));
     }
 
     #[test]

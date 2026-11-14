@@ -211,6 +211,23 @@ those stay identical.
   markup, so a value like `[bold]` disappears.
 - `--where` digit ids that `int()` rejects (superscripts) or that overflow
   stay text.
+- `changes windows create` overlap check: listed window times without a UTC
+  offset are compared as instants in the tenant zone. Python compares
+  same-tzinfo datetimes by wall clock, so the two differ only inside the
+  fall-back (repeated) hour.
+- ISO times whose UTC offset has seconds or a fraction (`+05:30:15`) are
+  refused. CPython's `fromisoformat` accepts them.
+- `tickets problems|changes|children`: related-ticket hierarchy values are
+  deduplicated by JSON equality, so `1` and `1.0` (or `true`) count as two
+  values and refuse as unavailable; a dict or list value refuses. Python's
+  `set` merges `1`/`1.0`/`True` and raises `TypeError` on a dict or list.
+- `cache clear` removes a symlinked cache directory's link. Python's
+  `shutil.rmtree` raises on a symlink.
+- `tickets bulk --scenario`: a value counts as an ID only when it is ASCII
+  digits. Python's `str.isdigit` also accepts other Unicode digits (they
+  can only match a string ID spelled with the same digits).
+- `FormMeta::form_notes` uses the `forms.workspace_id` override read when the
+  metadata loaded. Python re-reads the config on every call.
 
 ## fsv-app
 
