@@ -18004,26 +18004,50 @@ fn changes_relationships_project_json_is_json_loads() {
     let r = run_fixture(
         "change_relationships",
         &[
-            "changes", "relationships", "write", "52", "project", "add",
-            "--project-json", "{\"name\": \"Acme\"", "--dry-run",
+            "changes",
+            "relationships",
+            "write",
+            "52",
+            "project",
+            "add",
+            "--project-json",
+            "{\"name\": \"Acme\"",
+            "--dry-run",
         ],
         None,
     );
     assert_eq!(
         (r.code, r.out.as_str(), r.err.as_str()),
-        (2, "", "Expecting ',' delimiter: line 1 column 16 (char 15)\n")
+        (
+            2,
+            "",
+            "Expecting ',' delimiter: line 1 column 16 (char 15)\n"
+        )
     );
     let r = run_fixture(
         "change_relationships",
         &[
-            "changes", "relationships", "write", "52", "release", "add", "--item", "71",
-            "--project-json", "[1]", "--dry-run",
+            "changes",
+            "relationships",
+            "write",
+            "52",
+            "release",
+            "add",
+            "--item",
+            "71",
+            "--project-json",
+            "[1]",
+            "--dry-run",
         ],
         None,
     );
     assert_eq!(
         (r.code, r.out.as_str(), r.err.as_str()),
-        (2, "", "complete, consistent mutation inventory unavailable\n")
+        (
+            2,
+            "",
+            "complete, consistent mutation inventory unavailable\n"
+        )
     );
 }
 
@@ -20345,8 +20369,16 @@ fn sr_items_answers_json_is_json_loads() {
     let r = run_fixture(
         "sr_items",
         &[
-            "sr", "items", "write", "150", "edit", "--item", "1502", "--answers-json",
-            "{\"a\" 1}", "--dry-run",
+            "sr",
+            "items",
+            "write",
+            "150",
+            "edit",
+            "--item",
+            "1502",
+            "--answers-json",
+            "{\"a\" 1}",
+            "--dry-run",
         ],
         None,
     );
@@ -20357,7 +20389,15 @@ fn sr_items_answers_json_is_json_loads() {
     let r = run_fixture(
         "sr_items",
         &[
-            "sr", "items", "write", "150", "edit", "--item", "1502", "--answers-json", "null",
+            "sr",
+            "items",
+            "write",
+            "150",
+            "edit",
+            "--item",
+            "1502",
+            "--answers-json",
+            "null",
             "--dry-run",
         ],
         None,

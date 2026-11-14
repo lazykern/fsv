@@ -24,7 +24,11 @@ pub fn utf8_error(bytes: &[u8], e: &std::str::Utf8Error) -> String {
     } else {
         "unexpected end of data"
     };
-    let end = if e.error_len().is_none() { bytes.len() } else { start + 1 };
+    let end = if e.error_len().is_none() {
+        bytes.len()
+    } else {
+        start + 1
+    };
     if end - start > 1 {
         format!(
             "'utf-8' codec can't decode bytes in position {start}-{}: {reason}",
@@ -43,17 +47,50 @@ mod tests {
     #[test]
     fn match_python() {
         for (b, want) in [
-            (&b"\xff{}"[..], "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"),
-            (b"{}\x80", "'utf-8' codec can't decode byte 0x80 in position 2: invalid start byte"),
-            (b"{\"a\":\"\xe0\x80\"}", "'utf-8' codec can't decode byte 0xe0 in position 6: invalid continuation byte"),
-            (b"{\"a\":\"\xed\xa0\x80\"}", "'utf-8' codec can't decode byte 0xed in position 6: invalid continuation byte"),
-            (b"{}\xe2\x82", "'utf-8' codec can't decode bytes in position 2-3: unexpected end of data"),
-            (b"{}\xe2", "'utf-8' codec can't decode byte 0xe2 in position 2: unexpected end of data"),
-            (b"{}\xf0\x9f\x98", "'utf-8' codec can't decode bytes in position 2-4: unexpected end of data"),
-            (b"\xc0\xaf", "'utf-8' codec can't decode byte 0xc0 in position 0: invalid start byte"),
-            (b"{\"\xc3(", "'utf-8' codec can't decode byte 0xc3 in position 2: invalid continuation byte"),
-            (b"ab\xf4\x90\x80\x80", "'utf-8' codec can't decode byte 0xf4 in position 2: invalid continuation byte"),
-            (b"ab\xf0\x80", "'utf-8' codec can't decode byte 0xf0 in position 2: invalid continuation byte"),
+            (
+                &b"\xff{}"[..],
+                "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+            ),
+            (
+                b"{}\x80",
+                "'utf-8' codec can't decode byte 0x80 in position 2: invalid start byte",
+            ),
+            (
+                b"{\"a\":\"\xe0\x80\"}",
+                "'utf-8' codec can't decode byte 0xe0 in position 6: invalid continuation byte",
+            ),
+            (
+                b"{\"a\":\"\xed\xa0\x80\"}",
+                "'utf-8' codec can't decode byte 0xed in position 6: invalid continuation byte",
+            ),
+            (
+                b"{}\xe2\x82",
+                "'utf-8' codec can't decode bytes in position 2-3: unexpected end of data",
+            ),
+            (
+                b"{}\xe2",
+                "'utf-8' codec can't decode byte 0xe2 in position 2: unexpected end of data",
+            ),
+            (
+                b"{}\xf0\x9f\x98",
+                "'utf-8' codec can't decode bytes in position 2-4: unexpected end of data",
+            ),
+            (
+                b"\xc0\xaf",
+                "'utf-8' codec can't decode byte 0xc0 in position 0: invalid start byte",
+            ),
+            (
+                b"{\"\xc3(",
+                "'utf-8' codec can't decode byte 0xc3 in position 2: invalid continuation byte",
+            ),
+            (
+                b"ab\xf4\x90\x80\x80",
+                "'utf-8' codec can't decode byte 0xf4 in position 2: invalid continuation byte",
+            ),
+            (
+                b"ab\xf0\x80",
+                "'utf-8' codec can't decode byte 0xf0 in position 2: invalid continuation byte",
+            ),
         ] {
             let e = std::str::from_utf8(b).unwrap_err();
             assert_eq!(utf8_error(b, &e), want, "{b:?}");

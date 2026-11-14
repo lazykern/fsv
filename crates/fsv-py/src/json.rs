@@ -190,7 +190,8 @@ mod tests {
     /// Python `json.dumps(json.loads(t))`, `repr` and `bool` of the same text.
     #[test]
     fn parsed_numbers_dump_as_python() {
-        let t = "[99999999999999999999999, -99999999999999999999999, 1E400, -1e400, 1.50, 1e5, 0.1]";
+        let t =
+            "[99999999999999999999999, -99999999999999999999999, 1E400, -1e400, 1.50, 1e5, 0.1]";
         let v: Value = serde_json::from_str(t).unwrap();
         assert_eq!(
             dumps(&v, &Dumps::default()),

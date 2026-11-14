@@ -3601,9 +3601,24 @@ fn form_diff_python_equality_and_read_errors() {
     std::fs::write(path("nonutf.json"), b"\xff\xfe{}").unwrap();
     std::fs::create_dir(path("adir")).unwrap();
     let env = common::Env::new(Vec::new());
-    let r = env.run(&["form", "diff", &path("t1.json"), "--against", &path("t2.json")]);
-    assert_eq!((r.code, r.out.as_str(), r.err.as_str()), (0, "no changes\n", ""));
-    let r = env.run(&["form", "diff", &path("nonutf.json"), "--against", &path("t1.json")]);
+    let r = env.run(&[
+        "form",
+        "diff",
+        &path("t1.json"),
+        "--against",
+        &path("t2.json"),
+    ]);
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (0, "no changes\n", "")
+    );
+    let r = env.run(&[
+        "form",
+        "diff",
+        &path("nonutf.json"),
+        "--against",
+        &path("t1.json"),
+    ]);
     assert_eq!(
         (r.code, r.err),
         (
@@ -3615,7 +3630,13 @@ fn form_diff_python_equality_and_read_errors() {
         )
     );
     std::fs::write(path("crlf.json"), "{\r\n\"a\": 1,\r\n\"b\" 2}").unwrap();
-    let r = env.run(&["form", "diff", &path("crlf.json"), "--against", &path("t1.json")]);
+    let r = env.run(&[
+        "form",
+        "diff",
+        &path("crlf.json"),
+        "--against",
+        &path("t1.json"),
+    ]);
     assert_eq!(
         (r.code, r.err),
         (

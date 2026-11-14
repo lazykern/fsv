@@ -418,8 +418,14 @@ mod tests {
             ("0000-W01-1", Err("Invalid isoformat string: '0000-W01-1'")),
             ("9999-W52-7", Err("year 10000 is out of range")),
             ("2024-1-05", Err("Invalid isoformat string: '2024-1-05'")),
-            ("\u{ff12}\u{ff10}\u{ff12}\u{ff14}-01-05", Err("Invalid isoformat string: '\u{ff12}\u{ff10}\u{ff12}\u{ff14}-01-05'")),
-            ("2024-01-05 ", Err("Invalid isoformat string: '2024-01-05 '")),
+            (
+                "\u{ff12}\u{ff10}\u{ff12}\u{ff14}-01-05",
+                Err("Invalid isoformat string: '\u{ff12}\u{ff10}\u{ff12}\u{ff14}-01-05'"),
+            ),
+            (
+                "2024-01-05 ",
+                Err("Invalid isoformat string: '2024-01-05 '"),
+            ),
             ("202401", Err("Invalid isoformat string: '202401'")),
             ("2024-W01", Ok("2024-01-01")),
             ("2024W01", Ok("2024-01-01")),

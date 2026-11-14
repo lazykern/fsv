@@ -378,7 +378,12 @@ fn form_dump_sr_does_not_build_the_spec() {
     let mut routes = common::fixture("catalog");
     let item = routes
         .iter_mut()
-        .find(|r| r["path"].as_str().unwrap_or("").ends_with("service-items/78"))
+        .find(|r| {
+            r["path"]
+                .as_str()
+                .unwrap_or("")
+                .ends_with("service-items/78")
+        })
         .unwrap();
     let si = if item["json"].get("service_item").is_some() {
         &mut item["json"]["service_item"]
@@ -393,7 +398,8 @@ fn form_dump_sr_does_not_build_the_spec() {
     let r = env.run(&["sr", "fields", "78"]);
     assert_eq!(r.code, 2);
     assert!(
-        r.err.ends_with("error: item field 'reason_200': unreadable section_info\n"),
+        r.err
+            .ends_with("error: item field 'reason_200': unreadable section_info\n"),
         "{}",
         r.err
     );
@@ -407,9 +413,17 @@ fn sr_item_digit_refs_are_python_int() {
     let r = run_fixture("catalog", &["sr", "fields", "\u{b2}"], None);
     assert_eq!(
         (r.code, r.out.as_str(), r.err.as_str()),
-        (2, "", "error: invalid literal for int() with base 10: '\u{b2}'\n")
+        (
+            2,
+            "",
+            "error: invalid literal for int() with base 10: '\u{b2}'\n"
+        )
     );
-    let r = run_fixture("catalog", &["sr", "fields", "99999999999999999999999"], None);
+    let r = run_fixture(
+        "catalog",
+        &["sr", "fields", "99999999999999999999999"],
+        None,
+    );
     assert_eq!(r.code, 5, "{}", r.err);
     assert!(
         r.calls()

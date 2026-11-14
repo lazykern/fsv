@@ -37,7 +37,9 @@ impl Doc {
     }
 
     fn starts(&self, i: usize, word: &str) -> bool {
-        word.chars().enumerate().all(|(k, c)| self.at(i + k) == Some(c))
+        word.chars()
+            .enumerate()
+            .all(|(k, c)| self.at(i + k) == Some(c))
     }
 
     fn scan(&self, i: usize) -> Result<usize, Scan> {
@@ -243,33 +245,96 @@ mod tests {
         let cases: &[(&str, Option<&str>)] = &[
             ("", Some("Expecting value: line 1 column 1 (char 0)")),
             (" ", Some("Expecting value: line 1 column 2 (char 1)")),
-            ("{", Some("Expecting property name enclosed in double quotes: line 1 column 2 (char 1)")),
+            (
+                "{",
+                Some("Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"),
+            ),
             ("}", Some("Expecting value: line 1 column 1 (char 0)")),
             ("[", Some("Expecting value: line 1 column 2 (char 1)")),
             ("]", Some("Expecting value: line 1 column 1 (char 0)")),
-            ("{bad", Some("Expecting property name enclosed in double quotes: line 1 column 2 (char 1)")),
-            ("[{", Some("Expecting property name enclosed in double quotes: line 1 column 3 (char 2)")),
-            ("{\"a\"", Some("Expecting ':' delimiter: line 1 column 5 (char 4)")),
+            (
+                "{bad",
+                Some("Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"),
+            ),
+            (
+                "[{",
+                Some("Expecting property name enclosed in double quotes: line 1 column 3 (char 2)"),
+            ),
+            (
+                "{\"a\"",
+                Some("Expecting ':' delimiter: line 1 column 5 (char 4)"),
+            ),
             ("{\"a\":", Some("Expecting value: line 1 column 6 (char 5)")),
-            ("{\"a\":1", Some("Expecting ',' delimiter: line 1 column 7 (char 6)")),
-            ("{\"a\":1,", Some("Expecting property name enclosed in double quotes: line 1 column 8 (char 7)")),
-            ("{\"a\":1,}", Some("Expecting property name enclosed in double quotes: line 1 column 8 (char 7)")),
+            (
+                "{\"a\":1",
+                Some("Expecting ',' delimiter: line 1 column 7 (char 6)"),
+            ),
+            (
+                "{\"a\":1,",
+                Some("Expecting property name enclosed in double quotes: line 1 column 8 (char 7)"),
+            ),
+            (
+                "{\"a\":1,}",
+                Some("Expecting property name enclosed in double quotes: line 1 column 8 (char 7)"),
+            ),
             ("[1,]", Some("Expecting value: line 1 column 4 (char 3)")),
-            ("[1", Some("Expecting ',' delimiter: line 1 column 3 (char 2)")),
-            ("[1 2]", Some("Expecting ',' delimiter: line 1 column 4 (char 3)")),
-            ("{\"a\" 1}", Some("Expecting ':' delimiter: line 1 column 6 (char 5)")),
-            ("{1:2}", Some("Expecting property name enclosed in double quotes: line 1 column 2 (char 1)")),
-            ("\"abc", Some("Unterminated string starting at: line 1 column 1 (char 0)")),
-            ("\"a\\", Some("Unterminated string starting at: line 1 column 1 (char 0)")),
-            ("\"a\\x\"", Some("Invalid \\escape: line 1 column 3 (char 2)")),
-            ("\"\\u12\"", Some("Invalid \\uXXXX escape: line 1 column 3 (char 2)")),
-            ("\"\\u12", Some("Invalid \\uXXXX escape: line 1 column 3 (char 2)")),
+            (
+                "[1",
+                Some("Expecting ',' delimiter: line 1 column 3 (char 2)"),
+            ),
+            (
+                "[1 2]",
+                Some("Expecting ',' delimiter: line 1 column 4 (char 3)"),
+            ),
+            (
+                "{\"a\" 1}",
+                Some("Expecting ':' delimiter: line 1 column 6 (char 5)"),
+            ),
+            (
+                "{1:2}",
+                Some("Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"),
+            ),
+            (
+                "\"abc",
+                Some("Unterminated string starting at: line 1 column 1 (char 0)"),
+            ),
+            (
+                "\"a\\",
+                Some("Unterminated string starting at: line 1 column 1 (char 0)"),
+            ),
+            (
+                "\"a\\x\"",
+                Some("Invalid \\escape: line 1 column 3 (char 2)"),
+            ),
+            (
+                "\"\\u12\"",
+                Some("Invalid \\uXXXX escape: line 1 column 3 (char 2)"),
+            ),
+            (
+                "\"\\u12",
+                Some("Invalid \\uXXXX escape: line 1 column 3 (char 2)"),
+            ),
             ("\"\\u12345\"", None),
-            ("\"\\uZZZZ\"", Some("Invalid \\uXXXX escape: line 1 column 3 (char 2)")),
-            ("\"\\ud800\\uZZZZ\"", Some("Invalid \\uXXXX escape: line 1 column 9 (char 8)")),
-            ("\"\\ud800\\ud800\\uZZZZ\"", Some("Invalid \\uXXXX escape: line 1 column 15 (char 14)")),
-            ("\"\\ud800\\u12\"", Some("Invalid \\uXXXX escape: line 1 column 9 (char 8)")),
-            ("\"a\u{1}b\"", Some("Invalid control character at: line 1 column 3 (char 2)")),
+            (
+                "\"\\uZZZZ\"",
+                Some("Invalid \\uXXXX escape: line 1 column 3 (char 2)"),
+            ),
+            (
+                "\"\\ud800\\uZZZZ\"",
+                Some("Invalid \\uXXXX escape: line 1 column 9 (char 8)"),
+            ),
+            (
+                "\"\\ud800\\ud800\\uZZZZ\"",
+                Some("Invalid \\uXXXX escape: line 1 column 15 (char 14)"),
+            ),
+            (
+                "\"\\ud800\\u12\"",
+                Some("Invalid \\uXXXX escape: line 1 column 9 (char 8)"),
+            ),
+            (
+                "\"a\u{1}b\"",
+                Some("Invalid control character at: line 1 column 3 (char 2)"),
+            ),
             ("nul", Some("Expecting value: line 1 column 1 (char 0)")),
             ("tru", Some("Expecting value: line 1 column 1 (char 0)")),
             ("nulll", Some("Extra data: line 1 column 5 (char 4)")),
@@ -286,19 +351,46 @@ mod tests {
             (".5", Some("Expecting value: line 1 column 1 (char 0)")),
             ("1 2", Some("Extra data: line 1 column 3 (char 2)")),
             ("[1]x", Some("Extra data: line 1 column 4 (char 3)")),
-            ("\u{feff}[]", Some("Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)")),
-            ("[\n1,\n2\n", Some("Expecting ',' delimiter: line 4 column 1 (char 7)")),
-            ("{\n\"a\":\n}", Some("Expecting value: line 3 column 1 (char 7)")),
+            (
+                "\u{feff}[]",
+                Some("Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)"),
+            ),
+            (
+                "[\n1,\n2\n",
+                Some("Expecting ',' delimiter: line 4 column 1 (char 7)"),
+            ),
+            (
+                "{\n\"a\":\n}",
+                Some("Expecting value: line 3 column 1 (char 7)"),
+            ),
             ("\n\n  x", Some("Expecting value: line 3 column 3 (char 4)")),
             ("[] \n []", Some("Extra data: line 2 column 2 (char 5)")),
-            ("{\"a\":[1,{\"b\":tru}]}", Some("Expecting value: line 1 column 14 (char 13)")),
-            ("\"\u{e9}\u{e9}", Some("Unterminated string starting at: line 1 column 1 (char 0)")),
-            ("[\"\u{e9}\", x]", Some("Expecting value: line 1 column 7 (char 6)")),
-            ("[true, false, null, nul]", Some("Expecting value: line 1 column 21 (char 20)")),
-            ("{\"a\":1 \"b\":2}", Some("Expecting ',' delimiter: line 1 column 8 (char 7)")),
+            (
+                "{\"a\":[1,{\"b\":tru}]}",
+                Some("Expecting value: line 1 column 14 (char 13)"),
+            ),
+            (
+                "\"\u{e9}\u{e9}",
+                Some("Unterminated string starting at: line 1 column 1 (char 0)"),
+            ),
+            (
+                "[\"\u{e9}\", x]",
+                Some("Expecting value: line 1 column 7 (char 6)"),
+            ),
+            (
+                "[true, false, null, nul]",
+                Some("Expecting value: line 1 column 21 (char 20)"),
+            ),
+            (
+                "{\"a\":1 \"b\":2}",
+                Some("Expecting ',' delimiter: line 1 column 8 (char 7)"),
+            ),
             ("[-]", Some("Expecting value: line 1 column 2 (char 1)")),
             ("[- 1]", Some("Expecting value: line 1 column 2 (char 1)")),
-            ("{\"\\u00e9\":1,\"b\"}", Some("Expecting ':' delimiter: line 1 column 16 (char 15)")),
+            (
+                "{\"\\u00e9\":1,\"b\"}",
+                Some("Expecting ':' delimiter: line 1 column 16 (char 15)"),
+            ),
             ("\"ok\"", None),
             ("{}", None),
             ("[]", None),
