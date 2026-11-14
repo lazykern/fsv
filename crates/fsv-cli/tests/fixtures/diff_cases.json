@@ -12332,5 +12332,850 @@
    "created_at<=2030-02-01",
    "--json"
   ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--page",
+   "2",
+   "--per-page",
+   "5"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--page",
+   "9"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--page",
+   "8"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "INC-34",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "38",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "39",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "34",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "34",
+   "--yes",
+   "--expect-plan",
+   "337dbce8936ce3d667663f690adeb1788cadcfd8c7ed3dcb4da15f8b6c37a881"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "35",
+   "--yes",
+   "--expect-plan",
+   "e2e9f9fe96e0959b48b2b8cda70a4d4c0511f89b563d31cc6a38e1435ee16dfc"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "32",
+   "--max-records",
+   "1",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "--max-records",
+   "51",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-31",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "33",
+   "--max-records",
+   "5",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "a9874b072223c505bbcb73505e97260404b392627cc3cccea4e8b8fdde2a95e7"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "a9874b072223c505bbcb73505e97260404b392627cc3cccea4e8b8fdde2a95e7",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "36",
+   "37",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "102950c1f91289607384f7587ddf4f91453e46f51e394a2010c99983322273af",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "12",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "PRB-12",
+   "--yes",
+   "--expect-plan",
+   "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "13",
+   "--yes",
+   "--expect-plan",
+   "6f4287db72535dcce74266ff9c2069a42182651caf2f6e0fd5c8552e4bb8f21f"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "14",
+   "--yes",
+   "--expect-plan",
+   "b5788dfefb91346f3a3da0a217e7c4c13cd9e55e20f2b655179246c3246138fc"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "21",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "15",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "16",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "17",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete",
+   "CHN-12",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "restore",
+   "21",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "restore",
+   "12",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "restore",
+   "21",
+   "--yes",
+   "--expect-plan",
+   "1537ce883730be63be6d87f6d8473559236687cdcee085619f8a76e47ad970b9"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "12",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--yes",
+   "--expect-plan",
+   "b26f1ecfbfeff4f0aa100b5db561f3b46fe10a1776fb20ebe161e56633a0c1d7"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "problems",
+   "delete-forever",
+   "22",
+   "--yes",
+   "--expect-plan",
+   "b26f1ecfbfeff4f0aa100b5db561f3b46fe10a1776fb20ebe161e56633a0c1d7",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "31",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "31",
+   "--yes",
+   "--expect-plan",
+   "a34904ffd5f518780ed8b9d6f05fb8b7857069182519d359ac948643afffb6ca"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "31",
+   "--yes",
+   "--expect-plan",
+   "a34904ffd5f518780ed8b9d6f05fb8b7857069182519d359ac948643afffb6ca",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete",
+   "KB-3",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "33",
+   "--yes",
+   "--expect-plan",
+   "db3a4c5cd66ce72654ebe980e001f614919e66e1af495865810ea0631e7b86ff"
+  ]
+ },
+ {
+  "fixture": "record_delete",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "33",
+   "--yes",
+   "--expect-plan",
+   "db3a4c5cd66ce72654ebe980e001f614919e66e1af495865810ea0631e7b86ff",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "--max-records",
+   "1",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "--max-records",
+   "51",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "41",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "51",
+   "52",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "4aa2d696811a7dc31878b28e70da549b17d9984b996aafe604d9e27e16b8d0d3"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "41",
+   "42",
+   "43",
+   "--max-records",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "4aa2d696811a7dc31878b28e70da549b17d9984b996aafe604d9e27e16b8d0d3",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "problems",
+   "delete-forever",
+   "44",
+   "45",
+   "46",
+   "--max-records",
+   "3",
+   "--yes",
+   "--expect-plan",
+   "8a733a45e79b5519d774f303ffbc4a1e9eeda40bca5dc5991df062d5aefa0519",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "record_delete_forever",
+  "args": [
+   "solutions",
+   "delete-forever",
+   "51",
+   "52",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "ad94fba1abd7cd746a3d099a52e8bb42d74959a04715d6aa4e470736b79dd695",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "INC-32",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "32",
+   "--yes",
+   "--expect-plan",
+   "159c07580a9b9c6d48255cfc60c2ec7a0e5a4a6cd33b18e199fd1a3c2dbbfece"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "32",
+   "--yes",
+   "--expect-plan",
+   "abc",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "32",
+   "--yes",
+   "--expect-plan",
+   "159c07580a9b9c6d48255cfc60c2ec7a0e5a4a6cd33b18e199fd1a3c2dbbfece",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "36",
+   "--yes",
+   "--expect-plan",
+   "e9ea55ed431b681408ac7ec6e6bf1754aef36a311f89ea6c4a2b0666cf8958cb",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "37",
+   "--yes",
+   "--expect-plan",
+   "57dbc1cff8ef95049553b7620ec3f39c62b4f32b584f25565d8256a13b449a10",
+   "--confirm-destructive"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "34",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "35",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "spam",
+   "38",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "unspam",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "unspam",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_spam",
+  "args": [
+   "tickets",
+   "unspam",
+   "33",
+   "--yes",
+   "--expect-plan",
+   "d3c1e160c6dce39231a4b892a5e4c7694604e534746f7a13ce44f1e2551f0885"
+  ]
+ },
+ {
+  "fixture": "bulk_scenario",
+  "args": [
+   "tickets",
+   "bulk",
+   "scenario",
+   "30",
+   "31",
+   "--scenario",
+   "Assign to Acme Team",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "bulk_scenario",
+  "args": [
+   "tickets",
+   "bulk",
+   "scenario",
+   "30",
+   "31",
+   "--scenario",
+   "Assign to Acme Team",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "bulk_scenario",
+  "args": [
+   "tickets",
+   "bulk",
+   "scenario",
+   "30",
+   "31",
+   "--scenario",
+   "Assign to Acme Team",
+   "--yes",
+   "--expect-plan",
+   "544abc8b9f96db8f0dd08186aeeb2956002ee596eb1bd3aff3b786ec1e5f35ac"
+  ]
+ },
+ {
+  "fixture": "bulk_scenario",
+  "args": [
+   "tickets",
+   "bulk",
+   "scenario",
+   "30",
+   "--scenario",
+   "ASSIGN TO ACME TEAM",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "bulk_scenario",
+  "args": [
+   "tickets",
+   "bulk",
+   "spam",
+   "30",
+   "--scenario",
+   "501",
+   "--dry-run"
+  ]
  }
 ]

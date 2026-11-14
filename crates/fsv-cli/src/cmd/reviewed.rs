@@ -757,19 +757,6 @@ pub fn tasks_delete(a: TicketsTasksDeleteArgs) -> CmdResult {
 /// Port of fsv.ticket_bulk_cli's `bulk`.
 pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
     let run = || -> Result<()> {
-        let c = client()?;
-        let store = DiskStore::current();
-        let args = ticket_bulk::BulkArgs {
-            action: &a.action,
-            where_: &a.r#where,
-            select_all: a.select_all,
-            status: a.status.as_deref(),
-            agent: a.agent.as_deref(),
-            group: a.group.as_deref(),
-            primary: a.primary.as_deref(),
-            note_primary: a.note_primary.as_deref(),
-            note_secondary: a.note_secondary.as_deref(),
-        };
         let mut answers = Map::new();
         for expression in &a.sets {
             let (key, value) = match expression.split_once('=') {
@@ -784,6 +771,21 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             }
             answers.insert(key, json!(value));
         }
+        let c = client()?;
+        let store = DiskStore::current();
+        let load_schema = || crate::schema::load(&TICKETS, &c, false);
+        let args = ticket_bulk::BulkArgs {
+            action: &a.action,
+            where_: &a.r#where,
+            select_all: a.select_all,
+            status: a.status.as_deref(),
+            agent: a.agent.as_deref(),
+            group: a.group.as_deref(),
+            primary: a.primary.as_deref(),
+            note_primary: a.note_primary.as_deref(),
+            note_secondary: a.note_secondary.as_deref(),
+            schema: Some(&load_schema),
+        };
         let plan = ticket_bulk::build_plan_scenario(
             c.as_ref(),
             &store,

@@ -11,7 +11,7 @@ use fsv_core::{Error, Result};
 use crate::cmd::reviewed::dumps;
 use crate::generated::*;
 use crate::lazy::LazyApi;
-use crate::util::{CmdResult, plain_fail, uncaught};
+use crate::util::{CmdResult, client, plain_fail, uncaught};
 
 /// `_fail`: `ValueError`, `ReviewedWriteError` and `APIError` print one
 /// line and exit 2; an `APIError` reads as a failed read.
@@ -45,6 +45,7 @@ fn finish(result: &Value) -> Result<()> {
 /// `tickets trash list`: one page of the Trash view.
 pub fn trash_list(a: TicketsTrashListArgs) -> CmdResult {
     fail((|| {
+        client()?;
         let v = ticket_trash::trash(&LazyApi::default(), a.page, a.per_page)?;
         println!("{}", dumps(&v));
         Ok(())
@@ -54,6 +55,7 @@ pub fn trash_list(a: TicketsTrashListArgs) -> CmdResult {
 /// `tickets restore TICKET`.
 pub fn restore(a: TicketsRestoreArgs) -> CmdResult {
     fail((|| {
+        client()?;
         let c = LazyApi::default();
         let plan = ticket_trash::build_restore(&c, &a.ticket)?;
         if a.dry_run {
@@ -73,6 +75,7 @@ pub fn restore(a: TicketsRestoreArgs) -> CmdResult {
 /// `tickets delete-forever TICKET...`.
 pub fn delete_forever(a: TicketsDeleteForeverArgs) -> CmdResult {
     fail((|| {
+        client()?;
         let c = LazyApi::default();
         let plan = ticket_trash::build_forever(&c, &a.tickets, a.max_records)?;
         let ids: Vec<String> = plan.ids().iter().map(i64::to_string).collect();
@@ -114,6 +117,7 @@ fn spam_command(
     expect_plan: Option<&str>,
 ) -> CmdResult {
     fail((|| {
+        client()?;
         let c = LazyApi::default();
         let plan = fsv_api::ticket_spam::build_plan(&c, ticket, spam)?;
         if dry_run_ {

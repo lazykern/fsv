@@ -99,6 +99,63 @@ pub fn selection_bounded(
     select_all: bool,
     max_records: Option<i64>,
 ) -> Result<Vec<i64>> {
+    selection_with(c, ids, where_, select_all, max_records, None)
+}
+
+/// Loads the ticket schema for a filtered selection (`schema.load`, cached).
+pub type SchemaLoader<'a> = &'a dyn Fn() -> Result<Value>;
+
+/// A [`crate::query::Directory`] over the session client, like
+/// `query._resolve_*` calling `c.autocomplete` and `c.int_get`. The first
+/// client error is kept so one that reaches the caller unmapped surfaces
+/// as itself, not as a `ValueError`.
+struct ApiDirectory<'a> {
+    c: &'a dyn Api,
+    failure: std::cell::RefCell<Option<Error>>,
+}
+
+impl ApiDirectory<'_> {
+    fn keep(&self, e: Error) -> crate::QueryError {
+        let msg = e.to_string();
+        self.failure.borrow_mut().get_or_insert(e);
+        crate::QueryError(msg)
+    }
+}
+
+impl crate::query::Directory for ApiDirectory<'_> {
+    fn autocomplete(
+        &self,
+        kind: &str,
+        query: &str,
+        extra: &[(&str, &str)],
+    ) -> std::result::Result<Vec<Value>, crate::QueryError> {
+        let params: Option<Map<String, Value>> = (!extra.is_empty()).then(|| {
+            extra
+                .iter()
+                .map(|(k, v)| ((*k).to_string(), json!(v)))
+                .collect()
+        });
+        self.c
+            .autocomplete(kind, query, params)
+            .map_err(|e| self.keep(e))
+    }
+    fn agent_groups(&self) -> std::result::Result<Value, crate::QueryError> {
+        self.c
+            .int_get("bootstrap/agents_groups", None)
+            .map_err(|e| self.keep(e))
+    }
+}
+
+/// [`selection_bounded`] whose filter schema comes from `schema` when given
+/// (else a fresh fetch).
+pub fn selection_with(
+    c: &dyn Api,
+    ids: &[String],
+    where_: &[String],
+    select_all: bool,
+    max_records: Option<i64>,
+    schema: Option<SchemaLoader<'_>>,
+) -> Result<Vec<i64>> {
     let mut values = if !where_.is_empty() {
         if !ids.is_empty() || !select_all {
             return Err(Error::value(
@@ -110,11 +167,20 @@ pub fn selection_bounded(
                 "filtered writes require --max-records N (1 to 50)",
             ));
         };
-        let fields = crate::schema::fetch(c, &TICKETS)?;
-        let schema = json!({"fields": fields});
-        let (query, clauses, _) =
-            crate::query::build_query_hash(None, "tickets", Some(&schema), where_, None, false)
-                .map_err(|e| Error::value(e.0))?;
+        let schema = match schema {
+            Some(load) => load()?,
+            None => json!({"fields": crate::schema::fetch(c, &TICKETS)?}),
+        };
+        let dir = ApiDirectory {
+            c,
+            failure: Default::default(),
+        };
+        let built =
+            crate::query::build_query_hash(Some(&dir), "tickets", Some(&schema), where_, None, false);
+        let (query, clauses, _) = built.map_err(|e| match dir.failure.take() {
+            Some(api) if api.to_string() == e.0 => api,
+            _ => Error::value(e.0),
+        })?;
         if query.as_deref().is_none_or(|q| q.starts_with('{')) {
             return Err(Error::value(
                 "filtered writes take only basic list filters (status, priority, people, groups, date ranges); advanced-only conditions cannot select a write",
@@ -187,6 +253,8 @@ pub struct BulkArgs<'a> {
     pub primary: Option<&'a str>,
     pub note_primary: Option<&'a str>,
     pub note_secondary: Option<&'a str>,
+    /// `schema.load(TICKETS, client)` for `--where`; `None` fetches.
+    pub schema: Option<SchemaLoader<'a>>,
 }
 
 /// `BulkPlan`. `pickup` is the assignment plan `send` delegates to.
@@ -408,7 +476,14 @@ pub fn build_plan_scenario(
             "bulk scenario takes explicit ticket IDs only; filters are not supported",
         ));
     }
-    let cids = selection_bounded(c, ids, args.where_, args.select_all, max_records)?;
+    let cids = selection_with(
+        c,
+        ids,
+        args.where_,
+        args.select_all,
+        max_records,
+        args.schema,
+    )?;
     if let Some(answers) = answers {
         if args.action != "status" {
             return Err(Error::value("--set is supported by bulk status only"));
@@ -747,6 +822,7 @@ fn plan_from_intent(
             primary: primary.as_deref(),
             note_primary: note_primary.as_deref(),
             note_secondary: note_secondary.as_deref(),
+            schema: None,
         },
         intent["max_records"].as_i64(),
         intent["answers"].as_object(),
@@ -988,6 +1064,7 @@ mod tests {
             primary: None,
             note_primary: None,
             note_secondary: None,
+            schema: None,
         }
     }
 
@@ -1857,6 +1934,7 @@ mod tests {
             primary: None,
             note_primary: None,
             note_secondary: None,
+            schema: None,
         }
     }
 

@@ -46,6 +46,7 @@ struct Gate<'a> {
 /// `_run`: review, or send the exact reviewed plan.
 fn run(build: impl FnOnce(&LazyApi) -> Result<WritePlan>, g: Gate<'_>) -> CmdResult {
     let go = || -> Result<()> {
+        crate::util::client()?;
         let c = LazyApi::default();
         let plan = build(&c)?;
         if g.dry_run {
@@ -77,6 +78,7 @@ fn forever(kind: &str, idents: &[String], max_records: Option<i64>, g: Gate<'_>)
         "Articles"
     };
     let go = || -> Result<()> {
+        crate::util::client()?;
         let c = LazyApi::default();
         let batch = flow::build_forever(&c, &DiskJournal, kind, idents, max_records)?;
         let ids: Vec<String> = batch.ids().iter().map(i64::to_string).collect();
