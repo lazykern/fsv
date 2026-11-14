@@ -43,6 +43,22 @@ def _import_all_fsv() -> None:
 _import_all_fsv()
 
 
+class _AllowTenantSync(type(sys)):
+    """fsv.config module class that mirrors DOMAIN into FSV_ALLOW_TENANT
+    while the variable still holds the fixture-managed value."""
+
+    def __setattr__(self, name, value):
+        previous = self.__dict__.get("DOMAIN")
+        super().__setattr__(name, value)
+        if name == "DOMAIN" and os.environ.get("FSV_ALLOW_TENANT") == previous:
+            os.environ["FSV_ALLOW_TENANT"] = value or ""
+
+
+def _sync_allow_tenant(monkeypatch, config) -> None:
+    os.environ["FSV_ALLOW_TENANT"] = config.DOMAIN
+    monkeypatch.setattr(config, "__class__", _AllowTenantSync)
+
+
 @pytest.fixture(autouse=True)
 def _isolated_fsv_env(tmp_path, monkeypatch):
     # Hard guarantee: no test may reach a real host.
@@ -77,6 +93,11 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     # The `fsv: tenant ...` stderr line would interleave with CliRunner's
     # mixed output; banner tests delete this to see it.
     monkeypatch.setenv("FSV_QUIET", "1")
+    # Writes need the tenant confirmed (fsv.tenant). Confirm the fake tenant
+    # through the real FSV_ALLOW_TENANT path and keep it equal to whatever
+    # domain a test's fake client uses (tests set ``config.DOMAIN``); a test
+    # that deletes or changes the variable opts out of the sync.
+    monkeypatch.setenv("FSV_ALLOW_TENANT", "acme.freshservice.com")
 
     config = sys.modules.get("fsv.config")
     if config is None:
@@ -84,6 +105,7 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     cfg.mkdir(parents=True, exist_ok=True)
     (cfg / "config.json").write_text('{"domain": "acme.freshservice.com"}')
     config.reload()  # paths + DOMAIN from the tmp config
+    _sync_allow_tenant(monkeypatch, config)
 
     completion = sys.modules.get("fsv.completion")
     if completion is not None:

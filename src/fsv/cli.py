@@ -3268,6 +3268,7 @@ _CONFIG_KEYS: dict[str, str] = {
     "ids.service_request_prefix": "custom service-request display-id prefix (default SR)",
     "ids.change_prefix": "custom change display-id prefix (default CHN)",
     "ids.problem_prefix": "custom problem display-id prefix (default PRB)",
+    "tenant.confirmed": "domain whose --yes writes are confirmed from this config dir (must equal the configured domain)",
 }
 
 
@@ -3303,6 +3304,14 @@ def config_set(
     section, _, prop = key.partition(".")
     if not section or key not in _CONFIG_KEYS:
         _err(f"unknown key: {key}; supported: {list(_CONFIG_KEYS)}")
+    if key == "tenant.confirmed":
+        try:
+            value = config.normalize_domain(value)
+        except ValueError as e:
+            _err(f"tenant.confirmed: {e}")
+        if config.DOMAIN and value != config.DOMAIN:
+            _err(f"configured tenant is {config.DOMAIN} (config {config.display_path(config.CONFIG_DIR)}), "
+                 f"not {value}; nothing saved. Set FSV_CONFIG_DIR to {value}'s config dir first")
     cfg = config.load_config()
     cfg.setdefault(section, {})[prop] = value
     config.save_config(cfg)

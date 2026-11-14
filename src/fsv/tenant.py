@@ -141,6 +141,9 @@ def check(path: str, opts: dict[str, Any], tenant_opt: str | None) -> None:
                                 f"command targets {domain or '(none configured)'} (config {config_dir()}); "
                                 "nothing was sent. Review again on this tenant, or set FSV_CONFIG_DIR to "
                                 f"{other}'s config dir")
+    if opts.get("--yes") and not opts.get("--dry-run") and path not in LOCAL_YES_COMMANDS:
+        if confirmation(tenant_opt) is None:
+            raise TenantRefusal(refusal(tenant_opt))
 
 
 def enter_command(command: Any, ctx: Any) -> None:
