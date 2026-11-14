@@ -22,6 +22,85 @@ fn has_flag(cmd: &Command, flag: &str) -> bool {
     })
 }
 
+/// Click `INT` / `IntRange` params convert with Python `int()` and the same
+/// range (`fsv_cli`'s py-int parser), not clap's ASCII `i64` parser.
+fn check_int(p: &Value, cmd: &Command, path: &str, problems: &mut Vec<String>) {
+    let ty = p["type"].as_str().unwrap_or_default();
+    if ty != "integer" && ty != "integer range" {
+        return;
+    }
+    let name = p["name"].as_str().unwrap();
+    let long = p["opts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|o| o.as_str()?.strip_prefix("--"))
+        .next();
+    let arg = cmd.get_arguments().find(|a| match long {
+        Some(l) if p["kind"] != "argument" => a.get_long() == Some(l),
+        _ => a.is_positional() && a.get_id().as_str() == name,
+    });
+    let Some(arg) = arg else {
+        problems.push(format!("{path}: no clap arg for integer {name}"));
+        return;
+    };
+    let parse = |v: &str| {
+        let mut one = arg.clone().required(false);
+        let mut argv = vec!["t"];
+        if arg.is_positional() {
+            one = one.index(1);
+        } else {
+            argv.push("--x");
+            one = one.long("x");
+        }
+        argv.push(v);
+        Command::new("t")
+            .arg(one)
+            .try_get_matches_from(argv)
+            .map(|m| {
+                *m.get_many::<i64>(arg.get_id().as_str())
+                    .unwrap()
+                    .next()
+                    .unwrap()
+            })
+            .map_err(|e| e.to_string())
+    };
+    let min = p["min"].as_i64();
+    let max = p["max"].as_i64();
+    let mut want = vec![(" 1_2 ", Ok(12)), ("\u{661}\u{662}", Ok(12))];
+    let kind = if ty == "integer" {
+        "integer"
+    } else {
+        "integer range"
+    };
+    want.push(("x", Err(format!("'x' is not a valid {kind}."))));
+    if min == Some(1) {
+        want.push(("0", Err("0 is not in the range ".to_string())));
+    } else {
+        want.push(("+0", Ok(0)));
+    }
+    if let Some(hi) = max {
+        let over = (hi + 1).to_string();
+        want.push((
+            "101",
+            Err(format!("{over} is not in the range 1<=x<={hi}.")),
+        ));
+    }
+    for (v, w) in want {
+        let got = parse(v);
+        let ok = match (&got, &w) {
+            (Ok(a), Ok(b)) => a == b,
+            (Err(a), Err(b)) => a.contains(b.as_str()),
+            _ => false,
+        };
+        if !ok {
+            problems.push(format!(
+                "{path}: {name} parses {v:?} as {got:?}, want {w:?}"
+            ));
+        }
+    }
+}
+
 fn walk(node: &Value, cmd: &Command, seen: &mut Vec<String>, problems: &mut Vec<String>) {
     let path = node["path"].as_str().unwrap().to_string();
     seen.push(path.clone());
@@ -38,6 +117,7 @@ fn walk(node: &Value, cmd: &Command, seen: &mut Vec<String>, problems: &mut Vec<
     }
     let mut positionals = 0;
     for p in node["params"].as_array().unwrap() {
+        check_int(p, cmd, &path, problems);
         if p["kind"] == "argument" {
             positionals += 1;
             continue;

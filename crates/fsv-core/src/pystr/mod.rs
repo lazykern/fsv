@@ -86,6 +86,54 @@ pub fn parse_decimal(s: &str) -> Option<i64> {
     Some(n)
 }
 
+/// `int(s)` for a `str` (base 10): surrounding whitespace, one
+/// sign, Unicode decimal digits with single underscores between them. The
+/// result is the canonical decimal text (`-0` is `0`); `None` where Python
+/// raises `ValueError`.
+pub fn py_int(s: &str) -> Option<String> {
+    // ASCII stays as is before `Py_ISSPACE` strips, so U+001C..U+001F do not.
+    let space = |c: char| {
+        if c.is_ascii() {
+            matches!(c, ' ' | '\t' | '\n' | '\x0b' | '\x0c' | '\r')
+        } else {
+            is_space(c)
+        }
+    };
+    let s = s.trim_matches(space);
+    let (neg, body) = match s.chars().next() {
+        Some('-') => (true, &s[1..]),
+        Some('+') => (false, &s[1..]),
+        _ => (false, s),
+    };
+    let mut digits = String::new();
+    let mut prev_digit = false;
+    for c in body.chars() {
+        if c == '_' {
+            if !prev_digit {
+                return None;
+            }
+            prev_digit = false;
+        } else {
+            digits.push(char::from_digit(decimal_value(c)?, 10)?);
+            prev_digit = true;
+        }
+    }
+    if !prev_digit {
+        return None;
+    }
+    let trimmed = digits.trim_start_matches('0');
+    Some(match (trimmed.is_empty(), neg) {
+        (true, _) => "0".into(),
+        (false, true) => format!("-{trimmed}"),
+        (false, false) => trimmed.into(),
+    })
+}
+
+/// `int(s)` as a JSON number, exact past 64 bits.
+pub fn int_json(s: &str) -> Option<serde_json::Value> {
+    py_int(s)?.parse::<serde_json::Number>().ok().map(serde_json::Value::Number)
+}
+
 /// `str.casefold()`.
 pub fn casefold(s: &str) -> String {
     caseless::default_case_fold_str(s)
@@ -612,6 +660,40 @@ pub fn urlparse_path(path: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Expected values from CPython 3.12 `str(int(s))`.
+    #[test]
+    fn py_int_matches_python() {
+        for (s, want) in [
+            ("12", Some("12")),
+            (" 12 ", Some("12")),
+            ("1_000", Some("1000")),
+            ("\u{661}\u{662}", Some("12")),
+            ("+5", Some("5")),
+            ("-0", Some("0")),
+            ("-007", Some("-7")),
+            ("0x10", None),
+            ("1__0", None),
+            ("_1", None),
+            ("1_", None),
+            ("12\n", Some("12")),
+            ("\u{a0}12\u{2003}", Some("12")),
+            ("\u{b2}", None),
+            ("\u{ff11}\u{ff12}", Some("12")),
+            ("", None),
+            (" ", None),
+            ("-", None),
+            ("+-1", None),
+            ("abc", None),
+            ("99999999999999999999999", Some("99999999999999999999999")),
+            ("\u{1c}7\u{1f}", None),
+            ("1 2", None),
+            ("-_1", None),
+            ("\u{1d7d9}", Some("1")),
+        ] {
+            assert_eq!(py_int(s).as_deref(), want, "{s:?}");
+        }
+    }
 
     #[test]
     fn unescape_matches_python() {

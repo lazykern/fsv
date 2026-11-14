@@ -175,56 +175,85 @@ fn find_separator(s: &[u8]) -> Option<usize> {
     Some(8)
 }
 
-fn parse_date_part(s: &[u8], len: usize) -> Option<Date> {
-    let (year, mut p) = digits(s, 0, 4)?;
+/// Why `date.fromisoformat` failed: the text's shape, or a date out of range.
+enum BadDate {
+    Format,
+    Range(String),
+}
+
+fn parse_date_part(s: &[u8], len: usize) -> Result<Date, BadDate> {
+    let (year, mut p) = digits(s, 0, 4).ok_or(BadDate::Format)?;
     let sep = byte(s, p) == b'-';
     if sep {
         p += 1;
     }
     if byte(s, p) == b'W' {
         p += 1;
-        let (week, np) = digits(s, p, 2)?;
+        let (week, np) = digits(s, p, 2).ok_or(BadDate::Format)?;
         p = np;
         let mut day = 1;
         if p < len {
             if sep {
                 if byte(s, p) != b'-' {
-                    return None;
+                    return Err(BadDate::Format);
                 }
                 p += 1;
             }
-            day = digits(s, p, 1)?.0;
+            day = digits(s, p, 1).ok_or(BadDate::Format)?.0;
         }
-        if !(1..=9999).contains(&year) {
-            return None;
-        }
-        let wd = jiff::civil::Weekday::from_monday_one_offset(i8::try_from(day).ok()?).ok()?;
-        let iso = jiff::civil::ISOWeekDate::new(year as i16, i8::try_from(week).ok()?, wd).ok()?;
-        let d = iso.date();
-        return (1..=9999).contains(&(d.year() as i64)).then_some(d);
+        return iso_week_date(year, week, day);
     }
-    let (month, np) = digits(s, p, 2)?;
+    let (month, np) = digits(s, p, 2).ok_or(BadDate::Format)?;
     p = np;
     if sep {
         if byte(s, p) != b'-' {
-            return None;
+            return Err(BadDate::Format);
         }
         p += 1;
     }
-    let (day, _) = digits(s, p, 2)?;
-    make_date(year, month, day).ok()
+    let (day, _) = digits(s, p, 2).ok_or(BadDate::Format)?;
+    make_date(year, month, day).map_err(BadDate::Range)
+}
+
+/// CPython `iso_to_ymd` then `new_date`: a bad year, week or weekday is a
+/// format error; a result past 9999-12-31 is "year 10000 is out of range".
+fn iso_week_date(year: i64, week: i64, day: i64) -> Result<Date, BadDate> {
+    if !(1..=9999).contains(&year) || !(1..=7).contains(&day) {
+        return Err(BadDate::Format);
+    }
+    let jan1 = Date::new(year as i16, 1, 1).map_err(|_| BadDate::Format)?;
+    let jan1_wd = jan1.weekday().to_monday_one_offset();
+    let long = jan1_wd == 4 || (jan1.in_leap_year() && jan1_wd == 3);
+    if !(1..=53).contains(&week) || (week == 53 && !long) {
+        return Err(BadDate::Format);
+    }
+    let jan4 = Date::new(year as i16, 1, 4).map_err(|_| BadDate::Format)?;
+    let back = i64::from(jan4.weekday().to_monday_one_offset()) - 1;
+    let monday = jan4
+        .checked_sub(jiff::Span::new().days(back))
+        .map_err(|_| BadDate::Format)?;
+    monday
+        .checked_add(jiff::Span::new().days((week - 1) * 7 + day - 1))
+        .map_err(|_| BadDate::Range("year 10000 is out of range".into()))
 }
 
 /// `date.fromisoformat(s)` (CPython 3.12, C implementation).
 pub fn date_fromisoformat(s: &str) -> Option<Date> {
-    if !s.is_ascii() {
-        return None;
-    }
+    date_fromisoformat_checked(s).ok()
+}
+
+/// `date.fromisoformat(s)` with CPython's `ValueError` text.
+pub fn date_fromisoformat_checked(s: &str) -> Result<Date, String> {
     let b = s.as_bytes();
-    if !matches!(b.len(), 7 | 8 | 10) {
-        return None;
-    }
-    parse_date_part(b, b.len())
+    let parsed = if s.is_ascii() && matches!(b.len(), 7 | 8 | 10) {
+        parse_date_part(b, b.len())
+    } else {
+        Err(BadDate::Format)
+    };
+    parsed.map_err(|e| match e {
+        BadDate::Format => format!("Invalid isoformat string: {}", fsv_py::py_repr_str(s)),
+        BadDate::Range(msg) => msg,
+    })
 }
 
 /// Returns (h, m, s, us, rv) where rv is 0 at the end and 1 when chars remain.
@@ -279,7 +308,7 @@ pub fn datetime_fromisoformat(s: &str) -> Option<(DateTime, Option<Offset>)> {
     }
     let b = s.as_bytes();
     let sep = find_separator(b)?;
-    let date = parse_date_part(b, sep)?;
+    let date = parse_date_part(b, sep).ok()?;
     let (mut hms, mut offset) = ([0i64; 4], None);
     if b.len() > sep {
         let start = sep + 1;
@@ -367,6 +396,54 @@ pub fn date_dmy(d: Date) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `date.fromisoformat(s)` results and `ValueError` texts from CPython 3.12.
+    #[test]
+    fn date_fromisoformat_checked_matches_python() {
+        let cases: &[(&str, Result<&str, &str>)] = &[
+            ("2024-01-05", Ok("2024-01-05")),
+            ("2024-13-01", Err("month must be in 1..12")),
+            ("2024-00-10", Err("month must be in 1..12")),
+            ("2024-02-30", Err("day is out of range for month")),
+            ("20240105", Ok("2024-01-05")),
+            ("2024-W01-1", Ok("2024-01-01")),
+            ("2024W011", Ok("2024-01-01")),
+            ("2024-W53-1", Err("Invalid isoformat string: '2024-W53-1'")),
+            ("2020-W53-1", Ok("2020-12-28")),
+            ("2024-W01-8", Err("Invalid isoformat string: '2024-W01-8'")),
+            ("2024-W01-0", Err("Invalid isoformat string: '2024-W01-0'")),
+            ("2024-W00-1", Err("Invalid isoformat string: '2024-W00-1'")),
+            ("+024-01-05", Err("Invalid isoformat string: '+024-01-05'")),
+            ("0000-01-01", Err("year 0 is out of range")),
+            ("0000-W01-1", Err("Invalid isoformat string: '0000-W01-1'")),
+            ("9999-W52-7", Err("year 10000 is out of range")),
+            ("2024-1-05", Err("Invalid isoformat string: '2024-1-05'")),
+            (
+                "\u{ff12}\u{ff10}\u{ff12}\u{ff14}-01-05",
+                Err("Invalid isoformat string: '\u{ff12}\u{ff10}\u{ff12}\u{ff14}-01-05'"),
+            ),
+            (
+                "2024-01-05 ",
+                Err("Invalid isoformat string: '2024-01-05 '"),
+            ),
+            ("202401", Err("Invalid isoformat string: '202401'")),
+            ("2024-W01", Ok("2024-01-01")),
+            ("2024W01", Ok("2024-01-01")),
+            ("0001-W01-1", Ok("0001-01-01")),
+            ("2024-02-29", Ok("2024-02-29")),
+            ("2023-02-29", Err("day is out of range for month")),
+            ("2024-0105", Err("Invalid isoformat string: '2024-0105'")),
+            ("202401-05", Err("Invalid isoformat string: '202401-05'")),
+        ];
+        for (s, want) in cases {
+            let got = date_fromisoformat_checked(s).map(date_iso);
+            assert_eq!(
+                got.as_deref().map_err(String::as_str),
+                want.as_ref().map(|s| *s).map_err(|e| *e),
+                "{s:?}"
+            );
+        }
+    }
 
     #[test]
     fn offset_text_floors_minutes() {

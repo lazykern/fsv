@@ -734,7 +734,7 @@ pub fn resolve_where(
         }
         let operator = if op == "=" { "is_in" } else { "is_not_in" };
         let val = if ascii_digits(&raw) {
-            json!(raw.parse::<i64>().unwrap_or(0))
+            pystr::int_json(&raw).unwrap_or_else(|| json!(raw))
         } else {
             Value::String(raw.clone())
         };
@@ -867,7 +867,7 @@ pub fn resolve_where(
         ));
     }
     let val = if ascii_digits(&raw) && ftype.ends_with("number") {
-        json!(raw.parse::<i64>().unwrap_or(0))
+        pystr::int_json(&raw).unwrap_or_else(|| json!(raw))
     } else {
         Value::String(raw.clone())
     };
@@ -969,8 +969,10 @@ pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
     } else {
         unquote(raw)
     };
-    let loaded: Value = serde_json::from_str(&text)
-        .map_err(|e| QueryError(format!("invalid query-hash JSON: {e}")))?;
+    let loaded: Value = serde_json::from_str(&text).map_err(|e| {
+        let why = fsv_py::json_decode_error(&text).unwrap_or_else(|| e.to_string());
+        QueryError(format!("invalid query-hash JSON: {why}"))
+    })?;
     let Value::Array(items) = loaded else {
         return Err(QueryError("query-hash must be a JSON array".into()));
     };
@@ -1166,7 +1168,7 @@ pub(crate) fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Valu
         .unwrap_or_default();
     if choices.is_empty() {
         return Ok(if ascii_digits(raw) {
-            json!(raw.parse::<i64>().unwrap_or(0))
+            pystr::int_json(raw).unwrap_or_else(|| json!(raw))
         } else {
             Value::String(raw.to_string())
         });
@@ -1779,5 +1781,45 @@ mod tests {
         let raw = r#"[{"condition":"approval_status","operator":"is_in","value":["0"]}]"#;
         let err = build_query_hash(None, "tickets", None, &[], Some(raw), false).unwrap_err();
         assert!(err.0.contains("is not a tickets list filter"));
+    }
+
+    /// Python `query._resolve_where` sends a digit string past 64 bits as
+    /// the exact big int (it was `0`). Expected items from that run.
+    #[test]
+    fn oversized_ids_stay_exact() {
+        let sch = json!({"fields": [
+            {"name": "cf_count", "label": "Count", "field_type": "custom_number"},
+            {"name": "cf_pick", "label": "Pick", "field_type": "custom_dropdown"}
+        ]});
+        let big = "99999999999999999999999";
+        for (expr, want) in [
+            (
+                "group_id",
+                r#"{"value": [99999999999999999999999], "condition": "group_id", "operator": "is_in", "type": "default"}"#,
+            ),
+            (
+                "cf_count",
+                r#"{"value": "99999999999999999999999", "condition": "cf_count", "operator": "is", "type": "custom_field", "_advanced": true}"#,
+            ),
+            (
+                "cf_pick",
+                r#"{"value": [99999999999999999999999], "condition": "cf_pick", "operator": "is_in", "type": "custom_field"}"#,
+            ),
+        ] {
+            let mut explain = Vec::new();
+            let (item, ()) = resolve_where(
+                None,
+                "tickets",
+                &sch,
+                &format!("{expr}={big}"),
+                &mut explain,
+            )
+            .unwrap();
+            assert_eq!(
+                fsv_py::dumps(&item, &fsv_py::Dumps::default()),
+                want,
+                "{expr}"
+            );
+        }
     }
 }

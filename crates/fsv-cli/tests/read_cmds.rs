@@ -3559,6 +3559,107 @@ fn form_dump_bad_mode() {
     );
 }
 
+/// Python builds `FormMeta.spec` on first use: `form dump` and `form diff`
+/// read a field the spec cannot sort (`position: "abc"`) and exit 0.
+#[test]
+fn form_dump_and_diff_do_not_build_the_spec() {
+    let mut routes = common::fixture("form");
+    let fields = routes[0]["json"]["change_fields"].as_array_mut().unwrap();
+    fields[0]["position"] = serde_json::json!("abc");
+    let env = common::Env::new(routes);
+    let r = env.run(&["form", "dump", "changes"]);
+    assert_eq!((r.code, r.err.as_str()), (0, ""));
+    assert!(r.out.contains("\"position\": \"abc\""), "{}", r.out);
+    let snap = env.home().join("c.json");
+    std::fs::write(
+        &snap,
+        r#"{"fsv_form_snapshot":1,"module":"change","fields":[],"business_rules":[]}"#,
+    )
+    .unwrap();
+    let r = env.run(&["form", "diff", snap.to_str().unwrap()]);
+    assert_eq!((r.code, r.err.as_str()), (0, ""));
+    assert!(r.out.starts_with("+ field "), "{}", r.out);
+}
+
+/// `form diff` compares with Python `==` (`True == 1 == 1.0`), accepts a
+/// `fsv_form_snapshot` of `true`, and names read errors as Python's
+/// `OSError` / `UnicodeDecodeError` do. Expected text from the Python run.
+#[test]
+fn form_diff_python_equality_and_read_errors() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = |n: &str| dir.path().join(n).to_str().unwrap().to_string();
+    std::fs::write(
+        path("t1.json"),
+        r#"{"fsv_form_snapshot": true, "fields": [{"name":"a","required":true,"position":1}]}"#,
+    )
+    .unwrap();
+    std::fs::write(
+        path("t2.json"),
+        r#"{"fsv_form_snapshot": 1.0, "fields": [{"name":"a","required":1,"position":1.0}]}"#,
+    )
+    .unwrap();
+    std::fs::write(path("nonutf.json"), b"\xff\xfe{}").unwrap();
+    std::fs::create_dir(path("adir")).unwrap();
+    let env = common::Env::new(Vec::new());
+    let r = env.run(&[
+        "form",
+        "diff",
+        &path("t1.json"),
+        "--against",
+        &path("t2.json"),
+    ]);
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (0, "no changes\n", "")
+    );
+    let r = env.run(&[
+        "form",
+        "diff",
+        &path("nonutf.json"),
+        "--against",
+        &path("t1.json"),
+    ]);
+    assert_eq!(
+        (r.code, r.err),
+        (
+            2,
+            format!(
+                "error: cannot read snapshot {}: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte\n",
+                path("nonutf.json")
+            )
+        )
+    );
+    std::fs::write(path("crlf.json"), "{\r\n\"a\": 1,\r\n\"b\" 2}").unwrap();
+    let r = env.run(&[
+        "form",
+        "diff",
+        &path("crlf.json"),
+        "--against",
+        &path("t1.json"),
+    ]);
+    assert_eq!(
+        (r.code, r.err),
+        (
+            2,
+            format!(
+                "error: cannot read snapshot {}: Expecting ':' delimiter: line 3 column 5 (char 14)\n",
+                path("crlf.json")
+            )
+        )
+    );
+    let r = env.run(&["form", "diff", &path("adir"), "--against", &path("t1.json")]);
+    assert_eq!(
+        (r.code, r.err),
+        (
+            2,
+            format!(
+                "error: cannot read snapshot {0}: [Errno 21] Is a directory: '{0}'\n",
+                path("adir")
+            )
+        )
+    );
+}
+
 #[test]
 fn form_diff_against() {
     let r = run_fixture(

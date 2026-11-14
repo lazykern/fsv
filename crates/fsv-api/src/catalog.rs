@@ -167,7 +167,7 @@ pub fn list_items_info(
             info.insert("pages_read".into(), json!(page));
         }
         if rs.is_empty()
-            || total.as_i64().is_some_and(|t| page >= t)
+            || py_int(&total).is_some_and(|t| i128::from(page) >= t)
             || (total.is_null() && (rs.len() as i64) < PER_PAGE)
         {
             complete = true;
@@ -176,7 +176,7 @@ pub fn list_items_info(
     }
     if !complete && let Some(info) = info {
         info.insert("truncated".into(), json!(true));
-        if total.is_i64() {
+        if py_int(&total).is_some() {
             info.insert("total_pages".into(), total);
         }
     }
@@ -191,7 +191,7 @@ pub fn truncation_notice(info: &Map<String, Json>) -> Option<String> {
     }
     let field = |k: &str| py_str(info.get(k).unwrap_or(&Json::Null));
     let more = match info.get("total_pages") {
-        Some(t) if t.is_i64() => format!(" of {}", py_str(t)),
+        Some(t) if py_int(t).is_some() => format!(" of {}", py_str(t)),
         _ => String::new(),
     };
     Some(format!(
@@ -375,12 +375,14 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
     if s.is_empty() {
         return Err(Error::value("catalog item is empty"));
     }
-    if !s.is_empty()
-        && s.chars()
-            .all(|c| fsv_core::pystr::decimal_value(c).is_some())
-    {
-        let id = fsv_core::pystr::parse_decimal(&s).unwrap_or(0);
-        return get_item(c, &json!(id));
+    if fsv_core::pystr::is_digit(&s) {
+        let id = fsv_core::pystr::int_json(&s).ok_or_else(|| {
+            Error::value(format!(
+                "invalid literal for int() with base 10: {}",
+                py_repr_str(&s)
+            ))
+        })?;
+        return get_item(c, &id);
     }
     let mut info = Map::new();
     let items = list_items_info(c, false, MAX_PAGES, Some(&mut info))?;
@@ -524,28 +526,7 @@ impl ItemMeta {
     /// `raw_fields`: the item's fields flattened in web order; children name
     /// their parent (the `FormMeta` surface `fsv form` reads).
     pub fn raw_fields(&self) -> Vec<Json> {
-        fn walk(rows: Option<&Json>, parent: Option<&Json>, out: &mut Vec<Json>) {
-            for row in rows.and_then(Json::as_array).into_iter().flatten() {
-                let Some(m) = row.as_object() else { continue };
-                if m.get("deleted").is_some_and(truthy) {
-                    continue;
-                }
-                let mut flat: Map<String, Json> = m
-                    .iter()
-                    .filter(|(k, _)| *k != "fields")
-                    .map(|(k, v)| (k.clone(), v.clone()))
-                    .collect();
-                if let Some(p) = parent.filter(|p| !p.is_null()) {
-                    flat.insert("parent".into(), p.clone());
-                }
-                out.push(Json::Object(flat));
-                walk(m.get("fields"), m.get("name"), out);
-            }
-        }
-        let si = self.item.get("service_item").unwrap_or(&self.item);
-        let mut out = Vec::new();
-        walk(si.get("custom_fields"), None, &mut out);
-        out
+        item_raw_fields(&self.item)
     }
 
     /// `FormState(meta.spec, meta.engine(), mode=..., resolver=..., existing=...)`.
@@ -586,6 +567,25 @@ fn now() -> f64 {
         .unwrap_or(0.0)
 }
 
+/// `isinstance(v, int)` (a `bool` counts) as an `i128` for the page
+/// comparison; a big int past 64 bits saturates.
+fn py_int(v: &Json) -> Option<i128> {
+    match v {
+        Json::Bool(b) => Some(i128::from(*b)),
+        Json::Number(n) if n.is_i64() || n.is_u64() => {
+            n.as_i64().map(i128::from).or(n.as_u64().map(i128::from))
+        }
+        Json::Number(n) => fsv_py::big_int(n).map(|t| {
+            if t.starts_with('-') {
+                i128::MIN
+            } else {
+                i128::MAX
+            }
+        }),
+        _ => None,
+    }
+}
+
 /// `load_item_meta`: item form + business rules, always from the server.
 pub fn load_item_meta(
     c: &dyn Api,
@@ -593,6 +593,16 @@ pub fn load_item_meta(
     r: &str,
     item: Option<&Json>,
 ) -> Result<ItemMeta> {
+    load_item_parts(c, store, r, item)?.build()
+}
+
+/// [`load_item_meta`] without parsing the item form ([`ItemParts`]).
+pub fn load_item_parts(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    r: &str,
+    item: Option<&Json>,
+) -> Result<ItemParts> {
     let raw = match item {
         Some(i) => i.clone(),
         None => find_item(c, r)?,
@@ -615,7 +625,61 @@ pub fn load_item_meta(
         &query,
     )?;
     let ws = rules.get(RULES_WORKSPACE_KEY).cloned().unwrap_or(ws);
-    ItemMeta::new(raw, rules, ws, now(), "server")
+    Ok(ItemParts {
+        item: raw,
+        rules,
+        workspace_id: ws,
+    })
+}
+
+/// What `load_item_meta` reads, before the item form is parsed into its spec
+/// (Python's lazy `ItemMeta.spec`; `form dump` / `form diff` stop here).
+pub struct ItemParts {
+    pub item: Json,
+    pub rules: Json,
+    pub workspace_id: Json,
+}
+
+impl ItemParts {
+    /// [`ItemMeta::raw_fields`].
+    pub fn raw_fields(&self) -> Vec<Json> {
+        item_raw_fields(&self.item)
+    }
+
+    pub fn display_id(&self) -> Json {
+        self.item.get("display_id").cloned().unwrap_or(Json::Null)
+    }
+
+    /// The [`ItemMeta`], parsing the item form into its spec.
+    pub fn build(self) -> Result<ItemMeta> {
+        ItemMeta::new(self.item, self.rules, self.workspace_id, now(), "server")
+    }
+}
+
+/// [`ItemMeta::raw_fields`] of an item.
+fn item_raw_fields(item: &Json) -> Vec<Json> {
+    fn walk(rows: Option<&Json>, parent: Option<&Json>, out: &mut Vec<Json>) {
+        for row in rows.and_then(Json::as_array).into_iter().flatten() {
+            let Some(m) = row.as_object() else { continue };
+            if m.get("deleted").is_some_and(truthy) {
+                continue;
+            }
+            let mut flat: Map<String, Json> = m
+                .iter()
+                .filter(|(k, _)| *k != "fields")
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+            if let Some(p) = parent.filter(|p| !p.is_null()) {
+                flat.insert("parent".into(), p.clone());
+            }
+            out.push(Json::Object(flat));
+            walk(m.get("fields"), m.get("name"), out);
+        }
+    }
+    let si = item.get("service_item").unwrap_or(item);
+    let mut out = Vec::new();
+    walk(si.get("custom_fields"), None, &mut out);
+    out
 }
 
 // ---------------------------------------------------------------------------
@@ -2403,6 +2467,44 @@ mod tests {
                 .map(|c| json!(c.params))
                 .collect::<Vec<_>>()
         )
+    }
+
+    /// `isinstance(total, int)` counts `True`/`False` and big ints but not
+    /// `1.0` (Python `list_items(..., max_pages=2, info=...)` runs).
+    #[test]
+    fn total_pages_is_python_int() {
+        let full: Vec<Json> = (0..PER_PAGE)
+            .map(|i| json!({"id": i, "display_id": i, "name": format!("I{i}")}))
+            .collect();
+        let big = "99999999999999999999999";
+        for (total, calls, info, notice) in [
+            (json!(true), 1, json!({"truncated": false, "pages_read": 1, "per_page": 30, "max_pages": 2}), None),
+            (json!(false), 1, json!({"truncated": false, "pages_read": 1, "per_page": 30, "max_pages": 2}), None),
+            (
+                json!(1.0),
+                2,
+                json!({"truncated": true, "pages_read": 2, "per_page": 30, "max_pages": 2}),
+                Some("catalog list truncated: read 2 pages of 30 items (limit 2 pages); more items exist and are not shown or searched".to_string()),
+            ),
+            (
+                serde_json::from_str(big).unwrap(),
+                2,
+                serde_json::from_str(&format!(r#"{{"truncated": true, "pages_read": 2, "per_page": 30, "max_pages": 2, "total_pages": {big}}}"#)).unwrap(),
+                Some(format!("catalog list truncated: read 2 of {big} pages of 30 items (limit 2 pages); more items exist and are not shown or searched")),
+            ),
+        ] {
+            let page = json!({"service_items": full, "meta": {"total_pages": total}});
+            let a = FakeApi::new()
+                .ok("GET catalog/service-items", page.clone())
+                .ok("GET catalog/service-items", page.clone())
+                .ok("GET catalog/service-items", page);
+            let mut got = Map::new();
+            let out = list_items_info(&a, false, 2, Some(&mut got)).unwrap();
+            assert_eq!(out.len(), 30, "{total}");
+            assert_eq!(a.calls.lock().unwrap().len(), calls, "{total}");
+            assert_eq!(Json::Object(got.clone()), info, "{total}");
+            assert_eq!(truncation_notice(&got), notice, "{total}");
+        }
     }
 
     #[test]

@@ -805,11 +805,7 @@ impl FormMeta {
     }
 
     pub fn raw_fields(&self) -> Vec<Json> {
-        self.form_fields
-            .get(self.fields_key())
-            .and_then(Json::as_array)
-            .cloned()
-            .unwrap_or_default()
+        raw_fields_of(&self.module, &self.form_fields)
     }
 
     pub fn user(&self) -> Option<&Json> {
@@ -905,6 +901,19 @@ pub trait Resolver: LookupResolver + Send + Sync {
     }
 }
 
+/// `list(form_fields.get(fields_key) or [])`.
+fn raw_fields_of(module: &str, form_fields: &Json) -> Vec<Json> {
+    let key = MODULES
+        .iter()
+        .find(|(m, _, _)| *m == module)
+        .map_or("change_fields", |(_, _, k)| k);
+    form_fields
+        .get(key)
+        .and_then(Json::as_array)
+        .cloned()
+        .unwrap_or_default()
+}
+
 fn now() -> f64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -950,6 +959,69 @@ pub fn load_meta_in(
     module_id: &Json,
     record_workspace: &Json,
 ) -> Result<FormMeta> {
+    load_parts_in(c, store, module, mode, fresh, module_id, record_workspace)?.build()
+}
+
+/// What `load_meta` reads, before the form spec is built. Python builds
+/// `FormMeta.spec` on first use, so `form dump` and `form diff`, which only
+/// read the raw fields and rules, never parse the fields.
+pub struct MetaParts {
+    pub module: String,
+    pub form_type: &'static str,
+    pub form_fields: Json,
+    pub rules: Json,
+    pub workspace_id: Json,
+    source: &'static str,
+    module_id: Json,
+    record_workspace: Json,
+    configured: Json,
+}
+
+impl MetaParts {
+    /// [`FormMeta::raw_fields`].
+    pub fn raw_fields(&self) -> Vec<Json> {
+        raw_fields_of(&self.module, &self.form_fields)
+    }
+
+    /// The [`FormMeta`], parsing the fields into its spec.
+    pub fn build(self) -> Result<FormMeta> {
+        FormMeta::new(
+            &self.module,
+            self.form_type,
+            self.form_fields,
+            self.rules,
+            self.workspace_id,
+            now(),
+            self.source,
+            self.module_id,
+        )
+        .map(|m| m.with_workspaces(self.record_workspace, self.configured))
+    }
+}
+
+/// [`load_meta_for_record`] without building the spec ([`MetaParts`]).
+pub fn load_parts_for_record(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    module: &str,
+    mode: &str,
+    fresh: bool,
+    module_id: &Json,
+    record: &Json,
+) -> Result<MetaParts> {
+    let ws = record_workspace_of(record);
+    load_parts_in(c, store, module, mode, fresh, module_id, &ws)
+}
+
+fn load_parts_in(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    module: &str,
+    mode: &str,
+    fresh: bool,
+    module_id: &Json,
+    record_workspace: &Json,
+) -> Result<MetaParts> {
     let rec_ws = record_workspace_of(&json!({ "workspace_id": record_workspace }));
     let module = module_name(module)?;
     let form_type = FORM_TYPES
@@ -1038,17 +1110,17 @@ pub fn load_meta_in(
         }
     };
     let ws = rules.get(RULES_WORKSPACE_KEY).cloned().unwrap_or(ws);
-    FormMeta::new(
-        &module,
+    Ok(MetaParts {
+        module,
         form_type,
-        fields,
+        form_fields: fields,
         rules,
-        ws,
-        now(),
+        workspace_id: ws,
         source,
-        module_id.clone(),
-    )
-    .map(|m| m.with_workspaces(rec_ws, configured))
+        module_id: module_id.clone(),
+        record_workspace: rec_ws,
+        configured,
+    })
 }
 
 // ---------------------------------------------------------------------------

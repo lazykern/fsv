@@ -17,6 +17,14 @@ those stay identical.
 
 - Files are written with LF on every platform. Python on Windows writes CRLF.
 - YAML parse errors say `YAML error: …` but the line wording is not PyYAML's.
+- JSON numbers keep their parsed text (serde_json `arbitrary_precision`), so an
+  integer past 64 bits round-trips as Python's big int. Wire bodies, query
+  parameters, `--json` output and hashes go through `fsv_py` (`1.50` → `1.5`,
+  `1e5` → `100000.0`, as Python). Only a plain `serde_json` print (the TUI
+  form's payload view) shows the parsed text. A value past `f64` (`1E400`)
+  is `Infinity` in the `query_hash` parameter, as Python; in `--json` output
+  and request bodies Rust also writes `Infinity` where Python refuses it
+  ("Out of range float values are not JSON compliant: inf").
 - Human terminal output matches content, order, wording and columns. Box
   glyphs, Rich number/URL highlighting and `:emoji:` substitution may differ.
 - Click prompt abort prints `Aborted!`. `_err_exc` prints `Aborted.`
@@ -172,8 +180,6 @@ those stay identical.
 - `filter_proof.contradictions` skips a row that is not an object.
 - Service list readers (`list_items`, activities, notes, tasks, approvals,
   assets) treat a null or non-list body as no rows.
-- CLI choice values: a digit string beyond `i64`, or a superscript digit
-  that `int()` rejects, stays text. Python's `_choice_value` raises.
 - CLI error lines: an exception with a blank message prints `Error`.
   Python's `_err_exc` prints the exception class name.
 - `form explain` with a bad `--id` exits 1 with the message. Python prints
@@ -209,8 +215,6 @@ those stay identical.
   the full `sys.argv[0]`.
 - `setup` escapes the echoed defaults list. Python renders it as Rich
   markup, so a value like `[bold]` disappears.
-- `--where` digit ids that `int()` rejects (superscripts) or that overflow
-  stay text.
 - `changes windows create` overlap check: listed window times without a UTC
   offset are compared as instants in the tenant zone. Python compares
   same-tzinfo datetimes by wall clock, so the two differ only inside the
@@ -316,9 +320,10 @@ Gaps:
 - `create` planning-field resolution and `--duplicate` errors are `Error::value` (Python `UsageError`, `820af12`): the bare message, exit 2. Other `APIError(0, …)` sites keep `ApiError` status 0, which `fsv_core::ApiError` renders as Python does: `Error: …` (`Error <what>: …` with a request).
 
 Divergences:
-- `readback::duration_seconds` accepts Unicode decimal digits in the hours and in the second digit of minutes and seconds, matching Python's `\d`. The first minute and second digit stays ASCII `[0-5]`, so `१२:३०` is refused and `१२:05` is 12 hours. Hours that overflow `i64` are an error rather than a big int. `ticket_time::duration`, `watchers::positive_id`, catalog item ids, CLI `int()` of a digit string, change-asset ids (`raw.isdigit()`), `forms.workspace_id`, merge conversation ids, and the TUI asset picker take Unicode decimal digits as Python does (`"१२"` is 12). A superscript digit is not a decimal id. An id past `i64` is refused where Python returns the big int. A task group or owner id typed in the TUI uses `str.isdecimal()` the same way.
+- `readback::duration_seconds` accepts Unicode decimal digits in the hours and in the second digit of minutes and seconds, matching Python's `\d`. The first minute and second digit stays ASCII `[0-5]`, so `१२:३०` is refused and `१२:05` is 12 hours. Hours that overflow `i64` are an error rather than a big int. `ticket_time::duration`, `watchers::positive_id`, catalog item ids, CLI `int()` of a digit string, change-asset ids (`raw.isdigit()`), `forms.workspace_id`, merge conversation ids, and the TUI asset picker take Unicode decimal digits as Python does (`"१२"` is 12). A superscript digit is not a decimal id. An id past `i64` is refused where Python returns the big int, except `--where` ids and numbers, `query.resolve_where`, CLI `_choice_value` and catalog item display ids, which send it exact (and give `int()`'s `ValueError` text for a superscript). A task group or owner id typed in the TUI uses `str.isdecimal()` the same way.
 - `conversations::parseaddr` uses `email_addr::parseaddr`, a port of Python 3.12's strict `email.utils.parseaddr` (`AddrlistClass`, parenthesis and domain-literal checks, one address only). Golden: `port/golden/gen_fsv_api_parseaddr.py` → `src/testdata/parseaddr_oracle.json` (76 inputs: quoted local parts, comments, several `<>`, groups, routes, malformed values).
 - `attachments::LocalFile` content types come from `mime_guess` (as `create::upload_file`), not Python's platform `mimetypes` table. The golden covers `.txt`, `.csv`, `.png`, `.json` and no extension, which agree.
+- `inline_images` accepts a file when CPython's built-in `mimetypes` table names an editor image type (`.gif`, `.jpe`, `.jpeg`, `.jpg`, `.png`, `.webp`, case-insensitive, after one `.gz`/`.Z`/`.bz2`/`.xz`/`.br` suffix), so `.jfif` is refused as in Python. The file's content type still comes from `mime_guess`, so `a.png.gz` (`application/gzip`) is refused; Python uploads it as `image/png`.
 - `attachments::page_limit` refuses a published limit whose byte value does not fit an `i64` (over about 8.8e12 MiB) as "ambiguous or invalid"; Python accepts the big int.
 - `Api::page` defaults to an error. `fsv_core::Client`, fsv-app `ClientSource` and fsv-views `AssociationReader` implement it; fsv-cli `LazyApi` must forward it, or every attached send without a metadata byte limit is refused with "could not read the tenant's published attachment size limit".
 - `merge_same_conditions` turns a truthy non-iterable `value` (a number or `true`) into a one-item list; Python raises `TypeError` there.
@@ -423,15 +428,18 @@ No divergences from this pass.
 | `<res> lookup --refresh` (`d18bab9`), `form explain --id` on the module's own resource (`6797301`, changes and tickets) | `cmd::resource::lookup`, `cmd::form::explain` | ported; `read_cmds.rs` `lookup_refresh_refetches_schema`, `lookup_uses_cached_schema`, `form_explain_ticket_record`, `form_explain_change_display_id`. |
 | `views.current_user` | `cmd::resource::current_user` | ported, fetched once per run as Python caches it on the client (`requester=me` made a second `agents/me` call). |
 | `cli._complete_tab`, `_ctx_change_id`, `_complete_task_id`, `_asset_candidates`, `_complete_asset_category`, `_complete_asset_search_for_change`, `_complete_asset_id_for_change`, `_complete_associated_asset_for_change`, `_complete_task_status`, `_task_field_name_matches`, `_task_field_choice_pairs`, `_task_observed_value_pairs`, `_complete_task_custom_field`, `_complete_ticket_for_change` | none | n/a. Typer `autocompletion=` callbacks. fsv's generated scripts call `fsv._complete`, which dispatches only `fsv.completion` names, so Python never runs them. |
-| `gen_tree.py` (generator for `generated.rs`) | `tests/golden/gen_tree.py` | restored. `python3 crates/fsv-cli/tests/golden/gen_tree.py` rewrites `generated.rs` from `cli_tree.json` and `completion_tree.json` (`--check` exits 1 if stale); the former hand edits (shared structs, help patches, the `backup_replaced` value flag, hints) are rules in the script. |
+| `gen_tree.py` (generator for `generated.rs`) | none | removed with the vendored Python tree (`ecb2071`). `generated.rs` is hand-maintained; `tests/tree.rs` checks it against `cli_tree.json`. |
 
 CLI divergences:
 - A missing required argument or option prints Click's panel (`Missing option '--requester'.`, `app::missing_parameter` with the generated `CLICK_USAGE`). Other usage errors use clap's text. Exit code 2 matches Click. This includes a non-`json` `--output` on the reviewed commands (Click's rich choice panel; both exit 2 before any request).
+- Integer arguments and options convert as Click's `INT` / `IntRange` (Python `int()`: surrounding whitespace, a sign, Unicode decimal digits, single underscores; `pyint.rs`). The Click message (`'x' is not a valid integer range.`, `0 is not in the range 1<=x<=100.`) follows clap's `invalid value ... for '<arg>': ` prefix. A value past 64 bits is refused (`... does not fit a 64-bit integer.`); Click passes the big int to the command. `tests/tree.rs` checks every Python `integer` / `integer range` param.
 - Typer `BadParameter` raised by a command body (`watchers list` errors) is reproduced as Rich's error panel (`cmd::reviewed::bad_parameter`), sized from the terminal width.
 - Uncaught exceptions (traceback, exit 1 in Python) print `error: <message>` with exit 1.
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
-- `--query-hash` with bad JSON prints `error: invalid --query-hash JSON: ` as Python does, then serde_json's message (`[{` gives `EOF while parsing an object at line 1 column 2`) where Python prints `json.JSONDecodeError`'s (`Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`). Exit 2 in both.
+- JSON options and files that Python reads with `json.loads` (`--query-hash`, `form diff` snapshots, `--project-json`, `--answers-json`) report bad JSON with `json.JSONDecodeError`'s text (`fsv_py::json_decode_error`, a port of the CPython 3.12 scanner's errors). Text Python accepts but serde_json refuses (a lone `\ud800` escape) shows serde_json's message.
+- `--query-hash` with the bare tokens `NaN`, `Infinity` or `-Infinity` is refused as bad JSON (exit 2). Python's `json.loads` accepts them and sends them on, which is not JSON. A literal past `f64` (`1E400`) is sent as `Infinity`, as Python does.
+- `ls --debug` with a value that is bad Rich markup (`--where "group_id=[/x]"`) prints the explain table, the unmatched tag dropped. Python raises `MarkupError` (traceback, exit 1).
 - `fsv tui` exits 1: the full-screen TUI is not in the Rust port (see fsv-tui below).
 - `--show-completion` / `--install-completion` with an undetectable shell print `error: could not detect shell; ...` and exit 1. Typer prints `Shell  not supported.` or `Shell None is not supported.`, also exit 1. Shell detection reads only `$SHELL`; Typer asks shellingham about the parent process first.
 - `form explain --id x` (not an ID) prints `error: invalid id: x` and exits 1; Python raises an uncaught `ValueError` (traceback, exit 1).

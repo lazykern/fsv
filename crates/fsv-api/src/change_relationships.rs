@@ -113,8 +113,11 @@ pub fn inventory(c: &dyn Api, target: i64, kind: &str) -> Result<Vec<Value>> {
         let meta = body.get("meta").and_then(Value::as_object);
         let ok = match (rows.as_ref(), meta) {
             (Some(rows), Some(meta)) => {
-                meta.get("page").and_then(Value::as_i64) == Some(1)
-                    && matches!(meta.get("total_pages").and_then(Value::as_i64), Some(0 | 1))
+                let eq = |k: &str, n: i64| {
+                    crate::schema::py_eq(meta.get(k).unwrap_or(&Value::Null), &json!(n))
+                };
+                eq("page", 1)
+                    && (eq("total_pages", 0) || eq("total_pages", 1))
                     && meta.get("total").is_some_and(is_int)
                     && meta.get("total").and_then(Value::as_i64) == Some(rows.len() as i64)
             }
@@ -147,32 +150,15 @@ pub struct RelArgs<'a> {
     pub kind: &'a str,
     pub action: &'a str,
     pub item: Option<&'a str>,
-    pub project: Option<&'a Map<String, Value>>,
+    /// The decoded `--project-json` (any JSON but `null`).
+    pub project: Option<&'a Value>,
     pub project_key: Option<&'a str>,
     pub name: Option<&'a str>,
 }
 
-fn iso_date(text: &str) -> Result<(i32, u32, u32)> {
-    let bad = || Error::value(format!("Invalid isoformat string: {text:?}"));
-    let b = text.as_bytes();
-    if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
-        return Err(bad());
-    }
-    let year: i32 = text[0..4].parse().map_err(|_| bad())?;
-    let month: u32 = text[5..7].parse().map_err(|_| bad())?;
-    let day: u32 = text[8..10].parse().map_err(|_| bad())?;
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-    let max = match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 if leap => 29,
-        2 => 28,
-        _ => return Err(bad()),
-    };
-    if day == 0 || day > max {
-        return Err(bad());
-    }
-    Ok((year, month, day))
+/// `date.fromisoformat(text)`, with CPython's `ValueError` text.
+fn iso_date(text: &str) -> Result<jiff::civil::Date> {
+    fsv_forms::pydt::date_fromisoformat_checked(text).map_err(Error::value)
 }
 
 fn project_create(project: &Map<String, Value>, cid: i64) -> Result<Value> {
@@ -273,6 +259,7 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
     let (method, path, body) = if matches!(args.kind, "project" | "project-task") {
         let found = args
             .item
+            .filter(|item| !item.is_empty())
             .map(|item| matches(&rows, item))
             .unwrap_or_default();
         if args.action == "remove" && found.len() != 1 {
@@ -282,12 +269,15 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
             return Err(refused("relationship already present"));
         }
         if args.kind == "project" && args.action == "add" {
-            if filled(args.item) || args.project.is_none() {
+            let Some(project) = args
+                .project
+                .and_then(Value::as_object)
+                .filter(|_| !filled(args.item))
+            else {
                 return Err(Error::value(
                     "project add is create-and-associate, not an existing-project link; pass project details",
                 ));
-            }
-            let project = args.project.unwrap();
+            };
             (
                 "POST",
                 "freshrelease/settings/create_fr_project".to_string(),
@@ -350,6 +340,7 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
                 }
                 found[0]
                     .get("name")
+                    .filter(|v| fsv_py::truthy(v))
                     .or_else(|| found[0].get("title"))
                     .and_then(Value::as_str)
             } else {
@@ -390,9 +381,13 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
             ));
         }
         let ident = watchers::positive_id(&json!(args.item.unwrap_or("")))?;
-        let present = rows.iter().any(|row| {
-            watchers::positive_id(row.get("id").unwrap_or(&Value::Null)).ok() == Some(ident)
-        });
+        let mut present = false;
+        for row in &rows {
+            if watchers::positive_id(row.get("id").unwrap_or(&Value::Null))? == ident {
+                present = true;
+                break;
+            }
+        }
         if present != (args.action == "remove") {
             return Err(refused(
                 "relationship already present or removal target absent",
@@ -417,7 +412,7 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
                     .unwrap_or(raw.clone()),
                 _ => Value::Null,
             };
-            if watchers::positive_id(row.get("id").unwrap_or(&Value::Null)).ok() != Some(ident) {
+            if watchers::positive_id(row.get("id").unwrap_or(&Value::Null))? != ident {
                 return Err(refused("exact relationship candidate unavailable"));
             }
         }
@@ -469,7 +464,7 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
 
 fn plan_from_context(c: &dyn Api, context: &Value) -> Result<WritePlan> {
     let intent = &context["intent"];
-    let project = intent.get("project").and_then(Value::as_object);
+    let project = intent.get("project").filter(|v| !v.is_null());
     let item = match intent.get("item") {
         Some(Value::String(s)) => Some(s.clone()),
         Some(Value::Null) | None => None,
@@ -801,22 +796,22 @@ mod tests {
         })
     }
 
-    fn project_body() -> Map<String, Value> {
-        service::obj(json!({
+    fn project_body() -> Value {
+        Value::Object(service::obj(json!({
             "name": "Acme project",
             "description": "Acme work",
             "start_date": "2026-01-01",
             "end_date": "2026-01-02",
             "owner_email": "person@example.com",
             "project_category": "1",
-        }))
+        })))
     }
 
     fn args<'a>(
         kind: &'a str,
         action: &'a str,
         item: Option<&'a str>,
-        project: Option<&'a Map<String, Value>>,
+        project: Option<&'a Value>,
         project_key: Option<&'a str>,
         name: Option<&'a str>,
     ) -> RelArgs<'a> {
@@ -838,6 +833,191 @@ mod tests {
             .filter(|call| matches!(call.method.as_str(), "POST" | "PUT" | "DELETE"))
             .cloned()
             .collect()
+    }
+
+    /// `date.fromisoformat` on the project dates: CPython's accepted forms
+    /// and `ValueError` texts (from `build_plan` runs).
+    #[test]
+    fn project_dates_are_python_fromisoformat() {
+        for (start, want) in [
+            ("2024-13-01", Some("month must be in 1..12")),
+            ("20240105", None),
+            ("2024-W01-1", None),
+            ("+024-01-05", Some("Invalid isoformat string: '+024-01-05'")),
+            ("2024-02-30", Some("day is out of range for month")),
+            ("0000-01-01", Some("year 0 is out of range")),
+        ] {
+            let mut project = project_body();
+            project["start_date"] = json!(start);
+            project["end_date"] = json!("2024-12-01");
+            let c = api(Arc::new(Mutex::new(seed("project", "add"))));
+            let got = build_plan(
+                &c,
+                "CHN-123",
+                &args("project", "add", None, Some(&project), None, None),
+            );
+            match want {
+                None => assert!(got.is_ok(), "{start}: {:?}", got.err()),
+                Some(msg) => assert_eq!(got.unwrap_err().to_string(), msg, "{start}"),
+            }
+        }
+    }
+
+    /// Python's `positive_id(row.get("id")) != ident` raises on a candidate
+    /// with no usable id (from a `build_plan` run with `{"problem": {"id": None}}`).
+    #[test]
+    fn candidate_without_id_is_the_positive_id_error() {
+        let mut world = seed("problem", "add");
+        world.kind_fields = json!({"id": null});
+        let c = api(Arc::new(Mutex::new(world)));
+        let err = build_plan(
+            &c,
+            "CHN-123",
+            &args("problem", "add", Some("72"), None, None, None),
+        )
+        .unwrap_err();
+        assert_eq!(err.to_string(), "expected a positive numeric identity");
+    }
+
+    /// `matches[0].get("name") or matches[0].get("title")`: a null, empty or
+    /// zero task name falls back to the title (payloads and hashes from
+    /// `build_plan` runs on the same rows).
+    #[test]
+    fn project_task_remove_name_falls_back_to_title() {
+        for (name, hash) in [
+            (
+                json!(null),
+                "5a017c2c9825205d223f45b8862580facc517e1712431499ee2ba5e06b64c387",
+            ),
+            (
+                json!(""),
+                "7d25e6a2b02162e970accf55ea87c6937d3d0c5244bef2964e1c74b955136872",
+            ),
+            (
+                json!(0),
+                "ea07749d1484172c6b0abf31316c9fd2aafbd5670cf9c371c29a10477658455b",
+            ),
+        ] {
+            let mut world = seed("project-task", "remove");
+            world.rows.insert(
+                "project-task".into(),
+                vec![json!({"id": 91, "key": "ACME-1", "name": name, "title": "Acme title", "project_id": 81})],
+            );
+            let c = api(Arc::new(Mutex::new(world)));
+            let plan = build_plan(
+                &c,
+                "CHN-123",
+                &args(
+                    "project-task",
+                    "remove",
+                    Some("ACME-1"),
+                    None,
+                    Some("ACME"),
+                    None,
+                ),
+            )
+            .unwrap();
+            assert_eq!(
+                plan.payload_json,
+                r#"{"activity_data": {"key": "ACME-1", "name": "Acme title"}, "issue_id": "ACME-1", "placeholder": {"projectId": "ACME", "resourceId": "123", "resourceType": "Change"}}"#
+            );
+            assert_eq!(plan.hash(), hash, "{name}");
+        }
+    }
+
+    /// A decoded `--project-json` that is not an object stays in the intent:
+    /// project remove does not read it, but its plan hash does (hashes from
+    /// `build_plan(..., project=[1])` and `{"a": 1}` runs).
+    #[test]
+    fn project_value_of_any_shape_is_hashed() {
+        for (project, hash) in [
+            (
+                json!([1]),
+                "7b0e130627ffcf9c5a570ea616b2c2c2bde6ddaf6ad53c111d722e92f6186dc5",
+            ),
+            (
+                json!({"a": 1}),
+                "606e2935d6444aae21b6eee819759d5634b241724f420c109d2e977bf0678e58",
+            ),
+        ] {
+            let c = api(Arc::new(Mutex::new(seed("project", "remove"))));
+            let plan = build_plan(
+                &c,
+                "CHN-123",
+                &args(
+                    "project",
+                    "remove",
+                    Some("ACME"),
+                    Some(&project),
+                    None,
+                    None,
+                ),
+            )
+            .unwrap();
+            assert_eq!(plan.hash(), hash, "{project}");
+        }
+        let c = api(Arc::new(Mutex::new(seed("release", "add"))));
+        let err = build_plan(
+            &c,
+            "CHN-123",
+            &args("release", "add", Some("71"), Some(&json!([1])), None, None),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "project options do not apply to this relationship"
+        );
+    }
+
+    /// The single-page check is Python `==` (`1.0`, `True` pass it); the
+    /// shared inventory reader then refuses them (`inventory` runs).
+    #[test]
+    fn project_page_meta_compares_as_python() {
+        let single = "complete single-page linked project inventory unavailable";
+        let mutation = "complete, consistent mutation inventory unavailable";
+        for (meta, want) in [
+            (
+                json!({"page": 1.0, "total": 1, "total_pages": 1.0}),
+                mutation,
+            ),
+            (
+                json!({"page": true, "total": 1, "total_pages": true}),
+                mutation,
+            ),
+            (
+                json!({"page": 1, "total": 1, "total_pages": false}),
+                mutation,
+            ),
+            (json!({"page": 1, "total": 1.0, "total_pages": 1}), single),
+            (json!({"page": 1, "total": true, "total_pages": 1}), single),
+        ] {
+            let body = json!({"status": 200, "body": {"projects": [{"id": 81, "key": "ACME"}], "meta": meta}});
+            let c = FnApi::new(move |_: &Call| Ok(body.clone()));
+            let err = inventory(&c, 123, "project").unwrap_err();
+            assert_eq!(err.to_string(), want, "{meta}");
+        }
+    }
+
+    /// `matches = [...] if item else []`: an empty `--item` matches no row,
+    /// even one whose key is empty.
+    #[test]
+    fn empty_item_matches_no_project() {
+        let mut world = seed("project", "remove");
+        world.rows.insert(
+            "project".into(),
+            vec![json!({"id": 81, "key": "", "name": "Acme project", "project_id": 81})],
+        );
+        let c = api(Arc::new(Mutex::new(world)));
+        let err = build_plan(
+            &c,
+            "CHN-123",
+            &args("project", "remove", Some(""), None, None, None),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "exact linked project/task identity unavailable"
+        );
     }
 
     #[test]

@@ -317,13 +317,18 @@ pub fn resolve_group(c: &Client, value: &str) -> Result<String> {
 
 /// `int(text)` of a resolved id.
 pub fn int_id(text: &str) -> Value {
-    if is_digits(text)
-        && let Some(n) = pystr::parse_decimal(text)
-    {
-        return json!(n);
-    }
-    text.parse::<i64>()
-        .map_or_else(|_| json!(text), |n| json!(n))
+    pystr::int_json(text).unwrap_or_else(|| json!(text))
+}
+
+/// `int(raw)` of a `str.isdigit()` value: Python's `ValueError` text for a
+/// digit `int()` rejects (`²`).
+pub(crate) fn int_literal(raw: &str) -> Result<Value> {
+    pystr::int_json(raw).ok_or_else(|| {
+        Error::value(format!(
+            "invalid literal for int() with base 10: {}",
+            repr(raw)
+        ))
+    })
 }
 
 /// `_resolve_lookup_user`.
@@ -477,11 +482,11 @@ pub(crate) fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Valu
         .cloned()
         .unwrap_or_default();
     if choices.is_empty() {
-        return Ok(if is_digits(raw) {
-            int_id(raw)
+        return if pystr::is_digit(raw) {
+            int_literal(raw)
         } else {
-            json!(raw)
-        });
+            Ok(json!(raw))
+        };
     }
     let folded = pystr::casefold(raw);
     let get_or = |c: &Value, k: &str, d: Value| c.get(k).cloned().unwrap_or(d);
@@ -682,6 +687,25 @@ mod tests {
         assert_eq!(int_id("12"), json!(12));
         assert_eq!(int_id("²"), json!("²"));
         assert_eq!(int_id("-3"), json!(-3));
+        assert_eq!(
+            fsv_py::py_str(&int_id("99999999999999999999999")),
+            "99999999999999999999999"
+        );
+    }
+
+    /// `_choice_value` with no choices: `int(raw) if raw.isdigit()`, so a
+    /// superscript digit is Python's `ValueError`.
+    #[test]
+    fn choice_value_without_choices_is_python_int() {
+        let f = json!({"name": "x"});
+        assert_eq!(choice_value(&f, "\u{661}", "default").unwrap(), json!(1));
+        assert_eq!(choice_value(&f, "x1", "default").unwrap(), json!("x1"));
+        assert_eq!(
+            choice_value(&f, "\u{b2}", "default")
+                .unwrap_err()
+                .to_string(),
+            "invalid literal for int() with base 10: '\u{b2}'"
+        );
     }
 
     /// `int(rows[0]["id"])` in `_resolve_lookup_user`: a bad id raises

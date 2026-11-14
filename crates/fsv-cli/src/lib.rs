@@ -8,6 +8,7 @@ mod lazy;
 mod lookup;
 #[cfg(debug_assertions)]
 mod mock;
+mod pyint;
 mod schema;
 #[cfg(test)]
 mod testkit;

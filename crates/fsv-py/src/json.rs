@@ -148,10 +148,10 @@ fn write_number(out: &mut String, n: &serde_json::Number) {
         let _ = write!(out, "{i}");
     } else if let Some(u) = n.as_u64() {
         let _ = write!(out, "{u}");
-    } else if let Some(f) = n.as_f64() {
-        out.push_str(&float_repr(f));
+    } else if let Some(big) = crate::big_int(n) {
+        out.push_str(&big);
     } else {
-        out.push_str(&n.to_string());
+        out.push_str(&float_repr(crate::value::number_f64(n)));
     }
 }
 
@@ -186,6 +186,23 @@ pub(crate) fn write_str(out: &mut String, s: &str, ensure_ascii: bool) {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// Python `json.dumps(json.loads(t))`, `repr` and `bool` of the same text.
+    #[test]
+    fn parsed_numbers_dump_as_python() {
+        let t =
+            "[99999999999999999999999, -99999999999999999999999, 1E400, -1e400, 1.50, 1e5, 0.1]";
+        let v: Value = serde_json::from_str(t).unwrap();
+        assert_eq!(
+            dumps(&v, &Dumps::default()),
+            "[99999999999999999999999, -99999999999999999999999, Infinity, -Infinity, 1.5, 100000.0, 0.1]"
+        );
+        assert_eq!(
+            crate::py_repr(&v),
+            "[99999999999999999999999, -99999999999999999999999, inf, -inf, 1.5, 100000.0, 0.1]"
+        );
+        assert!(v.as_array().unwrap().iter().all(crate::truthy));
+    }
 
     #[test]
     fn default_separators_and_ascii() {

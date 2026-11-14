@@ -27,7 +27,8 @@ pub struct SearchArgs {
         short = 'p',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 1
+        default_value_t = 1,
+        value_parser = crate::pyint::INT
     )]
     pub page: i64,
     #[arg(
@@ -54,7 +55,8 @@ pub struct SearchArgs {
         long = "npages",
         short = 'N',
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub n_pages: Option<i64>,
     #[arg(help = "fetch all pages (auto-paginate)", long = "all", short = 'a')]
@@ -144,7 +146,7 @@ pub struct AssetsSearchArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(long = "json")]
@@ -185,7 +187,8 @@ pub struct SolutionsDeleteForeverArgs {
         help = "bound, 1 to 50; required for more than one ID",
         long = "max-records",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub max_records: Option<i64>,
     #[arg(help = "review the exact targets; nothing is sent", long = "dry-run")]
@@ -368,7 +371,8 @@ pub struct JournalLsArgs {
         short = 'n',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 0
+        default_value_t = 0,
+        value_parser = crate::pyint::INT
     )]
     pub limit: i64,
     #[arg(help = "only failed writes", long = "failed")]
@@ -386,7 +390,8 @@ pub struct JournalTailArgs {
         short = 'n',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 10
+        default_value_t = 10,
+        value_parser = crate::pyint::INT
     )]
     pub limit: i64,
     #[arg(help = "one JSON object per line", long = "json")]
@@ -434,7 +439,8 @@ pub struct ResLsArgs {
         short = 'n',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 30
+        default_value_t = 30,
+        value_parser = crate::pyint::INT
     )]
     pub per_page: i64,
     #[arg(
@@ -442,7 +448,8 @@ pub struct ResLsArgs {
         short = 'p',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 1
+        default_value_t = 1,
+        value_parser = crate::pyint::INT
     )]
     pub page: i64,
     #[arg(
@@ -467,7 +474,8 @@ pub struct ResLsArgs {
         long = "npages",
         short = 'N',
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub n_pages: Option<i64>,
     #[arg(
@@ -548,7 +556,8 @@ pub struct ResActivityArgs {
         short = 'l',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 20
+        default_value_t = 20,
+        value_parser = crate::pyint::INT
     )]
     pub limit: i64,
     #[arg(help = "every loaded entry (overrides --limit)", long = "all")]
@@ -788,7 +797,7 @@ pub struct ChangesApprovalRequestArgs {
 pub struct ChangesApprovalRemindArgs {
     #[arg(value_name = "CHANGE_ID")]
     pub id_: String,
-    #[arg(value_name = "APPROVAL_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "APPROVAL_ID", value_parser = crate::pyint::POSITIVE)]
     pub approval_id: i64,
     #[arg(
         help = "approval model: auto, chains or legacy",
@@ -886,7 +895,7 @@ pub struct ChangesDeleteArgs {
 pub struct ChangesTasksUpdateArgs {
     #[arg(value_name = "CHANGE_ID")]
     pub id_: String,
-    #[arg(value_name = "TASK_ID")]
+    #[arg(value_name = "TASK_ID", value_parser = crate::pyint::INT)]
     pub task_id: i64,
     #[arg(
         help = "Open/Completed or status ID",
@@ -1001,7 +1010,7 @@ pub struct ChangesTasksUpdateArgs {
 pub struct ChangesTasksDeleteArgs {
     #[arg(value_name = "CHANGE_ID")]
     pub id_: String,
-    #[arg(value_name = "TASK_ID")]
+    #[arg(value_name = "TASK_ID", value_parser = crate::pyint::INT)]
     pub task_id: i64,
     #[arg(help = "print target without deleting", long = "dry-run")]
     pub dry_run: bool,
@@ -1063,7 +1072,7 @@ pub struct ChangesCiAddArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -1094,7 +1103,7 @@ pub struct ChangesCiRemoveArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -1189,14 +1198,14 @@ pub struct ChangesAssetPickerArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(
         help = "exact display ID from this page, not internal ID",
         long = "select",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub select: Option<i64>,
     #[arg(
@@ -1342,7 +1351,8 @@ pub struct ResSearchArgs {
         short = 'p',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 1
+        default_value_t = 1,
+        value_parser = crate::pyint::INT
     )]
     pub page: i64,
     #[arg(
@@ -1369,7 +1379,8 @@ pub struct ResSearchArgs {
         long = "npages",
         short = 'N',
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub n_pages: Option<i64>,
     #[arg(help = "fetch all pages (auto-paginate)", long = "all", short = 'a')]
@@ -1618,7 +1629,7 @@ pub struct ChangesCreateArgs {
         help = "integrated Device inventory ID (repeatable)",
         long = "device",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub device: Vec<i64>,
     #[arg(
@@ -1667,7 +1678,7 @@ pub struct ChangesCreateArgs {
         help = "total byte limit for reviewed before-create uploads",
         long = "max-bytes",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub max_bytes: Option<i64>,
     #[arg(
@@ -1792,7 +1803,8 @@ pub struct ResNotesArgs {
         short = 'p',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 1
+        default_value_t = 1,
+        value_parser = crate::pyint::INT
     )]
     pub page: i64,
     #[arg(
@@ -1800,7 +1812,8 @@ pub struct ResNotesArgs {
         short = 'n',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 30
+        default_value_t = 30,
+        value_parser = crate::pyint::INT
     )]
     pub per_page: i64,
     #[arg(
@@ -1821,7 +1834,8 @@ pub struct ResNotesArgs {
         long = "npages",
         short = 'N',
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub n_pages: Option<i64>,
 }
@@ -1918,7 +1932,8 @@ pub struct ChangesTimeWriteArgs {
         help = "exact existing entry ID for update/delete",
         long = "entry",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub entry: Option<i64>,
     #[arg(
@@ -1943,7 +1958,11 @@ pub struct ChangesTimeWriteArgs {
         overrides_with = "non_billable"
     )]
     pub billable: bool,
-    #[arg(long = "non-billable", alias = "no-billable", overrides_with = "billable")]
+    #[arg(
+        long = "non-billable",
+        alias = "no-billable",
+        overrides_with = "billable"
+    )]
     pub non_billable: bool,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -1969,7 +1988,7 @@ pub struct ChangesTimeWriteArgs {
 pub struct ChangesTimeUpdateArgs {
     #[arg(value_name = "ID")]
     pub id_: String,
-    #[arg(value_name = "ENTRY_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "ENTRY_ID", value_parser = crate::pyint::POSITIVE)]
     pub entry: i64,
     #[arg(
         help = "manual duration HH:MM",
@@ -2058,7 +2077,7 @@ pub struct ChangesWindowsCreateArgs {
 // fsv changes windows delete
 #[derive(Args, Debug, Clone)]
 pub struct ChangesWindowsDeleteArgs {
-    #[arg(value_name = "WINDOW_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "WINDOW_ID", value_parser = crate::pyint::POSITIVE)]
     pub ident: i64,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -2289,7 +2308,7 @@ pub struct ChangesAssetsCandidatesArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(long = "json")]
@@ -2316,7 +2335,7 @@ pub struct ChangesAssetsAddArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -2347,7 +2366,7 @@ pub struct ChangesAssetsRemoveArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -2385,7 +2404,7 @@ pub struct ChangesAssetsSearchArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(long = "json")]
@@ -2461,7 +2480,7 @@ pub struct ChangesPrivateViewsListArgs {
 // fsv changes private-views show
 #[derive(Args, Debug, Clone)]
 pub struct ChangesPrivateViewsShowArgs {
-    #[arg(value_name = "ID_", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "ID_", value_parser = crate::pyint::POSITIVE)]
     pub id_: i64,
     #[arg(
         long = "output",
@@ -2478,7 +2497,7 @@ pub struct ChangesPrivateViewsShowArgs {
 // fsv changes private-views write
 #[derive(Args, Debug, Clone)]
 pub struct ChangesPrivateViewsWriteArgs {
-    #[arg(value_name = "SOURCE_VIEW", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "SOURCE_VIEW", value_parser = crate::pyint::POSITIVE)]
     pub id_: i64,
     #[arg(
         help = "create (clone source); rename/delete are not captured for change views",
@@ -2828,7 +2847,8 @@ pub struct TicketsBulkArgs {
         help = "Required filtered-write bound, 1 to 50.",
         long = "max-records",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub max_records: Option<i64>,
     #[arg(long = "status", allow_hyphen_values = true, value_name = "TEXT")]
@@ -2900,7 +2920,8 @@ pub struct TicketsDeleteForeverArgs {
         help = "required bound, 1 to 50",
         long = "max-records",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub max_records: Option<i64>,
     #[arg(long = "confirm-destructive")]
@@ -3003,7 +3024,7 @@ pub struct TicketsAddNoteArgs {
         help = "explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
         long = "max-bytes",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub max_bytes: Option<i64>,
     #[arg(
@@ -3048,7 +3069,7 @@ pub struct TicketsCreateArgs {
         help = "integrated Device inventory ID (repeatable)",
         long = "device",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub device: Vec<i64>,
     #[arg(
@@ -3106,7 +3127,7 @@ pub struct TicketsCreateArgs {
         help = "explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
         long = "max-bytes",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub max_bytes: Option<i64>,
     #[arg(help = "review and show the payload without sending", long = "dry-run")]
@@ -3325,7 +3346,8 @@ pub struct TicketsConversationsArgs {
         short = 'p',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 1
+        default_value_t = 1,
+        value_parser = crate::pyint::INT
     )]
     pub page: i64,
     #[arg(
@@ -3333,7 +3355,8 @@ pub struct TicketsConversationsArgs {
         short = 'n',
         allow_hyphen_values = true,
         value_name = "INTEGER",
-        default_value_t = 30
+        default_value_t = 30,
+        value_parser = crate::pyint::INT
     )]
     pub per_page: i64,
     #[arg(
@@ -3354,7 +3377,8 @@ pub struct TicketsConversationsArgs {
         long = "npages",
         short = 'N',
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub n_pages: Option<i64>,
 }
@@ -3398,7 +3422,7 @@ pub struct TicketsReplyArgs {
         help = "explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
         long = "max-bytes",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub max_bytes: Option<i64>,
     #[arg(long = "json")]
@@ -3448,7 +3472,7 @@ pub struct TicketsForwardArgs {
         help = "exact source conversation ID in this ticket",
         long = "conversation",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub conversation: Option<i64>,
     #[arg(
@@ -3541,7 +3565,7 @@ pub struct TicketsAssetsCandidatesArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(long = "json")]
@@ -3557,7 +3581,7 @@ pub struct TicketsAssetsAddArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -3588,7 +3612,7 @@ pub struct TicketsAssetsRemoveArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -3726,7 +3750,7 @@ pub struct TicketsPrivateViewsListArgs {
 // fsv tickets private-views show, fsv tickets canned show, fsv tickets scenarios show
 #[derive(Args, Debug, Clone)]
 pub struct PositiveIdArgs {
-    #[arg(value_name = "ID_", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "ID_", value_parser = crate::pyint::POSITIVE)]
     pub id_: i64,
     #[arg(
         long = "output",
@@ -3743,7 +3767,7 @@ pub struct PositiveIdArgs {
 // fsv tickets private-views write
 #[derive(Args, Debug, Clone)]
 pub struct TicketsPrivateViewsWriteArgs {
-    #[arg(value_name = "SOURCE_VIEW", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "SOURCE_VIEW", value_parser = crate::pyint::POSITIVE)]
     pub id_: i64,
     #[arg(
         help = "create (clone source) | rename | delete",
@@ -3776,7 +3800,7 @@ pub struct TicketsCannedListArgs {
     #[arg(
         long = "folder",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub folder: i64,
     #[arg(
@@ -3799,7 +3823,7 @@ pub struct TicketsCannedReplyArgs {
     #[arg(
         long = "response",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub response: i64,
     #[arg(
@@ -3842,7 +3866,7 @@ pub struct TicketsScenariosApplyArgs {
     #[arg(
         long = "scenario",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub scenario_id: i64,
     #[arg(long = "dry-run")]
@@ -3874,7 +3898,8 @@ pub struct TicketsTimeWriteArgs {
         help = "exact existing entry ID for update/delete",
         long = "entry",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub entry: Option<i64>,
     #[arg(
@@ -4165,14 +4190,14 @@ pub struct TicketsTrashListArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(
         long = "per-page",
         value_name = "INTEGER RANGE",
         default_value_t = 30,
-        value_parser = clap::value_parser!(i64).range(1..=100)
+        value_parser = crate::pyint::PER_PAGE
     )]
     pub per_page: i64,
     #[arg(long = "json")]
@@ -4184,7 +4209,7 @@ pub struct TicketsTrashListArgs {
 pub struct ProblemsTaskWriteArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
-    #[arg(value_name = "TASK")]
+    #[arg(value_name = "TASK", value_parser = crate::pyint::INT)]
     pub task: i64,
     #[arg(value_name = "ACTION")]
     pub action: String,
@@ -4289,7 +4314,8 @@ pub struct ProblemsDeleteForeverArgs {
         help = "bound, 1 to 50; required for more than one ID",
         long = "max-records",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub max_records: Option<i64>,
     #[arg(help = "review the exact targets; nothing is sent", long = "dry-run")]
@@ -4375,7 +4401,7 @@ pub struct ProblemsNoteArgs {
         help = "explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
         long = "max-bytes",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub max_bytes: Option<i64>,
     #[arg(long = "dry-run")]
@@ -4479,7 +4505,7 @@ pub struct ProblemsWriteChildArgs {
 pub struct ProblemsLinkSolutionArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
-    #[arg(value_name = "ARTICLE", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "ARTICLE", value_parser = crate::pyint::POSITIVE)]
     pub article: i64,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -4498,7 +4524,7 @@ pub struct ProblemsLinkSolutionArgs {
 pub struct ProblemsUnlinkSolutionArgs {
     #[arg(value_name = "TARGET")]
     pub target: String,
-    #[arg(value_name = "ARTICLE", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "ARTICLE", value_parser = crate::pyint::POSITIVE)]
     pub article: i64,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -4592,7 +4618,7 @@ pub struct ProblemsAssetsCandidatesArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(long = "json")]
@@ -4608,7 +4634,7 @@ pub struct ProblemsAssetsAddArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -4639,7 +4665,7 @@ pub struct ProblemsAssetsRemoveArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -4690,7 +4716,8 @@ pub struct ProblemsTimeWriteArgs {
         help = "exact existing entry ID for update/delete",
         long = "entry",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub entry: Option<i64>,
     #[arg(
@@ -4715,7 +4742,11 @@ pub struct ProblemsTimeWriteArgs {
         overrides_with = "non_billable"
     )]
     pub billable: bool,
-    #[arg(long = "non-billable", alias = "no-billable", overrides_with = "billable")]
+    #[arg(
+        long = "non-billable",
+        alias = "no-billable",
+        overrides_with = "billable"
+    )]
     pub non_billable: bool,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
@@ -4741,7 +4772,7 @@ pub struct ProblemsTimeWriteArgs {
 pub struct ProblemsTimeUpdateArgs {
     #[arg(value_name = "ID")]
     pub id_: String,
-    #[arg(value_name = "ENTRY_ID", value_parser = clap::value_parser!(i64).range(1..))]
+    #[arg(value_name = "ENTRY_ID", value_parser = crate::pyint::POSITIVE)]
     pub entry: i64,
     #[arg(
         help = "manual duration HH:MM",
@@ -4778,7 +4809,8 @@ pub struct AttachmentsDeleteArgs {
         help = "exact conversation/note ID",
         long = "child",
         allow_hyphen_values = true,
-        value_name = "INTEGER"
+        value_name = "INTEGER",
+        value_parser = crate::pyint::INT
     )]
     pub child: Option<i64>,
     #[arg(
@@ -5170,7 +5202,7 @@ pub struct SrAssetsCandidatesArgs {
         long = "page",
         value_name = "INTEGER RANGE",
         default_value_t = 1,
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
     #[arg(long = "json")]
@@ -5186,7 +5218,7 @@ pub struct SrAssetsAddArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -5217,7 +5249,7 @@ pub struct SrAssetsRemoveArgs {
         value_name = "IDS",
         num_args = 1..,
         required = true,
-        value_parser = clap::value_parser!(i64)
+        value_parser = crate::pyint::INT
     )]
     pub ids: Vec<i64>,
     #[arg(
@@ -5301,7 +5333,7 @@ pub struct SrApprovalsApproveArgs {
     #[arg(
         help = "approval ID; cancel requires group ID",
         value_name = "IDENT",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub ident: i64,
     #[arg(
@@ -5331,7 +5363,7 @@ pub struct SrApprovalsRejectArgs {
     #[arg(
         help = "approval ID; cancel requires group ID",
         value_name = "IDENT",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub ident: i64,
     #[arg(
@@ -5361,7 +5393,7 @@ pub struct SrApprovalsCancelArgs {
     #[arg(
         help = "approval ID; cancel requires group ID",
         value_name = "IDENT",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub ident: i64,
     #[arg(
@@ -5391,7 +5423,7 @@ pub struct SrApprovalsRemindArgs {
     #[arg(
         help = "approval ID; cancel requires group ID",
         value_name = "IDENT",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub ident: i64,
     #[arg(
@@ -5432,7 +5464,7 @@ pub struct SrItemsWriteArgs {
     #[arg(
         long = "item",
         value_name = "INTEGER RANGE",
-        value_parser = clap::value_parser!(i64).range(1..)
+        value_parser = crate::pyint::POSITIVE
     )]
     pub item: Option<i64>,
     #[arg(long = "catalog-item", allow_hyphen_values = true, value_name = "TEXT")]
@@ -5444,7 +5476,7 @@ pub struct SrItemsWriteArgs {
         value_name = "TEXT"
     )]
     pub answers: Option<String>,
-    #[arg(long = "stage", allow_hyphen_values = true, value_name = "INTEGER")]
+    #[arg(long = "stage", allow_hyphen_values = true, value_name = "INTEGER", value_parser = crate::pyint::INT)]
     pub stage: Option<i64>,
     #[arg(long = "dry-run")]
     pub dry_run: bool,

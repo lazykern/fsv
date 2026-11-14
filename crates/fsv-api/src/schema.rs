@@ -99,11 +99,12 @@ pub fn display_label(
         .and_then(|s| field(field_name, s));
     let choices = f
         .and_then(|f| f.get("choices"))
-        .filter(|c| fsv_py::truthy(c))
-        .and_then(Value::as_array);
+        .filter(|c| fsv_py::truthy(c));
     if let Some(choices) = choices {
+        // A dict or string iterates keys or characters: none is a choice row.
+        let rows = choices.as_array().map_or(&[][..], Vec::as_slice);
         let want = fsv_py::py_str(val);
-        for c in choices.iter().filter_map(Value::as_object) {
+        for c in rows.iter().filter_map(Value::as_object) {
             let id = c
                 .get("id")
                 .map_or_else(|| "None".to_string(), fsv_py::py_str);
@@ -937,6 +938,25 @@ mod load_tests {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `schema.display_label("priority", 1, sch)` on choices of each shape:
+    /// a dict or string iterates keys or characters, so the value is shown.
+    #[test]
+    fn display_label_non_list_choices_show_the_value() {
+        for (choices, want) in [
+            (json!({"1": "Hi"}), "1"),
+            (json!("abc"), "1"),
+            (json!([{"id": 1, "value": "Hi"}]), "Hi"),
+            (json!([]), "Low"),
+        ] {
+            let sch = json!({"fields": [{"name": "priority", "choices": choices}]});
+            assert_eq!(
+                display_label("priority", Some(&json!(1)), Some(&sch), "-"),
+                want,
+                "{choices}"
+            );
+        }
+    }
     use serde_json::json;
 
     /// `saved_at` strings `NOW<offset>` in the oracle stand for `time.time() + offset`.

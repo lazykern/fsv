@@ -21,7 +21,7 @@ fsv-completion = { path = "crates/fsv-completion" }
 fsv-app = { path = "crates/fsv-app" }
 
 serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 indexmap = { version = "2", features = ["serde"] }
 thiserror = "2"
 regex = "1"

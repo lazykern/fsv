@@ -31,8 +31,10 @@ fn write_repr(out: &mut String, value: &Value) {
                 let _ = write!(out, "{i}");
             } else if let Some(u) = n.as_u64() {
                 let _ = write!(out, "{u}");
+            } else if let Some(big) = crate::big_int(n) {
+                out.push_str(&big);
             } else {
-                out.push_str(&float_repr_py(n.as_f64().unwrap_or(f64::NAN)));
+                out.push_str(&float_repr_py(crate::value::number_f64(n)));
             }
         }
         Value::String(s) => out.push_str(&py_repr_str(s)),
