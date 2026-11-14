@@ -24,7 +24,10 @@ fn deletes_without_session_exit_3_before_any_check() {
         let r = env.run(args);
         assert_eq!(r.code, 3, "{args:?}: {}", r.err);
         assert_eq!(r.out, "", "{args:?}");
-        assert_eq!(r.err, "error: no session; run `fsv auth login`\n", "{args:?}");
+        assert_eq!(
+            r.err, "error: no session; run `fsv auth login`\n",
+            "{args:?}"
+        );
         assert!(r.requests.is_empty(), "{args:?}");
     }
 }
@@ -33,7 +36,9 @@ fn deletes_without_session_exit_3_before_any_check() {
 fn bulk_set_is_parsed_before_the_session() {
     let mut env = Env::new(vec![]);
     env.session = false;
-    let r = env.run(&["tickets", "bulk", "status", "5", "--set", "bad", "--status", "Open"]);
+    let r = env.run(&[
+        "tickets", "bulk", "status", "5", "--set", "bad", "--status", "Open",
+    ]);
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n");
 }
@@ -109,7 +114,14 @@ const BULK_WHERE_OUT: &str = r#"{
 fn bulk_where_resolves_agent_names_and_caches_the_schema() {
     let env = Env::new(bulk_where_routes());
     let args = [
-        "tickets", "bulk", "spam", "--where", "agent=Jane", "--select-all", "--max-records", "5",
+        "tickets",
+        "bulk",
+        "spam",
+        "--where",
+        "agent=Jane",
+        "--select-all",
+        "--max-records",
+        "5",
         "--dry-run",
     ];
     let query = "/api/_/tickets?query_hash=%5B%7B%22value%22%3A%5B%2277%22%5D%2C%22condition%22%3A%22responder_id%22%2C%22operator%22%3A%22is_in%22%2C%22type%22%3A%22default%22%7D%5D&page=1&per_page=100";

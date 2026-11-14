@@ -175,8 +175,14 @@ pub fn selection_with(
             c,
             failure: Default::default(),
         };
-        let built =
-            crate::query::build_query_hash(Some(&dir), "tickets", Some(&schema), where_, None, false);
+        let built = crate::query::build_query_hash(
+            Some(&dir),
+            "tickets",
+            Some(&schema),
+            where_,
+            None,
+            false,
+        );
         let (query, clauses, _) = built.map_err(|e| match dir.failure.take() {
             Some(api) if api.to_string() == e.0 => api,
             _ => Error::value(e.0),
