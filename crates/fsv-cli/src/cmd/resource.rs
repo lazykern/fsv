@@ -1418,10 +1418,11 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
 
 /// `_problem_planning_update`: one reviewed PUT of only the planned keys.
 fn problem_planning_update(a: &ResUpdateArgs) -> CmdResult {
-    let others = a.status.is_some()
-        || a.priority.is_some()
-        || a.agent_id.is_some()
-        || a.group_id.is_some()
+    let given = |o: &Option<String>| o.as_deref().is_some_and(|s| !s.is_empty());
+    let others = given(&a.status)
+        || given(&a.priority)
+        || given(&a.agent_id)
+        || given(&a.group_id)
         || !a.set_.is_empty()
         || !a.tag.is_empty()
         || a.reviewed;

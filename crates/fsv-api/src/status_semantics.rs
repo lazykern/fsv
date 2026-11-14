@@ -123,13 +123,16 @@ impl StatusChoice for Value {
             .is_none_or(|v| v != &Value::Bool(false))
     }
     fn shown(&self) -> String {
-        let m = self.as_object();
-        let get = |k: &str| m.and_then(|m| m.get(k)).filter(|v| fsv_py::truthy(v));
+        // A non-dict choice has no label/value/id attributes: `str("")`.
+        let Some(m) = self.as_object() else {
+            return String::new();
+        };
+        let get = |k: &str| m.get(k).filter(|v| fsv_py::truthy(v));
         get("value")
             .or_else(|| get("label"))
             .or_else(|| get("name"))
             .map_or_else(
-                || fsv_py::py_str(m.and_then(|m| m.get("id")).unwrap_or(&Value::Null)),
+                || fsv_py::py_str(m.get("id").unwrap_or(&Value::Null)),
                 fsv_py::py_str,
             )
     }
@@ -158,7 +161,7 @@ impl StatusChoice for fsv_forms::Choice {
         } else if !self.value.is_empty() {
             self.value.clone()
         } else {
-            self.id.as_ref().map(fsv_py::py_str).unwrap_or_default()
+            fsv_py::py_str(self.id.as_ref().unwrap_or(&Value::Null))
         }
     }
     fn texts(&self) -> [String; 2] {
@@ -298,9 +301,10 @@ pub fn select<'c, T: StatusChoice>(
         return find(&pool, module, role);
     }
     let shown: Vec<String> = pool.iter().take(12).map(|c| c.shown()).collect();
+    let shown = shown.join(", ");
     let mut msg = format!("status {} is not a runtime status label", py_repr_str(text));
     if !shown.is_empty() {
-        msg.push_str(&format!("; choices: {}", shown.join(", ")));
+        msg.push_str(&format!("; choices: {shown}"));
     }
     Err(SemanticsError(msg))
 }

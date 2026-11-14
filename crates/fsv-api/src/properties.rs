@@ -15,7 +15,7 @@ use fsv_py::py_str;
 use crate::formmeta::{
     MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status,
 };
-use crate::readback::{same_instant, same_tags};
+use crate::readback::{py_equal, same_instant, same_tags};
 use crate::service::{
     Api, Journal, definite_rejection, last_event, obj, plan_hash, snapshot_hash, stable_snapshot,
 };
@@ -646,8 +646,8 @@ pub fn send_with(
                     .as_object()
                     .into_iter()
                     .flatten()
-                    .all(|(k, v)| actual.get(k) == Some(v)),
-                Some(actual) => actual == expected,
+                    .all(|(k, v)| actual.get(k).is_some_and(|a| py_equal(a, v))),
+                Some(actual) => py_equal(actual, expected),
             };
             fields.insert(
                 key.clone(),

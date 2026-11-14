@@ -122,3 +122,27 @@ fn select_find_and_role_of() {
     let hidden = vec![json!({"id": 5, "value": "Closed", "visible": false})];
     assert!(select(&refs(&hidden), "ticket", Wanted::Role(Role::Closed)).is_err());
 }
+
+/// `_label` of a choice with no text (Python 31a9103): a form choice with
+/// no id shows `None`; a non-dict JSON choice shows nothing.
+#[test]
+fn label_of_empty_choices_matches_python() {
+    let blank = fsv_forms::Choice {
+        value: String::new(),
+        label: String::new(),
+        id: None,
+        display_id: None,
+        description: String::new(),
+        visible: true,
+        children: Vec::new(),
+    };
+    assert_eq!(
+        select(&[&blank], "ticket", "Nope".into()).unwrap_err().0,
+        "status 'Nope' is not a runtime status label; choices: None"
+    );
+    let text = json!("x");
+    assert_eq!(
+        select(&[&text], "ticket", "Nope".into()).unwrap_err().0,
+        "status 'Nope' is not a runtime status label"
+    );
+}

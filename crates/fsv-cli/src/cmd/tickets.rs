@@ -454,13 +454,13 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         }
         confirm_public = true;
     }
-    let c = crate::util::shared_client()?;
+    let c = crate::lazy::LazyApi::default();
     let opts = SendOpts {
         reviewed_hash: Some(&hash),
         read_only: false,
         dry_run: false,
     };
-    let result = notes::send(&plan, c.as_ref(), &DiskJournal, opts, confirm_public)?;
+    let result = notes::send(&plan, &c, &DiskJournal, opts, confirm_public)?;
     if a.json_out {
         println!("{}", pretty(&result));
     } else {
@@ -509,7 +509,10 @@ fn reply(a: TicketsReplyArgs) -> CmdResult {
 /// `tickets reply --attach`: one reviewed two-step reply, without
 /// recipients or a status change.
 fn reply_attached(a: &TicketsReplyArgs) -> Result<()> {
-    if !a.cc.is_empty() || !a.bcc.is_empty() || a.set_status.is_some() {
+    if !a.cc.is_empty()
+        || !a.bcc.is_empty()
+        || a.set_status.as_deref().is_some_and(|s| !s.is_empty())
+    {
         return Err(Error::exit(
             2,
             "combined attachment/recipient/status variant not proven",

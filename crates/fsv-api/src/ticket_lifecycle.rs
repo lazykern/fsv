@@ -16,7 +16,6 @@ use crate::formmeta::{
     MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status,
 };
 use crate::notes::{self, BodyFormat};
-use crate::properties::record;
 use crate::readback::{py_equal, resolution_text, same_text, submitted_value_matches};
 use crate::reviewed_write::refused;
 use crate::service::{Api, Journal, last_event, obj, plan_hash, replay_refusal, snapshot_hash};
@@ -61,6 +60,15 @@ fn next_step(plan: &LifecyclePlan) -> String {
     )
 }
 
+/// `ticket_properties._record`: its `PropertyError` is a `RuntimeError` no
+/// lifecycle caller catches (an uncaught error, exit 1).
+fn record(c: &dyn Api, cid: i64) -> Result<Map<String, Value>> {
+    crate::properties::record(c, cid).map_err(|e| match e {
+        Error::Exit { code: 2, message } => Error::Other(message),
+        other => other,
+    })
+}
+
 /// `_partial_report`: the explicit outcome of a failure between or after
 /// the two transition writes. Reads the ticket once more; a failed read
 /// reports the status as unavailable.
@@ -68,7 +76,7 @@ fn partial_report(c: &dyn Api, plan: &LifecyclePlan, phase: Phase, exc: &Error) 
     let row = record(c, plan.target).ok();
     let status = status_text(row.as_ref());
     let mut reason = match exc {
-        Error::Exit { message, .. } => message.clone(),
+        Error::Exit { code: 2, message } => message.clone(),
         _ => String::new(),
     };
     if let Some(api) = exc.as_api().filter(|a| (400..500).contains(&a.status)) {
@@ -266,9 +274,10 @@ pub fn context_ack<'a>(
             if raw.get("required_for_closure") == Some(&Value::Bool(true)) {
                 let name = raw.get("name").map_or(String::new(), fsv_py::py_str);
                 let Some(f) = spec.find(&name) else {
-                    let shown = ["name", "label"]
-                        .iter()
-                        .find_map(|k| raw.get(*k).filter(|v| fsv_py::truthy(v)))
+                    let shown = raw
+                        .get("name")
+                        .filter(|v| fsv_py::truthy(v))
+                        .or_else(|| raw.get("label"))
                         .map_or("None".to_string(), fsv_py::py_str);
                     return Err(refused(format!("unknown required fields: {shown}")));
                 };

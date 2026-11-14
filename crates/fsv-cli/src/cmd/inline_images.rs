@@ -36,7 +36,11 @@ fn finish(
 
 /// `tickets reply --inline-image`.
 pub(crate) fn reply(a: &TicketsReplyArgs) -> Result<()> {
-    if !a.attach.is_empty() || !a.cc.is_empty() || !a.bcc.is_empty() || a.set_status.is_some() {
+    if !a.attach.is_empty()
+        || !a.cc.is_empty()
+        || !a.bcc.is_empty()
+        || a.set_status.as_deref().is_some_and(|s| !s.is_empty())
+    {
         return Err(Error::exit(
             2,
             "--inline-image with --attach/--cc/--bcc/--set-status is not a captured combination; nothing was sent",

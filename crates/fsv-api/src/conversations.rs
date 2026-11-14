@@ -136,7 +136,7 @@ pub(crate) fn email_set(values: &Value) -> Option<BTreeSet<String>> {
     let mut out = BTreeSet::new();
     for value in list {
         let text = value.as_str()?;
-        let trimmed = text.trim();
+        let trimmed = fsv_core::pystr::strip(text);
         if !crate::recipients::valid_recipient(trimmed) {
             return None;
         }
@@ -769,7 +769,7 @@ pub fn send(
             } else {
                 match row.and_then(|r| r.get(k)) {
                     None => "unavailable",
-                    Some(got) if *got == v => "matched",
+                    Some(got) if py_equal(got, &v) => "matched",
                     Some(_) => "mismatched",
                 }
             };
@@ -1221,6 +1221,24 @@ mod tests {
             assert_eq!(c.writes().len(), 1);
             assert!(c.gets().contains(&"autocomplete/requesters".to_string()));
         }
+    }
+
+    /// Python `str.strip` whitespace (Python 31a9103 `_email_set`).
+    #[test]
+    fn email_set_strips_python_whitespace() {
+        let set = |v: &str| email_set(&json!([v])).map(|s| s.into_iter().collect::<Vec<_>>());
+        assert_eq!(
+            set("\x1cAnn@Acme.example\x1f"),
+            Some(vec!["ann@acme.example".to_string()])
+        );
+        assert_eq!(
+            set(" a@acme.example\u{3000}"),
+            Some(vec!["a@acme.example".to_string()])
+        );
+        assert_eq!(
+            set("\u{85}b@acme.example"),
+            Some(vec!["b@acme.example".to_string()])
+        );
     }
 
     /// `test_email_sets_allow_order_case_and_duplicates_but_not_invalid_data`

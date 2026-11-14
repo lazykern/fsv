@@ -32,6 +32,12 @@ pub fn active_choices_of(fields: &[Value], kind: &str) -> Result<Vec<Choice>, Qu
         )));
     }
     let mut result = Vec::new();
+    // Iterating a non-empty dict or string yields non-dict items.
+    match statuses[0].get("choices") {
+        Some(Value::Object(o)) if !o.is_empty() => return Err(err("invalid task-status choice")),
+        Some(Value::String(s)) if !s.is_empty() => return Err(err("invalid task-status choice")),
+        _ => {}
+    }
     for choice in statuses[0]
         .get("choices")
         .and_then(Value::as_array)
@@ -146,14 +152,7 @@ fn positive_id(value: &Value) -> Option<i64> {
 }
 
 fn truthy(value: Option<&Value>) -> bool {
-    match value {
-        None | Some(Value::Null | Value::Bool(false)) => false,
-        Some(Value::String(s)) => !s.is_empty(),
-        Some(Value::Number(n)) => n.as_i64().unwrap_or(1) != 0,
-        Some(Value::Array(a)) => !a.is_empty(),
-        Some(Value::Object(o)) => !o.is_empty(),
-        Some(Value::Bool(true)) => true,
-    }
+    value.is_some_and(fsv_py::truthy)
 }
 
 /// Python `str(value)`: `None`, `True` and floats keep Python's spelling.
@@ -214,6 +213,25 @@ mod tests {
         for choices in samples {
             let defs = vec![json!({"name": "status", "choices": choices})];
             assert!(resolve("Open", &defs).is_err(), "{defs:?}");
+        }
+    }
+
+    /// Python 31a9103 `active_choices` on float flags and non-list choices.
+    #[test]
+    fn float_flags_and_non_list_choices() {
+        let run = |choices: Value| {
+            active_choices(&[json!({"name": "status", "choices": choices})]).map_err(|e| e.0)
+        };
+        assert_eq!(
+            run(json!([{"id": 1, "value": "Open", "deleted": 0.0},
+                       {"id": 2, "value": "Done", "deleted": 0.5}])),
+            Ok(vec![(1, "Open".to_string())])
+        );
+        for bad in [json!({"a": 1}), json!("ab")] {
+            assert_eq!(run(bad), Err("invalid task-status choice".to_string()));
+        }
+        for empty in [json!({}), json!("")] {
+            assert_eq!(run(empty), Ok(vec![]));
         }
     }
 

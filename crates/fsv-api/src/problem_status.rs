@@ -121,10 +121,7 @@ fn remember_closure_rules(codes: &[&str]) {
         let _ = std::fs::create_dir_all(parent);
     }
     let list: Vec<&String> = known.iter().collect();
-    let _ = std::fs::write(
-        path,
-        serde_json::to_string(&json!({"codes": list})).unwrap_or_default(),
-    );
+    let _ = std::fs::write(path, fsv_py::Dumps::default().dump(&json!({"codes": list})));
 }
 
 /// Port of problem_status.closure_context. Missing analysis blocks. A
@@ -191,7 +188,7 @@ pub fn build_plan(
     to: &str,
     resolver: Option<Arc<dyn LookupResolver>>,
 ) -> Result<StatusPlan> {
-    let other = |e: fsv_forms::FormError| Error::other(e.to_string());
+    let other = crate::formmeta::form_err;
     let target = positive_id(&json!(parse_id(target, &PROBLEMS)?))?;
     let before = record(c, target)?;
     if !before.contains_key("status") {
