@@ -3614,6 +3614,18 @@ fn form_diff_python_equality_and_read_errors() {
             )
         )
     );
+    std::fs::write(path("crlf.json"), "{\r\n\"a\": 1,\r\n\"b\" 2}").unwrap();
+    let r = env.run(&["form", "diff", &path("crlf.json"), "--against", &path("t1.json")]);
+    assert_eq!(
+        (r.code, r.err),
+        (
+            2,
+            format!(
+                "error: cannot read snapshot {}: Expecting ':' delimiter: line 3 column 5 (char 14)\n",
+                path("crlf.json")
+            )
+        )
+    );
     let r = env.run(&["form", "diff", &path("adir"), "--against", &path("t1.json")]);
     assert_eq!(
         (r.code, r.err),

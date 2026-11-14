@@ -18,9 +18,13 @@ those stay identical.
 - Files are written with LF on every platform. Python on Windows writes CRLF.
 - YAML parse errors say `YAML error: …` but the line wording is not PyYAML's.
 - JSON numbers keep their parsed text (serde_json `arbitrary_precision`), so an
-  integer past 64 bits is sent exactly as Python's big int. A parsed float
-  re-serializes as written (`1.50`, `1e5`, `1E400`); Python writes `1.5`,
-  `100000.0`, `Infinity`.
+  integer past 64 bits round-trips as Python's big int. Wire bodies, query
+  parameters, `--json` output and hashes go through `fsv_py` (`1.50` → `1.5`,
+  `1e5` → `100000.0`, as Python). Only a plain `serde_json` print (the TUI
+  form's payload view) shows the parsed text. A value past `f64` (`1E400`)
+  is `Infinity` in the `query_hash` parameter, as Python; in `--json` output
+  and request bodies Rust also writes `Infinity` where Python refuses it
+  ("Out of range float values are not JSON compliant: inf").
 - Human terminal output matches content, order, wording and columns. Box
   glyphs, Rich number/URL highlighting and `:emoji:` substitution may differ.
 - Click prompt abort prints `Aborted!`. `_err_exc` prints `Aborted.`
@@ -411,7 +415,7 @@ No divergences from this pass.
 | `<res> lookup --refresh` (`d18bab9`), `form explain --id` on the module's own resource (`6797301`, changes and tickets) | `cmd::resource::lookup`, `cmd::form::explain` | ported; `read_cmds.rs` `lookup_refresh_refetches_schema`, `lookup_uses_cached_schema`, `form_explain_ticket_record`, `form_explain_change_display_id`. |
 | `views.current_user` | `cmd::resource::current_user` | ported, fetched once per run as Python caches it on the client (`requester=me` made a second `agents/me` call). |
 | `cli._complete_tab`, `_ctx_change_id`, `_complete_task_id`, `_asset_candidates`, `_complete_asset_category`, `_complete_asset_search_for_change`, `_complete_asset_id_for_change`, `_complete_associated_asset_for_change`, `_complete_task_status`, `_task_field_name_matches`, `_task_field_choice_pairs`, `_task_observed_value_pairs`, `_complete_task_custom_field`, `_complete_ticket_for_change` | none | n/a. Typer `autocompletion=` callbacks. fsv's generated scripts call `fsv._complete`, which dispatches only `fsv.completion` names, so Python never runs them. |
-| `gen_tree.py` (generator for `generated.rs`) | `tests/golden/gen_tree.py` | restored. `python3 crates/fsv-cli/tests/golden/gen_tree.py` rewrites `generated.rs` from `cli_tree.json` and `completion_tree.json` (`--check` exits 1 if stale); the former hand edits (shared structs, help patches, the `backup_replaced` value flag, hints) are rules in the script. |
+| `gen_tree.py` (generator for `generated.rs`) | none | removed with the vendored Python tree (`ecb2071`). `generated.rs` is hand-maintained; `tests/tree.rs` checks it against `cli_tree.json`. |
 
 CLI divergences:
 - A missing required argument or option prints Click's panel (`Missing option '--requester'.`, `app::missing_parameter` with the generated `CLICK_USAGE`). Other usage errors use clap's text. Exit code 2 matches Click. This includes a non-`json` `--output` on the reviewed commands (Click's rich choice panel; both exit 2 before any request).
