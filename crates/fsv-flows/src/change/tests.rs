@@ -899,6 +899,34 @@ fn default_resolver_looks_up_people() {
     );
 }
 
+/// `change_form_update.send`'s `rebuild` (Python 31a9103) reads the record
+/// before fresh metadata: with both changed, the record is named.
+#[test]
+fn form_update_recheck_names_the_record_first() {
+    let h = Hints::new();
+    let _cfg = config_guard(Some("acme.freshservice.com"));
+    let (p, g) = golden_update("subject", &h);
+    let send = |record_changed: bool, meta_changed: bool| {
+        let w = FakeWriter::default();
+        arm_change(&w, &p, g);
+        if record_changed {
+            w.change
+                .lock()
+                .unwrap()
+                .insert("subject".into(), json!("Acme changed"));
+        }
+        if meta_changed {
+            *w.fingerprint.lock().unwrap() = "other".into();
+        }
+        let err = execute(&p, &w, &MemJournal::default(), "skip", None).unwrap_err();
+        assert!(w.calls.lock().unwrap().is_empty());
+        err.to_string()
+    };
+    assert_eq!(send(true, true), "Change record changed since review");
+    assert_eq!(send(true, false), "Change record changed since review");
+    assert_eq!(send(false, true), "Change metadata changed since review");
+}
+
 #[test]
 fn disk_journal_and_editor_are_wired() {
     let _: &dyn Journal = &fsv_api::service::DiskJournal;

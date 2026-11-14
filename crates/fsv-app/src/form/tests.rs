@@ -238,9 +238,9 @@ fn edit_change_fetches_the_record_and_puts_the_diff() {
         [
             "GET /api/_/change_form_fields",
             "GET /api/_/ws/2/business_rules",
+            "GET /api/_/changes/77",
             "GET /api/_/change_form_fields",
             "GET /api/_/ws/2/business_rules",
-            "GET /api/_/changes/77",
             "PUT /api/_/changes/77",
             "GET /api/_/changes/77"
         ]

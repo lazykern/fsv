@@ -1615,21 +1615,17 @@ fn send_form_update(
     ) {
         return Err(flow_exit(2, &refusal));
     }
-    let fresh = writer.edit_fingerprint(&source.meta.module_id, &source.meta.record_workspace)?;
-    if fresh != source.meta.fingerprint().hash
-        || fsv_core::journal::snapshot_hash(Some(&Json::Object(change_row(writer, target)?)))
+    // `rebuild`: the record first, then fresh metadata.
+    let current =
+        fsv_core::journal::snapshot_hash(Some(&Json::Object(change_row(writer, target)?)))
             .map_err(Error::value)?
-            .unwrap_or_default()
-            != source.record_hash
-    {
-        return Err(flow_exit(
-            2,
-            if fresh != source.meta.fingerprint().hash {
-                "Change metadata changed since review"
-            } else {
-                "Change record changed since review"
-            },
-        ));
+            .unwrap_or_default();
+    if current != source.record_hash {
+        return Err(flow_exit(2, "Change record changed since review"));
+    }
+    let fresh = writer.edit_fingerprint(&source.meta.module_id, &source.meta.record_workspace)?;
+    if fresh != source.meta.fingerprint().hash {
+        return Err(flow_exit(2, "Change metadata changed since review"));
     }
     let target_json = json!(target);
     journal.record_plan(
