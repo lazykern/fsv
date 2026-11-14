@@ -864,7 +864,7 @@ fn read_snapshot(path: &str) -> Result<Value> {
     let fail = |why: String| form_fail(&format!("cannot read snapshot {path}: {why}"));
     let bytes = std::fs::read(path).map_err(|e| fail(fsv_py::os_error(&e, path)))?;
     let text = std::str::from_utf8(&bytes).map_err(|e| fail(fsv_py::utf8_error(&bytes, &e)))?;
-    let data: Value = serde_json::from_str(text).map_err(|e| fail(e.to_string()))?;
+    let data = crate::util::json_loads(text).map_err(fail)?;
     let version = data.get("fsv_form_snapshot").unwrap_or(&Value::Null);
     if !data.is_object() || !fsv_api::readback::py_equal(version, &json!(SNAPSHOT_VERSION)) {
         return Err(form_fail(&format!(

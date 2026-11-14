@@ -11,6 +11,7 @@ mod errors;
 mod float;
 pub mod html_entities;
 mod json;
+mod json_error;
 #[cfg(test)]
 mod provenance_tests;
 mod repr;
@@ -20,6 +21,7 @@ pub use decimal::decimal_cmp;
 pub use errors::{os_error, utf8_error};
 pub use float::float_repr;
 pub use json::{Dumps, canonical, compact, dumps, pretty};
+pub use json_error::json_decode_error;
 pub use repr::{py_repr, py_repr_str, py_str};
 pub use value::{ValueExt, big_int, truthy};
 

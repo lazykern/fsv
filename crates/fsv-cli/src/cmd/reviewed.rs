@@ -858,15 +858,17 @@ pub fn relationships_list(a: ChangesRelationshipsListArgs) -> CmdResult {
 pub fn relationships_write(a: ChangesRelationshipsWriteArgs) -> CmdResult {
     let run = || -> Result<()> {
         let c = client()?;
-        let project: Option<Value> = match a.project.as_deref() {
-            Some(text) if !text.is_empty() => Some(serde_json::from_str(text)?),
-            _ => None,
+        let project: Value = match a.project.as_deref() {
+            Some(text) if !text.is_empty() => {
+                crate::util::json_loads(text).map_err(Error::value)?
+            }
+            _ => Value::Null,
         };
         let args = change_relationships::RelArgs {
             kind: &a.kind,
             action: &a.action,
             item: a.item.as_deref(),
-            project: project.as_ref().and_then(Value::as_object),
+            project: Some(&project).filter(|v| !v.is_null()),
             project_key: a.project_key.as_deref(),
             name: a.name.as_deref(),
         };
@@ -1113,14 +1115,16 @@ pub fn sr_items_list(a: SrItemsListArgs) -> CmdResult {
 /// Port of fsv.sr_requested_items_cli's `write`.
 pub fn sr_items_write(a: SrItemsWriteArgs) -> CmdResult {
     let run = || -> Result<()> {
-        let answers: Option<Value> = match a.answers.as_deref() {
-            Some(text) if !text.is_empty() => Some(serde_json::from_str(text)?),
-            _ => None,
+        let answers: Value = match a.answers.as_deref() {
+            Some(text) if !text.is_empty() => {
+                crate::util::json_loads(text).map_err(Error::value)?
+            }
+            _ => Value::Null,
         };
         let answers = match &answers {
-            Some(Value::Object(map)) => Some(map),
-            Some(_) => return Err(Error::value("answers must be a JSON object")),
-            None => None,
+            Value::Object(map) => Some(map),
+            Value::Null => None,
+            _ => return Err(Error::value("answers must be a JSON object")),
         };
         let c = client()?;
         let store = DiskStore::current();

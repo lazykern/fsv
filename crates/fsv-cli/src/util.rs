@@ -21,6 +21,14 @@ pub fn fail(msg: &str, code: i32) -> Error {
 }
 
 /// `_err(msg)` with the default usage code.
+/// `json.loads(text)`: the value, or `str(json.JSONDecodeError)`. Text
+/// CPython accepts but serde_json refuses (`NaN`, a lone surrogate) gives
+/// serde_json's message.
+pub fn json_loads(text: &str) -> std::result::Result<Value, String> {
+    serde_json::from_str(text)
+        .map_err(|e| fsv_py::json_decode_error(text).unwrap_or_else(|| e.to_string()))
+}
+
 pub fn usage(msg: &str) -> Error {
     fail(msg, 2)
 }

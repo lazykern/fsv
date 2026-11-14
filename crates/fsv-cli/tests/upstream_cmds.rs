@@ -17997,6 +17997,36 @@ fn changes_relationships_project_add_incomplete() {
     );
 }
 
+/// `json.loads` of `--project-json`: Python's `JSONDecodeError` text, and a
+/// decoded non-object still counts as project options (Python runs).
+#[test]
+fn changes_relationships_project_json_is_json_loads() {
+    let r = run_fixture(
+        "change_relationships",
+        &[
+            "changes", "relationships", "write", "52", "project", "add",
+            "--project-json", "{\"name\": \"Acme\"", "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (2, "", "Expecting ',' delimiter: line 1 column 16 (char 15)\n")
+    );
+    let r = run_fixture(
+        "change_relationships",
+        &[
+            "changes", "relationships", "write", "52", "release", "add", "--item", "71",
+            "--project-json", "[1]", "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (2, "", "complete, consistent mutation inventory unavailable\n")
+    );
+}
+
 #[test]
 fn changes_relationships_project_remove_dry_run() {
     let r = run_fixture(
@@ -20305,6 +20335,36 @@ fn sr_items_answers_not_object() {
         r.err,
         r#"answers must be a JSON object
 "#
+    );
+}
+
+/// `json.loads(answers)`: Python's `JSONDecodeError` text; `null` is no
+/// answers, so the run reaches the requested-item read (a 404 here, exit 1).
+#[test]
+fn sr_items_answers_json_is_json_loads() {
+    let r = run_fixture(
+        "sr_items",
+        &[
+            "sr", "items", "write", "150", "edit", "--item", "1502", "--answers-json",
+            "{\"a\" 1}", "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (2, "", "Expecting ':' delimiter: line 1 column 6 (char 5)\n")
+    );
+    let r = run_fixture(
+        "sr_items",
+        &[
+            "sr", "items", "write", "150", "edit", "--item", "1502", "--answers-json", "null",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(
+        (r.code, r.err.as_str()),
+        (1, "error: HTTP 404 fetching requested item: no route\n")
     );
 }
 

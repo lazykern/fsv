@@ -969,8 +969,10 @@ pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
     } else {
         unquote(raw)
     };
-    let loaded: Value = serde_json::from_str(&text)
-        .map_err(|e| QueryError(format!("invalid query-hash JSON: {e}")))?;
+    let loaded: Value = serde_json::from_str(&text).map_err(|e| {
+        let why = fsv_py::json_decode_error(&text).unwrap_or_else(|| e.to_string());
+        QueryError(format!("invalid query-hash JSON: {why}"))
+    })?;
     let Value::Array(items) = loaded else {
         return Err(QueryError("query-hash must be a JSON array".into()));
     };

@@ -534,7 +534,7 @@ pub fn resolve_where(
 /// Port of fsv.cli._load_query_hash: always percent-decoded once; shapes
 /// fsv cannot pass on faithfully are refused (`query.validate_raw_query`).
 pub fn load_query_hash(raw: &str) -> Result<Vec<Value>> {
-    match serde_json::from_str::<Value>(&pystr::unquote(raw)) {
+    match crate::util::json_loads(&pystr::unquote(raw)) {
         Ok(Value::Array(items)) => {
             fsv_api::validate_raw_query(&Value::Array(items.clone()), "--query-hash")
                 .map_err(|e| usage(&e.0))?;

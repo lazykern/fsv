@@ -5,8 +5,7 @@
 mod common;
 use common::run_fixture;
 
-/// Hand-written: Python's text after the prefix is `json.JSONDecodeError`'s
-/// wording, which serde_json does not reproduce (see PARITY.md).
+/// Python's `json.JSONDecodeError` text after the prefix.
 #[test]
 fn query_hash_bad_json() {
     let r = run_fixture(
@@ -16,10 +15,9 @@ fn query_hash_bad_json() {
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, "");
-    assert!(
-        r.err.starts_with("error: invalid --query-hash JSON: "),
-        "{}",
-        r.err
+    assert_eq!(
+        r.err,
+        "error: invalid --query-hash JSON: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)\n"
     );
 }
 

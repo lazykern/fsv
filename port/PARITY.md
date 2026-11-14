@@ -419,7 +419,7 @@ CLI divergences:
 - Uncaught exceptions (traceback, exit 1 in Python) print `error: <message>` with exit 1.
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
-- `--query-hash` with bad JSON, and a `form diff` snapshot that is not JSON (`error: cannot read snapshot PATH: `), print the prefix as Python does, then serde_json's message (`[{` gives `EOF while parsing an object at line 1 column 2`) where Python prints `json.JSONDecodeError`'s (`Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`). Exit 2 in both.
+- JSON options and files that Python reads with `json.loads` (`--query-hash`, `form diff` snapshots, `--project-json`, `--answers-json`) report bad JSON with `json.JSONDecodeError`'s text (`fsv_py::json_decode_error`, a port of the CPython 3.12 scanner's errors). Text Python accepts but serde_json refuses (a lone `\ud800` escape) shows serde_json's message.
 - `--query-hash` with the bare tokens `NaN`, `Infinity` or `-Infinity` is refused as bad JSON (exit 2). Python's `json.loads` accepts them and sends them on, which is not JSON. A literal past `f64` (`1E400`) is sent as `Infinity`, as Python does.
 - `ls --debug` with a value that is bad Rich markup (`--where "group_id=[/x]"`) prints the explain table, the unmatched tag dropped. Python raises `MarkupError` (traceback, exit 1).
 - `fsv tui` exits 1: the full-screen TUI is not in the Rust port (see fsv-tui below).
