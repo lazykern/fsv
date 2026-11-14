@@ -228,6 +228,19 @@ those stay identical.
   can only match a string ID spelled with the same digits).
 - `FormMeta::form_notes` uses the `forms.workspace_id` override read when the
   metadata loaded. Python re-reads the config on every call.
+- A damaged journal is read, not raised: bytes that are not UTF-8 decode
+  lossily and a line that is not a JSON object never matches a plan event,
+  so every readable plan event still guards replays. Python's
+  `journal.read()` raises `UnicodeDecodeError` (a `ValueError`: exit 2 with
+  the codec message where the command catches it, else a traceback) and a
+  non-object line raises `AttributeError` at the caller (exit 1). Failing
+  open (an unreadable journal as empty) would drop the replay guards.
+- A task/problem-status field whose `choices` is `null` or a number reads as
+  no choices and refuses with the no-match message (exit 2). Python iterates
+  it and raises `TypeError` (traceback, exit 1).
+- Record IDs are `i64`: a numeric ID beyond it is refused locally as
+  `invalid id: …` (exit 2) before any request. Python's `int` sends the GET
+  and fails on the server's answer (a 404 in tests).
 
 ## fsv-app
 

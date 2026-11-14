@@ -329,11 +329,13 @@ pub fn record(method: &str, url: &str, body: Option<&Value>, outcome: WriteOutco
 }
 
 /// All journal rows (the last `limit` when given and non-zero); bad lines are skipped.
+/// Bytes that are not UTF-8 are decoded lossily so the remaining plan
+/// events still guard against replays (Python raises instead; see PARITY).
 pub fn read(limit: Option<usize>) -> Vec<Value> {
-    let Ok(text) = std::fs::read_to_string(journal_path()) else {
+    let Ok(bytes) = std::fs::read(journal_path()) else {
         return Vec::new();
     };
-    let rows: Vec<Value> = text
+    let rows: Vec<Value> = String::from_utf8_lossy(&bytes)
         .lines()
         .filter_map(|l| serde_json::from_str(l).ok())
         .collect();
@@ -583,6 +585,25 @@ mod tests {
         crate::runtime::set_command_path(None);
         assert_eq!(command(), Value::Null);
         crate::runtime::set_command_path(saved.as_deref());
+    }
+
+    /// A non-UTF-8 byte does not hide the plan events that guard replays.
+    #[test]
+    fn damaged_journal_keeps_readable_rows() {
+        let _env = testenv::isolated().with_domain("acme.freshservice.com");
+        let path = journal_path();
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut bytes = b"\xff\xfe\n[1]\n".to_vec();
+        bytes.extend_from_slice(br#"{"kind": "plan:x", "plan": "h", "event": "started"}"#);
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes).unwrap();
+        assert_eq!(
+            read(None),
+            vec![
+                json!([1]),
+                json!({"kind": "plan:x", "plan": "h", "event": "started"})
+            ]
+        );
     }
 
     #[test]
