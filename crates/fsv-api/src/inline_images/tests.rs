@@ -321,3 +321,32 @@ fn review_matches_python() {
         }
     }
 }
+
+/// `mimetypes.guess_type(name)[0]` from CPython 3.12, kept when it is an
+/// editor image type (the macOS system tables add none for these).
+#[test]
+fn image_type_matches_python_mimetypes() {
+    for (name, want) in [
+        ("a.jpg", Some("image/jpeg")),
+        ("A.JPG", Some("image/jpeg")),
+        ("a.jpe", Some("image/jpeg")),
+        ("a.jfif", None),
+        ("a.webp", Some("image/webp")),
+        ("a.png.gz", Some("image/png")),
+        ("a.png.GZ", None),
+        ("a.PNG.Z", Some("image/png")),
+        ("a.gif.br", Some("image/gif")),
+        ("a.jpeg.bz2", Some("image/jpeg")),
+        ("x.svgz", None),
+        (".png", None),
+        ("..png", None),
+        ("a..png", Some("image/png")),
+        ("dir/.png", None),
+        ("a.png/", None),
+        ("a", None),
+        ("a.tiff", None),
+        ("a.png.gz.gz", None),
+    ] {
+        assert_eq!(py_image_type(name), want, "{name}");
+    }
+}

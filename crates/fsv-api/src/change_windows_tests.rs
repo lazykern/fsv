@@ -1034,3 +1034,27 @@ fn list_windows_refuses_malformed_lists() {
         assert_eq!(err(list_windows(&api)), want);
     }
 }
+
+/// `_WHEN`'s `\d` matches any Unicode decimal digit, so such a time passes
+/// the shape check and fails `fromisoformat` (texts from `_parse_when`).
+#[test]
+fn window_time_unicode_digits_fail_as_invalid_time() {
+    for (text, why) in [
+        (
+            "\u{662}\u{660}\u{662}\u{664}-01-05 10:00",
+            "is not a valid date and time",
+        ),
+        (
+            "2024-01-05 10:00+0\u{667}:00",
+            "is not a valid date and time",
+        ),
+        (
+            "2024-01-05 10:00x",
+            "must be 'YYYY-MM-DD HH:MM' (in --timezone; an offset such as +07:00 may be added)",
+        ),
+        ("2024-02-30 10:00", "is not a valid date and time"),
+    ] {
+        let err = parse_when(text).unwrap_err().to_string();
+        assert_eq!(err, format!("window time {} {why}", py_repr_str(text)));
+    }
+}

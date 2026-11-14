@@ -76,26 +76,28 @@ pub fn list_windows(c: &dyn Api) -> Result<Vec<Value>> {
     Ok(rows)
 }
 
+/// `_WHEN.fullmatch(raw)`; `\d` is any Unicode decimal digit.
 fn when_shape(raw: &str) -> bool {
-    let b = raw.as_bytes();
-    let digits = |r: std::ops::Range<usize>| r.into_iter().all(|i| b[i].is_ascii_digit());
-    if b.len() < 16
+    let c: Vec<char> = raw.chars().collect();
+    let digit = |i: usize| fsv_core::pystr::decimal_value(c[i]).is_some();
+    let digits = |r: std::ops::Range<usize>| r.into_iter().all(digit);
+    if c.len() < 16
         || !digits(0..4)
-        || b[4] != b'-'
+        || c[4] != '-'
         || !digits(5..7)
-        || b[7] != b'-'
+        || c[7] != '-'
         || !digits(8..10)
-        || !matches!(b[10], b' ' | b'T')
+        || !matches!(c[10], ' ' | 'T')
         || !digits(11..13)
-        || b[13] != b':'
+        || c[13] != ':'
         || !digits(14..16)
     {
         return false;
     }
-    match &b[16..] {
-        [] | [b'Z'] => true,
-        [sign, h1, h2, b':', m1, m2] => {
-            matches!(sign, b'+' | b'-') && [h1, h2, m1, m2].iter().all(|d| d.is_ascii_digit())
+    match &c[16..] {
+        [] | ['Z'] => true,
+        [sign, _, _, ':', _, _] => {
+            matches!(sign, '+' | '-') && [17, 18, 20, 21].into_iter().all(digit)
         }
         _ => false,
     }

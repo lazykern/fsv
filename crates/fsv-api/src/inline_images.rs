@@ -83,11 +83,51 @@ impl InlinePlan {
     }
 }
 
+/// `mimetypes.guess_type(name)[0]` when CPython's built-in table maps the
+/// name to an editor image type: `posixpath.splitext`, the `suffix_map`
+/// rewrites, one case-sensitive encoding suffix (`.gz`, `.Z`, `.bz2`, `.xz`,
+/// `.br`) stripped, then the extension case-insensitively.
+fn py_image_type(name: &str) -> Option<&'static str> {
+    fn splitext(p: &str) -> (String, String) {
+        let sep = p.rfind('/').map_or(0, |i| i + 1);
+        match p.rfind('.') {
+            Some(dot) if dot > sep && p[sep..dot].chars().any(|c| c != '.') => {
+                (p[..dot].to_string(), p[dot..].to_string())
+            }
+            _ => (p.to_string(), String::new()),
+        }
+    }
+    const SUFFIX_MAP: [(&str, &str); 6] = [
+        (".svgz", ".svg.gz"),
+        (".tgz", ".tar.gz"),
+        (".taz", ".tar.gz"),
+        (".tz", ".tar.gz"),
+        (".tbz2", ".tar.bz2"),
+        (".txz", ".tar.xz"),
+    ];
+    let (mut base, mut ext) = splitext(name);
+    while let Some((_, to)) = SUFFIX_MAP
+        .iter()
+        .find(|(from, _)| *from == ext.to_lowercase())
+    {
+        (base, ext) = splitext(&format!("{base}{to}"));
+    }
+    if [".gz", ".Z", ".bz2", ".xz", ".br"].contains(&ext.as_str()) {
+        ext = splitext(&base).1;
+    }
+    match ext.to_lowercase().as_str() {
+        ".gif" => Some("image/gif"),
+        ".jpe" | ".jpeg" | ".jpg" => Some("image/jpeg"),
+        ".png" => Some("image/png"),
+        ".webp" => Some("image/webp"),
+        _ => None,
+    }
+}
+
 fn check_images(files: &[LocalFile]) -> Result<()> {
     for f in files {
-        let guessed = crate::create::guess_mime(&f.name);
         let ok = |m: &str| IMAGE_TYPES.contains(&m);
-        if !guessed.as_deref().is_some_and(ok) || !ok(&f.mime) {
+        if py_image_type(&f.name).is_none() || !ok(&f.mime) {
             return Err(refused(format!(
                 "inline image must be JPEG, PNG, GIF or WebP: {}",
                 f.name
