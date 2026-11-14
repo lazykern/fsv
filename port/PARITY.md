@@ -418,6 +418,7 @@ No divergences from this pass.
 
 CLI divergences:
 - A missing required argument or option prints Click's panel (`Missing option '--requester'.`, `app::missing_parameter` with the generated `CLICK_USAGE`). Other usage errors use clap's text. Exit code 2 matches Click. This includes a non-`json` `--output` on the reviewed commands (Click's rich choice panel; both exit 2 before any request).
+- Integer arguments and options convert as Click's `INT` / `IntRange` (Python `int()`: surrounding whitespace, a sign, Unicode decimal digits, single underscores; `pyint.rs`). The Click message (`'x' is not a valid integer range.`, `0 is not in the range 1<=x<=100.`) follows clap's `invalid value ... for '<arg>': ` prefix. A value past 64 bits is refused (`... does not fit a 64-bit integer.`); Click passes the big int to the command. `tests/tree.rs` checks every Python `integer` / `integer range` param.
 - Typer `BadParameter` raised by a command body (`watchers list` errors) is reproduced as Rich's error panel (`cmd::reviewed::bad_parameter`), sized from the terminal width.
 - Uncaught exceptions (traceback, exit 1 in Python) print `error: <message>` with exit 1.
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
