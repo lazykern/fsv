@@ -868,10 +868,16 @@ pub fn send(
         "changes" => Some(envelope(&response, "change", &empty)),
         _ => returned_note(&response),
     };
-    let returned_owner = raw_owner
+    // Only a `ReviewedWriteError` means "no owner"; a `ValueError` (a
+    // non-ASCII digit `int()` rejects) escapes before the outcome is recorded.
+    let returned_owner = match raw_owner
         .filter(|r| r.is_object())
-        .and_then(|r| positive_id(r.get("id").unwrap_or(&Value::Null)).ok())
-        .map(|id| json!(id));
+        .map(|r| positive_id(r.get("id").unwrap_or(&Value::Null)))
+    {
+        Some(Ok(id)) => Some(json!(id)),
+        Some(Err(Error::Value(m))) => return Err(Error::Value(m)),
+        _ => None,
+    };
     journal.record_plan(
         "done",
         &hash,

@@ -47,7 +47,8 @@ pub fn delete_state_tokens(
                     && e.get("kind")
                         .and_then(Value::as_str)
                         .is_some_and(|k| kinds.iter().any(|x| x == k))
-                    && e.get("target") == Some(&json!(target))
+                    && e.get("target")
+                        .is_some_and(|t| crate::readback::py_equal(t, &json!(target)))
             })
             .count()
     };
@@ -62,6 +63,34 @@ mod tests {
     use super::*;
     use crate::service::obj;
     use crate::service::testing::MemJournal;
+
+    /// Python counts by dict key: a `5.0` or `true` target is `5` or `1`.
+    #[test]
+    fn restore_targets_compare_with_python_equality() {
+        let j = MemJournal::default();
+        j.record_plan(
+            "done",
+            &"0".repeat(64),
+            "ticket_restore",
+            Some(&json!(5.0)),
+            None,
+        );
+        j.record_plan(
+            "done",
+            &"1".repeat(64),
+            "ticket_restore",
+            Some(&json!(true)),
+            None,
+        );
+        let rows = [obj(json!({"id": 5})), obj(json!({"id": 1}))];
+        assert_eq!(
+            delete_state_tokens(&j, &rows, &[5, 1], &["ticket_restore"]),
+            [
+                json!({"server_version": null, "restores": 1}),
+                json!({"server_version": null, "restores": 1}),
+            ]
+        );
+    }
 
     #[test]
     fn counts_answered_restores_of_the_exact_target_only() {

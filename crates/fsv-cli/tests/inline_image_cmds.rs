@@ -175,3 +175,29 @@ fn note_refusals() {
     );
     assert!(r.write_paths().is_empty());
 }
+
+/// A returned note id `int()` rejects (`"²"`) escapes as a `ValueError`
+/// (Python 31a9103).
+#[test]
+fn owner_id_value_error_escapes() {
+    let mut env = env();
+    for r in &mut env.routes {
+        if r["path"] == "/api/_/tickets/123/notes" {
+            r["json"]["conversation"]["id"] = json!("\u{b2}");
+        }
+    }
+    let note = [
+        "tickets",
+        "add-note",
+        "INC-123",
+        "--body",
+        "Acme evidence",
+        "--inline-image",
+        "acme.png",
+    ];
+    let r = env.run(&[&note[..], &["--dry-run"]].concat());
+    let hash = r.json()["plan_hash"].as_str().unwrap().to_string();
+    let r = env.run(&[&note[..], &["--yes", "--expect-plan", &hash]].concat());
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.err, "invalid literal for int() with base 10: '\u{b2}'\n");
+}

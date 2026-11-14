@@ -154,3 +154,44 @@ fn bulk_where_resolves_agent_names_and_caches_the_schema() {
         assert_eq!(paths, want, "round {round}");
     }
 }
+
+/// A returned owner id `int()` rejects (`"²"`) is a `ValueError` that
+/// escapes before the outcome is journaled (Python 31a9103).
+#[test]
+fn attachment_owner_id_value_error_escapes() {
+    let mut routes = common::fixture("attachments");
+    for r in &mut routes {
+        if r["method"] == "POST" && r["path"] == "/api/_/tickets/5/reply" {
+            r["json"]["conversation"]["id"] = json!("\u{b2}");
+        }
+    }
+    let mut env = Env::new(routes);
+    let work = env.home().join("work");
+    std::fs::create_dir_all(&work).unwrap();
+    std::fs::write(
+        work.join("notes.txt"),
+        std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures/files/attach/notes.txt"),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    env.cwd = Some(work);
+    let r = env.run(&[
+        "tickets",
+        "reply",
+        "5",
+        "see attached",
+        "--sender",
+        "support@acme.com",
+        "--attach",
+        "notes.txt",
+        "--yes",
+        "--expect-plan",
+        "34994e2af399fea67e7d2834cd8d3385ab3e6bc3bf277ce91d069910e64b8454",
+    ]);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(r.err, "invalid literal for int() with base 10: '\u{b2}'\n");
+}

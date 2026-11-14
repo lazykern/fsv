@@ -340,10 +340,16 @@ pub fn send(
             )));
         }
     };
-    let owner = returned_note(&response)
+    // Only a `ReviewedWriteError` means "no owner"; a `ValueError` (a
+    // non-ASCII digit `int()` rejects) escapes before the outcome is recorded.
+    let owner = match returned_note(&response)
         .filter(|r| r.is_object())
-        .and_then(|r| positive_id(r.get("id").unwrap_or(&Value::Null)).ok())
-        .map_or(Value::Null, |id| json!(id));
+        .map(|r| positive_id(r.get("id").unwrap_or(&Value::Null)))
+    {
+        Some(Ok(id)) => json!(id),
+        Some(Err(Error::Value(m))) => return Err(Error::Value(m)),
+        _ => Value::Null,
+    };
     journal.record_plan(
         "done",
         &hash,
