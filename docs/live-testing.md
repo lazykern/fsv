@@ -44,6 +44,14 @@ base.
 * Give each tenant its own configuration and cache:
   `FSV_CONFIG_DIR=~/.config/fsv-trial FSV_CACHE_DIR=~/.cache/fsv-trial`.
   A test must never fall back to another tenant's session or metadata.
+  Set both on **every** command of a batch: without them fsv uses the
+  default config dir, which points at whichever tenant `fsv auth login`
+  configured last.
+* Check the stderr line `fsv: tenant <tenant> (config <dir>)` (or run
+  `fsv whoami`) before the first command of a batch. Pass the intended
+  tenant on writes (`--tenant <tenant>` with `--yes`); a mismatch, or a plan
+  hash reviewed on another tenant, is refused before anything is sent.
+  Do not set `tenant.confirmed` in a production-like tenant's config dir.
 * Clear metadata caches before a batch (`fsv cache clear all`) so admin
   changes (rules, lifecycles, statuses) are picked up.
 * Run non-interactively (`fsv --no-input ...`) so a prompt cannot hang or

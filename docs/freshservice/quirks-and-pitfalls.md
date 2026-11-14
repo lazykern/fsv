@@ -212,6 +212,16 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
   rules or flows. Fingerprint metadata into reviews and refetch before
   sending. [VERIFIED LIVE]
 
+## The default config dir picks the tenant
+
+fsv's default config dir holds the domain that `fsv auth login` configured
+last, so a command run without the intended `FSV_CONFIG_DIR` silently talks
+to the other tenant; a live check once hit the wrong tenant this way. fsv
+now prints `fsv: tenant <tenant> (config <dir>)` on stderr, binds plan
+hashes to the tenant, and refuses `--yes` writes until the tenant is
+confirmed (`--tenant`, `FSV_ALLOW_TENANT` or `tenant.confirmed`). Keep one
+config dir per tenant and set it explicitly. [INFERRED]
+
 ## Tenant differences (production-like vs trial)
 
 | Area | A typical production-like tenant | A fresh trial tenant |

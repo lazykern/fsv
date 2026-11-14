@@ -28,6 +28,24 @@ confidence tags).
 | `tests/` | Offline tests. Synthetic tenants: `acme_*.py`, `tests/forms/acme_forms.py`, `formui_tenants.py`; shifted tenant: `test_shifted_tenant.py`; constants lint: `test_no_tenant_constants.py`. |
 | `docs/` | User and developer documentation; `docs/freshservice/` is the platform knowledge base. |
 
+### Target tenant
+
+Always set `FSV_CONFIG_DIR` (and `FSV_CACHE_DIR`) for the tenant you intend
+to use, on every command; the default config dir points at whichever tenant
+`fsv auth login` configured last. Pass the tenant explicitly on every write:
+`--tenant <tenant> --yes --expect-plan FULL_HASH`. Read the stderr line
+`fsv: tenant <tenant> (config <dir>)` and the `tenant`/`config_dir` fields of
+`--json` reviews and results; stop if they are not the intended tenant.
+Never set `FSV_ALLOW_TENANT` or `tenant.confirmed` to get past a refusal you
+did not expect.
+
+New commands get the banner, `--tenant` assertion and write confirmation
+from `FSVCommand.invoke` (`fsv/tenant.py`) automatically, keyed on `--yes`:
+name the send flag `--yes`, print JSON with `fsv.tenant.tenant_json`, and
+build plan hashes with `journal.plan_hash` (tenant-bound). The command-walk
+test in `tests/test_tenant_write_guard.py` fails otherwise. Offline tests get
+`FSV_ALLOW_TENANT` set to the fake tenant by `tests/conftest.py`.
+
 ## 2. The reviewed-write pattern
 
 Every new mutation follows the same shape. Copy an existing reviewed

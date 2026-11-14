@@ -11,14 +11,17 @@ uv tool install git+https://github.com/lazykern/fsv.git
 fsv setup
 # Alternatively, sign in directly:
 fsv auth login --browser --domain acme.freshservice.com
-fsv auth status
-fsv config list
+fsv whoami                                         # agent, tenant and config dir
+fsv config set tenant.confirmed acme.freshservice.com   # once: allow --yes writes here
+fsv config show
 fsv tickets ls --where status=Open --json
 fsv changes get CHN-1234 --json
 fsv tui --read-only
 ```
 
 Complete SSO or MFA in the browser. The wizard configures the domain and login; `fsv config get KEY` and `fsv config set KEY VALUE` manage settings. Browser login uses a temporary browser profile; it does not read your existing profile. Set `FSV_BROWSER` if the browser cannot be found. Alternatively, `fsv auth login --domain acme.freshservice.com` prompts for a Cookie header. Treat it as a password; avoid passing it on the command line. The default session backend is Keychain on macOS and a mode-0600 file elsewhere; `--store argon` uses an encrypted file.
+
+**Know your tenant.** The config dir (default `~/.config/fsv`, or `FSV_CONFIG_DIR`) decides which tenant every command talks to, and it holds whichever domain `fsv auth login` configured last. Each command that talks to a tenant prints `fsv: tenant <domain> (config <dir>)` once on stderr (`--quiet` or `FSV_QUIET=1` hide it; `--json` stdout stays pure JSON). `--yes` writes are refused until the tenant is confirmed: once per config dir with `fsv config set tenant.confirmed <tenant>`, or per command with `--tenant <tenant>`, or with `FSV_ALLOW_TENANT=<tenant>`. `--dry-run` never needs it. With more than one tenant, give each its own `FSV_CONFIG_DIR` and set it explicitly.
 
 For a supported reviewed write, first inspect the plan, then send **the same arguments** with its complete hash:
 
@@ -28,7 +31,7 @@ fsv tickets add-note INC-1234 --body 'Investigation started' --dry-run --json
 fsv tickets add-note INC-1234 --body 'Investigation started' --yes --expect-plan FULL_HASH --json
 ```
 
-`FULL_HASH` is a placeholder, not a literal value. Review the target, payload, recipients and effects; a changed plan requires a new review. Some older form flows accept a hash prefix, but using the full hash works across reviewed workflows. Interactive confirmation and supported flags vary by command: check its `-h`. `--json` is available on many, not all, commands; list commands also support `--output` formats. Use `--refresh` where offered, for example `fsv tickets fields --refresh`, to refresh cached schema. `fsv cache status` and `fsv cache refresh` inspect and refresh stale caches; see [views](docs/views.md) for list behavior.
+`FULL_HASH` is a placeholder, not a literal value. Plan hashes bind the tenant, and reviews/results in `--json` carry `tenant` and `config_dir`: a hash reviewed on one tenant is refused on another. Review the target, payload, recipients and effects; a changed plan requires a new review. Some older form flows accept a hash prefix, but using the full hash works across reviewed workflows. Interactive confirmation and supported flags vary by command: check its `-h`. `--json` is available on many, not all, commands; list commands also support `--output` formats. Use `--refresh` where offered, for example `fsv tickets fields --refresh`, to refresh cached schema. `fsv cache status` and `fsv cache refresh` inspect and refresh stale caches; see [views](docs/views.md) for list behavior.
 
 ## Command surface
 

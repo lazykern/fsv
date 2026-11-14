@@ -174,6 +174,11 @@ fsv setup
 fsv auth login --browser --domain acme.freshservice.com
 fsv auth status
 fsv auth logout
+fsv whoami --json
+fsv config show
+fsv config set tenant.confirmed acme.freshservice.com
+fsv --tenant acme.freshservice.com tickets add-note INC-1234 --body 'Acme' --yes --expect-plan FULL_HASH
+FSV_CONFIG_DIR=~/.config/fsv-globex fsv whoami
 fsv config list
 fsv config get completion.network
 fsv config set completion.network on
@@ -185,6 +190,15 @@ fsv completion doctor
 fsv search 'Acme service' --json
 fsv tui --read-only
 ```
+
+Every command that talks to a tenant prints `fsv: tenant <tenant> (config <dir>)`
+once on stderr; `--quiet` or `FSV_QUIET=1` suppress it, and local commands
+(`config`, `completion`, `journal`, `cache status`, help, version) print
+nothing. `--tenant DOMAIN` (anywhere on the line) must equal the configured
+domain. `--yes` writes need the tenant confirmed by `--tenant`,
+`FSV_ALLOW_TENANT` or `tenant.confirmed`; `--dry-run` does not. Reviews and
+results in `--json` include `tenant` and `config_dir`, and plan hashes bind
+the tenant.
 
 ## Tickets and views
 
@@ -305,6 +319,12 @@ Every public command below has a safe `-h` example. Run it to see its real argum
 fsv help -h
 ```
 
+### whoami
+
+```bash
+fsv whoami -h
+```
+
 ### search
 
 ```bash
@@ -361,6 +381,7 @@ fsv completion doctor -h
 ```bash
 fsv config -h
 fsv config list -h
+fsv config show -h
 fsv config get -h
 fsv config set -h
 fsv config defaults -h
