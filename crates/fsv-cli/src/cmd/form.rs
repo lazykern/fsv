@@ -69,25 +69,6 @@ impl Meta {
             Meta::Item(m) => m.state(mode, resolver, existing),
         }
     }
-    fn raw_fields(&self) -> Vec<Value> {
-        match self {
-            Meta::Form(m) => m.raw_fields(),
-            Meta::Item(m) => m.raw_fields(),
-        }
-    }
-    /// An item form is always a new form.
-    fn form_type(&self) -> &str {
-        match self {
-            Meta::Form(m) => &m.form_type,
-            Meta::Item(_) => "new_form",
-        }
-    }
-    fn workspace_id(&self) -> &Value {
-        match self {
-            Meta::Form(m) => &m.workspace_id,
-            Meta::Item(m) => &m.workspace_id,
-        }
-    }
     fn as_of(&self) -> Map<String, Value> {
         match self {
             Meta::Form(m) => m.as_of(),
@@ -119,7 +100,7 @@ fn dump(a: FormDumpArgs) -> CmdResult {
         return Err(form_fail("--mode must be new or edit"));
     }
     let c = client()?;
-    let meta = load(
+    let meta = load_parts(
         &c,
         &module,
         a.item.as_deref(),
@@ -131,7 +112,7 @@ fn dump(a: FormDumpArgs) -> CmdResult {
     let mut snap = Map::new();
     snap.insert("fsv_form_snapshot".into(), json!(SNAPSHOT_VERSION));
     snap.insert("module".into(), json!(module));
-    if let Meta::Item(m) = &meta {
+    if let Parts::Item(m) = &meta {
         snap.insert("item".into(), m.display_id());
     }
     snap.insert("form_type".into(), json!(meta.form_type()));
@@ -177,7 +158,7 @@ fn diff(a: FormDiffArgs) -> CmdResult {
                 a.snapshot
             )));
         }
-        let meta = load(
+        let meta = load_parts(
             &c,
             &module,
             item.as_deref(),
@@ -266,6 +247,58 @@ fn load(
     module_id: &Value,
     record: &Value,
 ) -> Result<Meta> {
+    match load_parts(c, module, item, mode, fresh, module_id, record)? {
+        Parts::Form(p) => p.build().map(|m| Meta::Form(Box::new(m))),
+        Parts::Item(p) => p.build().map(|m| Meta::Item(Box::new(m))),
+    }
+    .map_err(guard)
+}
+
+/// [`load`] before the fields are parsed: Python's `FormMeta.spec` is lazy,
+/// so `form dump` and `form diff` read fields the spec would refuse.
+enum Parts {
+    Form(Box<formmeta::MetaParts>),
+    Item(Box<fsv_api::catalog::ItemParts>),
+}
+
+impl Parts {
+    fn rules(&self) -> &Value {
+        match self {
+            Parts::Form(p) => &p.rules,
+            Parts::Item(p) => &p.rules,
+        }
+    }
+    fn raw_fields(&self) -> Vec<Value> {
+        match self {
+            Parts::Form(p) => p.raw_fields(),
+            Parts::Item(p) => p.raw_fields(),
+        }
+    }
+    /// An item form is always a new form.
+    fn form_type(&self) -> &str {
+        match self {
+            Parts::Form(p) => p.form_type,
+            Parts::Item(_) => "new_form",
+        }
+    }
+    fn workspace_id(&self) -> &Value {
+        match self {
+            Parts::Form(p) => &p.workspace_id,
+            Parts::Item(p) => &p.workspace_id,
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn load_parts(
+    c: &Arc<fsv_core::Client>,
+    module: &str,
+    item: Option<&str>,
+    mode: &str,
+    fresh: bool,
+    module_id: &Value,
+    record: &Value,
+) -> Result<Parts> {
     let store = formmeta::DiskStore::current();
     let item = item.filter(|s| !s.is_empty());
     if module == SR {
@@ -279,15 +312,15 @@ fn load(
                 "sr item forms have no edit form here; use --item without --id/--mode edit",
             ));
         }
-        return fsv_api::catalog::load_item_meta(c.as_ref(), &store, item, None)
-            .map(|m| Meta::Item(Box::new(m)))
+        return fsv_api::catalog::load_item_parts(c.as_ref(), &store, item, None)
+            .map(|p| Parts::Item(Box::new(p)))
             .map_err(guard);
     }
     if item.is_some() {
         return Err(form_fail("--item applies to sr forms only"));
     }
-    formmeta::load_meta_for_record(c.as_ref(), &store, module, mode, fresh, module_id, record)
-        .map(|m| Meta::Form(Box::new(m)))
+    formmeta::load_parts_for_record(c.as_ref(), &store, module, mode, fresh, module_id, record)
+        .map(|p| Parts::Form(Box::new(p)))
         .map_err(guard)
 }
 
@@ -741,7 +774,7 @@ fn diff_snapshots(old: &Value, new: &Value) -> Vec<Value> {
             "helptext",
             "displayed_to_agents",
         ] {
-            if get(&a, k) != get(&b, k) {
+            if !fsv_api::readback::py_equal(&get(&a, k), &get(&b, k)) {
                 what.push(format!(
                     "{k}: {} -> {}",
                     fsv_py::py_repr(&get(&a, k)),
@@ -828,19 +861,12 @@ fn diff_snapshots(old: &Value, new: &Value) -> Vec<Value> {
 }
 
 fn read_snapshot(path: &str) -> Result<Value> {
-    let text = std::fs::read_to_string(path).map_err(|e| {
-        let why = match e.kind() {
-            std::io::ErrorKind::NotFound => format!(
-                "[Errno 2] No such file or directory: {}",
-                fsv_py::py_repr_str(path)
-            ),
-            _ => e.to_string(),
-        };
-        form_fail(&format!("cannot read snapshot {path}: {why}"))
-    })?;
-    let data: Value = serde_json::from_str(&text)
-        .map_err(|e| form_fail(&format!("cannot read snapshot {path}: {e}")))?;
-    if data.get("fsv_form_snapshot").and_then(Value::as_i64) != Some(SNAPSHOT_VERSION) {
+    let fail = |why: String| form_fail(&format!("cannot read snapshot {path}: {why}"));
+    let bytes = std::fs::read(path).map_err(|e| fail(fsv_py::os_error(&e, path)))?;
+    let text = std::str::from_utf8(&bytes).map_err(|e| fail(fsv_py::utf8_error(&bytes, &e)))?;
+    let data: Value = serde_json::from_str(text).map_err(|e| fail(e.to_string()))?;
+    let version = data.get("fsv_form_snapshot").unwrap_or(&Value::Null);
+    if !data.is_object() || !fsv_api::readback::py_equal(version, &json!(SNAPSHOT_VERSION)) {
         return Err(form_fail(&format!(
             "{path} is not an fsv form snapshot (make one with `fsv form dump`)"
         )));

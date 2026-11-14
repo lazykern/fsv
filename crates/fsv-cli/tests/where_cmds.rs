@@ -1249,7 +1249,11 @@ fn where_change_approval_status_uses_the_proven_wire() {
             "{expr}: {}",
             r.out
         );
-        assert!(r.out.contains(&format!(" │ default │ {value}     │")), "{}", r.out);
+        assert!(
+            r.out.contains(&format!(" │ default │ {value}     │")),
+            "{}",
+            r.out
+        );
         assert_eq!(r.err, "");
     }
 }
@@ -1392,7 +1396,10 @@ fn no_due_by_note_with_status_filter_other_fields_or_other_modules() {
         argv.push("--json");
         let r = run_fixture("where", &argv, None);
         assert_eq!(r.code, 0, "{args:?}: {}", r.err);
-        assert!(!r.err.contains("Pending tickets have no Due By"), "{args:?}");
+        assert!(
+            !r.err.contains("Pending tickets have no Due By"),
+            "{args:?}"
+        );
     }
 }
 
@@ -1419,10 +1426,18 @@ fn where_id_ints_match_python_int() {
         sent(&r, "tickets").0,
         r#"[{"value":[99999999999999999999999],"condition":"group_id","operator":"is_in","type":"default"},{"value":[12],"condition":"group_id","operator":"is_not_in","type":"default"}]"#
     );
-    let r = run_fixture("where", &["tickets", "ls", "--where", "group_id=\u{b2}"], None);
+    let r = run_fixture(
+        "where",
+        &["tickets", "ls", "--where", "group_id=\u{b2}"],
+        None,
+    );
     assert_eq!(
         (r.code, r.out.as_str(), r.err.as_str()),
-        (2, "", "error: invalid literal for int() with base 10: '\u{b2}'\n")
+        (
+            2,
+            "",
+            "error: invalid literal for int() with base 10: '\u{b2}'\n"
+        )
     );
     let raw = r#"[{"condition":"group_id","operator":"is_in","type":"default","value":[99999999999999999999999]}]"#;
     let r = run_fixture("where", &["tickets", "ls", "--query-hash", raw], None);

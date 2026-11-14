@@ -1791,14 +1791,33 @@ mod tests {
         ]});
         let big = "99999999999999999999999";
         for (expr, want) in [
-            ("group_id", r#"{"value": [99999999999999999999999], "condition": "group_id", "operator": "is_in", "type": "default"}"#),
-            ("cf_count", r#"{"value": "99999999999999999999999", "condition": "cf_count", "operator": "is", "type": "custom_field", "_advanced": true}"#),
-            ("cf_pick", r#"{"value": [99999999999999999999999], "condition": "cf_pick", "operator": "is_in", "type": "custom_field"}"#),
+            (
+                "group_id",
+                r#"{"value": [99999999999999999999999], "condition": "group_id", "operator": "is_in", "type": "default"}"#,
+            ),
+            (
+                "cf_count",
+                r#"{"value": "99999999999999999999999", "condition": "cf_count", "operator": "is", "type": "custom_field", "_advanced": true}"#,
+            ),
+            (
+                "cf_pick",
+                r#"{"value": [99999999999999999999999], "condition": "cf_pick", "operator": "is_in", "type": "custom_field"}"#,
+            ),
         ] {
             let mut explain = Vec::new();
-            let (item, ()) =
-                resolve_where(None, "tickets", &sch, &format!("{expr}={big}"), &mut explain).unwrap();
-            assert_eq!(fsv_py::dumps(&item, &fsv_py::Dumps::default()), want, "{expr}");
+            let (item, ()) = resolve_where(
+                None,
+                "tickets",
+                &sch,
+                &format!("{expr}={big}"),
+                &mut explain,
+            )
+            .unwrap();
+            assert_eq!(
+                fsv_py::dumps(&item, &fsv_py::Dumps::default()),
+                want,
+                "{expr}"
+            );
         }
     }
 }

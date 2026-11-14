@@ -524,28 +524,7 @@ impl ItemMeta {
     /// `raw_fields`: the item's fields flattened in web order; children name
     /// their parent (the `FormMeta` surface `fsv form` reads).
     pub fn raw_fields(&self) -> Vec<Json> {
-        fn walk(rows: Option<&Json>, parent: Option<&Json>, out: &mut Vec<Json>) {
-            for row in rows.and_then(Json::as_array).into_iter().flatten() {
-                let Some(m) = row.as_object() else { continue };
-                if m.get("deleted").is_some_and(truthy) {
-                    continue;
-                }
-                let mut flat: Map<String, Json> = m
-                    .iter()
-                    .filter(|(k, _)| *k != "fields")
-                    .map(|(k, v)| (k.clone(), v.clone()))
-                    .collect();
-                if let Some(p) = parent.filter(|p| !p.is_null()) {
-                    flat.insert("parent".into(), p.clone());
-                }
-                out.push(Json::Object(flat));
-                walk(m.get("fields"), m.get("name"), out);
-            }
-        }
-        let si = self.item.get("service_item").unwrap_or(&self.item);
-        let mut out = Vec::new();
-        walk(si.get("custom_fields"), None, &mut out);
-        out
+        item_raw_fields(&self.item)
     }
 
     /// `FormState(meta.spec, meta.engine(), mode=..., resolver=..., existing=...)`.
@@ -593,6 +572,16 @@ pub fn load_item_meta(
     r: &str,
     item: Option<&Json>,
 ) -> Result<ItemMeta> {
+    load_item_parts(c, store, r, item)?.build()
+}
+
+/// [`load_item_meta`] without parsing the item form ([`ItemParts`]).
+pub fn load_item_parts(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    r: &str,
+    item: Option<&Json>,
+) -> Result<ItemParts> {
     let raw = match item {
         Some(i) => i.clone(),
         None => find_item(c, r)?,
@@ -615,7 +604,61 @@ pub fn load_item_meta(
         &query,
     )?;
     let ws = rules.get(RULES_WORKSPACE_KEY).cloned().unwrap_or(ws);
-    ItemMeta::new(raw, rules, ws, now(), "server")
+    Ok(ItemParts {
+        item: raw,
+        rules,
+        workspace_id: ws,
+    })
+}
+
+/// What `load_item_meta` reads, before the item form is parsed into its spec
+/// (Python's lazy `ItemMeta.spec`; `form dump` / `form diff` stop here).
+pub struct ItemParts {
+    pub item: Json,
+    pub rules: Json,
+    pub workspace_id: Json,
+}
+
+impl ItemParts {
+    /// [`ItemMeta::raw_fields`].
+    pub fn raw_fields(&self) -> Vec<Json> {
+        item_raw_fields(&self.item)
+    }
+
+    pub fn display_id(&self) -> Json {
+        self.item.get("display_id").cloned().unwrap_or(Json::Null)
+    }
+
+    /// The [`ItemMeta`], parsing the item form into its spec.
+    pub fn build(self) -> Result<ItemMeta> {
+        ItemMeta::new(self.item, self.rules, self.workspace_id, now(), "server")
+    }
+}
+
+/// [`ItemMeta::raw_fields`] of an item.
+fn item_raw_fields(item: &Json) -> Vec<Json> {
+    fn walk(rows: Option<&Json>, parent: Option<&Json>, out: &mut Vec<Json>) {
+        for row in rows.and_then(Json::as_array).into_iter().flatten() {
+            let Some(m) = row.as_object() else { continue };
+            if m.get("deleted").is_some_and(truthy) {
+                continue;
+            }
+            let mut flat: Map<String, Json> = m
+                .iter()
+                .filter(|(k, _)| *k != "fields")
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+            if let Some(p) = parent.filter(|p| !p.is_null()) {
+                flat.insert("parent".into(), p.clone());
+            }
+            out.push(Json::Object(flat));
+            walk(m.get("fields"), m.get("name"), out);
+        }
+    }
+    let si = item.get("service_item").unwrap_or(item);
+    let mut out = Vec::new();
+    walk(si.get("custom_fields"), None, &mut out);
+    out
 }
 
 // ---------------------------------------------------------------------------

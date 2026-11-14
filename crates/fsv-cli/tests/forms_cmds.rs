@@ -371,6 +371,34 @@ fn form_fields_item_only_for_sr() {
     );
 }
 
+/// Python's `ItemMeta.spec` is lazy: `form dump sr` prints an item whose
+/// `section_info` the spec refuses (`sr fields` still fails on it).
+#[test]
+fn form_dump_sr_does_not_build_the_spec() {
+    let mut routes = common::fixture("catalog");
+    let item = routes
+        .iter_mut()
+        .find(|r| r["path"].as_str().unwrap_or("").ends_with("service-items/78"))
+        .unwrap();
+    let si = if item["json"].get("service_item").is_some() {
+        &mut item["json"]["service_item"]
+    } else {
+        &mut item["json"]
+    };
+    si["custom_fields"][0]["field_options"] = serde_json::json!({"section_info": "{bad"});
+    let env = common::Env::new(routes);
+    let r = env.run(&["form", "dump", "sr", "--item", "78"]);
+    assert_eq!((r.code, r.err.as_str()), (0, ""));
+    assert!(r.out.contains("\"section_info\": \"{bad\""), "{}", r.out);
+    let r = env.run(&["sr", "fields", "78"]);
+    assert_eq!(r.code, 2);
+    assert!(
+        r.err.ends_with("error: item field 'reason_200': unreadable section_info\n"),
+        "{}",
+        r.err
+    );
+}
+
 #[test]
 fn form_dump_sr_refuses_edit() {
     let r = run_fixture(

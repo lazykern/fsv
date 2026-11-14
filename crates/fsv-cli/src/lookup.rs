@@ -701,7 +701,9 @@ mod tests {
         assert_eq!(choice_value(&f, "\u{661}", "default").unwrap(), json!(1));
         assert_eq!(choice_value(&f, "x1", "default").unwrap(), json!("x1"));
         assert_eq!(
-            choice_value(&f, "\u{b2}", "default").unwrap_err().to_string(),
+            choice_value(&f, "\u{b2}", "default")
+                .unwrap_err()
+                .to_string(),
             "invalid literal for int() with base 10: '\u{b2}'"
         );
     }

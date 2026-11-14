@@ -57,13 +57,22 @@ fn check_int(p: &Value, cmd: &Command, path: &str, problems: &mut Vec<String>) {
         Command::new("t")
             .arg(one)
             .try_get_matches_from(argv)
-            .map(|m| *m.get_many::<i64>(arg.get_id().as_str()).unwrap().next().unwrap())
+            .map(|m| {
+                *m.get_many::<i64>(arg.get_id().as_str())
+                    .unwrap()
+                    .next()
+                    .unwrap()
+            })
             .map_err(|e| e.to_string())
     };
     let min = p["min"].as_i64();
     let max = p["max"].as_i64();
     let mut want = vec![(" 1_2 ", Ok(12)), ("\u{661}\u{662}", Ok(12))];
-    let kind = if ty == "integer" { "integer" } else { "integer range" };
+    let kind = if ty == "integer" {
+        "integer"
+    } else {
+        "integer range"
+    };
     want.push(("x", Err(format!("'x' is not a valid {kind}."))));
     if min == Some(1) {
         want.push(("0", Err("0 is not in the range ".to_string())));
@@ -72,7 +81,10 @@ fn check_int(p: &Value, cmd: &Command, path: &str, problems: &mut Vec<String>) {
     }
     if let Some(hi) = max {
         let over = (hi + 1).to_string();
-        want.push(("101", Err(format!("{over} is not in the range 1<=x<={hi}."))));
+        want.push((
+            "101",
+            Err(format!("{over} is not in the range 1<=x<={hi}.")),
+        ));
     }
     for (v, w) in want {
         let got = parse(v);
@@ -82,7 +94,9 @@ fn check_int(p: &Value, cmd: &Command, path: &str, problems: &mut Vec<String>) {
             _ => false,
         };
         if !ok {
-            problems.push(format!("{path}: {name} parses {v:?} as {got:?}, want {w:?}"));
+            problems.push(format!(
+                "{path}: {name} parses {v:?} as {got:?}, want {w:?}"
+            ));
         }
     }
 }
