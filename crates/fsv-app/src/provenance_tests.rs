@@ -18,12 +18,8 @@ fn assert_stamped(name: &str, text: &str) {
 
 #[test]
 fn fixtures_record_their_python_commit() {
-    for (name, text) in [
-        (
-            "form_lookup",
-            include_str!("form/testdata/form_lookup.json"),
-        ),
-    ] {
-        assert_stamped(name, text);
-    }
+    assert_stamped(
+        "form_lookup",
+        include_str!("form/testdata/form_lookup.json"),
+    );
 }

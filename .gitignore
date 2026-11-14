@@ -24,3 +24,4 @@ example_har_*.txt
 tests/fixtures/
 tests/fixtures.zip
 /target
+downloads/

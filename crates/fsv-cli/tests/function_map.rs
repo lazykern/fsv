@@ -145,7 +145,7 @@ fn unreviewed_queue_only_shrinks() {
         .filter(|e| e["status"] == "matched")
         .count();
     assert!(
-        unreviewed <= UNREVIEWED_CEILING,
+        unreviewed.saturating_sub(UNREVIEWED_CEILING) == 0,
         "unreviewed matches grew to {unreviewed} (ceiling {UNREVIEWED_CEILING})"
     );
 }
