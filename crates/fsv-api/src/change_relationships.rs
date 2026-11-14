@@ -113,8 +113,11 @@ pub fn inventory(c: &dyn Api, target: i64, kind: &str) -> Result<Vec<Value>> {
         let meta = body.get("meta").and_then(Value::as_object);
         let ok = match (rows.as_ref(), meta) {
             (Some(rows), Some(meta)) => {
-                meta.get("page").and_then(Value::as_i64) == Some(1)
-                    && matches!(meta.get("total_pages").and_then(Value::as_i64), Some(0 | 1))
+                let eq = |k: &str, n: i64| {
+                    crate::schema::py_eq(meta.get(k).unwrap_or(&Value::Null), &json!(n))
+                };
+                eq("page", 1)
+                    && (eq("total_pages", 0) || eq("total_pages", 1))
                     && meta.get("total").is_some_and(is_int)
                     && meta.get("total").and_then(Value::as_i64) == Some(rows.len() as i64)
             }
@@ -256,6 +259,7 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
     let (method, path, body) = if matches!(args.kind, "project" | "project-task") {
         let found = args
             .item
+            .filter(|item| !item.is_empty())
             .map(|item| matches(&rows, item))
             .unwrap_or_default();
         if args.action == "remove" && found.len() != 1 {
@@ -265,7 +269,10 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
             return Err(refused("relationship already present"));
         }
         if args.kind == "project" && args.action == "add" {
-            let Some(project) = args.project.and_then(Value::as_object).filter(|_| !filled(args.item))
+            let Some(project) = args
+                .project
+                .and_then(Value::as_object)
+                .filter(|_| !filled(args.item))
             else {
                 return Err(Error::value(
                     "project add is create-and-associate, not an existing-project link; pass project details",
@@ -878,9 +885,18 @@ mod tests {
     #[test]
     fn project_task_remove_name_falls_back_to_title() {
         for (name, hash) in [
-            (json!(null), "5a017c2c9825205d223f45b8862580facc517e1712431499ee2ba5e06b64c387"),
-            (json!(""), "7d25e6a2b02162e970accf55ea87c6937d3d0c5244bef2964e1c74b955136872"),
-            (json!(0), "ea07749d1484172c6b0abf31316c9fd2aafbd5670cf9c371c29a10477658455b"),
+            (
+                json!(null),
+                "5a017c2c9825205d223f45b8862580facc517e1712431499ee2ba5e06b64c387",
+            ),
+            (
+                json!(""),
+                "7d25e6a2b02162e970accf55ea87c6937d3d0c5244bef2964e1c74b955136872",
+            ),
+            (
+                json!(0),
+                "ea07749d1484172c6b0abf31316c9fd2aafbd5670cf9c371c29a10477658455b",
+            ),
         ] {
             let mut world = seed("project-task", "remove");
             world.rows.insert(
@@ -891,7 +907,14 @@ mod tests {
             let plan = build_plan(
                 &c,
                 "CHN-123",
-                &args("project-task", "remove", Some("ACME-1"), None, Some("ACME"), None),
+                &args(
+                    "project-task",
+                    "remove",
+                    Some("ACME-1"),
+                    None,
+                    Some("ACME"),
+                    None,
+                ),
             )
             .unwrap();
             assert_eq!(
@@ -908,14 +931,27 @@ mod tests {
     #[test]
     fn project_value_of_any_shape_is_hashed() {
         for (project, hash) in [
-            (json!([1]), "7b0e130627ffcf9c5a570ea616b2c2c2bde6ddaf6ad53c111d722e92f6186dc5"),
-            (json!({"a": 1}), "606e2935d6444aae21b6eee819759d5634b241724f420c109d2e977bf0678e58"),
+            (
+                json!([1]),
+                "7b0e130627ffcf9c5a570ea616b2c2c2bde6ddaf6ad53c111d722e92f6186dc5",
+            ),
+            (
+                json!({"a": 1}),
+                "606e2935d6444aae21b6eee819759d5634b241724f420c109d2e977bf0678e58",
+            ),
         ] {
             let c = api(Arc::new(Mutex::new(seed("project", "remove"))));
             let plan = build_plan(
                 &c,
                 "CHN-123",
-                &args("project", "remove", Some("ACME"), Some(&project), None, None),
+                &args(
+                    "project",
+                    "remove",
+                    Some("ACME"),
+                    Some(&project),
+                    None,
+                    None,
+                ),
             )
             .unwrap();
             assert_eq!(plan.hash(), hash, "{project}");
@@ -927,7 +963,61 @@ mod tests {
             &args("release", "add", Some("71"), Some(&json!([1])), None, None),
         )
         .unwrap_err();
-        assert_eq!(err.to_string(), "project options do not apply to this relationship");
+        assert_eq!(
+            err.to_string(),
+            "project options do not apply to this relationship"
+        );
+    }
+
+    /// The single-page check is Python `==` (`1.0`, `True` pass it); the
+    /// shared inventory reader then refuses them (`inventory` runs).
+    #[test]
+    fn project_page_meta_compares_as_python() {
+        let single = "complete single-page linked project inventory unavailable";
+        let mutation = "complete, consistent mutation inventory unavailable";
+        for (meta, want) in [
+            (
+                json!({"page": 1.0, "total": 1, "total_pages": 1.0}),
+                mutation,
+            ),
+            (
+                json!({"page": true, "total": 1, "total_pages": true}),
+                mutation,
+            ),
+            (
+                json!({"page": 1, "total": 1, "total_pages": false}),
+                mutation,
+            ),
+            (json!({"page": 1, "total": 1.0, "total_pages": 1}), single),
+            (json!({"page": 1, "total": true, "total_pages": 1}), single),
+        ] {
+            let body = json!({"status": 200, "body": {"projects": [{"id": 81, "key": "ACME"}], "meta": meta}});
+            let c = FnApi::new(move |_: &Call| Ok(body.clone()));
+            let err = inventory(&c, 123, "project").unwrap_err();
+            assert_eq!(err.to_string(), want, "{meta}");
+        }
+    }
+
+    /// `matches = [...] if item else []`: an empty `--item` matches no row,
+    /// even one whose key is empty.
+    #[test]
+    fn empty_item_matches_no_project() {
+        let mut world = seed("project", "remove");
+        world.rows.insert(
+            "project".into(),
+            vec![json!({"id": 81, "key": "", "name": "Acme project", "project_id": 81})],
+        );
+        let c = api(Arc::new(Mutex::new(world)));
+        let err = build_plan(
+            &c,
+            "CHN-123",
+            &args("project", "remove", Some(""), None, None, None),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "exact linked project/task identity unavailable"
+        );
     }
 
     #[test]

@@ -399,6 +399,27 @@ fn form_dump_sr_does_not_build_the_spec() {
     );
 }
 
+/// `find_item`: `s.isdigit()` then `int(s)`, so a superscript is the
+/// `ValueError` text and a display id past 64 bits is fetched as written
+/// (Python runs on the same routes).
+#[test]
+fn sr_item_digit_refs_are_python_int() {
+    let r = run_fixture("catalog", &["sr", "fields", "\u{b2}"], None);
+    assert_eq!(
+        (r.code, r.out.as_str(), r.err.as_str()),
+        (2, "", "error: invalid literal for int() with base 10: '\u{b2}'\n")
+    );
+    let r = run_fixture("catalog", &["sr", "fields", "99999999999999999999999"], None);
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert!(
+        r.calls()
+            .iter()
+            .any(|(_, p)| p == "/api/_/catalog/service-items/99999999999999999999999"),
+        "{:?}",
+        r.calls()
+    );
+}
+
 #[test]
 fn form_dump_sr_refuses_edit() {
     let r = run_fixture(

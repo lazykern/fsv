@@ -31,6 +31,11 @@ fn json_int(v: &Value) -> Option<i64> {
     }
 }
 
+/// `raw.get("page") == page` (Python `==`: `1.0` and `True` equal `1`).
+fn page_is(raw: &Value, page: i64) -> bool {
+    crate::schema::py_eq(raw.get("page").unwrap_or(&Value::Null), &json!(page))
+}
+
 fn nonneg_int(v: Option<&Value>) -> Option<i64> {
     json_int(v?).filter(|n| *n >= 0)
 }
@@ -89,7 +94,7 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
     let valid = raw.is_object()
         && !raw.get("error").is_some_and(fsv_py::truthy)
         && raw.get("data").is_some_and(Value::is_array)
-        && raw.get("page").and_then(json_int) == Some(page)
+        && page_is(&raw, page)
         && raw.get("total_rows").and_then(json_int).is_some();
     let rows_here = raw
         .get("data")
@@ -112,7 +117,7 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
         return Err(refused("integrated inventory unavailable"));
     }
     let total = nonneg_int(obj.get("total_rows"));
-    let page_ok = json_int(obj.get("page").unwrap_or(&Value::Null)) == Some(page);
+    let page_ok = page_is(&raw, page);
     let Some(total) = total.filter(|_| page_ok) else {
         return Err(refused("integrated inventory pagination unavailable"));
     };
@@ -737,6 +742,24 @@ mod tests {
             search: json!({"page": 1, "error": null, "total_rows": 1,
                 "data": [{"device_pk": 81, "name": {"id": 81, "label": "Acme"}}]}),
             inventory: None,
+        }
+    }
+
+    /// `raw.get("page") == page` is Python `==`: a page of `1.0` or `true`
+    /// is page 1 (`search(..., page=1)` runs).
+    #[test]
+    fn page_compares_as_python() {
+        for (pg, ok) in [(json!(1.0), true), (json!(true), true), (json!(2), false)] {
+            let mut w = world();
+            w.search["page"] = pg.clone();
+            let c = api(Arc::new(Mutex::new(w)));
+            match search(&c, "", "devices", 1) {
+                Ok(raw) => assert!(ok && raw["total_rows"] == json!(1), "{pg}"),
+                Err(e) => assert!(
+                    !ok && e.to_string() == "integrated inventory pagination unavailable",
+                    "{pg}: {e}"
+                ),
+            }
         }
     }
 

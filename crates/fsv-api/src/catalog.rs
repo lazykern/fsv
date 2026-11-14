@@ -167,7 +167,7 @@ pub fn list_items_info(
             info.insert("pages_read".into(), json!(page));
         }
         if rs.is_empty()
-            || total.as_i64().is_some_and(|t| page >= t)
+            || py_int(&total).is_some_and(|t| i128::from(page) >= t)
             || (total.is_null() && (rs.len() as i64) < PER_PAGE)
         {
             complete = true;
@@ -176,7 +176,7 @@ pub fn list_items_info(
     }
     if !complete && let Some(info) = info {
         info.insert("truncated".into(), json!(true));
-        if total.is_i64() {
+        if py_int(&total).is_some() {
             info.insert("total_pages".into(), total);
         }
     }
@@ -191,7 +191,7 @@ pub fn truncation_notice(info: &Map<String, Json>) -> Option<String> {
     }
     let field = |k: &str| py_str(info.get(k).unwrap_or(&Json::Null));
     let more = match info.get("total_pages") {
-        Some(t) if t.is_i64() => format!(" of {}", py_str(t)),
+        Some(t) if py_int(t).is_some() => format!(" of {}", py_str(t)),
         _ => String::new(),
     };
     Some(format!(
@@ -375,12 +375,14 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
     if s.is_empty() {
         return Err(Error::value("catalog item is empty"));
     }
-    if !s.is_empty()
-        && s.chars()
-            .all(|c| fsv_core::pystr::decimal_value(c).is_some())
-    {
-        let id = fsv_core::pystr::parse_decimal(&s).unwrap_or(0);
-        return get_item(c, &json!(id));
+    if fsv_core::pystr::is_digit(&s) {
+        let id = fsv_core::pystr::int_json(&s).ok_or_else(|| {
+            Error::value(format!(
+                "invalid literal for int() with base 10: {}",
+                py_repr_str(&s)
+            ))
+        })?;
+        return get_item(c, &id);
     }
     let mut info = Map::new();
     let items = list_items_info(c, false, MAX_PAGES, Some(&mut info))?;
@@ -563,6 +565,25 @@ fn now() -> f64 {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs_f64())
         .unwrap_or(0.0)
+}
+
+/// `isinstance(v, int)` (a `bool` counts) as an `i128` for the page
+/// comparison; a big int past 64 bits saturates.
+fn py_int(v: &Json) -> Option<i128> {
+    match v {
+        Json::Bool(b) => Some(i128::from(*b)),
+        Json::Number(n) if n.is_i64() || n.is_u64() => {
+            n.as_i64().map(i128::from).or(n.as_u64().map(i128::from))
+        }
+        Json::Number(n) => fsv_py::big_int(n).map(|t| {
+            if t.starts_with('-') {
+                i128::MIN
+            } else {
+                i128::MAX
+            }
+        }),
+        _ => None,
+    }
 }
 
 /// `load_item_meta`: item form + business rules, always from the server.
@@ -2446,6 +2467,44 @@ mod tests {
                 .map(|c| json!(c.params))
                 .collect::<Vec<_>>()
         )
+    }
+
+    /// `isinstance(total, int)` counts `True`/`False` and big ints but not
+    /// `1.0` (Python `list_items(..., max_pages=2, info=...)` runs).
+    #[test]
+    fn total_pages_is_python_int() {
+        let full: Vec<Json> = (0..PER_PAGE)
+            .map(|i| json!({"id": i, "display_id": i, "name": format!("I{i}")}))
+            .collect();
+        let big = "99999999999999999999999";
+        for (total, calls, info, notice) in [
+            (json!(true), 1, json!({"truncated": false, "pages_read": 1, "per_page": 30, "max_pages": 2}), None),
+            (json!(false), 1, json!({"truncated": false, "pages_read": 1, "per_page": 30, "max_pages": 2}), None),
+            (
+                json!(1.0),
+                2,
+                json!({"truncated": true, "pages_read": 2, "per_page": 30, "max_pages": 2}),
+                Some("catalog list truncated: read 2 pages of 30 items (limit 2 pages); more items exist and are not shown or searched".to_string()),
+            ),
+            (
+                serde_json::from_str(big).unwrap(),
+                2,
+                serde_json::from_str(&format!(r#"{{"truncated": true, "pages_read": 2, "per_page": 30, "max_pages": 2, "total_pages": {big}}}"#)).unwrap(),
+                Some(format!("catalog list truncated: read 2 of {big} pages of 30 items (limit 2 pages); more items exist and are not shown or searched")),
+            ),
+        ] {
+            let page = json!({"service_items": full, "meta": {"total_pages": total}});
+            let a = FakeApi::new()
+                .ok("GET catalog/service-items", page.clone())
+                .ok("GET catalog/service-items", page.clone())
+                .ok("GET catalog/service-items", page);
+            let mut got = Map::new();
+            let out = list_items_info(&a, false, 2, Some(&mut got)).unwrap();
+            assert_eq!(out.len(), 30, "{total}");
+            assert_eq!(a.calls.lock().unwrap().len(), calls, "{total}");
+            assert_eq!(Json::Object(got.clone()), info, "{total}");
+            assert_eq!(truncation_notice(&got), notice, "{total}");
+        }
     }
 
     #[test]
