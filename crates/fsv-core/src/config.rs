@@ -90,11 +90,22 @@ fn write_state(f: impl FnOnce(&mut State)) {
 /// never touched, even on first use).
 #[doc(hidden)]
 pub fn use_for_tests(paths: Paths, domain: &str) {
+    *TEST_STATE_HOME.write().unwrap_or_else(|p| p.into_inner()) =
+        Some(paths.config_dir.join("state"));
     let mut g = STATE.write().unwrap_or_else(|p| p.into_inner());
     *g = Some(State {
         paths,
         domain: domain.to_string(),
     });
+}
+
+static TEST_STATE_HOME: std::sync::RwLock<Option<PathBuf>> = std::sync::RwLock::new(None);
+
+/// The state directory [`use_for_tests`] set, so test journals never land
+/// under the user's real `$XDG_STATE_HOME`.
+#[doc(hidden)]
+pub fn test_state_home() -> Option<PathBuf> {
+    TEST_STATE_HOME.read().unwrap_or_else(|p| p.into_inner()).clone()
 }
 
 /// Current paths.
