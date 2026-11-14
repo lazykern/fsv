@@ -27,8 +27,8 @@ fn fields() -> Vec<Value> {
             "Status",
             "default_status",
             1,
-            json!({"choices": [{"id": 31, "value": "Open"}, {"id": 47, "value": "Pending"},
-                                      {"id": 62, "value": "Resolved"}, {"id": 89, "value": "Closed"}]}),
+            json!({"choices": [{"id": 2, "value": "Open"}, {"id": 3, "value": "Pending"},
+                                      {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]}),
         ),
         form_field(
             9000007102,
@@ -62,7 +62,7 @@ fn variant(name: &str) -> (Vec<Value>, Option<Value>) {
     let pending = rule(
         9000007107,
         "Pending needs reason",
-        json!({"all": [{"name": "status", "operator": "is", "value": "47", "evaluate_on": "ticket"}]}),
+        json!({"all": [{"name": "status", "operator": "is", "value": "3", "evaluate_on": "ticket"}]}),
         json!([{"name": ["customFields.reason"], "property": "mandate"}]),
     );
     let hide = rule(
@@ -88,7 +88,7 @@ fn variant(name: &str) -> (Vec<Value>, Option<Value>) {
             let mut blocking = rule(
                 9000007120,
                 "Only requester closes",
-                json!({"all": [{"name": "status", "operator": "is", "value": "89", "evaluate_on": "ticket"}]}),
+                json!({"all": [{"name": "status", "operator": "is", "value": "5", "evaluate_on": "ticket"}]}),
                 json!([{"name": ["Only the requester closes Acme tickets"], "property": "message"}]),
             );
             blocking["is_validation"] = json!(true);
@@ -101,13 +101,13 @@ fn variant(name: &str) -> (Vec<Value>, Option<Value>) {
         }
         bad if bad.starts_with("bad_id_") => {
             fs[0]["choices"][1]["id"] = match bad {
-                "bad_id_sign" => json!("-47"),
-                "bad_id_alpha" => json!("47a"),
+                "bad_id_sign" => json!("-3"),
+                "bad_id_alpha" => json!("3a"),
                 "bad_id_bool" => json!(true),
                 "bad_id_zero" => json!("0"),
-                "bad_id_float" => json!(47.0),
-                "bad_id_space" => json!(" 47"),
-                _ => json!("\u{664}\u{667}"),
+                "bad_id_float" => json!(3.0),
+                "bad_id_space" => json!(" 3"),
+                _ => json!("\u{663}"),
             }
         }
         _ => {}
@@ -246,7 +246,7 @@ fn unacknowledged_plans_keep_their_context_identity() {
 fn replay(cases: &Map<String, Value>) {
     for (name, case) in cases {
         let mut row = obj(
-            json!({"id": 123, "status": 31, "group_id": null, "responder_id": 9000001234_i64,
+            json!({"id": 123, "status": 2, "group_id": null, "responder_id": 9000001234_i64,
             "resolution_notes": null, "custom_fields": {"summary": "Acme fix", "reason": "", "untouched": "keep"}}),
         );
         for (k, v) in case

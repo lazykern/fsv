@@ -4,7 +4,7 @@
 use serde_json::{Map, Value, json};
 
 use fsv_core::error::{Error, Result};
-use fsv_core::pystr::{casefold, strip};
+use fsv_core::pystr::strip;
 use fsv_core::resource::{TICKETS, parse_id};
 use fsv_py::py_str;
 
@@ -65,19 +65,21 @@ fn history(c: &dyn Api, ticket: i64) -> Result<Vec<Value>> {
 }
 
 /// The unique visible runtime Closed status id and the metadata hash.
-fn closed(c: &dyn Api, store: &dyn MetaStore, ticket: i64) -> Result<(i64, String)> {
+pub(crate) fn closed(c: &dyn Api, store: &dyn MetaStore, ticket: i64) -> Result<(i64, String)> {
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(ticket))?;
     let spec = meta.spec();
     let fields: Vec<_> = spec.fields().iter().filter(|f| is_status(f)).collect();
-    let choices: Vec<_> = fields
-        .iter()
-        .flat_map(|f| f.choices.iter())
-        .filter(|ch| ch.visible && casefold(&ch.label) == "closed")
-        .collect();
-    let id = match (fields.len(), choices.as_slice()) {
-        (1, [one]) => crate::choice_ids::runtime_choice_id(one.id.as_ref(), 1),
+    // the built-in Closed status by internal id, whatever its label
+    let choice = match fields.as_slice() {
+        [field] => {
+            let visible: Vec<&fsv_forms::Choice> =
+                field.choices.iter().filter(|c| c.visible).collect();
+            crate::status_semantics::find(&visible, "ticket", crate::status_semantics::Role::Closed)
+                .ok()
+        }
         _ => None,
     };
+    let id = choice.and_then(|one| crate::choice_ids::runtime_choice_id(one.id.as_ref(), 1));
     let Some(id) = id else {
         return Err(refused("a unique runtime Closed status ID is required"));
     };

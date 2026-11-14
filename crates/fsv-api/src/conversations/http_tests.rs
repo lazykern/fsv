@@ -153,11 +153,8 @@ fn changed_cc_identity_refuses_instead_of_changing_reviewed_payload() {
 fn resolution_requires_persisted_note_from_http_readback() {
     for tenant in TENANTS {
         for label in ["Resolved", "Closed"] {
+            // the fixture carries the built-in Resolved (4) and Closed (5) statuses
             let w = Wire::new(tenant);
-            w.server().fields[1]["choices"]
-                .as_array_mut()
-                .unwrap()
-                .push(json!({"id": 91, "value": label}));
             let msg = err(plan(&w, "note", &[], Some(label)));
             assert!(msg.contains("persisted resolution"), "{label}: {msg}");
             assert_eq!(posts(&w), 0);

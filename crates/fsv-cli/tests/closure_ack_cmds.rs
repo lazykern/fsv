@@ -63,13 +63,13 @@ fn note_closed_ack_review() {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 89
+      "status": 5
     },
     "notify_emails": [],
     "private": true
   },
   "status_label": "Closed",
-  "plan_hash": "f2c55c6c86c10074f6e47985a8091793eb69511fa969c82ad3fbb590b9e4ba60",
+  "plan_hash": "9ea6c0f621941396d071ee589de2c49bf27ef6fcbccb2a5f3c7d4d57f423138b",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
@@ -138,12 +138,12 @@ fn reply_closed_ack_review() {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 89
+      "status": 5
     },
     "translate_reply": false
   },
   "status_label": "Closed",
-  "plan_hash": "6b16779d1cf353f57ae4d900aa81d0fe6236f9d956774230676a139566d5c072",
+  "plan_hash": "d08f33615ff89817a8544323b8744b52d33e69349f7684a015dfc0ee03105d3c",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"

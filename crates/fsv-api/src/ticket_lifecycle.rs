@@ -20,6 +20,7 @@ use crate::properties::record;
 use crate::readback::{py_equal, resolution_text, same_text, submitted_value_matches};
 use crate::reviewed_write::refused;
 use crate::service::{Api, Journal, last_event, obj, plan_hash, replay_refusal, snapshot_hash};
+use crate::status_semantics::{self, Role, Wanted};
 
 pub const ACTION: &str = "ticket_transition";
 
@@ -125,11 +126,11 @@ fn dumps(v: &Value) -> String {
 /// `context(client, cid, status, answers, resolution=...)`: the transition
 /// payload, the record+metadata fingerprint JSON and the runtime status label.
 #[allow(clippy::type_complexity)]
-pub fn context(
+pub fn context<'a>(
     c: &dyn Api,
     store: &dyn MetaStore,
     cid: i64,
-    status: &str,
+    status: impl Into<Wanted<'a>>,
     answers: &Map<String, Value>,
     resolution: Option<&str>,
     resolver: Option<Arc<dyn LookupResolver>>,
@@ -143,11 +144,11 @@ pub fn context(
 /// blocking rule messages. Acknowledged texts join the fingerprint only
 /// when there are any, so unacknowledged plan hashes stay stable.
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
-pub fn context_ack(
+pub fn context_ack<'a>(
     c: &dyn Api,
     store: &dyn MetaStore,
     cid: i64,
-    status: &str,
+    status: impl Into<Wanted<'a>>,
     answers: &Map<String, Value>,
     resolution: Option<&str>,
     resolver: Option<Arc<dyn LookupResolver>>,
@@ -201,24 +202,25 @@ pub fn context_ack(
         return Err(refused("status metadata is not unique"));
     }
     let field = fields[0];
-    let want = casefold(status);
-    let choices: Vec<_> = field
-        .choices
-        .iter()
-        .filter(|ch| ch.visible && (casefold(&ch.label) == want || casefold(&ch.value) == want))
-        .collect();
-    let id = match choices.as_slice() {
-        [one] => crate::choice_ids::runtime_choice_id(one.id.as_ref(), 1),
-        _ => None,
-    };
-    let Some(id) = id else {
+    let all: Vec<&fsv_forms::Choice> = field.choices.iter().collect();
+    let choice = status_semantics::select(&all, "ticket", status.into())
+        .map_err(|e| refused(format!("{e}; nothing was sent")))?;
+    let Some(id) = crate::choice_ids::runtime_choice_id(choice.id.as_ref(), 1) else {
         return Err(refused(
             "status must identify one visible runtime status label",
         ));
     };
-    let choice = choices[0];
-    let label = casefold(&choice.label);
-    let closing = label == "resolved" || label == "closed";
+    // Closure semantics come from the built-in internal status ids in this
+    // ticket's runtime choices, never from the (renamable) label.
+    let closing = match status_semantics::closes(&all, "ticket", Some(&json!(id))) {
+        Ok(Some(closing)) => closing,
+        _ => {
+            return Err(refused(format!(
+                "cannot tell from the runtime status metadata whether {} resolves or closes the ticket (built-in status ids are missing); nothing was sent",
+                fsv_py::py_repr_str(&choice.label)
+            )));
+        }
+    };
     state
         .set(
             &field.api_name,
@@ -435,11 +437,11 @@ impl LifecyclePlan {
 
 /// `build_plan(client, target, status, note=..., answers=...)`; `note` is
 /// plain text saved as the resolution before a Resolved transition.
-pub fn build_plan(
+pub fn build_plan<'a>(
     c: &dyn Api,
     store: &dyn MetaStore,
     target: &str,
-    status: &str,
+    status: impl Into<Wanted<'a>>,
     note: Option<&str>,
     answers: Option<&Map<String, Value>>,
     resolver: Option<Arc<dyn LookupResolver>>,
@@ -450,11 +452,11 @@ pub fn build_plan(
 /// [`build_plan`] with `ack=True`: blocking rule messages are acknowledged
 /// and bound to the review hash.
 #[allow(clippy::too_many_arguments)]
-pub fn build_plan_ack(
+pub fn build_plan_ack<'a>(
     c: &dyn Api,
     store: &dyn MetaStore,
     target: &str,
-    status: &str,
+    status: impl Into<Wanted<'a>>,
     note: Option<&str>,
     answers: Option<&Map<String, Value>>,
     resolver: Option<Arc<dyn LookupResolver>>,
@@ -464,7 +466,14 @@ pub fn build_plan_ack(
     if cid <= 0 {
         return Err(Error::value("ticket ID must be positive"));
     }
-    if note.is_some() && casefold(status) != "resolved" {
+    let mut status: Wanted<'a> = status.into();
+    if note.is_some()
+        && let Wanted::Label(text) = status
+        && casefold(strip(text)) == Role::Resolved.name()
+    {
+        status = Wanted::Role(Role::Resolved);
+    }
+    if note.is_some() && status != Wanted::Role(Role::Resolved) {
         return Err(Error::value("--note is supported by resolve only"));
     }
     let tenant = c.domain();

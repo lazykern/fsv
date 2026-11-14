@@ -26,7 +26,9 @@ use crate::attachments::{self, AttachedPlan, ConversationAttach, LocalFile};
 use crate::formmeta::MetaStore;
 use crate::notes::returned_note;
 use crate::reviewed_write::refused;
-use crate::service::{Api, Journal, last_event, load_conversations, obj, plan_hash, replay_refusal};
+use crate::service::{
+    Api, Journal, last_event, load_conversations, obj, plan_hash, replay_refusal,
+};
 use crate::watchers::positive_id;
 
 pub const UPLOAD_PATH: &str = "solutions/inline_images";

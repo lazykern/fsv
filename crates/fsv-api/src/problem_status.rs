@@ -244,7 +244,17 @@ pub fn build_plan(
         )));
     }
     let mut closure = Map::new();
-    if casefold(&label) == "closed" {
+    let all: Vec<&fsv_forms::Choice> = field.choices.iter().collect();
+    let closing = match crate::status_semantics::closes(&all, "problem", Some(&json!(status_id))) {
+        Ok(Some(closing)) => closing,
+        _ => {
+            return Err(refused(format!(
+                "cannot tell from the runtime problem status metadata whether {} closes the problem (built-in status ids are missing); nothing was sent",
+                fsv_py::py_repr_str(&label)
+            )));
+        }
+    };
+    if closing {
         closure = closure_context(c, target)?;
         let mut missing = Vec::new();
         for raw in &raw_fields {

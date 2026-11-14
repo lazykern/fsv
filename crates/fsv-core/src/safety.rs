@@ -10,6 +10,10 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::pystr;
 
+// Python b6b741f removed the English status-word heuristics below (status
+// meaning now comes from built-in internal ids: `fsv_api::status_semantics`,
+// including `safety.status_closes`). They have no callers here and stay only
+// until the function map is repointed.
 pub const TERMINAL_STATUS_WORDS: &[&str] =
     &["closed", "resolved", "rejected", "cancelled", "canceled"];
 /// Labels known NOT to close a record. A label that is neither known

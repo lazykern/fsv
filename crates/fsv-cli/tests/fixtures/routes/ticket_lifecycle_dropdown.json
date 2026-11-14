@@ -7,7 +7,7 @@
     "id": 128,
     "human_display_id": "INC-128",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -42,19 +42,19 @@
      "default_field": true,
      "choices": [
       {
-       "id": 31,
+       "id": 2,
        "value": "Open"
       },
       {
-       "id": 47,
+       "id": 3,
        "value": "Pending"
       },
       {
-       "id": 62,
+       "id": 4,
        "value": "Resolved"
       },
       {
-       "id": 89,
+       "id": 5,
        "value": "Closed"
       }
      ],

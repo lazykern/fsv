@@ -8,11 +8,21 @@ use crate::service::testing::*;
 
 const LABELS: [&str; 4] = ["Open", "In Progress", "Resolve", "Closed"];
 
+/// Built-in Open/Closed keep their platform internal ids (1, 3); custom
+/// statuses get tenant-specific ids (Python b6b741f `sid`).
+fn sid(n: i64, label: &str) -> i64 {
+    match label {
+        "Open" => 1,
+        "Closed" => 3,
+        "In Progress" => n + 1,
+        _ => n + 2,
+    }
+}
+
 fn problem_fields(n: i64) -> Value {
     let choices: Vec<Value> = LABELS
         .iter()
-        .enumerate()
-        .map(|(i, l)| json!({"id": n + i as i64, "value": l}))
+        .map(|l| json!({"id": sid(n, l), "value": l}))
         .collect();
     json!([{"id": 501, "name": "subject", "label": "Subject", "field_type": "default_subject", "position": 1,
             "required_for_closure": true},
@@ -26,7 +36,7 @@ fn new_state(n: i64) -> Value {
         .enumerate()
         .map(|(i, (_, key, _))| json!({"id": i + 1, "name": key, "description": "<div>Acme evidence</div>"}))
         .collect();
-    json!({"row": {"id": 123, "subject": "Acme problem", "status": n, "planned_start_date": null, "planned_end_date": null},
+    json!({"row": {"id": 123, "subject": "Acme problem", "status": sid(n, "Open"), "planned_start_date": null, "planned_end_date": null},
            "analysis": analysis, "solutions": [{"id": 701, "title": "Acme solution", "article_type": 1}], "fields": problem_fields(n),
            "rules": [], "fail": null, "mismatch": false, "partial": false, "drop_dates": false, "requests": []})
 }

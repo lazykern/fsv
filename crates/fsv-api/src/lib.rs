@@ -59,6 +59,7 @@ pub mod sr_approvals;
 pub mod sr_recipient_readback;
 pub mod sr_requested_items;
 pub mod state_flow;
+pub mod status_semantics;
 mod task_status;
 pub mod tasks;
 pub mod templates;
@@ -177,6 +178,8 @@ pub fn is_session_error(e: &fsv_core::Error) -> bool {
 
 #[cfg(test)]
 mod provenance_tests;
+#[cfg(test)]
+mod shifted_status_tests;
 #[cfg(test)]
 mod workflows_tests;
 #[cfg(test)]

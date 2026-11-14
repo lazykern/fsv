@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "e15e02dfa5a0b56cc71c08ecd35f174b10a993a9",
+  "commit": "b6b741f150a53ffa37961b54455a2af392e5903e",
   "dirty": false
  },
  "closure_acme_note_Resolved": {
@@ -24,10 +24,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Resolved",
-    "hash": "564d9141ad088b542210dbf15d35d636c3e39ebc3390ffda118b7cb5db89034c",
+    "hash": "6ab79e230d07801dea895825e46531fddbcf399c772f542ef52e42519645d9ff",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -39,13 +39,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "564d9141ad088b542210dbf15d35d636c3e39ebc3390ffda118b7cb5db89034c",
+     "plan_hash": "6ab79e230d07801dea895825e46531fddbcf399c772f542ef52e42519645d9ff",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -55,7 +55,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "564d9141ad088b542210dbf15d35d636c3e39ebc3390ffda118b7cb5db89034c",
+     "plan_hash": "6ab79e230d07801dea895825e46531fddbcf399c772f542ef52e42519645d9ff",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -83,7 +83,7 @@
    {
     "method": "POST",
     "path": "tickets/123/notes",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -108,10 +108,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"cdca1b1497a31b2cc7a10a4471d81e615bb4c0d5aaacdf1041764e05d148136d\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Closed",
-    "hash": "e9eeb5103f524bbc09443f2c7020d6a8808de98e96e0823db483cf07b8d5f2c4",
+    "hash": "0b7861150c01431a26957d30037b838b66de0b1793565b8d6911c0ce950df9aa",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -123,13 +123,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 5
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "e9eeb5103f524bbc09443f2c7020d6a8808de98e96e0823db483cf07b8d5f2c4",
+     "plan_hash": "0b7861150c01431a26957d30037b838b66de0b1793565b8d6911c0ce950df9aa",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -139,7 +139,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "e9eeb5103f524bbc09443f2c7020d6a8808de98e96e0823db483cf07b8d5f2c4",
+     "plan_hash": "0b7861150c01431a26957d30037b838b66de0b1793565b8d6911c0ce950df9aa",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -167,7 +167,7 @@
    {
     "method": "POST",
     "path": "tickets/123/notes",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -192,10 +192,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"translate_reply\": false}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"translate_reply\": false}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Resolved",
-    "hash": "801003c4f126b0d2aa18992cc1422aad0e5aa3da6d437a0dd9ed2524d61dd6d7",
+    "hash": "c6aa5c7eb26a5a62ed183aa677bc1bd117fa67a16a718c44005214f16b7ed0f4",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -210,12 +210,12 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "translate_reply": false
      },
      "status_label": "Resolved",
-     "plan_hash": "801003c4f126b0d2aa18992cc1422aad0e5aa3da6d437a0dd9ed2524d61dd6d7",
+     "plan_hash": "c6aa5c7eb26a5a62ed183aa677bc1bd117fa67a16a718c44005214f16b7ed0f4",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -225,7 +225,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "801003c4f126b0d2aa18992cc1422aad0e5aa3da6d437a0dd9ed2524d61dd6d7",
+     "plan_hash": "c6aa5c7eb26a5a62ed183aa677bc1bd117fa67a16a718c44005214f16b7ed0f4",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -252,7 +252,7 @@
    {
     "method": "POST",
     "path": "tickets/123/reply",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"translate_reply\": false}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"translate_reply\": false}"
    }
   ]
  },
@@ -277,10 +277,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"translate_reply\": false}",
-    "record_hash": "{\"metadata\": \"cdca1b1497a31b2cc7a10a4471d81e615bb4c0d5aaacdf1041764e05d148136d\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"translate_reply\": false}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Closed",
-    "hash": "c742b2af70350fdfce6fec148f168a6c394079ba2420ea9bb8273c337fa4c73f",
+    "hash": "753a74654e56d0094736829abf3cc39b62e09c65b910b73efa67f3b87f3c0631",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -295,12 +295,12 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 5
       },
       "translate_reply": false
      },
      "status_label": "Closed",
-     "plan_hash": "c742b2af70350fdfce6fec148f168a6c394079ba2420ea9bb8273c337fa4c73f",
+     "plan_hash": "753a74654e56d0094736829abf3cc39b62e09c65b910b73efa67f3b87f3c0631",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -310,7 +310,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "c742b2af70350fdfce6fec148f168a6c394079ba2420ea9bb8273c337fa4c73f",
+     "plan_hash": "753a74654e56d0094736829abf3cc39b62e09c65b910b73efa67f3b87f3c0631",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -337,7 +337,7 @@
    {
     "method": "POST",
     "path": "tickets/123/reply",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"translate_reply\": false}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"translate_reply\": false}"
    }
   ]
  },
@@ -362,10 +362,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"ddbf94bc0737f027f5ef7123578dabcfd08569300e1522e07bb690ec9039ef0c\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Resolved",
-    "hash": "3c9764fef969083b8024df07338e5d1b07eb296bd2959824c5d848a610b5db86",
+    "hash": "14ea7ae0cffa89b6919b6e002b2aefaf5fc3e149ddabdea5660e71b75ec49e1b",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -377,13 +377,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "3c9764fef969083b8024df07338e5d1b07eb296bd2959824c5d848a610b5db86",
+     "plan_hash": "14ea7ae0cffa89b6919b6e002b2aefaf5fc3e149ddabdea5660e71b75ec49e1b",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -393,7 +393,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "3c9764fef969083b8024df07338e5d1b07eb296bd2959824c5d848a610b5db86",
+     "plan_hash": "14ea7ae0cffa89b6919b6e002b2aefaf5fc3e149ddabdea5660e71b75ec49e1b",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -421,7 +421,7 @@
    {
     "method": "POST",
     "path": "tickets/742/notes",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -446,10 +446,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"45f4bf24e2e4dd4c2c5090ac1adec28c5decc7497e345f8afacfd5b4afae5451\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Closed",
-    "hash": "ac96269da28ab629745adef5007d2829498832b92bdd46e2f50765a61b40fdc3",
+    "hash": "38982e888ce82535bb7fcca407e226c7181779c9bd700b0536a75b2d7bb36649",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -461,13 +461,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 5
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "ac96269da28ab629745adef5007d2829498832b92bdd46e2f50765a61b40fdc3",
+     "plan_hash": "38982e888ce82535bb7fcca407e226c7181779c9bd700b0536a75b2d7bb36649",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -477,7 +477,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "ac96269da28ab629745adef5007d2829498832b92bdd46e2f50765a61b40fdc3",
+     "plan_hash": "38982e888ce82535bb7fcca407e226c7181779c9bd700b0536a75b2d7bb36649",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -505,7 +505,7 @@
    {
     "method": "POST",
     "path": "tickets/742/notes",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -530,10 +530,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"translate_reply\": false}",
-    "record_hash": "{\"metadata\": \"ddbf94bc0737f027f5ef7123578dabcfd08569300e1522e07bb690ec9039ef0c\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"translate_reply\": false}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Resolved",
-    "hash": "7ddf340b2780e37a21e8052ae1fe4c2e2dab7845cbe554d76326781e4def910b",
+    "hash": "87a3b412d3904049add1d46cb8645afaf30eb584d7cdef2d8257c7085f4c9515",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -548,12 +548,12 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 4
       },
       "translate_reply": false
      },
      "status_label": "Resolved",
-     "plan_hash": "7ddf340b2780e37a21e8052ae1fe4c2e2dab7845cbe554d76326781e4def910b",
+     "plan_hash": "87a3b412d3904049add1d46cb8645afaf30eb584d7cdef2d8257c7085f4c9515",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -563,7 +563,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "7ddf340b2780e37a21e8052ae1fe4c2e2dab7845cbe554d76326781e4def910b",
+     "plan_hash": "87a3b412d3904049add1d46cb8645afaf30eb584d7cdef2d8257c7085f4c9515",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -590,7 +590,7 @@
    {
     "method": "POST",
     "path": "tickets/742/reply",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"translate_reply\": false}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"translate_reply\": false}"
    }
   ]
  },
@@ -615,10 +615,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"translate_reply\": false}",
-    "record_hash": "{\"metadata\": \"45f4bf24e2e4dd4c2c5090ac1adec28c5decc7497e345f8afacfd5b4afae5451\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"translate_reply\": false}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Closed",
-    "hash": "d89ca84bf0aba45c87faaee36ef77415d1a868f8e05808c41c3afba495167174",
+    "hash": "b25c2796b1693992c71e57035075a7d53fd90118d3ff76eaa8cc3578f84433ae",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -633,12 +633,12 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 5
       },
       "translate_reply": false
      },
      "status_label": "Closed",
-     "plan_hash": "d89ca84bf0aba45c87faaee36ef77415d1a868f8e05808c41c3afba495167174",
+     "plan_hash": "b25c2796b1693992c71e57035075a7d53fd90118d3ff76eaa8cc3578f84433ae",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -648,7 +648,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "d89ca84bf0aba45c87faaee36ef77415d1a868f8e05808c41c3afba495167174",
+     "plan_hash": "b25c2796b1693992c71e57035075a7d53fd90118d3ff76eaa8cc3578f84433ae",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -675,7 +675,7 @@
    {
     "method": "POST",
     "path": "tickets/742/reply",
-    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"translate_reply\": false}"
+    "raw": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"translate_reply\": false}"
    }
   ]
  },
@@ -703,10 +703,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Resolved",
-    "hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+    "hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -718,13 +718,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -737,7 +737,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "verified": false,
      "fields": {
       "body": "unavailable",
@@ -765,7 +765,7 @@
    {
     "method": "POST",
     "path": "tickets/123/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -793,10 +793,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Resolved",
-    "hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+    "hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -808,13 +808,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -827,7 +827,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -855,7 +855,7 @@
    {
     "method": "POST",
     "path": "tickets/123/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -883,10 +883,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Resolved",
-    "hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+    "hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -898,13 +898,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -917,7 +917,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "verified": false,
      "fields": {
       "body": "unavailable",
@@ -945,7 +945,7 @@
    {
     "method": "POST",
     "path": "tickets/123/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -973,10 +973,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\"}",
     "status_label": "Resolved",
-    "hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+    "hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -988,13 +988,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -1007,7 +1007,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
+     "plan_hash": "df03ba1e6dd6b0f31c856fd46808b6657b44ee8b1bb9872738c0060883d22b5f",
      "verified": false,
      "fields": {
       "body": "mismatched",
@@ -1035,7 +1035,7 @@
    {
     "method": "POST",
     "path": "tickets/123/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -1064,10 +1064,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"45f4bf24e2e4dd4c2c5090ac1adec28c5decc7497e345f8afacfd5b4afae5451\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Closed",
-    "hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+    "hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1079,13 +1079,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 5
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+     "plan_hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -1115,7 +1115,7 @@
    {
     "method": "POST",
     "path": "tickets/742/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -1144,10 +1144,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"45f4bf24e2e4dd4c2c5090ac1adec28c5decc7497e345f8afacfd5b4afae5451\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Closed",
-    "hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+    "hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1159,13 +1159,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 5
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+     "plan_hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -1195,7 +1195,7 @@
    {
     "method": "POST",
     "path": "tickets/742/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -1224,10 +1224,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"45f4bf24e2e4dd4c2c5090ac1adec28c5decc7497e345f8afacfd5b4afae5451\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Closed",
-    "hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+    "hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1239,13 +1239,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 5
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+     "plan_hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -1275,7 +1275,7 @@
    {
     "method": "POST",
     "path": "tickets/742/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -1304,10 +1304,10 @@
   ],
   "outputs": [
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"45f4bf24e2e4dd4c2c5090ac1adec28c5decc7497e345f8afacfd5b4afae5451\", \"record\": \"1876781b85452227f4980534f17174827fcea7fcf5deb0f2ee58cbd6c56b81bc\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\"}",
     "status_label": "Closed",
-    "hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+    "hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1319,13 +1319,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 143
+       "status": 5
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "f0c642108cf90b778021988822850fa4124481922a6d673d77754a9fc35a74ff",
+     "plan_hash": "3e9d40022d363dafa5f6856c1465ed1e14a8f648fdf653cd2b88e46b0afacfed",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0
@@ -1355,7 +1355,7 @@
    {
     "method": "POST",
     "path": "tickets/742/notes",
-    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 143}, \"notify_emails\": [], \"private\": true}"
+    "raw": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}"
    }
   ]
  },
@@ -1409,10 +1409,10 @@
     "posts": 0
    },
    {
-    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 103}, \"notify_emails\": [], \"private\": true}",
-    "record_hash": "{\"metadata\": \"90323ef4abe3b263f03fd7399efb7412e8010ca03674544911a072d4f5a1bc94\", \"record\": \"3999f5ace0db03ee285eef7fc120fac16e47e2450f452a6e3684b1a3fca07d5c\"}",
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
+    "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3999f5ace0db03ee285eef7fc120fac16e47e2450f452a6e3684b1a3fca07d5c\"}",
     "status_label": "Resolved",
-    "hash": "57e18572de9f60b3387fa0fdd7b774979bbae4125161f71c2db749a606189dfc",
+    "hash": "c1b1d72de7bf5a1e61d511eb16bb0434b7f3daba39c43806fa470aad4043b12d",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1424,13 +1424,13 @@
        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
        "group_id": null,
        "responder_id": 9000001234,
-       "status": 103
+       "status": 4
       },
       "notify_emails": [],
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "57e18572de9f60b3387fa0fdd7b774979bbae4125161f71c2db749a606189dfc",
+     "plan_hash": "c1b1d72de7bf5a1e61d511eb16bb0434b7f3daba39c43806fa470aad4043b12d",
      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "posts": 0

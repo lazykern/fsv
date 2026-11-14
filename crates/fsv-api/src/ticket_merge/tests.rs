@@ -9,9 +9,9 @@ use crate::formmeta::MemStore;
 use crate::service::testing::*;
 
 fn status_field(closed: bool) -> Value {
-    let mut choices = vec![json!({"id": 31, "value": "Open"})];
+    let mut choices = vec![json!({"id": 2, "value": "Open"})];
     if closed {
-        choices.push(json!({"id": 89, "value": "Closed"}));
+        choices.push(json!({"id": 5, "value": "Closed"}));
     }
     form_field(
         9000007101,
@@ -35,9 +35,9 @@ struct State {
 
 fn new_state() -> State {
     State {
-        records: json!({"123": {"id": 123, "status": 31, "subject": "Acme 123"},
-                        "124": {"id": 124, "status": 31, "subject": "Acme 124"},
-                        "125": {"id": 125, "status": 31, "subject": "Acme 125"}}),
+        records: json!({"123": {"id": 123, "status": 2, "subject": "Acme 123"},
+                        "124": {"id": 124, "status": 2, "subject": "Acme 124"},
+                        "125": {"id": 125, "status": 2, "subject": "Acme 125"}}),
         histories: json!({"123": [{"id": 10, "body": "earlier"}], "124": [{"id": 11, "body": "source A"}],
                           "125": [{"id": 12, "body": "source B"}]}),
         has_next: false,
@@ -63,7 +63,7 @@ fn post(s: &mut State, call: &Call) -> Result<Value> {
     let body = call.body.clone().unwrap();
     for i in body["source"]["ticket_ids"].as_array().unwrap() {
         let key = i.to_string();
-        s.records[&key]["status"] = json!(89);
+        s.records[&key]["status"] = json!(5);
         let moved = s.histories[&key].as_array().unwrap().clone();
         s.histories["123"].as_array_mut().unwrap().extend(moved);
         s.histories[&key] = json!([{"id": 100 + i.as_i64().unwrap(), "body": "<div>Secondary note</div>",
@@ -93,7 +93,7 @@ fn post(s: &mut State, call: &Call) -> Result<Value> {
                 .unwrap()
                 .retain(|r| r["id"] != 11);
         }
-        Some("primary_status") => s.records["123"]["status"] = json!(89),
+        Some("primary_status") => s.records["123"]["status"] = json!(5),
         _ => {}
     }
     Ok(json!({"count": 2, "target": body["target"], "source": body["source"]}))
@@ -306,7 +306,7 @@ fn closed_status_accepts_only_positive_digit_identities() {
                     "Status",
                     "default_status",
                     1,
-                    json!({"choices": [{"id": "31", "value": "Open"},
+                    json!({"choices": [{"id": "2", "value": "Open"},
                                        {"id": ident.clone(), "value": "Closed"}]}),
                 );
                 return Ok(json!({"ticket_fields": [field]}));

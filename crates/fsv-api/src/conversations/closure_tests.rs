@@ -12,7 +12,7 @@ use crate::service::testing::*;
 /// `(domain, cid, opened, pending, fid)`.
 fn tenant(name: &str) -> (&'static str, i64, i64, i64, i64) {
     match name {
-        "globex" => ("globex.example.com", 742, 17, 43, 9000008201),
+        "globex" => ("globex.example.com", 742, 2, 3, 9000008201),
         _ => ("acme.example.com", 123, 2, 3, 9000008101),
     }
 }
@@ -38,18 +38,15 @@ fn wire(name: &str, label: Option<&str>) -> Wire {
                     "planned_start_date": null, "planned_end_date": null}),
         fields: json!([{"id": fid, "name": "subject", "label": "Subject", "field_type": "default_subject", "position": 1},
                        {"id": fid + 1, "name": "status", "label": "Status", "field_type": "default_status", "position": 2,
-                        "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"}]}]),
+                        "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"},
+                                    {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]}]),
         conversation: None,
         failure: Value::Null,
         conv_readback: Value::Null,
         writes: Vec::new(),
         rules: json!([]),
     };
-    if let Some(label) = label {
-        w.fields[1]["choices"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"id": pending + 100, "value": label}));
+    if label.is_some() {
         for (k, v) in obj(json!({"group_id": null, "responder_id": 9000001234_i64,
             "resolution_notes": {"notes_html": "<p>Acme recovery verified</p>", "user": {"name": "Acme Operator"}},
             "custom_fields": {"summary": "Existing fix"}}))
@@ -274,7 +271,7 @@ fn closure_conversations_match_python() {
 fn closure_blocking_rule_ack_bound_to_review() {
     for kind in ["reply", "note"] {
         let w = Arc::new(Mutex::new(wire("acme", Some("Closed"))));
-        let closed = w.lock().unwrap().fields[1]["choices"][2]["id"].clone();
+        let closed = json!(5);
         w.lock().unwrap().rules = json!([{"id": 9000007120_i64, "name": "Only requester closes",
             "workspace_id": 1, "module_type": "ticket", "item_id": null, "deleted": false,
             "user_type": "both", "form_type": "both", "state": "active", "rule_type": "client_side",

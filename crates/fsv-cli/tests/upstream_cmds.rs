@@ -7976,11 +7976,11 @@ fn tickets_resolve_dry_run() {
         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 62
+        "status": 4
       }
     }
   ],
-  "plan_hash": "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d",
+  "plan_hash": "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8030,11 +8030,11 @@ fn tickets_resolve_with_answer_dry_run() {
         },
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 62
+        "status": 4
       }
     }
   ],
-  "plan_hash": "ecff7776669056fd3454d7f2a862ff235a364cfed26f0552c0092f06ee1a224d",
+  "plan_hash": "74bdeb161f96bcbd59e1c2c5b69065328ba9fd3606e7f014ddb8d527ef580c04",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8102,7 +8102,7 @@ fn tickets_resolve_send() {
             "Acme fix <safe>",
             "--yes",
             "--expect-plan",
-            "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d",
+            "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
         ],
         None,
     );
@@ -8113,7 +8113,7 @@ fn tickets_resolve_send() {
   "status": "submitted",
   "ticket_id": 123,
   "status_label": "Resolved",
-  "plan_hash": "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d",
+  "plan_hash": "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
   "verified": true
 }
 "#
@@ -8147,11 +8147,11 @@ fn tickets_close_dry_run() {
         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 89
+        "status": 5
       }
     }
   ],
-  "plan_hash": "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+  "plan_hash": "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8169,7 +8169,7 @@ fn tickets_close_send() {
             "124",
             "--yes",
             "--expect-plan",
-            "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+            "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
         ],
         None,
     );
@@ -8180,7 +8180,7 @@ fn tickets_close_send() {
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+  "plan_hash": "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
   "verified": true
 }
 "#
@@ -8189,8 +8189,6 @@ fn tickets_close_send() {
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
 }
 
-/// `close`/`resolve`/`reopen`/`status` share `lifecycle`, which prints the
-/// send object. A workflow status rewrite adds `verified_with_note`.
 #[test]
 fn tickets_close_verified_with_note() {
     let r = run_fixture(
@@ -8201,26 +8199,26 @@ fn tickets_close_verified_with_note() {
             "124",
             "--yes",
             "--expect-plan",
-            "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+            "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
         ],
         None,
     );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.err, "");
     assert_eq!(
         r.out,
         r#"{
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+  "plan_hash": "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
   "verified": true,
   "verified_with_note": [
-    "status rewritten server-side to 5 after the write (workflow)"
+    "status rewritten server-side to 13 after the write (workflow)"
   ]
 }
 "#
     );
+    assert_eq!(r.err, r#""#);
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
 }
 
@@ -8288,11 +8286,11 @@ fn tickets_close_required_field_answered() {
         },
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 89
+        "status": 5
       }
     }
   ],
-  "plan_hash": "0086ebfa6080639b7fff523a8a8d8f7397978ec643ac0c8441cc6526ab555466",
+  "plan_hash": "613ad9a8cd979c2e315aa469915686c8ece55697b38ae672e3660abac95ea1ce",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8322,11 +8320,11 @@ fn tickets_reopen_dry_run() {
         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 31
+        "status": 2
       }
     }
   ],
-  "plan_hash": "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564",
+  "plan_hash": "8d1fba594dcb9f022b979cb2bb0cbb570948bbcd1e29434e7b05656b70a9363f",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8344,7 +8342,7 @@ fn tickets_reopen_send() {
             "127",
             "--yes",
             "--expect-plan",
-            "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564",
+            "8d1fba594dcb9f022b979cb2bb0cbb570948bbcd1e29434e7b05656b70a9363f",
         ],
         None,
     );
@@ -8355,7 +8353,7 @@ fn tickets_reopen_send() {
   "status": "submitted",
   "ticket_id": 127,
   "status_label": "Open",
-  "plan_hash": "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564",
+  "plan_hash": "8d1fba594dcb9f022b979cb2bb0cbb570948bbcd1e29434e7b05656b70a9363f",
   "verified": true
 }
 "#
@@ -8397,11 +8395,11 @@ fn tickets_status_pending_dry_run() {
         },
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 47
+        "status": 3
       }
     }
   ],
-  "plan_hash": "2ce0f9888d30450783860d343bc6a93d1a1bfe22e8efc1e64a646d1528898509",
+  "plan_hash": "7a87f54d59ee99615051ce53ff0206df0f8c23aef698f66d07827f3b25ea168e",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8420,7 +8418,7 @@ fn tickets_status_unknown_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"status must identify one visible runtime status label
+        r#"status 'Bogus' is not a runtime status label; choices: Open, Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
@@ -8525,7 +8523,7 @@ fn tickets_close_readback_mismatch() {
             "128",
             "--yes",
             "--expect-plan",
-            "7c2da2bb62f2da4b14c11139ec37af3b5b224fd2168787ab821ee3fc35eed3c1",
+            "21a18e4ba538507ef1667a16c48e73b59085b7a26ac4fc2923d66a122b2bc796",
         ],
         None,
     );
@@ -8533,7 +8531,7 @@ fn tickets_close_readback_mismatch() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"transition readback mismatch (status is still 62); outcome unknown; do not resend
+        r#"transition readback mismatch (status is still 4); outcome unknown; do not resend
 "#
     );
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/128"]);
@@ -8580,7 +8578,7 @@ fn tickets_merge_dry_run() {
       "ticket_id": 123
     }
   },
-  "plan_hash": "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+  "plan_hash": "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
   "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
   "surviving_ticket": 123,
   "merged_tickets": [
@@ -8635,7 +8633,7 @@ fn tickets_merge_public_notes_dry_run() {
       "ticket_id": 123
     }
   },
-  "plan_hash": "53d303e9a5422166146cee2214b8f71280a04b5fa3fd7c664f786ee332835449",
+  "plan_hash": "2db45212fa4955847ef3b1d3bf47e6373bafc7a47698bdaead534db60ca9a0f1",
   "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
   "surviving_ticket": 123,
   "merged_tickets": [
@@ -8717,7 +8715,7 @@ fn tickets_merge_send() {
             "Secondary note",
             "--yes",
             "--expect-plan",
-            "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+            "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
         ],
         None,
     );
@@ -8726,7 +8724,7 @@ fn tickets_merge_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+  "plan_hash": "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
   "verified": true,
   "surviving_ticket": 123,
   "primary_status_unchanged": true,
@@ -8770,7 +8768,7 @@ fn tickets_merge_readback_unverified() {
             "Secondary note",
             "--yes",
             "--expect-plan",
-            "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+            "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
         ],
         None,
     );
@@ -8779,7 +8777,7 @@ fn tickets_merge_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+  "plan_hash": "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
   "verified": false,
   "surviving_ticket": 123,
   "primary_status_unchanged": true,
@@ -8824,7 +8822,7 @@ fn tickets_merge_server_error_unknown() {
             "Secondary note",
             "--yes",
             "--expect-plan",
-            "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+            "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
         ],
         None,
     );
@@ -9519,12 +9517,12 @@ fn reply_set_status_closed_dry_run() {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 89
+      "status": 5
     },
     "translate_reply": false
   },
   "status_label": "Closed",
-  "plan_hash": "be11dde146d1a83e4e7d87c7d7ac698f52db9fbc48cf08fd06d3c91f8b13d69d",
+  "plan_hash": "28676ff3f72c48cfe11567ca70f84b1d8c1fd87ae077e5fdab1560542a75eb1a",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
 }
 "#
@@ -9575,7 +9573,7 @@ fn reply_set_status_unknown() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed; nothing was sent
+        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed (or the tenant's own label of one of these): status 'Bogus' is not a runtime status label; choices: Open, Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
@@ -9636,13 +9634,13 @@ fn note_set_status_closed_dry_run() {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 89
+      "status": 5
     },
     "notify_emails": [],
     "private": true
   },
   "status_label": "Closed",
-  "plan_hash": "ab4d38dd09e8d0835893191df8d134811e8b22643d72da2af02984255b463b7b",
+  "plan_hash": "31dbd0637f54c0d8c8d21fca472296c4729253650e8742dcdae342c3ab7542e9",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
 }
 "#
@@ -20452,7 +20450,8 @@ fn tickets_close_blocking_needs_ack() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        "ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them\n",
+        r#"ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them
+"#
     );
 }
 
@@ -20478,11 +20477,11 @@ fn tickets_close_ack_dry_run() {
         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 89
+        "status": 5
       }
     }
   ],
-  "plan_hash": "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+  "plan_hash": "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
@@ -20504,7 +20503,8 @@ fn tickets_status_blocking_needs_ack() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        "ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them\n",
+        r#"ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them
+"#
     );
 }
 
@@ -20530,11 +20530,11 @@ fn tickets_status_ack_dry_run() {
         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
         "group_id": null,
         "responder_id": 9000001234,
-        "status": 89
+        "status": 5
       }
     }
   ],
-  "plan_hash": "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+  "plan_hash": "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
@@ -20556,7 +20556,7 @@ fn tickets_close_ack_send() {
             "--ack",
             "--yes",
             "--expect-plan",
-            "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+            "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
         ],
         None,
     );
@@ -20567,7 +20567,7 @@ fn tickets_close_ack_send() {
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+  "plan_hash": "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
   "verified": true
 }
 "#
@@ -20586,7 +20586,7 @@ fn tickets_close_acked_hash_without_ack() {
             "124",
             "--yes",
             "--expect-plan",
-            "c68ec0e68a0d55eced743aae14b0721b3c91099269ce2308fb7152f714569c1b",
+            "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
         ],
         None,
     );
@@ -20594,6 +20594,7 @@ fn tickets_close_acked_hash_without_ack() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        "ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them\n",
+        r#"ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them
+"#
     );
 }

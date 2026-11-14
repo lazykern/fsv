@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8a466b59772906bd55b476c597b0bcf35319baab",
+  "commit": "b6b741f150a53ffa37961b54455a2af392e5903e",
   "dirty": false
  },
  "cases": {
@@ -39,12 +39,12 @@
       "tenant": "acme.freshservice.com",
       "status": "Closed",
       "answers_json": "{}",
-      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
-      "context_hash": "{\"acknowledged\": [\"Only the requester closes Acme tickets\"], \"metadata\": \"b4b3c548b2a61449a67e91f75900117f6ba1f75b10cd7f42a56860c6bf85d49c\", \"record\": \"aec31501a8ac2e4ccf4cc3bfea160b838019316db10d3726f7471b4275e65c4e\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}",
+      "context_hash": "{\"acknowledged\": [\"Only the requester closes Acme tickets\"], \"metadata\": \"8a509ba9edf11a2b042f63e20eefe118cd2575c47b370091a77b14ef9975d9c1\", \"record\": \"e8cd1a85681bf2ff02b32e269366b29cfd208b05e849a51a5a745931d0fd200c\"}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "1a7e3fa8c64772007838c7415d293b722867d514347c3546e4ca9b4f2fb0d67e",
+     "hash": "df454f29c6074a2042f2f3a5eb87fffa21d654090c90405e37f0884dcd64577f",
      "review": {
       "action": "ticket_transition",
       "status_label": "Closed",
@@ -56,11 +56,11 @@
          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
          "group_id": null,
          "responder_id": 9000001234,
-         "status": 89
+         "status": 5
         }
        }
       ],
-      "plan_hash": "1a7e3fa8c64772007838c7415d293b722867d514347c3546e4ca9b4f2fb0d67e",
+      "plan_hash": "df454f29c6074a2042f2f3a5eb87fffa21d654090c90405e37f0884dcd64577f",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
       "acknowledged_rule_messages": [
        "Only the requester closes Acme tickets"
@@ -73,7 +73,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Closed",
-      "plan_hash": "1a7e3fa8c64772007838c7415d293b722867d514347c3546e4ca9b4f2fb0d67e",
+      "plan_hash": "df454f29c6074a2042f2f3a5eb87fffa21d654090c90405e37f0884dcd64577f",
       "verified": true
      },
      "writes": 1
@@ -81,18 +81,18 @@
    ],
    "puts": [
     {
-     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}",
      "body": {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 89
+      "status": 5
      }
     }
    ],
    "final_row": {
     "id": 123,
-    "status": 89,
+    "status": 5,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -130,12 +130,12 @@
       "tenant": "acme.freshservice.com",
       "status": "Pending",
       "answers_json": "{\"reason\": \"Waiting\"}",
-      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
-      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+     "hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -150,11 +150,11 @@
          },
          "group_id": null,
          "responder_id": 9000001234,
-         "status": 47
+         "status": 3
         }
        }
       ],
-      "plan_hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -164,7 +164,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Pending",
-      "plan_hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
       "verified": true
      },
      "writes": 1
@@ -172,7 +172,7 @@
    ],
    "puts": [
     {
-     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
      "body": {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "custom_fields": {
@@ -180,13 +180,13 @@
       },
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 47
+      "status": 3
      }
     }
    ],
    "final_row": {
     "id": 123,
-    "status": 47,
+    "status": 3,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -203,7 +203,7 @@
   },
   "workflow_status_rewrite": {
    "flags": {
-    "rewrite_status": 62
+    "rewrite_status": 4
    },
    "ops": [
     {
@@ -224,12 +224,12 @@
       "tenant": "acme.freshservice.com",
       "status": "Pending",
       "answers_json": "{\"reason\": \"Waiting\"}",
-      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
-      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+     "hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -244,11 +244,11 @@
          },
          "group_id": null,
          "responder_id": 9000001234,
-         "status": 47
+         "status": 3
         }
        }
       ],
-      "plan_hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -258,10 +258,10 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Pending",
-      "plan_hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
       "verified": true,
       "verified_with_note": [
-       "status rewritten server-side to 62 after the write (workflow)"
+       "status rewritten server-side to 4 after the write (workflow)"
       ]
      },
      "writes": 1
@@ -269,7 +269,7 @@
    ],
    "puts": [
     {
-     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
      "body": {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "custom_fields": {
@@ -277,13 +277,13 @@
       },
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 47
+      "status": 3
      }
     }
    ],
    "final_row": {
     "id": 123,
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -300,7 +300,7 @@
   },
   "workflow_status_back_to_prior": {
    "flags": {
-    "rewrite_status": 31
+    "rewrite_status": 2
    },
    "ops": [
     {
@@ -321,12 +321,12 @@
       "tenant": "acme.freshservice.com",
       "status": "Pending",
       "answers_json": "{\"reason\": \"Waiting\"}",
-      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
-      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+     "hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -341,11 +341,11 @@
          },
          "group_id": null,
          "responder_id": 9000001234,
-         "status": 47
+         "status": 3
         }
        }
       ],
-      "plan_hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -353,14 +353,14 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition readback mismatch (status is still 31); outcome unknown; do not resend"
+      "msg": "transition readback mismatch (status is still 2); outcome unknown; do not resend"
      },
      "writes": 1
     }
    ],
    "puts": [
     {
-     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
      "body": {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "custom_fields": {
@@ -368,13 +368,13 @@
       },
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 47
+      "status": 3
      }
     }
    ],
    "final_row": {
     "id": 123,
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -408,12 +408,12 @@
       "tenant": "acme.freshservice.com",
       "status": "Open",
       "answers_json": "{}",
-      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
-      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -425,11 +425,11 @@
          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
          "group_id": null,
          "responder_id": 9000001234,
-         "status": 31
+         "status": 2
         }
        }
       ],
-      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -439,7 +439,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Open",
-      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
       "verified": true,
       "verified_with_note": [
        "group_id differs on readback (server-side workflow or normalization)"
@@ -450,18 +450,18 @@
    ],
    "puts": [
     {
-     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
      "body": {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 31
+      "status": 2
      }
     }
    ],
    "final_row": {
     "id": 123,
-    "status": 31,
+    "status": 2,
     "group_id": 9000005678,
     "responder_id": 9000001234,
     "resolution_notes": null,

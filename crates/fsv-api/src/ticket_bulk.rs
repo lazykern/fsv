@@ -1460,8 +1460,8 @@ mod tests {
                 "Status",
                 "default_status",
                 1,
-                json!({"choices": [{"id": 31, "value": "Open"}, {"id": 47, "value": "Pending"},
-                                   {"id": 62, "value": "Resolved"}, {"id": 89, "value": "Closed"}]})
+                json!({"choices": [{"id": 2, "value": "Open"}, {"id": 3, "value": "Pending"},
+                                   {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]})
             ),
             form_field(
                 9000007103,
@@ -1476,7 +1476,7 @@ mod tests {
             "id": 9000007107_i64, "name": "Pending needs reason", "workspace_id": 2, "module_type": "ticket",
             "item_id": null, "deleted": false, "user_type": "both", "form_type": "both", "state": "active",
             "rule_type": "client_side", "description": "",
-            "condition_data": {"all": [{"name": "status", "operator": "is", "value": "47", "evaluate_on": "ticket"}]},
+            "condition_data": {"all": [{"name": "status", "operator": "is", "value": "3", "evaluate_on": "ticket"}]},
             "action_data": {"action": [{"name": ["customFields.reason"], "property": "mandate"}]},
             "is_reversible": false, "is_validation": false, "updated_at": "2030-01-03T00:00:00Z"}]});
         let mut rows: BTreeMap<i64, Value> = [71, 72]
@@ -1484,7 +1484,7 @@ mod tests {
             .map(|i| {
                 (
                     i,
-                    json!({"id": i, "subject": format!("Acme {i}"), "status": 31,
+                    json!({"id": i, "subject": format!("Acme {i}"), "status": 2,
                            "custom_fields": {"reason": null}}),
                 )
             })

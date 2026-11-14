@@ -20,7 +20,7 @@ const CSRF_PAGE: &str =
 /// `(domain, cid, opened, pending, fid)` of the two Python fixture tenants.
 pub(crate) const TENANTS: [(&str, i64, i64, i64, i64); 2] = [
     ("acme.example.com", 123, 2, 3, 9000008101),
-    ("globex.example.com", 742, 17, 43, 9000008201),
+    ("globex.example.com", 742, 2, 3, 9000008201),
 ];
 
 #[derive(Clone, Copy, Debug)]
@@ -195,7 +195,8 @@ impl Wire {
             fields: vec![
                 json!({"id": fid, "name": "subject", "label": "Subject", "field_type": "default_subject", "position": 1}),
                 json!({"id": fid + 1, "name": "status", "label": "Status", "field_type": "default_status", "position": 2,
-                       "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"}]}),
+                       "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"},
+                                   {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]}),
             ],
             conv_id: cid + 9000000000,
             conversation: None,
@@ -376,9 +377,10 @@ fn changed_state_or_metadata_blocks_write() {
         };
         let p = build_plan_with(&w.client, &w.store, &w.cid.to_string(), &args, None).unwrap();
         {
-            let mut s = w.server();
-            let id = s.fields[1]["choices"][1]["id"].as_i64().unwrap();
-            s.fields[1]["choices"][1]["id"] = json!(id + 1);
+            w.server().fields[1]["choices"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!({"id": 9, "value": "Assigned"}));
         }
         let msg = err(send_with(
             &p,

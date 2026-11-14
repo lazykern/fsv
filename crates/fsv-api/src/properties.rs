@@ -319,11 +319,14 @@ fn evaluate(
             encode_value(&spec, field, &value, &state.evaluated.values).map_err(other)?
         };
         if is_status(field) {
+            // by internal id: a renamed/translated Resolved still closes;
+            // an unprovable status (built-in ids missing) is refused too
+            let all: Vec<&fsv_forms::Choice> = field.choices.iter().collect();
             let closing = match field.choice(&value).map_err(other)? {
                 None => true,
                 Some(ch) => {
-                    let label = fsv_core::pystr::casefold(&ch.label);
-                    label == "resolved" || label == "closed"
+                    crate::status_semantics::closes(&all, "ticket", ch.id.as_ref())
+                        != Ok(Some(false))
                 }
             };
             if closing {

@@ -7,7 +7,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme 123",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -22,7 +22,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme 123",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -37,7 +37,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme 123",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -111,7 +111,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme 124",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -126,7 +126,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme 124",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -141,7 +141,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme 124",
-    "status": 89,
+    "status": 5,
     "group_id": null,
     "responder_id": null
    }
@@ -203,7 +203,7 @@
     "id": 125,
     "human_display_id": "INC-125",
     "subject": "Acme 125",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -218,7 +218,7 @@
     "id": 125,
     "human_display_id": "INC-125",
     "subject": "Acme 125",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -233,7 +233,7 @@
     "id": 125,
     "human_display_id": "INC-125",
     "subject": "Acme 125",
-    "status": 89,
+    "status": 5,
     "group_id": null,
     "responder_id": null
    }
@@ -295,7 +295,7 @@
     "id": 126,
     "human_display_id": "INC-126",
     "subject": "Acme 126",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": null
    }
@@ -334,11 +334,11 @@
      "default_field": true,
      "choices": [
       {
-       "id": 31,
+       "id": 2,
        "value": "Open"
       },
       {
-       "id": 89,
+       "id": 5,
        "value": "Closed"
       }
      ],

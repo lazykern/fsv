@@ -7,6 +7,7 @@
 //! (`problem_task_update_cli`) and SR requested items
 //! (`sr_requested_items_cli`).
 
+use fsv_api::status_semantics::{Role, Wanted};
 use std::sync::Arc;
 
 use serde_json::{Map, Value, json};
@@ -279,7 +280,7 @@ fn set_answers(sets: &[String]) -> Result<Map<String, Value>> {
 #[allow(clippy::too_many_arguments)]
 fn lifecycle(
     target: &str,
-    status: &str,
+    status: Wanted<'_>,
     note: Option<&str>,
     sets: &[String],
     dry_run: bool,
@@ -325,7 +326,7 @@ pub fn resolve(a: TicketsResolveArgs) -> CmdResult {
     let note = Some(a.note.as_str());
     lifecycle(
         &a.id_,
-        "Resolved",
+        Wanted::Role(Role::Resolved),
         note,
         &a.sets,
         a.dry_run,
@@ -338,7 +339,7 @@ pub fn resolve(a: TicketsResolveArgs) -> CmdResult {
 pub fn close(a: TicketsCloseArgs) -> CmdResult {
     lifecycle(
         &a.id_,
-        "Closed",
+        Wanted::Role(Role::Closed),
         None,
         &a.sets,
         a.dry_run,
@@ -351,7 +352,7 @@ pub fn close(a: TicketsCloseArgs) -> CmdResult {
 pub fn reopen(a: TicketsReopenArgs) -> CmdResult {
     lifecycle(
         &a.id_,
-        "Open",
+        Wanted::Role(Role::Open),
         None,
         &[],
         a.dry_run,
@@ -364,7 +365,7 @@ pub fn reopen(a: TicketsReopenArgs) -> CmdResult {
 pub fn status(a: TicketsStatusArgs) -> CmdResult {
     lifecycle(
         &a.id_,
-        &a.status_,
+        Wanted::Label(&a.status_),
         None,
         &a.sets,
         a.dry_run,

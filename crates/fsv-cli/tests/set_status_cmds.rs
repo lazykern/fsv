@@ -25,7 +25,7 @@ fn reply_set_status_invalid_choice_lists_choices() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed; nothing was sent
+        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed (or the tenant's own label of one of these): status 'Bogus' is not a runtime status label; choices: Open, Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
@@ -50,7 +50,7 @@ fn note_set_status_invalid_choice_lists_choices() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed; nothing was sent
+        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed (or the tenant's own label of one of these): status 'Bogus' is not a runtime status label; choices: Open, Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
@@ -86,12 +86,12 @@ fn reply_set_status_label_is_stripped() {
     "full_text": "<div>Hello</div>",
     "helpdesk_ticket": {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
-      "status": 47
+      "status": 3
     },
     "translate_reply": false
   },
   "status_label": " pending ",
-  "plan_hash": "b2c23e8d5b25ef6f3ad0c12abecd5c6f044cd4fcf904aa1395e6dc68be6ff053",
+  "plan_hash": "8d8438a497fcf985476b9501a8f1a06671e7935adc1072b9307e600ffb25c216",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
 }
 "#
@@ -131,13 +131,13 @@ fn note_set_status_closed_label_is_stripped() {
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "group_id": null,
       "responder_id": 9000001234,
-      "status": 89
+      "status": 5
     },
     "notify_emails": [],
     "private": true
   },
   "status_label": " Closed",
-  "plan_hash": "75f5c9ee6b9c87a045f45f3e9544ee735f54242eb53e34071d111e563e96e454",
+  "plan_hash": "7777a785df2ac04d65ca8fd2037dcf0bbd254cf954dd053cac50915e32ac75ae",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"

@@ -1,6 +1,7 @@
 //! Reviewed reply or note-with-status from blocked UI submissions
 //! (`ticket_conversation.py`).
 
+use crate::status_semantics::{self, Role, Wanted};
 use std::collections::BTreeSet;
 
 use serde_json::{Map, Value, json};
@@ -59,7 +60,7 @@ fn status_inner(
     c: &dyn Api,
     store: &dyn MetaStore,
     cid: i64,
-    label: &str,
+    _label: &str,
 ) -> Result<(i64, String, String)> {
     let bad = |m: &str| Error::value(m.to_string());
     let row = record(c, cid)?;
@@ -76,37 +77,28 @@ fn status_inner(
         return Err(bad("status field not unique"));
     }
     let field = fields[0];
-    let want = fsv_core::pystr::casefold(label);
-    let choices: Vec<_> = field
-        .choices
-        .iter()
-        .filter(|ch| {
-            ch.visible
-                && (fsv_core::pystr::casefold(&ch.label) == want
-                    || fsv_core::pystr::casefold(&ch.value) == want)
+    // the built-in Pending status by internal id, whatever its label
+    let visible: Vec<&fsv_forms::Choice> = field.choices.iter().filter(|c| c.visible).collect();
+    let choice =
+        status_semantics::find(&visible, "ticket", Role::Pending).map_err(|e| bad(&e.0))?;
+    let id = choice
+        .id
+        .as_ref()
+        .and_then(|v| {
+            if v.is_i64() || v.is_u64() {
+                v.as_i64()
+            } else {
+                None
+            }
         })
-        .collect();
-    let id = match choices.as_slice() {
-        [one] => one
-            .id
-            .as_ref()
-            .and_then(|v| {
-                if v.is_i64() || v.is_u64() {
-                    v.as_i64()
-                } else {
-                    None
-                }
-            })
-            .filter(|i| *i > 0),
-        _ => None,
-    };
+        .filter(|i| *i > 0);
     let Some(id) = id else {
         return Err(bad("status choice not unique"));
     };
     state
         .set(
             &field.api_name,
-            fsv_forms::Value::from(choices[0].value.clone()),
+            fsv_forms::Value::from(choice.value.clone()),
         )
         .map_err(|e| Error::other(e.to_string()))?;
     let errors = state.errors().map_err(|e| Error::other(e.to_string()))?;
@@ -216,13 +208,6 @@ pub fn status_context(
         .map_err(|_| refused("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted"))
 }
 
-fn closing_label(label: &str) -> bool {
-    matches!(
-        fsv_core::pystr::casefold(label).as_str(),
-        "resolved" | "closed"
-    )
-}
-
 pub const SET_STATUS_CHOICES: [&str; 3] = ["Pending", "Resolved", "Closed"];
 
 /// `status_fields`: the nested `helpdesk_ticket` payload and its record
@@ -234,22 +219,34 @@ pub fn status_fields(
     cid: i64,
     label: &str,
     ack: bool,
-) -> Result<(Map<String, Value>, String)> {
-    let folded = fsv_core::pystr::casefold(fsv_core::pystr::strip(label));
-    if !SET_STATUS_CHOICES
-        .iter()
-        .any(|c| fsv_core::pystr::casefold(c) == folded)
-    {
-        // Local usage refusal (exit 2) that names the accepted values, like
-        // `tickets resolve --set`; only these transitions have captured wires.
+) -> Result<(Map<String, Value>, String, bool)> {
+    let unsupported = || {
+        Error::value(format!(
+            "--set-status {} is not a supported status; choices: {}; nothing was sent",
+            fsv_py::py_repr_str(label),
+            SET_STATUS_CHOICES.join(", ")
+        ))
+    };
+    let stripped = fsv_core::pystr::strip(label);
+    if stripped.is_empty() {
+        return Err(unsupported());
+    }
+    let label = stripped;
+    let folded = fsv_core::pystr::casefold(label);
+    if folded == "open" || fsv_core::pystr::is_digit(label) {
+        // Local usage refusal (exit 2), like `tickets resolve --set`: only the
+        // listed transitions have captured wires.
         return Err(Error::value(format!(
             "--set-status {} is not a supported status; choices: {}; nothing was sent",
             fsv_py::py_repr_str(label),
             SET_STATUS_CHOICES.join(", ")
         )));
     }
-    let label = fsv_core::pystr::strip(label);
-    if closing_label(label) {
+    let role = match Role::from_name(&folded).filter(|r| *r != Role::Open) {
+        Some(role) => role,
+        None => status_choice(c, store, cid, label)?.1,
+    };
+    if status_semantics::TERMINAL_ROLES.contains(&role.name()) {
         // --ack has the same meaning as tickets close/status --ack: the
         // reviewer read the blocking rule messages; they are bound into the
         // returned fingerprint (and so the review hash) only when used.
@@ -257,25 +254,72 @@ pub fn status_fields(
             c,
             store,
             cid,
-            label,
+            Wanted::Role(role),
             &Map::new(),
             None,
             None,
             None,
             ack,
         )?;
-        return Ok((payload, fingerprint));
+        return Ok((payload, fingerprint, true));
     }
     if ack {
         return Err(refused(
             "--ack applies only with --set-status Resolved or Closed; the captured Pending wire has no blocking-rule acknowledgement",
         ));
     }
-    let (status_id, token, record_hash) = status_context(c, store, cid, label)?;
+    let (status_id, token, record_hash) = status_context(c, store, cid, "Pending")?;
     Ok((
         obj(json!({"status": status_id, "br_validation_excludes": token})),
         record_hash,
+        false,
     ))
+}
+
+/// Port of ticket_conversation._status_choice: `(choice label, role)` for
+/// --set-status: a tenant label or a role word, resolved by the built-in
+/// internal ids in this ticket's status choices.
+pub fn status_choice(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    cid: i64,
+    label: &str,
+) -> Result<(String, Role)> {
+    let read = || -> Result<std::result::Result<(String, Option<&'static str>), status_semantics::SemanticsError>> {
+        let meta = crate::formmeta::load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
+        let spec = meta.spec();
+        let fields: Vec<_> = spec.fields().iter().filter(|f| is_status(f)).collect();
+        if fields.len() != 1 {
+            return Err(Error::value("status field not unique"));
+        }
+        let all: Vec<&fsv_forms::Choice> = fields[0].choices.iter().collect();
+        Ok(status_semantics::select(&all, "ticket", Wanted::Label(label)).and_then(|choice| {
+            let role = status_semantics::role_of(&all, "ticket", choice.id.as_ref())?;
+            Ok((choice.label.clone(), role))
+        }))
+    };
+    let (shown, role) = match read() {
+        Ok(Ok(found)) => found,
+        Ok(Err(e)) => {
+            return Err(refused(format!(
+                "--set-status {} is not a supported status; choices: {} (or the tenant's own label of one of these): {e}; nothing was sent",
+                fsv_py::py_repr_str(label),
+                SET_STATUS_CHOICES.join(", ")
+            )));
+        }
+        Err(_) => {
+            return Err(refused(
+                "could not read the runtime ticket statuses; no send attempted",
+            ));
+        }
+    };
+    match role.and_then(Role::from_name).filter(|r| *r != Role::Open) {
+        Some(role) => Ok((shown, role)),
+        None => Err(refused(format!(
+            "--set-status {} is not a supported status: only the built-in Pending, Resolved and Closed statuses have captured wires; nothing was sent",
+            fsv_py::py_repr_str(&shown)
+        ))),
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -548,7 +592,7 @@ pub fn build_plan_mail(
     };
     let mut record_hash = None;
     if let Some(label) = args.set_status {
-        let (fields, rh) = status_fields(c, store, note.ticket_id, label, args.ack)?;
+        let (fields, rh, _) = status_fields(c, store, note.ticket_id, label, args.ack)?;
         record_hash = Some(rh);
         payload["helpdesk_ticket"] = Value::Object(fields);
     }
@@ -608,8 +652,11 @@ pub fn send(
     if plan.canned_id.is_some() {
         crate::canned::freshen(plan, c)?;
     }
+    let mut status_closes = false;
     if let Some(label) = &plan.status_label {
-        let (fields, record_hash) = status_fields(c, store, plan.ticket_id, label, plan.ack)?;
+        let (fields, record_hash, closes) =
+            status_fields(c, store, plan.ticket_id, label, plan.ack)?;
+        status_closes = closes;
         if Some(&record_hash) != plan.record_hash.as_ref()
             || !payload
                 .get("helpdesk_ticket")
@@ -645,7 +692,7 @@ pub fn send(
     let Ok(csrf) = c.get_csrf() else {
         return Err(refused("could not prepare session; no send attempted"));
     };
-    let closing = plan.status_label.as_deref().is_some_and(closing_label);
+    let closing = plan.status_label.is_some() && status_closes;
     let target = json!(plan.ticket_id);
     journal.record_plan("started", &hash, &action, Some(&target), None);
     if last_event(journal, &action, &hash).as_deref() != Some("started") {

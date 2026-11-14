@@ -7,7 +7,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -28,7 +28,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -49,7 +49,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -70,7 +70,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -97,7 +97,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -124,7 +124,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -150,7 +150,7 @@
     "id": 123,
     "human_display_id": "INC-123",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -176,7 +176,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -203,7 +203,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -230,7 +230,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme VPN",
-    "status": 89,
+    "status": 5,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -256,7 +256,7 @@
     "id": 124,
     "human_display_id": "INC-124",
     "subject": "Acme VPN",
-    "status": 89,
+    "status": 5,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -282,7 +282,7 @@
     "id": 125,
     "human_display_id": "INC-125",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -302,7 +302,7 @@
     "id": 126,
     "human_display_id": "INC-126",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -328,7 +328,7 @@
     "id": 127,
     "human_display_id": "INC-127",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -355,7 +355,7 @@
     "id": 127,
     "human_display_id": "INC-127",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -382,7 +382,7 @@
     "id": 127,
     "human_display_id": "INC-127",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -408,7 +408,7 @@
     "id": 127,
     "human_display_id": "INC-127",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -434,7 +434,7 @@
     "id": 128,
     "human_display_id": "INC-128",
     "subject": "Acme VPN",
-    "status": 62,
+    "status": 4,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": {
@@ -460,7 +460,7 @@
     "id": 128,
     "human_display_id": "INC-128",
     "subject": "Acme VPN",
-    "status": 31,
+    "status": 2,
     "group_id": null,
     "responder_id": 9000001234,
     "resolution_notes": null,
@@ -489,19 +489,19 @@
      "default_field": true,
      "choices": [
       {
-       "id": 31,
+       "id": 2,
        "value": "Open"
       },
       {
-       "id": 47,
+       "id": 3,
        "value": "Pending"
       },
       {
-       "id": 62,
+       "id": 4,
        "value": "Resolved"
       },
       {
-       "id": 89,
+       "id": 5,
        "value": "Closed"
       }
      ],
