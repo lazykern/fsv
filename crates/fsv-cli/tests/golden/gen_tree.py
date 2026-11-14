@@ -110,7 +110,7 @@ def longs_shorts(p):
     return longs, shorts
 
 
-def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, unless=None, help_=True):
+def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, unless=None, help_=True, hidden_alias=None):
     """(attrs, field, type) for one clap arg."""
     name = name or p["name"]
     a = []
@@ -124,14 +124,12 @@ def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, un
         if p["nargs"] == -1:
             a += ["num_args = 1..", "required = true"] if p["required"] else ["num_args = 0.."]
             if t in ("integer", "integer range"):
-                a.append("value_parser = clap::value_parser!(i64)" + (int_range(p) if t == "integer range" else ""))
+                a.append(f"value_parser = {int_parser(p)}")
                 ty = "Vec<i64>"
             else:
                 ty = "Vec<String>"
-        elif t == "integer range":
-            a.append("value_parser = clap::value_parser!(i64)" + int_range(p))
-            ty = "i64"
-        elif t == "integer":
+        elif t in ("integer", "integer range"):
+            a.append(f"value_parser = {int_parser(p)}")
             ty = "i64"
         elif p["required"]:
             ty = "String"
@@ -142,6 +140,8 @@ def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, un
             ty = "String"
         return a, name, ty
     a.append(f"long = {rs(long)}")
+    if hidden_alias:
+        a.append(f"alias = {rs(hidden_alias)}")
     for s in shorts:
         a.append(f"short = '{s}'")
     for al in aliases:
@@ -168,8 +168,7 @@ def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, un
             else:
                 a.append(f"default_value_t = {default}")
                 ty = "i64"
-            if t == "integer range":
-                a.append("value_parser = clap::value_parser!(i64)" + int_range(p))
+            a.append(f"value_parser = {int_parser(p)}")
         elif t == "path":
             a.append(f"value_name = {rs(p['metavar'] or 'PATH')}")
             ty = "Option<PathBuf>"
@@ -192,11 +191,14 @@ def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, un
     return a, name, ty
 
 
-def int_range(p):
-    lo, hi = p.get("min"), p.get("max")
-    if lo is None and hi is None:
-        raise SystemExit(f"{p['name']}: integer range without bounds; re-dump cli_tree.json")
-    return f".range({'' if lo is None else lo}..{'' if hi is None else f'={hi}'})"
+def int_parser(p):
+    if p["type"] == "integer":
+        return "crate::pyint::INT"
+    bounds = (p.get("min"), p.get("max"))
+    parsers = {(1, None): "POSITIVE", (1, 100): "PER_PAGE"}
+    if bounds not in parsers:
+        raise SystemExit(f"{p['name']}: unsupported integer range {bounds}; add a Python-compatible parser")
+    return f"crate::pyint::{parsers[bounds]}"
 
 
 def fields(params):
@@ -210,7 +212,9 @@ def fields(params):
                 unless = neg_name if p["required"] else None
                 out.append(field(p, long=longs[0], shorts=shorts, aliases=longs[1:], overrides=neg_name, unless=unless))
                 q = dict(p, help=None, hidden=False)
-                out.append(field(q, name=neg_name, long=neg, shorts=[], aliases=[], overrides=p["name"]))
+                hidden_alias = "no-billable" if neg == "non-billable" else None
+                out.append(field(q, name=neg_name, long=neg, shorts=[], aliases=[], overrides=p["name"],
+                                 hidden_alias=hidden_alias))
                 continue
             out.append(field(p, long=longs[0], shorts=shorts, aliases=longs[1:]))
         else:
