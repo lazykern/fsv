@@ -153,7 +153,7 @@ def test_problem_update_dry_run_shows_record_state(monkeypatch):
     monkeypatch.setattr(service, "update_item", lambda *a, **k: pytest.fail("dry-run sent"))
     monkeypatch.setattr(cli, "_client", lambda: client)
     monkeypatch.setattr("fsv.schema.load", lambda *a, **k: {**SCHEMA, "source": "server"})
-    run = lambda: CliRunner().invoke(cli.app, ["problems", "update", "PRB-7", "--priority", "High", "--dry-run", "--json"])
+    run = lambda: CliRunner().invoke(cli.app, ["problems", "update", "--no-review", "PRB-7", "--priority", "High", "--dry-run", "--json"])
     out = run().output
     doc = json.loads(out[out.index("{"):])
     assert doc["record_state"] == {"sends": 0, "server_version": "2030-01-01T00:00:00Z"}

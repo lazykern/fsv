@@ -2734,7 +2734,7 @@ def _problem_planning_update(id_: str, planned_start: Optional[str], planned_end
 
 
 def _problem_update_hash(res: Resource, cid: int, body: dict[str, Any], row: Any) -> str | None:
-    """Review hash of a problem or legacy ticket update: tenant, target, exact
+    """Review hash of a deprecated --no-review update: tenant, target, exact
     PUT body and the stable snapshot of the record it was reviewed against
     (None when the record could not be read)."""
     from fsv import journal
@@ -2746,11 +2746,78 @@ def _problem_update_hash(res: Resource, cid: int, body: dict[str, Any], row: Any
 
 
 def _update_state_token(row: Any) -> dict[str, Any]:
-    """Record-state token of a problem/legacy ticket update (journal.repeat_token):
+    """Record-state token of a deprecated --no-review update (journal.repeat_token):
     the server updated_at read at review time. These paths keep no plan
     journal, so repeats are never refused; the token is shown in the dry-run
     for consistency with the journaled reviewed writes."""
     return {"sends": 0, "server_version": row.get("updated_at") if isinstance(row, dict) else None}
+
+
+def _problem_reviewed_update(res: Resource, id_: str, status: Optional[str], priority: Optional[str],
+                             agent_id: Optional[str], group_id: Optional[str], set_: Optional[List[str]],
+                             dry_run: bool, yes: bool, expect_plan: Optional[str], no_input: bool,
+                             json_out: bool) -> None:
+    """Problem form fields other than planning: one reviewed PUT of only the
+    changed keys (problem_properties.build_update_plan), journaled and read
+    back. Status keeps its own reviewed command (closure checks)."""
+    from fsv import journal, problem_properties as flow
+    from fsv import schema as schema_mod
+    from fsv.reviewed_write import ReviewedWriteError
+    if status is not None:
+        _err("problem status changes go through `fsv problems status ID --to STATUS` (a reviewed transition with "
+             "closure checks); nothing sent")
+    c = _client()
+    sch = _api(lambda: schema_mod.load(res, c))
+    stale_warning = schema_mod.freshness_warning(res, c, sch) if dry_run else None
+    if stale_warning:
+        err.print(f"[yellow]warning[/yellow]: {stale_warning}")
+    body = _update_body(res, c, sch, None, priority, agent_id, group_id, set_)
+    try:
+        plan = flow.build_update_plan(c, id_, body)
+    except flow.NothingToChange as exc:
+        if expect_plan is not None:
+            typer.echo(journal.stale_plan_refusal(expect_plan, (flow.UPDATE_ACTION,))
+                       or "nothing to change; the reviewed plan does not exist. Nothing was sent", err=True)
+            raise typer.Exit(2) from None
+        if json_out:
+            emit_json({"status": "nothing_to_change", "target": _cid(id_, res)})
+        else:
+            typer.echo(str(exc))
+        return
+    except (ValueError, ReviewedWriteError, APIError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+    if dry_run:
+        out = {"status": "dry_run", **plan.review()}
+        if stale_warning:
+            out["warnings"] = [*out.get("warnings", []), stale_warning]
+        typer.echo(tenant_json(out, ensure_ascii=False, indent=2))
+        return
+    try:
+        if expect_plan is not None and expect_plan != plan.hash:
+            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (flow.UPDATE_ACTION,))
+                                     or "the problem or the update changed since review (or a partial hash); "
+                                        "review again with --dry-run. Nothing was sent")
+        if yes:
+            if expect_plan != plan.hash:
+                raise ReviewedWriteError("--yes requires the full --expect-plan from a prior --dry-run review")
+        elif _no_input(no_input):
+            raise ReviewedWriteError("sending requires --yes and --expect-plan in no-input mode")
+        else:
+            typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
+            if not typer.confirm("Update these exact problem fields?", default=False):
+                typer.echo("Cancelled; no update attempted.")
+                return
+        result = flow.send_update(plan, c, reviewed_hash=plan.hash)
+    except (ValueError, ReviewedWriteError, APIError) as exc:
+        if json_out:
+            detail = exc.as_dict() if isinstance(exc, ReviewedWriteError) else {"error": str(exc)}
+            emit_json({"status": "error", "plan_hash": plan.hash, "verified": False, **detail})
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+    typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
+    if not result.get("verified"):
+        raise typer.Exit(4)
 
 
 def _no_review_notice(res: Resource) -> None:
@@ -2759,6 +2826,40 @@ def _no_review_notice(res: Resource) -> None:
     typer.echo(f"warning: {res.name} update --no-review is deprecated and will be removed in the next release: it "
                "sends a body-only update with no journal or readback; drop --no-review for the reviewed default",
                err=True)
+
+
+def _update_body(res: Resource, c: Any, sch: Any, status: Optional[str], priority: Optional[str],
+                 agent_id: Optional[str], group_id: Optional[str], set_: Optional[List[str]]) -> dict[str, Any]:
+    """The resolved PUT body of a ticket/problem update from its flags (shared
+    by the reviewed problem update and the deprecated --no-review path)."""
+    body: dict[str, Any] = {}
+    if status is not None:
+        body["status"] = _resolve_update_choice(sch, "status", status)
+    if priority is not None:
+        body["priority"] = _resolve_update_choice(sch, "priority", priority)
+    if agent_id is not None:
+        body["responder_id" if res.name == "tickets" else "agent_id"] = int(_resolve_agent(c, agent_id))
+    if group_id is not None:
+        body["group_id"] = int(_resolve_group(c, group_id))
+    for expr in set_ or []:
+        if "=" not in expr:
+            _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
+        field_text, _, raw_value = expr.partition("=")
+        field = _find_schema_field(sch, field_text.strip())
+        k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
+        # The form metadata distinguishes custom fields from default fields;
+        # tickets and problems nest custom fields in custom_fields (a
+        # top-level custom key is rejected with 400). Only changed keys are
+        # sent: the problem web form sends null for unchanged ones.
+        ftype = str((field or {}).get("field_type") or "")
+        is_default = bool((field or {}).get("default_field", ftype.startswith("default_")))
+        if res.name in ("tickets", "problems") and not is_default:
+            body.setdefault("custom_fields", {})[k] = v
+        else:
+            body[k] = v
+    if not body:
+        _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
+    return body
 
 
 def update_resource(
@@ -2801,33 +2902,7 @@ def update_resource(
         except Exception:  # no snapshot -> no hash; --expect-plan then refuses
             row = None
         row = row.get(res.item_key, row) if isinstance(row, dict) else None
-    body: dict[str, Any] = {}
-    if status is not None:
-        body["status"] = _resolve_update_choice(sch, "status", status)
-    if priority is not None:
-        body["priority"] = _resolve_update_choice(sch, "priority", priority)
-    if agent_id is not None:
-        body["responder_id" if res.name == "tickets" else "agent_id"] = int(_resolve_agent(c, agent_id))
-    if group_id is not None:
-        body["group_id"] = int(_resolve_group(c, group_id))
-    for expr in set_ or []:
-        if "=" not in expr:
-            _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
-        field_text, _, raw_value = expr.partition("=")
-        field = _find_schema_field(sch, field_text.strip())
-        k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
-        # The form metadata distinguishes custom fields from default fields;
-        # tickets and problems nest custom fields in custom_fields (a
-        # top-level custom key is rejected with 400). Only changed keys are
-        # sent: the problem web form sends null for unchanged ones.
-        ftype = str((field or {}).get("field_type") or "")
-        is_default = bool((field or {}).get("default_field", ftype.startswith("default_")))
-        if res.name in ("tickets", "problems") and not is_default:
-            body.setdefault("custom_fields", {})[k] = v
-        else:
-            body[k] = v
-    if not body:
-        _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
+    body = _update_body(res, c, sch, status, priority, agent_id, group_id, set_)
     current = _current_flat(res, cid, c) if dry_run and res.name == "tickets" else None
     risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
     plan_hash = _problem_update_hash(res, cid, body, row) if res.name in ("problems", "tickets") else None
@@ -4628,8 +4703,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
         @sub.command("update", help=f"Update {singular} fields.", epilog=(
             (f"[bold]Note:[/bold] reviewed by default: --dry-run prints the plan_hash and record_state; send with "
-               f"--yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is "
-               f"deprecated (body-only update, removed in the next release).  " if res == TICKETS else "")
+             f"--yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is "
+             f"deprecated (body-only update, removed in the next release)."
+             + ("  Problem status: `fsv problems status ID --to STATUS`.  " if res == PROBLEMS else "  "))
             + f"[bold]Examples:[/bold]  "
             f"fsv {res.name} update {_pfx}-1234 --priority High --dry-run  |  "
             f"fsv {res.name} update {_pfx}-1234 --priority High --yes --expect-plan FULL_HASH"
@@ -4645,7 +4721,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_start: Optional[str] = typer.Option(None, "--planned-start", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_effort: Optional[str] = typer.Option(None, "--planned-effort", help="problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field"),
-            reviewed: bool = typer.Option(True, "--reviewed/--no-review", help="tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release"),
+            reviewed: bool = typer.Option(True, "--reviewed/--no-review", help="--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release"),
             ack: bool = typer.Option(False, "--ack", help="tickets: acknowledge blocking rule messages (bound to the review hash)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash (ticket property update, problem update)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
@@ -4654,18 +4730,28 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update basic fields."""
+            if not reviewed:
+                if (tag or planned_start is not None or planned_end is not None or planned_effort is not None
+                        or ack):
+                    _err("--tag, --planned-start/--planned-end/--planned-effort and --ack have no --no-review path; "
+                         "drop --no-review")
+                _no_review_notice(res)
+                update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input,
+                                set_, expect_plan=expect_plan)
+                return
             if res == PROBLEMS and (planned_start is not None or planned_end is not None or planned_effort is not None):
                 _problem_planning_update(id_, planned_start, planned_end, planned_effort, dry_run, yes, expect_plan,
                                          status, priority, agent_id, group_id, set_, tag, ack)
                 return
             if planned_effort is not None:
                 _err("--planned-effort is supported only for problems")
-            if not reviewed and res == TICKETS:
-                if tag or planned_start is not None or planned_end is not None or ack:
-                    _err("--tag, --planned-start/--planned-end and --ack have no --no-review path; drop --no-review")
-                _no_review_notice(res)
-                update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input,
-                                set_, expect_plan=expect_plan)
+            if res == PROBLEMS:
+                if tag:
+                    _err("--tag is supported only for tickets")
+                if ack:
+                    _err("--ack applies to ticket updates only")
+                _problem_reviewed_update(res, id_, status, priority, agent_id, group_id, set_, dry_run, yes,
+                                         expect_plan, no_input, json_out)
                 return
             if res == TICKETS or tag or planned_start is not None or planned_end is not None:
                 import json

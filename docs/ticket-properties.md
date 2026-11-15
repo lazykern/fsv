@@ -14,4 +14,4 @@ reviews one `PUT /api/_/problems/<id>` with only these keys (effort is sent as
 problem form's rules are evaluated (a hidden or rule-locked field refuses).
 Send with `--yes --expect-plan FULL_HASH`; an independent GET verifies the
 dates (same instant) and the effort (zero units may be dropped by the server).
-Other fields are not combined into this reviewed write.
+Other fields are not combined into this reviewed write: `problems update` reviews them in their own plan (`problem_update`, only the changed keys, readback of each), and `problems status` changes the status.

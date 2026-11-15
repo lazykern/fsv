@@ -39,7 +39,7 @@ class Client:
 def _invoke(monkeypatch, client, *args):
     monkeypatch.setattr(cli, "_client", lambda: client)
     monkeypatch.setattr("fsv.schema.load", lambda *a, **k: SCHEMA)
-    return CliRunner().invoke(cli.app, ["problems", "update", "PRB-7", *args])
+    return CliRunner().invoke(cli.app, ["problems", "update", "--no-review", "PRB-7", *args])
 
 
 def test_problem_custom_fields_are_nested_and_priority_uses_metadata(monkeypatch):
@@ -48,7 +48,7 @@ def test_problem_custom_fields_are_nested_and_priority_uses_metadata(monkeypatch
     dry = _invoke(monkeypatch, client, *args, "--dry-run", "--json")
     assert dry.exit_code == 0, dry.output
     expected = {"priority": 3, "custom_fields": {"acme_resolve_by": "Cancel"}}
-    assert json.loads(dry.output)["body"] == expected
+    assert json.loads(dry.stdout)["body"] == expected
     sent = _invoke(monkeypatch, client, *args, "--yes", "--json")
     assert sent.exit_code == 0, sent.output
     assert client.writes == [("problems/7", expected)]
@@ -178,7 +178,7 @@ def test_dry_run_reports_stale_schema(monkeypatch):
         else {"problem": {"id": 7, "deleted": False}})
     monkeypatch.setattr(cli, "_client", lambda: client)
     monkeypatch.setattr("fsv.schema.load", lambda *a, **k: {**SCHEMA, "source": "cache"})
-    res = CliRunner().invoke(cli.app, ["problems", "update", "PRB-7", "--priority", "High", "--dry-run", "--json"])
+    res = CliRunner().invoke(cli.app, ["problems", "update", "--no-review", "PRB-7", "--priority", "High", "--dry-run", "--json"])
     assert res.exit_code == 0, res.output
     doc = json.loads(res.output[res.output.index("{"):])
     assert any("--refresh" in w for w in doc["warnings"])
@@ -197,7 +197,7 @@ def test_problem_update_dry_run_prints_a_plan_hash_bound_on_send(monkeypatch):
                         {"id": cid, **body})
     monkeypatch.setattr(cli, "_client", lambda: client)
     monkeypatch.setattr("fsv.schema.load", lambda *a, **k: {**SCHEMA, "source": "server"})
-    args = ["problems", "update", "PRB-7", "--priority", "High"]
+    args = ["problems", "update", "--no-review", "PRB-7", "--priority", "High"]
     run = lambda *extra: CliRunner().invoke(cli.app, [*args, *extra])
     res = run("--dry-run", "--json")
     assert res.exit_code == 0, res.output

@@ -25,7 +25,7 @@ update`, `changes tasks-update`, `problems add-note`, `tickets add-note`,
 `tickets reply`/`forward`, `changes approval-request`, `problems status`,
 `tickets status`/`resolve`/`close`/`reopen`, `tickets assign`/`pick-up`,
 `problems link-incident`/`unlink-incident`, `tickets update` (SRs included)
-and `problems update` of planned dates/effort bind a record-state token into the plan hash (`record_state` in
+and `problems update` (planned dates/effort and the other form fields) bind a record-state token into the plan hash (`record_state` in
 the dry-run): the server
 `updated_at` read at review time, where the write reads a record, and the
 number of earlier sends of the same action on the same record that the journal
@@ -36,8 +36,8 @@ record, because it plans the same hash again. A status transition that a
 tenant workflow puts straight back (Open, then the workflow restores the
 previous status, then Open again) is such a legitimate repeat once the first
 send was verified. An unresolved send of a hash from before the token existed
-still refuses. Other `problems update` fields and the deprecated
-`tickets update --no-review` keep no plan journal and never refuse repeats;
+still refuses. The deprecated `tickets update --no-review` and
+`problems update --no-review` keep no plan journal and never refuse repeats;
 their dry-run shows the same token.
 
 `tickets update` (incidents and service requests) is a reviewed write by
@@ -48,9 +48,21 @@ accepted and changes nothing; `--ack` works without it. `--no-review` selects
 the old body-only update for one more release and prints a one-line
 deprecation notice on stderr (never on `--json` stdout).
 
+`problems update` is reviewed the same way by default for priority, subject,
+description, group, agent, category and custom fields (`--set`): the plan
+holds only the keys whose value differs from the record (custom fields nested
+in `custom_fields`), the problem form's metadata and rules are evaluated (a
+field missing from the form, hidden or rule-locked refuses), and after the one
+journaled PUT the problem is read back and every changed key compared
+(`fields`, `verified`; rich text compared without wrappers). When every value
+already matches, it says `nothing to change` (exit 0, no `plan_hash`; with
+`--expect-plan`, exit 2). Status changes keep their own reviewed command,
+`problems status ID --to STATUS`; `problems update --status` is refused unless
+`--no-review` (deprecated, same stderr notice) is given.
+
 
 A no-op update (every value already equals the current one) has no plan:
-`changes update --dry-run` says `nothing to change` (exit 0, no `plan_hash`).
+`changes update --dry-run` (and `problems update`) says `nothing to change` (exit 0, no `plan_hash`).
 With `--expect-plan` (dry-run or `--yes`) it exits 2 with `nothing to change;
 the reviewed plan does not exist`, because a supplied hash cannot match a plan
 that does not exist; when that hash was already sent, the refusal names the
@@ -668,7 +680,7 @@ returned note id and compare its body. The result (`--json`) carries
 `verified`. Problem notes have no visibility key, so `--public` is refused.
 
 `problems update --set` nests custom fields in `custom_fields` (only the
-changed keys) and refuses a deleted (trashed) problem before sending; the
+changed keys; reviewed by default, see above) and refuses a deleted (trashed) problem before sending; the
 server answers 405 there. `problems status` reads back the status: only the
 requested status verifies from the record alone. Any other readback status
 (a workflow that moved it on, or put it back to the status it already had)

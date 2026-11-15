@@ -142,7 +142,7 @@ def test_problem_update_failure_names_status_and_message(monkeypatch, status, bo
     client = _ProblemClient(APIError(status, body, "PUT", "problems/7"))
     monkeypatch.setattr(cli, "_client", lambda: client)
     monkeypatch.setattr("fsv.schema.load", lambda *a, **k: SCHEMA)
-    r = CliRunner().invoke(cli.app, ["problems", "update", "PRB-7", "--priority", "High", "--yes", "--json"])
+    r = CliRunner().invoke(cli.app, ["problems", "update", "--no-review", "PRB-7", "--priority", "High", "--yes", "--json"])
     assert r.exit_code != 0 and len(client.writes) == 1
     flat = " ".join(r.output.split())
     assert f"HTTP {status}" in flat and expect in flat and "<h1>" not in flat
