@@ -208,6 +208,15 @@ fsv search 'Acme service' --json
 fsv tui --read-only
 ```
 
+The macOS Keychain session is stored per config dir: service `fsv`, account
+`fsv-session-` plus the first 12 hex characters of the sha256 of the resolved
+config dir (`auth login` prints it). `auth login`, `auth status`, `auth logout`
+and every command read and write only that item, so `auth logout` (or a
+`--store file` login) under a scratch or trial `FSV_CONFIG_DIR` never deletes
+another config dir's session. The older unscoped `fsv-session` item is read as
+a fallback, and removed by `auth logout`, only for the default config dir
+(`~/.config/fsv`).
+
 Every command that talks to a tenant prints `fsv: tenant <tenant> (config <dir>)`
 once on stderr; `--quiet` or `FSV_QUIET=1` suppress it, and local commands
 (`config`, `completion`, `journal`, `cache status`, help, version) print

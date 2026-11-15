@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import getpass
+import hashlib
 import json
 import os
 import re
@@ -70,21 +71,64 @@ def _keychain_available() -> bool:
     return sys.platform == "darwin"
 
 
-def _keychain_write(value: str) -> None:
-    """Store *value* in the login Keychain without exposing it in argv.
+class _SecurityCLI:
+    """The macOS ``security`` tool (tests substitute a fake backend)."""
 
-    ``security add-generic-password -w <value>`` would put the secret in the
-    process list.  Instead we feed the command to ``security -i`` on stdin.
+    def write(self, account: str, encoded: str) -> bool:
+        # ``-w <value>`` in argv would expose the secret in the process list;
+        # feed the command to ``security -i`` on stdin instead.
+        line = f"add-generic-password -U -a {account} -s {KEYCHAIN_SERVICE} -w {encoded}\n"
+        return subprocess.run(["security", "-i"], input=line, capture_output=True, text=True).returncode == 0
+
+    def read(self, account: str) -> str | None:
+        r = subprocess.run(["security", "find-generic-password", "-a", account, "-s", KEYCHAIN_SERVICE, "-w"],
+                           capture_output=True, text=True)
+        return r.stdout if r.returncode == 0 else None
+
+    def delete(self, account: str) -> None:
+        subprocess.run(["security", "delete-generic-password", "-a", account, "-s", KEYCHAIN_SERVICE],
+                       capture_output=True)
+
+
+_KEYCHAIN: Any = _SecurityCLI()
+
+
+def _default_config_dir() -> Path:
+    return Path.home() / ".config" / "fsv"
+
+
+def _is_default_config_dir() -> bool:
+    try:
+        return config.CONFIG_DIR.resolve() == _default_config_dir().resolve()
+    except OSError:
+        return False
+
+
+def keychain_account() -> str:
+    """Keychain account of this config dir's session: ``fsv-session-`` plus
+    the first 12 hex chars of the sha256 of the resolved config dir, so a
+    scratch or trial ``FSV_CONFIG_DIR`` never reads, overwrites or deletes
+    another config dir's session. The unscoped legacy ``fsv-session`` item
+    is read (and removed on logout) only for the default config dir."""
+    digest = hashlib.sha256(os.fsencode(config.CONFIG_DIR.resolve())).hexdigest()[:12]
+    return f"{KEYCHAIN_ACCOUNT}-{digest}"
+
+
+def _keychain_accounts() -> list[str]:
+    """This config dir's accounts, scoped first; legacy only for the default dir."""
+    return [keychain_account()] + ([KEYCHAIN_ACCOUNT] if _is_default_config_dir() else [])
+
+
+def _keychain_write(value: str) -> None:
+    """Store *value* in the login Keychain under this config dir's account.
+
     The value is base64-encoded so it needs no shell quoting (readers decode
     it; legacy raw-JSON entries are still understood).
     """
     if not _keychain_available():
         raise SessionError("keychain backend is macOS only")
     encoded = base64.b64encode(value.encode("utf-8")).decode("ascii")
-    line = (f"add-generic-password -U -a {KEYCHAIN_ACCOUNT} -s {KEYCHAIN_SERVICE} "
-            f"-w {encoded}\n")
-    r = subprocess.run(["security", "-i"], input=line, capture_output=True, text=True)
-    if r.returncode != 0:
+    if not _KEYCHAIN.write(keychain_account(), encoded):
         raise SessionError("could not write session to Keychain")
 
 
@@ -101,24 +145,19 @@ def _keychain_decode(raw: str) -> str:
 def _keychain_read() -> str:
     if not _keychain_available():
         raise SessionError("keychain backend is macOS only")
-    r = subprocess.run(
-        ["security", "find-generic-password",
-         "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE, "-w"],
-        capture_output=True, text=True,
-    )
-    if r.returncode != 0:
-        raise SessionError("no session in Keychain; run `fsv auth login`")
-    return _keychain_decode(r.stdout)
+    for account in _keychain_accounts():
+        raw = _KEYCHAIN.read(account)
+        if raw is not None:
+            return _keychain_decode(raw)
+    raise SessionError("no session in Keychain; run `fsv auth login`")
 
 
 def _keychain_delete() -> None:
+    """Delete only this config dir's Keychain item(s)."""
     if not _keychain_available():
         return
-    subprocess.run(
-        ["security", "delete-generic-password",
-         "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE],
-        capture_output=True,
-    )
+    for account in _keychain_accounts():
+        _KEYCHAIN.delete(account)
 
 
 # ---------- argon2 file encryption ----------

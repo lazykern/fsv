@@ -2935,6 +2935,14 @@ def _resolve_domain(no_input: bool = False) -> bool:
     return looks_like_url
 
 
+def _session_target(backend: str) -> str:
+    """Where the session was saved: the config dir's own Keychain item, or the file."""
+    if backend == "keychain":
+        from fsv.session import keychain_account
+        return f"Keychain (service fsv, account {keychain_account()}, for {config.display_path(config.CONFIG_DIR)})"
+    return config.display_path(config.SESSION_FILE)
+
+
 def _validate_new_cookies(cookies: dict[str, str]) -> None:
     """Refuse to save cookies the tenant rejects (override with --force)."""
     from fsv.client import Client
@@ -3001,7 +3009,7 @@ def auth_login(
     if store is None and sys.stdin.isatty() and not no_input:
         store = _choose_store()
     backend = save_cookies(cookies, store)  # type: ignore[arg-type]
-    target = "Keychain" if backend == "keychain" else config.display_path(config.SESSION_FILE)
+    target = _session_target(backend)
     console.print(f"saved {len(cookies)} cookies to {target}")
     try:
         reset_client()
@@ -3025,7 +3033,7 @@ def auth_logout(
     yes: bool = typer.Option(False, "--yes", "-y", help="skip confirmation prompt"),
     no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
 ) -> None:
-    """Wipe stored session (file + Keychain + backend pref)."""
+    """Wipe this config dir's stored session (file, its own Keychain item, backend pref)."""
     from fsv.session import logout as session_logout
     if not yes:
         domain = config.DOMAIN or "Freshservice"
@@ -5191,7 +5199,7 @@ def _setup_auth() -> None:
     _validate_new_cookies(cookies)
     store = _choose_store()
     backend = save_cookies(cookies, store)
-    target = "Keychain" if backend == "keychain" else config.display_path(config.SESSION_FILE)
+    target = _session_target(backend)
     console.print(f"saved {len(cookies)} cookies to {target}")
 
     try:
