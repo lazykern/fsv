@@ -15,7 +15,7 @@ from typing import Any, Callable
 
 import typer
 
-from fsv import config
+from fsv import config, journal
 from fsv.readback import same_text
 from fsv.resources import PROBLEMS, format_id, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
@@ -33,12 +33,18 @@ def build_plan(target: int | str, body: str) -> WritePlan:
     if not isinstance(body, str) or not body.strip() or "\x00" in body:
         raise ValueError("note body must be nonempty text without NUL characters")
     payload = {"body": body}
+    # Answered sends of a note on this problem (journal.repeat_token): the
+    # same note added again later plans a fresh hash; a replay never does.
+    # Zero answered sends keeps the pre-token hash.
+    token = journal.repeat_token((ACTION,), cid)
     return WritePlan(ACTION, cid, config.DOMAIN, "POST", f"problems/{cid}/notes",
-                     json.dumps(payload, ensure_ascii=False, sort_keys=True), "")
+                     json.dumps(payload, ensure_ascii=False, sort_keys=True),
+                     json.dumps(token, sort_keys=True) if token["sends"] else "")
 
 
 def review(plan: WritePlan) -> dict[str, Any]:
     return {**plan.review(), "id": format_id({"id": plan.target}, PROBLEMS), "body": plan.payload,
+            "record_state": json.loads(plan.context_hash) if plan.context_hash else {"sends": 0},
             "warnings": ["visibility: " + VISIBILITY]}
 
 
@@ -80,7 +86,9 @@ def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str
             out["verified"] = out["fields"]["body"] == "matched" and out["readback_complete"]
         return out
 
-    return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)
+    from dataclasses import replace
+    return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify,
+                   guards=(replace(plan, context_hash="").hash,) if plan.context_hash else ())
 
 
 def add_note(client_factory: Callable[[], Any], id_: str, body: str, *, public: bool, dry_run: bool,
@@ -94,7 +102,8 @@ def add_note(client_factory: Callable[[], Any], id_: str, body: str, *, public: 
             typer.echo(tenant_json({"status": "dry_run", "dry_run": True, **doc}, ensure_ascii=False, indent=2))
             return
         if expect_plan is not None and expect_plan != plan.hash:
-            raise ReviewedWriteError("note review hash does not match; review the exact body again")
+            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (ACTION,))
+                                     or "note review hash does not match; review the exact body again")
         if yes:
             if expect_plan != plan.hash:
                 raise ReviewedWriteError("--yes requires the full --expect-plan from a prior --dry-run review")

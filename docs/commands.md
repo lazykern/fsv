@@ -17,6 +17,23 @@ expiry/bypass; uncertain older transactions cannot be retried by upgrading the
 review format. `changes create --max-bytes` requires `--attach-flow before-create`
 rather than silently ignoring a limit on the legacy after-create route.
 
+## Repeating an identical write
+
+A reviewed plan is single-use, but the same values may legitimately be sent
+again later (an A/B/A/B priority alternation, the same note twice). `changes
+update`, `changes tasks-update`, `problems add-note`, `tickets add-note`,
+`tickets reply`/`forward` and `changes approval-request` bind a record-state
+token into the plan hash (`record_state` in the dry-run): the server
+`updated_at` read at review time, where the write reads a record, and the
+number of earlier sends of the same action on the same record that the journal
+recorded as answered and verified. A later review after the record changed
+plans a fresh hash. Replaying an already-sent hash is refused, and so is a new
+review after an ambiguous (no answer) or unverified send against an unchanged
+record, because it plans the same hash again. A count of zero keeps the hash
+format used before the token existed, and an unresolved send of that older
+hash still refuses. `problems update` and the legacy `tickets update` keep no
+plan journal and never refuse repeats; their dry-run shows the same token.
+
 
 ## Remaining accepted-wire blockers
 

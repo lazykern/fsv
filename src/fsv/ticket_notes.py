@@ -10,7 +10,7 @@ from fsv.tenant import tenant_json
 import html
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Literal, Sequence
 
 import typer
@@ -46,6 +46,9 @@ class NotePlan:
     public: bool
     notify_emails: tuple[str, ...]
     tenant: str
+    # Answered sends of this action on this ticket (journal.repeat_token): an
+    # identical note added again later plans a fresh hash; None = pre-token.
+    sends: int | None = None
 
     @property
     def path(self) -> str:
@@ -59,13 +62,17 @@ class NotePlan:
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"tenant": self.tenant, "path": self.path, "payload": self.payload}) or ""
+        identity: dict[str, Any] = {"tenant": self.tenant, "path": self.path, "payload": self.payload}
+        if self.sends:  # zero keeps the pre-token hash (nothing answered yet)
+            identity["state"] = {"sends": self.sends}
+        return journal.plan_hash(identity) or ""
 
     def review(self) -> dict[str, Any]:
         return {"action": "ticket_note", "tenant": self.tenant, "ticket_id": self.ticket_id,
                 "visibility": "public note (visible to customer)" if self.public else "private note",
                 "path": f"/api/_/{self.path}", "method": "POST", "payload": self.payload,
                 "body_text": strip_html(self.body_html), "plan_hash": self.hash,
+                **({"record_state": {"sends": self.sends}} if self.sends is not None else {}),
                 "risks": note_risks(self.public),
                 "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."}
 
@@ -103,14 +110,15 @@ def build_plan(ticket_id: int | str, body: str, *, public: bool = False,
     recipients = tuple(notify_emails or ())
     if any(not _valid_recipient(email) for email in recipients):
         raise ValueError("notify_emails contains an invalid email address")
-    return NotePlan(cid, body_html, public, recipients, config.DOMAIN)
+    return NotePlan(cid, body_html, public, recipients, config.DOMAIN,
+                    journal.verified_sends((_ACTION,), cid))
 
 
 def _check_plan(plan: NotePlan) -> None:
     # Validate even directly constructed plans, not just build_plan results.
     new = build_plan(plan.ticket_id, plan.body_html, public=plan.public,
                      notify_emails=plan.notify_emails, body_format="html")
-    if new != plan:
+    if replace(new, sends=plan.sends) != plan:
         raise NoteError("note plan or tenant changed; review a new plan before sending")
 
 
@@ -119,6 +127,14 @@ def _duplicate(plan: NotePlan) -> None:
             and r.get("plan") == plan.hash]
     if rows and rows[-1].get("event") in ("started", "done"):
         raise NoteError("this note was sent or its outcome is unknown; check the exact ticket and journal before any retry")
+    # The same note hashed without the send token (older journals): an
+    # unresolved submission still refuses.
+    prior = replace(plan, sends=None).hash
+    rows = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == prior]
+    if plan.sends is not None and rows and rows[-1].get("event") == "started":
+        raise NoteError("this note was sent or its outcome is unknown; check the exact ticket and journal before any retry")
+    if plan.sends is not None and journal.verified_sends((_ACTION,), plan.ticket_id) != plan.sends:
+        raise NoteError("another note on this ticket was answered since the review; review a new plan before sending")
 
 
 def _returned_note(response: Any) -> dict[str, Any] | None:
@@ -216,6 +232,8 @@ def send(plan: NotePlan, client: Any = None, *, reviewed_hash: str | None,
             result["warning"] = "Read-back did not fully verify the note fields and history; do not resend."
     except Exception:
         result["warning"] = "Note returned an ID but conversation read-back failed; do not resend."
+    if result["verified"] is True:
+        journal.record_verified(plan.hash, action=_ACTION, target=plan.ticket_id)
     return result
 
 
@@ -335,7 +353,8 @@ def register(app: typer.Typer) -> None:
             if read_only:
                 raise NoteError("read-only mode: no note was sent")
             if expected is not None and expected != plan.hash:
-                raise NoteError("note review hash does not match; review the exact body again")
+                raise NoteError(journal.stale_plan_refusal(expected, (_ACTION,))
+                                or "note review hash does not match; review the exact body again")
             if yes:
                 if expected != plan.hash:
                     raise NoteError("--yes requires the full --expect-plan from a prior body review")

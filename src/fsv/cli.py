@@ -781,10 +781,13 @@ def _confirm_terminal_status(res: Resource, cid: int, sch: dict[str, Any], statu
 
 def _emit_dry_run(res: Resource, cid: int, body: dict[str, Any], action: str = "update",
                   risks: list[str] | None = None, display_id: str | None = None,
-                  warnings: list[str] | None = None, plan_hash: str | None = None) -> None:
+                  warnings: list[str] | None = None, plan_hash: str | None = None,
+                  record_state: dict[str, Any] | None = None) -> None:
     out: dict[str, Any] = {"dry_run": True, "action": action, "id": display_id or format_id({"id": cid}, res), "body": body}
     if plan_hash:
         out["plan_hash"] = plan_hash
+    if plan_hash and record_state is not None:
+        out["record_state"] = record_state
     if risks:
         out["requires_confirmation"] = risks
     if warnings:
@@ -2720,7 +2723,15 @@ def _problem_update_hash(res: Resource, cid: int, body: dict[str, Any], row: Any
         return None
     return journal.plan_hash({"action": "update", "resource": res.name, "target": cid, "tenant": config.DOMAIN,
                               "method": "PUT", "path": f"{res.api_path}/{cid}", "payload": body,
-                              "record": journal.snapshot_hash(row)})
+                              "record": journal.snapshot_hash(row), "state": _update_state_token(row)})
+
+
+def _update_state_token(row: Any) -> dict[str, Any]:
+    """Record-state token of a problem/legacy ticket update (journal.repeat_token):
+    the server updated_at read at review time. These paths keep no plan
+    journal, so repeats are never refused; the token is shown in the dry-run
+    for consistency with the journaled reviewed writes."""
+    return {"sends": 0, "server_version": row.get("updated_at") if isinstance(row, dict) else None}
 
 
 def update_resource(
@@ -2809,7 +2820,8 @@ def update_resource(
             else:
                 display_id = f"tickets/{cid}"
         _emit_dry_run(res, cid, body, risks=risks, display_id=display_id,
-                      warnings=[stale_warning] if stale_warning else None, plan_hash=plan_hash)
+                      warnings=[stale_warning] if stale_warning else None, plan_hash=plan_hash,
+                      record_state=_update_state_token(row) if plan_hash else None)
         return
     _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
 

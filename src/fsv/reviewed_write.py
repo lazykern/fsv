@@ -65,7 +65,9 @@ class WritePlan:
 
 def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
             rebuild: Callable[[], WritePlan], verify: Callable[[Any], dict[str, Any]],
-            rejection: Callable[[APIError], str] | None = None) -> dict[str, Any]:
+            rejection: Callable[[APIError], str] | None = None, guards: tuple[str, ...] = ()) -> dict[str, Any]:
+    """``guards``: older hashes of the same plan (e.g. before a record-state
+    token was bound); an unresolved (``started``) one still refuses."""
     if reviewed_hash is None:
         return {"status": "cancelled", "verified": False}
     if not plan.tenant or plan.tenant != config.DOMAIN or reviewed_hash != plan.hash:
@@ -74,6 +76,10 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     refusal = journal.replay_refusal(events, "write was sent or outcome unknown; inspect target and journal before retry")
     if refusal:
         raise ReviewedWriteError(refusal)
+    for guard in guards:
+        older = [e for e in journal.read() if e.get("kind") == "plan:" + plan.action and e.get("plan") == guard]
+        if older and older[-1].get("event") == "started":
+            raise ReviewedWriteError("write was sent or outcome unknown; inspect target and journal before retry")
     if rebuild().hash != plan.hash:
         raise ReviewedWriteError("target or metadata changed since review; review again")
     try:
@@ -111,6 +117,8 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
         result.update(verify(response))
     except Exception:
         result["warning"] = "Independent readback failed; do not resend."
+    if result.get("verified") is True:
+        journal.record_verified(plan.hash, action=plan.action, target=plan.target)
     if not result.get("verified"):
         result.setdefault("warning", "Readback was not fully verified; do not resend.")
     return result

@@ -19,6 +19,14 @@ from fsv.watchers import positive_id
 class TaskUpdatePlan(WritePlan):
     task_id: int
     inputs_json: str
+    prior_context: str = ""  # context without the record-state token (older journals)
+    state_json: str = ""  # the record-state token bound in context_hash, for the review
+
+    def review(self) -> dict[str, Any]:
+        out = super().review()
+        if self.state_json:
+            out["record_state"] = json.loads(self.state_json)
+        return out
 
 
 def inventory(client: Any, target: int) -> list[dict[str, Any]]:
@@ -95,8 +103,14 @@ def build_plan(client: Any, target: str | int, task: int, inputs: dict[str, Any]
                         missing.append(str(f.get("label") or name))
             if missing:
                 raise ReviewedWriteError("required closure task fields missing: " + ", ".join(missing))
+    snapshot = journal.snapshot_hash({"task": before, "fields": fields}) or ""
+    # Record-state token: the task's raw updated_at and answered task updates
+    # on this change, so an A/B/A/B alternation plans fresh hashes.
+    token = journal.repeat_token(("change_task_update",), target, before)
+    context = journal.snapshot_hash({"snapshot": snapshot, "state": token}) or ""
     return TaskUpdatePlan("change_task_update", target, config.DOMAIN, "PUT", f"changes/{target}/tasks/{task}",
-                          json.dumps(payload, sort_keys=True), journal.snapshot_hash({"task": before, "fields": fields}) or "", task, json.dumps(inputs, sort_keys=True))
+                          json.dumps(payload, sort_keys=True), context, task, json.dumps(inputs, sort_keys=True), snapshot,
+                          json.dumps(token, sort_keys=True))
 
 
 def send(plan: TaskUpdatePlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
@@ -127,5 +141,7 @@ def send(plan: TaskUpdatePlan, client: Any, *, reviewed_hash: str | None) -> dic
         if results.get("notify_before") == "unavailable":
             result["warning"] = "Reminder absent from GET remains unverified; do not resend."
         return result
-    return execute(plan, client, reviewed_hash=reviewed_hash,
+    from dataclasses import replace
+    guards = (replace(plan, context_hash=plan.prior_context).hash,) if plan.prior_context else ()
+    return execute(plan, client, reviewed_hash=reviewed_hash, guards=guards,
                    rebuild=lambda: build_plan(client, plan.target, plan.task_id, json.loads(plan.inputs_json)), verify=verify)

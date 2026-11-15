@@ -221,6 +221,105 @@ def delete_state_tokens(rows: list[dict[str, Any]], targets: list[Any],
             for row, target in zip(rows, targets)]
 
 
+def record_verified(plan: str, *, action: str, target: Any = None) -> None:
+    """Note that an answered plan was also verified by independent readback.
+
+    Kept in ``verified.jsonl`` next to the journal (same profile and tenant),
+    so replay guards and ``fsv journal`` that read the last plan event are
+    unaffected. Hashes, kinds and ids only. Never raises."""
+    try:
+        entry = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "kind": f"verified:{action}", "plan": plan,
+                 "target": _safe_target(target)}
+        p = _verified_path()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(p, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+        try:
+            os.write(fd, (json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8"))
+        finally:
+            os.close(fd)
+    except Exception:
+        pass
+
+
+def _verified_path() -> Path:
+    return journal_path().with_name("verified.jsonl")
+
+
+def _verified_rows() -> list[dict[str, Any]]:
+    try:
+        lines = _verified_path().read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    rows = []
+    for line in lines:
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
+    return rows
+
+
+def verified_sends(actions: tuple[str, ...], target: Any) -> int:
+    """How many plans of ``actions`` on ``target`` this journal has recorded as
+    sent, answered and verified by readback. Monotonic. A ``started`` without
+    an answer, or an answered but unverified send (the server may not have
+    applied it; "do not resend"), does not count, so the next review plans
+    the same hash and the replay guard still refuses it."""
+    kinds = {f"verified:{action}" for action in actions}
+    want = str(_safe_target(target))
+    return sum(1 for event in _verified_rows() if event.get("kind") in kinds and str(event.get("target")) == want)
+
+
+_NO_ROW = object()
+
+
+def repeat_token(actions: tuple[str, ...], target: Any, row: Any = _NO_ROW) -> dict[str, Any]:
+    """Record-state token for writes that may legitimately repeat a payload.
+
+    A plan hash of only target + payload (+ stable snapshot, which drops
+    ``updated_at``) is the same for update #2 and #4 of an A/B/A/B
+    alternation, so a legitimate later send was refused as a replay. The
+    token binds the raw server ``updated_at`` read at review time (``row``;
+    omitted for writes that read no record, e.g. notes) and the number of
+    verified sends of the same action on the same target (``verified_sends``).
+    A legitimate repeat after the record changed plans a fresh hash; a replay
+    of the same reviewed hash is refused by the journal guard, and a fresh
+    review after an ambiguous or unverified send against an unchanged record
+    rebuilds the same hash, so it is refused too.
+    The key is not ``updated_at``: snapshot hashing drops that name.
+    """
+    token: dict[str, Any] = {"sends": verified_sends(actions, target)}
+    if row is not _NO_ROW:
+        token["server_version"] = row.get("updated_at") if isinstance(row, dict) else None
+    return token
+
+
+def stale_plan_refusal(expected: str | None, actions: tuple[str, ...]) -> str | None:
+    """Why a reviewed hash that no longer matches the rebuilt plan must not be
+    sent, when the journal shows that exact plan was already sent (or may
+    have been); None when the journal has no such plan."""
+    if not expected:
+        return None
+    kinds = {f"plan:{action}" for action in actions}
+    want = expected.strip().lower().removeprefix("sha256:")
+    if len(want) < 12:  # the shortest accepted --expect-plan prefix
+        return None
+    events = [e for e in read() if e.get("kind") in kinds and isinstance(e.get("plan"), str)
+              and e["plan"].startswith(want)]
+    last = events[-1] if events else {}
+    when = last.get("ts") or "an earlier run"
+    if last.get("event") == "started":
+        return (f"plan {expected} was started at {when} with no recorded outcome; nothing was sent now. "
+                "Inspect the record and `fsv journal tail` before any retry; do not replay it")
+    if last.get("event") == "done":
+        return (f"plan {expected} was already sent at {when} and the server answered; nothing was sent now. "
+                "Plans are single-use; to send the same values again, review again with --dry-run (the new "
+                "plan hash differs because the record or the journal moved on)")
+    return None
+
+
 def replay_refusal(events: list[dict[str, Any]], unknown: str) -> str | None:
     """Why a journaled plan must not be sent again; None when it may be sent.
 

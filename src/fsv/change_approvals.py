@@ -104,6 +104,9 @@ class ApprovalPlan:
     tenant: str
     rule: str = "everyone"
     recipient_context_json: str = ""
+    # Answered approval requests on this change (journal.repeat_token): the
+    # same group requested again (e.g. after a cancel) plans a fresh hash.
+    sends: int | None = None
 
     @property
     def path(self) -> str:
@@ -121,6 +124,8 @@ class ApprovalPlan:
         context = {"tenant": self.tenant, "path": self.path, "payload": self.payload}
         if self.recipient_context_json:
             context["recipient_sources"] = json.loads(self.recipient_context_json)
+        if self.sends:  # zero keeps the pre-token hash (nothing answered yet)
+            context["state"] = {"sends": self.sends}
         return journal.plan_hash(context) or ""
 
     def review(self) -> dict[str, Any]:
@@ -128,6 +133,7 @@ class ApprovalPlan:
                 "method": "POST", "path": f"/api/_/{self.path}", "payload": self.payload,
                 "recipients": list(self.approver_ids), "approval_rule": RULES[self.rule][1],
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
+                **({"record_state": {"sends": self.sends}} if self.sends is not None else {}),
                 "recipient_sources": json.loads(self.recipient_context_json or "[]"),
                 "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
                 "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."}
@@ -151,7 +157,8 @@ def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: S
         raise ValueError("duplicate approver; specify each agent exactly once")
     if rule not in RULES:
         raise ValueError("rule must be everyone, anyone, majority or first-responder")
-    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN, rule, recipient_context_json)
+    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN, rule, recipient_context_json,
+                        journal.verified_sends((_ACTION,), cid))
 
 
 class _InventoryPlan(Protocol):
@@ -344,7 +351,9 @@ def _require_chains(client: Any, change_id: int, action: str) -> None:
 
 def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
          read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
-    if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids, rule=plan.rule, recipient_context_json=plan.recipient_context_json) != plan:
+    from dataclasses import replace
+    rebuilt = build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids, rule=plan.rule, recipient_context_json=plan.recipient_context_json)
+    if replace(rebuilt, sends=plan.sends) != plan:
         raise ApprovalError("approval plan or tenant changed; review a new plan")
     if dry_run:
         return {"status": "dry_run", **plan.review()}
@@ -361,6 +370,14 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
     prior = events()
     if prior and prior[-1].get("event") in ("started", "done"):
         raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+    if plan.sends is not None:  # the same request hashed before send tokens: unresolved still refuses
+        from dataclasses import replace
+        older = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}"
+                 and r.get("plan") == replace(plan, sends=None).hash]
+        if older and older[-1].get("event") == "started":
+            raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+    if plan.sends is not None and rebuilt.sends != plan.sends:
+        raise ApprovalError("another approval request on this change was answered since the review; review a new plan")
     c = client if client is not None else get_client()
     try:
         approval_recipients.validate(c, plan.change_id, plan.recipient_context_json)
@@ -430,6 +447,8 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         except Exception:
             pass  # Complete record-ID verification above remains authoritative.
     journal.record_plan("done", plan.hash, action=_ACTION, target=plan.change_id)
+    if result["verified"] is True:
+        journal.record_verified(plan.hash, action=_ACTION, target=plan.change_id)
     return result
 
 

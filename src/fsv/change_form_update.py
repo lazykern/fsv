@@ -22,19 +22,26 @@ class FormWritePlan(WritePlan):
 def send(source: Any, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
     if any(source.files.values()) or source.planning:
         raise ReviewedWriteError("Combined change property/files/planning sends are disabled; use separate reviewed operations")
-    from fsv.change_flow import _hash
-    expected = journal.plan_hash({"legacy": _hash(source.payload, source.files, source.planning, source.target),
-                                  "record": source.record_hash, "metadata": source.meta.fingerprint.hash,
-                                  "tenant": source.tenant})
+    from fsv.change_flow import _hash, update_hash
+    if source.legacy_hash != _hash(source.payload, source.files, source.planning, source.target) \
+            or not isinstance(source.state_token, dict):
+        raise ReviewedWriteError("Change tenant or exact reviewed payload changed; review again")
+    expected = update_hash(source)
     if not source.tenant or source.tenant != config.DOMAIN or source.hash != expected:
         raise ReviewedWriteError("Change tenant or exact reviewed payload changed; review again")
     if not source.ok or not source.payload or not source.record_hash or not source.hash:
         raise ReviewedWriteError("Complete hash-bound property plan required")
-    for value in {source.hash, source.legacy_hash}:
-        events = [e for e in journal.read() if e.get("kind") == "plan:update" and e.get("plan") == value]
-        refusal = journal.replay_refusal(events, "Change update was sent or outcome unknown; do not replay")
-        if refusal:
-            raise ReviewedWriteError(refusal)
+    events = [e for e in journal.read() if e.get("kind") == "plan:update" and e.get("plan") == source.hash]
+    refusal = journal.replay_refusal(events, "Change update was sent or outcome unknown; do not replay")
+    if refusal:
+        raise ReviewedWriteError(refusal)
+    # Older journal formats (payload-only hash; hash without the record-state
+    # token): an unresolved submission still refuses. An answered one does
+    # not: the token now tells a legitimate repeat from a replay.
+    for kind, value in (("plan:update", source.legacy_hash), ("plan:change_form_update", source.prior_hash)):
+        events = [e for e in journal.read() if e.get("kind") == kind and e.get("plan") == value]
+        if events and events[-1].get("event") == "started":
+            raise ReviewedWriteError("Change update was sent or outcome unknown; do not replay")
     def record():
         raw = client.int_get(f"changes/{source.target}")
         row = raw.get("change", raw) if isinstance(raw, dict) else {}

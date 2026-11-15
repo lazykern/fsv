@@ -18,7 +18,17 @@ def plan(c):
     return result
 
 
-@pytest.mark.parametrize("mode", ["payload", "record", "metadata", "tenant", "old-started", "old-done"])
+def test_change_form_answered_payload_only_legacy_plan_does_not_block_a_repeat(transport):
+    # A payload-only legacy hash cannot tell a replay from a legitimate later
+    # repeat; only an unresolved (started) one still refuses.
+    c, state = transport
+    source = plan(c)
+    journal.record_plan("done", source.legacy_hash, action="update", target=123)
+    assert change_form_update.send(source, c, reviewed_hash=source.hash)["verified"]
+    assert len(state["writes"]) == 1
+
+
+@pytest.mark.parametrize("mode", ["payload", "record", "metadata", "tenant", "old-started", "prior-started"])
 def test_change_form_preflight_and_legacy_hash_block_without_write(transport, monkeypatch, mode):
     c, state = transport
     source = plan(c)
@@ -32,6 +42,8 @@ def test_change_form_preflight_and_legacy_hash_block_without_write(transport, mo
         monkeypatch.setattr(change_form_update, "load_meta", lambda *args, **kwargs: fresh)
     elif mode == "tenant":
         monkeypatch.setattr(config, "DOMAIN", "globex.example.com")
+    elif mode == "prior-started":  # same plan hashed before the record-state token
+        journal.record_plan("started", source.prior_hash, action="change_form_update", target=123)
     else:
         journal.record_plan(mode.removeprefix("old-"), source.legacy_hash, action="update", target=123)
     with pytest.raises(ReviewedWriteError):

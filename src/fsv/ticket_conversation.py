@@ -176,6 +176,10 @@ class ConversationPlan:
     canned_pointer: str | None = None
     canned_hash: str | None = None
     ack: bool = False
+    # Answered sends of this kind on this ticket (journal.repeat_token): the
+    # same reply/note/forward sent again later plans a fresh hash, while an
+    # answered or unresolved plan is still never replayed. None = pre-token.
+    sends: int | None = None
 
     @property
     def acknowledged(self) -> list[str]:
@@ -203,12 +207,16 @@ class ConversationPlan:
         # Preserve all legacy conversation hashes and their durable send guards.
         if self.canned_id is not None:
             identity["canned"] = {"id": self.canned_id, "pointer": self.canned_pointer, "hash": self.canned_hash}
+        if self.sends:  # zero keeps the pre-token hash (nothing answered yet)
+            identity["state"] = {"sends": self.sends}
         return journal.plan_hash(identity) or ""
 
     def review(self) -> dict[str, Any]:
         out = {"action": f"ticket_{self.kind}", "method": "POST", "path": f"/api/_/{self.path}",
                "payload": self.payload, "status_label": self.status_label, "plan_hash": self.hash,
                "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}
+        if self.sends is not None:
+            out["record_state"] = {"sends": self.sends}
         acknowledged = self.acknowledged
         if acknowledged:
             out["acknowledged_rule_messages"] = acknowledged
@@ -284,7 +292,8 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
         payload["helpdesk_ticket"], record_hash, _ = status_fields(client, note.ticket_id, set_status, ack=ack)
     return ConversationPlan(kind, note.ticket_id, config.DOMAIN,
                             json.dumps(payload, sort_keys=True, ensure_ascii=False), set_status, record_hash,
-                            ack=bool(ack and set_status is not None))
+                            ack=bool(ack and set_status is not None),
+                            sends=journal.verified_sends((f"ticket_{kind}_reviewed",), note.ticket_id))
 
 
 def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
@@ -292,7 +301,8 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     if reviewed_hash is None:
         return {"status": "cancelled"}
     if plan.hash != reviewed_hash or not plan.tenant or plan.tenant != config.DOMAIN:
-        raise ConversationError("tenant or review hash changed; review again")
+        raise ConversationError(journal.stale_plan_refusal(reviewed_hash, (f"ticket_{plan.kind}_reviewed",))
+                                or "tenant or review hash changed; review again")
     payload = plan.payload
     if (plan.kind in ("reply", "forward") or not payload.get("private", True)) and not public_confirmed:
         raise ConversationError("public conversation requires explicit confirmation")
@@ -301,6 +311,12 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     refusal = journal.replay_refusal(events, "conversation was sent or outcome unknown; inspect ticket and journal before retry")
     if refusal:
         raise ConversationError(refusal)
+    if plan.sends is not None:  # the same plan hashed before send tokens: unresolved still refuses
+        from dataclasses import replace
+        prior = replace(plan, sends=None).hash
+        events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == prior]
+        if events and events[-1].get("event") == "started":
+            raise ConversationError("conversation was sent or outcome unknown; inspect ticket and journal before retry")
     if plan.kind == "forward" and "conversation_id" in payload:
         if forward_source(client, plan.ticket_id, payload["conversation_id"]) != plan.record_hash:
             raise ConversationError("forward source changed; review again")
@@ -391,6 +407,8 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         result["source_link_readback"] = "unavailable"
         result["source_link_verified"] = False
         result["verification_scope"] = "delivery fields; source link is not exposed by independent readback"
+    if result["verified"] is True:
+        journal.record_verified(plan.hash, action=action, target=plan.ticket_id)
     if not result["verified"]:
         result["warning"] = "Conversation or ticket fields were not fully verified on read-back; do not resend."
     return result

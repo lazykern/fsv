@@ -115,6 +115,10 @@ class Plan:
     record_hash: str = ""
     legacy_hash: str = ""
     tenant: str = ""
+    # Record-state token (journal.repeat_token): server updated_at + answered
+    # sends on this change, so an A/B/A/B alternation plans fresh hashes.
+    state_token: dict[str, Any] | None = None
+    prior_hash: str = ""  # same plan without the token (pre-token journals)
 
     @property
     def ok(self) -> bool:
@@ -139,6 +143,7 @@ class Plan:
             "risks": self.risks,
             "requires_confirmation": bool(self.risks),
             "errors": self.errors,
+            **({"record_state": self.state_token} if self.state_token is not None else {}),
         }
 
 
@@ -331,6 +336,17 @@ def _attachment_rows(files: dict[str, list[str]], planning: list[dict[str, Any]]
             if os.path.isfile(p):
                 rows.append({"target": labels.get(target, target), **sha256_file(p)})
     return rows
+
+
+UPDATE_ACTIONS = ("change_form_update", "update")  # journal kinds of answered change updates
+
+
+def update_hash(plan: Any) -> str:
+    """Full change update plan hash: payload hash, record snapshot, form
+    metadata, tenant and the record-state token."""
+    return journal.plan_hash({"legacy": plan.legacy_hash, "record": plan.record_hash,
+                              "metadata": plan.meta.fingerprint.hash, "tenant": plan.tenant,
+                              "state": plan.state_token}) or ""
 
 
 def _hash(request: Any, files: dict[str, list[str]], planning: list[dict[str, Any]], target: Any = None) -> str:
@@ -591,8 +607,10 @@ def build_update_plan(
         plan.record_hash = journal.snapshot_hash(stable_snapshot(dict(record))) or ""
         plan.legacy_hash = _hash(body, files, planning, target)
         plan.tenant = config.DOMAIN
-        plan.hash = journal.plan_hash({"legacy": plan.legacy_hash, "record": plan.record_hash,
-                                       "metadata": meta.fingerprint.hash, "tenant": plan.tenant}) or ""
+        plan.state_token = journal.repeat_token(UPDATE_ACTIONS, target, dict(record))
+        plan.prior_hash = journal.plan_hash({"legacy": plan.legacy_hash, "record": plan.record_hash,
+                                             "metadata": meta.fingerprint.hash, "tenant": plan.tenant}) or ""
+        plan.hash = update_hash(plan)
         review.plan_hash = plan.hash
     return plan
 
@@ -824,6 +842,9 @@ def expect(plan: Plan, expected: str | None) -> None:
     if not plan.hash:
         raise FlowExit(2, "--expect-plan given but the plan is incomplete: " + "; ".join(plan.errors))
     if not plan_matches(expected, plan.hash):
+        sent = journal.stale_plan_refusal(expected, UPDATE_ACTIONS) if plan.action == "update" else None
+        if sent:
+            raise FlowExit(4, f"{sent} (current plan {plan.hash})")
         raise FlowExit(4, f"plan changed: expected {expected}, computed {plan.hash}. Review again with --dry-run.")
 
 

@@ -18,7 +18,10 @@ def finish(plan: Any, send: Callable, *, dry_run: bool, yes: bool, expected: str
     if read_only:
         raise ReviewedWriteError("read-only mode; no write attempted")
     if not yes or expected != plan.hash:
-        raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+        from fsv import journal
+        action = getattr(plan, "action", None)
+        sent = journal.stale_plan_refusal(expected, (action,)) if yes and isinstance(action, str) else None
+        raise ReviewedWriteError(sent or "review with --dry-run, then --yes --expect-plan FULL_HASH")
     typer.echo(tenant_json(send(), indent=2))
 
 

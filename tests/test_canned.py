@@ -103,7 +103,7 @@ def test_review_cli_and_exact_reply_transport(wire, monkeypatch):
                     "conversation_from_summary": False, "cc_emails": [], "translate_reply": False,
                     "freddy_message_id": None, "from_email": "support@example.com"}
     assert not any("canned" in key for key in body)
-    with pytest.raises(conv.ConversationError, match="was sent"):
+    with pytest.raises(conv.ConversationError, match="already sent"):
         conv.send(plan(wire), wire["make_client"](), reviewed_hash=p["plan_hash"], public_confirmed=True)
     assert len(wire["writes"]) == 1
 
