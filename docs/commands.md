@@ -39,6 +39,13 @@ still refuses. Other `problems update` fields and the legacy `tickets update`
 keep no plan journal and never refuse repeats; their dry-run shows the same token.
 
 
+A no-op update (every value already equals the current one) has no plan:
+`changes update --dry-run` says `nothing to change` (exit 0, no `plan_hash`).
+With `--expect-plan` (dry-run or `--yes`) it exits 2 with `nothing to change;
+the reviewed plan does not exist`, because a supplied hash cannot match a plan
+that does not exist; when that hash was already sent, the refusal names the
+earlier send instead. Nothing is sent either way.
+
 ## Remaining accepted-wire blockers
 
 The supplied capability ledgers do not establish the following writes. These are

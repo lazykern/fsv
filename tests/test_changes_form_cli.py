@@ -549,3 +549,27 @@ def test_update_dry_run_real_priority_change_still_has_a_plan(fake):
     assert r.exit_code == 0, r.output
     doc = json.loads(r.raw)
     assert doc["payload"] == {"priority": 3} and len(doc["plan_hash"]) == 64
+
+
+
+@pytest.mark.parametrize("args", [("--priority", "Medium"), ("--set", "Subject=Billing: rotate keys")])
+def test_update_noop_with_yes_and_expect_plan_exits_2_and_sends_nothing(fake, args):
+    r = run("changes", "update", "CHN-501", *args, "--yes", "--expect-plan", "abc")
+    assert r.exit_code == 2 and "nothing to change; the reviewed plan does not exist" in r.output
+    r = run("changes", "update", "CHN-501", *args, "--yes", "--expect-plan", "0" * 64)
+    assert r.exit_code == 2 and "the reviewed plan does not exist" in r.output
+    dry = run("changes", "update", "CHN-501", *args, "--dry-run", "--expect-plan", "0" * 64)
+    assert dry.exit_code == 2 and "the reviewed plan does not exist" in dry.output
+    assert run("changes", "update", "CHN-501", *args, "--yes").exit_code == 0  # no hash: plain no-op
+    assert not fake.writes()
+
+
+
+def test_update_replayed_hash_on_a_noop_names_the_earlier_send(fake):
+    review = json.loads(run("changes", "update", "CHN-501", "--priority", "High", "--dry-run", "--json").raw)
+    sent = run("changes", "update", "CHN-501", "--priority", "High", "--yes", "--expect-plan", review["plan_hash"])
+    assert sent.exit_code in (0, 4), sent.output
+    writes = len(fake.writes())
+    # the record now has these values: a no-op, and the old hash was sent
+    again = run("changes", "update", "CHN-501", "--priority", "High", "--yes", "--expect-plan", review["plan_hash"])
+    assert again.exit_code == 2 and "already sent" in again.output and len(fake.writes()) == writes

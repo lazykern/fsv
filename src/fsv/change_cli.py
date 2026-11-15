@@ -19,6 +19,17 @@ from fsv.forms import FormError, LookupValue
 from fsv.render import console, err
 from fsv.review import NO_PAYLOAD
 
+# --expect-plan on an update that changes nothing: there is no plan to match.
+NOOP_EXPECT = "nothing to change; the reviewed plan does not exist"
+
+
+def _noop_expect(expected: str) -> str:
+    """Why --expect-plan fails on a no-op update: the earlier send of that
+    exact plan (the record already has its values) or no plan at all."""
+    from fsv import journal
+    from fsv.change_flow import UPDATE_ACTIONS
+    return journal.stale_plan_refusal(expected, UPDATE_ACTIONS) or NOOP_EXPECT
+
 
 def _emit(obj: Any) -> None:
     console.print_json(tenant_json(obj, default=str, ensure_ascii=False), indent=2)
@@ -490,7 +501,7 @@ def update_command(
             else:
                 console.print(f"[yellow]nothing to change[/] {subject}: it already has these values", highlight=False)
             if expect_plan:
-                raise FlowExit(2, "--expect-plan given but there is nothing to change (no plan)")
+                raise FlowExit(2, _noop_expect(expect_plan))
             return
         _print_plan(plan, as_json=as_json)
         if not plan.ok:
@@ -498,6 +509,9 @@ def update_command(
         flow.expect(plan, expect_plan)
         return
     if plan.ok and not plan.hash:
+        if expect_plan:
+            # A supplied reviewed hash cannot match: a no-op has no plan.
+            raise FlowExit(2, _noop_expect(expect_plan))
         console.print(f"[yellow]no changes[/] {subject}", highlight=False)
         return
     if session is not None:
