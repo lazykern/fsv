@@ -257,7 +257,7 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
         raise ReviewedWriteError(refusal)
     older = [r for r in journal.read() if r.get("kind") == "plan:" + action and r.get("plan") == plan.prior_hash]
     if older and older[-1].get("event") == "started":
-        raise ReviewedWriteError(unknown)
+        raise ReviewedWriteError(journal.note_refusal(unknown))
     answers = json.loads(plan.answers_json)
     before = _record(client, plan.target)
     ack = bool(plan.acknowledged)

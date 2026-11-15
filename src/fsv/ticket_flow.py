@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from fsv import change_flow as flow, config, journal
 from fsv.drafts import Draft
-from fsv.errors import APIError
+from fsv.errors import EXIT_REPLAY, APIError
 from fsv.formmeta import RULES_UNAVAILABLE_KEY, apply_answers, is_requester, is_status, rules_warnings
 from fsv.forms import FormError, FormState, LookupValue
 from fsv.forms.errors import PayloadError
@@ -107,9 +107,9 @@ def check_duplicate(plan: flow.Plan, allow_duplicate: bool = False) -> None:
     # An unresolved started event is never overridden by --allow-duplicate.
     rows = [r for r in journal.read() if r.get("kind") == "plan:ticket_create" and r.get("plan") == plan.hash]
     if rows and rows[-1].get("event") == "started":
-        raise flow.FlowExit(4, "previous incident create outcome is unknown; check the server before any retry")
+        raise flow.FlowExit(EXIT_REPLAY, journal.note_refusal("previous incident create outcome is unknown; check the server before any retry"))
     if not allow_duplicate and journal.recent_plan(plan.hash, action="ticket_create"):
-        raise flow.FlowExit(4, "this incident plan was already sent; check the server before --allow-duplicate")
+        raise flow.FlowExit(EXIT_REPLAY, journal.note_refusal("this incident plan was already sent; check the server before --allow-duplicate"))
 
 
 def execute(plan: flow.Plan, client: Any, *, allow_duplicate: bool = False) -> dict[str, Any]:

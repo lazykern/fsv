@@ -23,9 +23,10 @@ A reviewed plan is single-use, but the same values may legitimately be sent
 again later (an A/B/A/B priority alternation, the same note twice). `changes
 update`, `changes tasks-update`, `problems add-note`, `tickets add-note`,
 `tickets reply`/`forward`, `changes approval-request`, `problems status`,
-`tickets status`/`resolve`/`close`/`reopen`, `tickets assign`/`pick-up` and
+`tickets status`/`resolve`/`close`/`reopen`, `tickets assign`/`pick-up`,
 `problems link-incident`/`unlink-incident` and `problems update` of planned
-dates/effort bind a record-state token into the plan hash (`record_state` in the dry-run): the server
+dates/effort bind a record-state token into the plan hash (`record_state` in
+the dry-run): the server
 `updated_at` read at review time, where the write reads a record, and the
 number of earlier sends of the same action on the same record that the journal
 recorded as answered and verified. A later review after the record changed
@@ -45,6 +46,17 @@ With `--expect-plan` (dry-run or `--yes`) it exits 2 with `nothing to change;
 the reviewed plan does not exist`, because a supplied hash cannot match a plan
 that does not exist; when that hash was already sent, the refusal names the
 earlier send instead. Nothing is sent either way.
+
+## Exit codes for refused replays
+
+Every journal replay refusal exits **2**: the reviewed hash was already sent
+and answered, a stale `--expect-plan` names an earlier send, or an earlier send
+of the same plan has no recorded outcome. Nothing was sent now. This is the
+code of the other refusals that send nothing (validation, usage, missing
+review) and includes the create duplicate guards (`changes create`, `tickets
+create`, `sr create` without `--allow-duplicate`). It never collides with **4**
+(sent but readback unverified, a conflict, or a plan that changed since
+review).
 
 ## Remaining accepted-wire blockers
 

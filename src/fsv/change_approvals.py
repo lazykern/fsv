@@ -369,13 +369,13 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         return [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == plan.hash]
     prior = events()
     if prior and prior[-1].get("event") in ("started", "done"):
-        raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+        raise ApprovalError(journal.note_refusal("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit"))
     if plan.sends is not None:  # the same request hashed before send tokens: unresolved still refuses
         from dataclasses import replace
         older = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}"
                  and r.get("plan") == replace(plan, sends=None).hash]
         if older and older[-1].get("event") == "started":
-            raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+            raise ApprovalError(journal.note_refusal("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit"))
     if plan.sends is not None and rebuilt.sends != plan.sends:
         raise ApprovalError("another approval request on this change was answered since the review; review a new plan")
     c = client if client is not None else get_client()

@@ -330,7 +330,7 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         prior = replace(plan, sends=None).hash
         events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == prior]
         if events and events[-1].get("event") == "started":
-            raise ConversationError("conversation was sent or outcome unknown; inspect ticket and journal before retry")
+            raise ConversationError(journal.note_refusal("conversation was sent or outcome unknown; inspect ticket and journal before retry"))
     if plan.kind == "forward" and "conversation_id" in payload:
         if forward_source(client, plan.ticket_id, payload["conversation_id"]) != plan.record_hash:
             raise ConversationError("forward source changed; review again")

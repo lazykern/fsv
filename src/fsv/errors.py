@@ -91,6 +91,10 @@ EXIT_USAGE = 2      # validation / usage error
 EXIT_SESSION = 3    # session expired or missing
 EXIT_CONFLICT = 4   # conflict / duplicate
 EXIT_REJECTED = 5   # server rejected the request (4xx/5xx)
+# A journal replay guard refused (plan already sent, or an earlier send of it
+# has no recorded outcome): nothing was sent. Same code as other refusals that
+# sent nothing; distinct from 4 (sent but unverified, conflict, plan changed).
+EXIT_REPLAY = EXIT_USAGE
 
 _DUPLICATE_RE = None
 

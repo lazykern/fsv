@@ -173,7 +173,7 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
 
     prior = events()
     if prior and prior[-1].get("event") in ("started", "done"):
-        raise ApprovalError("this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+        raise ApprovalError(journal.note_refusal("this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit"))
     c = client if client is not None else get_client()
     if plan.operation != "cancel":  # cancel reads the chains itself (_cancel_group)
         _require_chains(c, plan.change_id, _COMMAND[plan.operation])

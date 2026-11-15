@@ -126,13 +126,13 @@ def _duplicate(plan: NotePlan) -> None:
     rows = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}"
             and r.get("plan") == plan.hash]
     if rows and rows[-1].get("event") in ("started", "done"):
-        raise NoteError("this note was sent or its outcome is unknown; check the exact ticket and journal before any retry")
+        raise NoteError(journal.note_refusal("this note was sent or its outcome is unknown; check the exact ticket and journal before any retry"))
     # The same note hashed without the send token (older journals): an
     # unresolved submission still refuses.
     prior = replace(plan, sends=None).hash
     rows = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == prior]
     if plan.sends is not None and rows and rows[-1].get("event") == "started":
-        raise NoteError("this note was sent or its outcome is unknown; check the exact ticket and journal before any retry")
+        raise NoteError(journal.note_refusal("this note was sent or its outcome is unknown; check the exact ticket and journal before any retry"))
     if plan.sends is not None and journal.verified_sends((_ACTION,), plan.ticket_id) != plan.sends:
         raise NoteError("another note on this ticket was answered since the review; review a new plan before sending")
 

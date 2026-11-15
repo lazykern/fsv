@@ -108,7 +108,7 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     for guard in guards:
         older = [e for e in journal.read() if e.get("kind") == "plan:" + plan.action and e.get("plan") == guard]
         if older and older[-1].get("event") == "started":
-            raise ReviewedWriteError("write was sent or outcome unknown; inspect target and journal before retry")
+            raise ReviewedWriteError(journal.note_refusal("write was sent or outcome unknown; inspect target and journal before retry"))
     if rebuild().hash != plan.hash:
         raise ReviewedWriteError("target or metadata changed since review; review again")
     try:

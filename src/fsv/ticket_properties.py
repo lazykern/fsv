@@ -204,7 +204,7 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
         raise PropertyError("tenant or review hash changed; review again")
     rows = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == plan.hash]
     if rows and rows[-1].get("event") in ("started", "done"):
-        raise PropertyError("update was sent or its outcome is unknown; inspect the ticket and journal before retry")
+        raise PropertyError(journal.note_refusal("update was sent or its outcome is unknown; inspect the ticket and journal before retry"))
     payload = plan.payload
     fresh = build_plan(c, plan.ticket_id, tags=payload.get("tags"),
                        planned_start=payload.get("planned_start_date"), planned_end=payload.get("planned_end_date"),

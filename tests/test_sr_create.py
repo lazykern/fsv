@@ -182,7 +182,7 @@ def test_duplicate_plan_refused_then_allowed(fake, work):
     assert run("create", "77", "--from", "sr.yaml", "--yes").exit_code == 0
     n = len(fake.writes())
     r = run("create", "77", "--from", "sr.yaml", "--yes")
-    assert r.exit_code == 4 and "already sent" in r.flat
+    assert r.exit_code == 2 and "already sent" in r.flat
     assert len(fake.writes()) == n
     assert run("create", "77", "--from", "sr.yaml", "--yes", "--allow-duplicate").exit_code == 0
     assert len(places(fake)) == 2

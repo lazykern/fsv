@@ -409,7 +409,7 @@ def send(plan: TaskPlan, client: Any = None, *, reviewed_hash: str | None,
     events = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") in {plan.hash, legacy_hash}]
     latest = {r.get("plan"): r.get("event") for r in events}
     if any(value in ("started", "done") for value in latest.values()):
-        raise TaskError("this task was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+        raise TaskError(journal.note_refusal("this task was sent or its outcome is unknown; inspect the change and journal; do not resubmit"))
     try:
         c = client if client is not None else get_client()
         if plan.fields_json:

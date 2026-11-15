@@ -110,7 +110,7 @@ def test_ambiguous_failure_keeps_started_guard_even_when_duplicate_allowed(fake,
     assert [r for r in journal.read() if r.get("kind") == "plan:create"][-1]["event"] == "started"
     count = len(fake.writes())
     result = run("create", *args, "--yes", "--allow-duplicate")
-    assert result.exit_code == 4 and "outcome is unknown" in result.flat
+    assert result.exit_code == 2 and "outcome is unknown" in result.flat
     assert len(fake.writes()) == count
 
 

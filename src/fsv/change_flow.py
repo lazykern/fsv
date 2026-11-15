@@ -28,7 +28,7 @@ from fsv.drafts import (
     parse_template,
     render_template,
 )
-from fsv.errors import APIError, SessionError
+from fsv.errors import EXIT_REPLAY, APIError, SessionError
 from fsv.formmeta import (
     RECORD_KEYS,
     ClientResolver,
@@ -629,7 +629,7 @@ def check_duplicate(plan: Plan, allow_duplicate: bool) -> None:
         what = f"was already sent at {hit.get('ts')} (created {hit.get('created_id')})"
     else:
         what = f"was started at {hit.get('ts')} with no recorded outcome (it may have been created)"
-    raise FlowExit(4, f"this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again.")
+    raise FlowExit(EXIT_REPLAY, journal.note_refusal(f"this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again."))
 
 
 ATTACH_FLOWS = ("after-create", "before-create")
@@ -844,7 +844,7 @@ def expect(plan: Plan, expected: str | None) -> None:
     if not plan_matches(expected, plan.hash):
         sent = journal.stale_plan_refusal(expected, UPDATE_ACTIONS) if plan.action == "update" else None
         if sent:
-            raise FlowExit(4, f"{sent} (current plan {plan.hash})")
+            raise FlowExit(EXIT_REPLAY, f"{sent} (current plan {plan.hash})")
         raise FlowExit(4, f"plan changed: expected {expected}, computed {plan.hash}. Review again with --dry-run.")
 
 

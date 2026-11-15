@@ -238,7 +238,7 @@ def test_expect_plan_mismatch_refuses_then_match_creates(fake, draft):
 def test_journal_refuses_same_plan_within_24h(fake, draft):
     assert run("changes", "create", "--from", str(draft), "--yes").exit_code == 0
     r = run("changes", "create", "--from", str(draft), "--yes")
-    assert r.exit_code == 4 and "--allow-duplicate" in r.output
+    assert r.exit_code == 2 and "--allow-duplicate" in r.output
     assert len([w for w in fake.writes() if w[1] == "changes"]) == 1
     r = run("changes", "create", "--from", str(draft), "--yes", "--allow-duplicate")
     assert r.exit_code == 0
@@ -250,7 +250,7 @@ def test_started_without_outcome_counts_as_possible_duplicate(fake, draft):
     plan = dry_json("--from", str(draft))["plan_hash"]
     journal.record_plan("started", plan, action="create")
     r = run("changes", "create", "--from", str(draft), "--yes")
-    assert r.exit_code == 4 and "no recorded outcome" in r.output
+    assert r.exit_code == 2 and "no recorded outcome" in r.output
 
 
 def test_server_rejection_is_not_a_duplicate(fake, draft):

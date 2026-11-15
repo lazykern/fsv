@@ -50,7 +50,7 @@ def test_plain_reply_expect_plan_send_verifies_and_never_replays(run):
     assert state["writes"][0].url.path == "/api/_/tickets/123/reply"
     # the same reviewed hash again: refused, nothing sent
     again = invoke("--yes", "--expect-plan", review["plan_hash"])
-    assert again.exit_code != 0 and "already sent" in again.output and len(state["writes"]) == 1
+    assert again.exit_code == 2 and "already sent" in again.output and len(state["writes"]) == 1
     # a fresh review of the same body is a new plan (an intended repeat)
     fresh = doc(invoke("--dry-run").output)
     assert fresh["plan_hash"] != review["plan_hash"] and fresh["record_state"] == {"sends": 1}

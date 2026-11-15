@@ -29,7 +29,7 @@ from fsv import config, journal
 from fsv.change_flow import FlowExit, check_duplicate, review_diff, sha256_file
 from fsv.change_flow import _acknowledge, _dropped, _messages, _notes  # shared review helpers
 from fsv.drafts import Draft
-from fsv.errors import APIError, SessionError
+from fsv.errors import EXIT_REPLAY, APIError, SessionError
 from fsv.formmeta import RULES_UNAVAILABLE_KEY, RULES_WORKSPACE_KEY, apply_answers, configured_workspace, find_field, load_rules, rules_warnings
 from fsv.forms import (
     Field,
@@ -803,7 +803,7 @@ def duplicate_check(plan: SRPlan, allow_duplicate: bool) -> None:
         if row.get("kind") == "plan:create" and row.get("plan") in hashes:
             latest[row["plan"]] = row
     if any(row.get("event") == "started" for row in latest.values()):
-        raise FlowExit(4, "previous request outcome is unknown; inspect the server and journal before retry")
+        raise FlowExit(EXIT_REPLAY, journal.note_refusal("previous request outcome is unknown; inspect the server and journal before retry"))
     check_duplicate(plan, allow_duplicate)  # type: ignore[arg-type]
 
 

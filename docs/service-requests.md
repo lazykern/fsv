@@ -195,7 +195,8 @@ else from the catalog item form) and the attachments with their source
 
 `0` ok · `1` cancelled / unknown outcome · `2` validation or usage (missing
 requester, problems, no terminal without `--yes`) · `3` session expired ·
-`4` plan changed or duplicate · `5` server rejected.
+`4` plan changed or unverified · `5` server rejected. A refused replay (the
+same plan already sent, or an earlier send with no recorded outcome) exits `2`.
 
 ## Endpoints
 

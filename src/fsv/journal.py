@@ -296,6 +296,28 @@ def repeat_token(actions: tuple[str, ...], target: Any, row: Any = _NO_ROW) -> d
     return token
 
 
+# Set when this process refused a journaled replay (already sent, or an
+# unresolved send); the shared CLI command maps such a stop to EXIT_REPLAY.
+_refused = False
+
+
+def note_refusal(message: str | None = None) -> str | None:
+    """Mark that a journal replay guard refused this command (nothing was
+    sent); returns ``message`` unchanged so callers can raise it."""
+    global _refused
+    _refused = True
+    return message
+
+
+def refusal_noted() -> bool:
+    return _refused
+
+
+def clear_refusal() -> None:
+    global _refused
+    _refused = False
+
+
 def stale_plan_refusal(expected: str | None, actions: tuple[str, ...]) -> str | None:
     """Why a reviewed hash that no longer matches the rebuilt plan must not be
     sent, when the journal shows that exact plan was already sent (or may
@@ -311,10 +333,10 @@ def stale_plan_refusal(expected: str | None, actions: tuple[str, ...]) -> str | 
     last = events[-1] if events else {}
     when = last.get("ts") or "an earlier run"
     if last.get("event") == "started":
-        return (f"plan {expected} was started at {when} with no recorded outcome; nothing was sent now. "
+        return note_refusal(f"plan {expected} was started at {when} with no recorded outcome; nothing was sent now. "
                 "Inspect the record and `fsv journal tail` before any retry; do not replay it")
     if last.get("event") == "done":
-        return (f"plan {expected} was already sent at {when} and the server answered; nothing was sent now. "
+        return note_refusal(f"plan {expected} was already sent at {when} and the server answered; nothing was sent now. "
                 "Plans are single-use; to send the same values again, review again with --dry-run (the new "
                 "plan hash differs because the record or the journal moved on)")
     return None
@@ -331,10 +353,10 @@ def replay_refusal(events: list[dict[str, Any]], unknown: str) -> str | None:
     last = events[-1] if events else {}
     event = last.get("event")
     if event == "started":
-        return unknown
+        return note_refusal(unknown)
     if event == "done":
         when = last.get("ts") or "an earlier run"
-        return (f"this exact plan was already sent at {when} and the server answered; nothing was sent now. "
+        return note_refusal(f"this exact plan was already sent at {when} and the server answered; nothing was sent now. "
                 "Plans are single-use and this one hashes the same because the target, payload and record "
                 "state are unchanged; there is no override. Make a real change (e.g. edit a field of the "
                 "record, or change the requested values), then review again for a new plan hash; do not replay it")

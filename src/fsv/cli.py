@@ -127,14 +127,31 @@ class _FSVHelpMixin:
             ctx._fsv_include_global_help = previous
 
 
+def _replay_exit(exc: BaseException) -> BaseException:
+    from fsv.errors import EXIT_REPLAY
+    code = exc.exit_code if isinstance(exc, typer.Exit) else exc.code  # type: ignore[union-attr]
+    journal = sys.modules.get("fsv.journal")
+    if code in (1, 4) and journal is not None and journal.refusal_noted():
+        return typer.Exit(EXIT_REPLAY)
+    return exc
+
+
 class FSVCommand(_FSVHelpMixin, TyperCommand):
     def invoke(self, ctx: typer.Context) -> Any:
         # The one shared startup hook (fsv.tenant): tenant banner, --tenant
         # assertion, cross-tenant --expect-plan refusal, write confirmation.
         from fsv import tenant
+        _journal = sys.modules.get("fsv.journal")
+        if _journal is not None:
+            _journal.clear_refusal()
         try:
             tenant.enter_command(self, ctx)
             return super().invoke(ctx)
+        except (typer.Exit, SystemExit) as exc:
+            # One exit code for every journal replay refusal (already sent, or
+            # an unresolved earlier send): nothing was sent now. Commands map
+            # their own errors to 1 or 4; 4 must keep meaning "sent, unverified".
+            raise _replay_exit(exc) from None
         finally:
             tenant.leave_command()
 
