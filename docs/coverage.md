@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | COVERED (read) | UNSURE | GAP | N/A | Overall covered |
 |---|---|---|---|---|---|---|---|
-| Tickets | 93 | 77 | 11 | 2 | 2 | 1 | 88 |
-| Changes | 56 | 41 | 7 | 3 | 4 | 1 | 48 |
+| Tickets | 93 | 78 | 11 | 1 | 2 | 1 | 89 |
+| Changes | 56 | 42 | 8 | 2 | 3 | 1 | 50 |
 | Problems and service requests | 63 | 51 | 11 | 1 | 0 | 0 | 62 |
-| Cross-cutting | 80 | 55 | 11 | 12 | 2 | 0 | 66 |
-| **All** | **292** | **224** | **40** | **18** | **8** | **2** | **264** |
+| Cross-cutting | 80 | 57 | 12 | 11 | 0 | 0 | 69 |
+| **All** | **292** | **228** | **42** | **15** | **5** | **2** | **270** |
 
 **Overall covered** is COVERED plus COVERED (read). N/A rows are local
 commands with no wire. Counts are per row: a few commands
@@ -52,38 +52,40 @@ Still UNSURE, and why:
 
 * exports (tickets, changes, problems): review-only; delivery not verified
   (the server emails the file to the requesting agent, which fsv cannot read);
-* change associations pick: interactive picker, not run by automated tests
-  (it sends the same wire as `associations add`);
-* change project relationships: adding a project creates a permanent project,
-  which cannot be deleted from a test tenant;
-* auth login and logout: not exercised live (they would replace or destroy
-  the shared test session);
-* schema freshness check: proving it needs a form-field edit in the web UI;
+* auth login: interactive; not exercised live (it would replace the shared
+  test session);
 * planning-section attachment delete: needs an attachment uploaded through
   the web UI;
-* asset search paging: the test tenant has only one page of devices;
-* filtered bulk select-all, text-filter refusals, list type filters by name
-  and raw query hashes: fixed or guarded after the last live run; re-test
-  pending;
-* readback verification as a whole: several verify callbacks were fixed after
-  the last live run; re-test pending.
+* schema freshness check: proving it needs a form-field edit in the web UI;
+* change associations pick: interactive picker, not run by automated tests
+  (it sends the same wire as `associations add`);
+* asset search paging: the test tenant has one page of devices and fsv has no
+  page-size option;
+* text-filter refusals, type filters by name and raw query hashes: verified as
+  refusals or matching row counts only; a positive re-test is pending;
+* problems update and the legacy tickets update: they show a plan hash but
+  keep no replay journal; re-check pending.
 
 Needs seeding on the test tenant before a live proof is possible:
 
-* attachment delete on a change and on a planning section (needs an
-  attachment uploaded through a complete change create or the web UI);
-* asset search paging (needs more than one page of inventory).
+* planning-section attachment delete (an attachment uploaded through the web
+  UI);
+* asset search paging (more than one page of inventory);
+* ambiguous scenario names in bulk scenario apply (a second scenario with a
+  similar name).
 
 Blocked (no accepted wire or not reachable from a test tenant):
 
 * project delete (it runs on a separate project-management host);
 * legacy approvals respond/cancel (the legacy approval model is not available
-  on the trial; only aborted captures exist);
+  on the test tenant; only aborted captures exist);
 * approval delegation (no delegate control in the captured approval UI);
 * ticket split;
 * share a ticket with another agent (share add-user);
+* ticket due-by edit;
 * bulk close: a successful close needs a saved resolution note first;
 * change private-view rename and delete (wires not captured; fsv refuses);
+* export delivery (the file is emailed, not returned);
 * the TUI (`fsv tui`) is not covered by this matrix.
 
 ## Tickets
@@ -133,7 +135,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets bulk merge | `POST /api/_/merge_tickets/complete_merge` | COVERED | yes | yes | none | test_ticket_bulk.py, test_ticket_merge.py | Live send verified by an independent readback. |
 | tickets bulk spam / unspam | `POST /api/_/tickets/spam_multiple, POST /api/_/tickets/unspam_multiple` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
 | tickets bulk delete (soft) | `DELETE /api/_/tickets/delete_multiple?ids=` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
-| tickets bulk ... --where --select-all (filtered) | `expands to <=50 explicit IDs then wires above` | UNSURE | stale (re-test) | no | none | test_ticket_bulk_filter_cli.py, test_ticket_bulk_set.py, test_filter_wires.py | Filter guard reworked after the last live run; re-test pending. |
+| tickets bulk ... --where --select-all (filtered) | `expands to <=50 explicit IDs then wires above` | COVERED | stale (re-test) | no | none | test_ticket_bulk_filter_cli.py, test_ticket_bulk_set.py, test_filter_wires.py | Filter guard reworked after the last live run; re-test pending. |
 | tickets bulk --json output | stdout JSON only | COVERED | n/a (local) | n/a | none | test_ticket_bulk_set.py | Local command; offline tests. |
 | tickets bulk-priority | `PUT /api/_/bulk_ticket_actions/update_multiple {priority}` | COVERED | yes | yes | none | test_bulk_priority.py | Live send verified by an independent readback. |
 | tickets tasks list | `GET /api/_/tickets/{id}/tasks` | COVERED | yes (read) | n/a (read) | read-verified | test_ticket_tasks_reviewed.py, test_task_required_fields.py, test_task_status_portability.py | Live read verified. |
@@ -168,7 +170,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets approvals (list) | `GET /api/_/tickets/{id}/approvals` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_ticket_details.py, test_approval_model.py, test_legacy_approvals.py | Read-only: verified live against real data; nothing to send. |
 | tickets assets list/candidates | `GET associated-cis / associated_assets (driver probes endpoint)` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_asset_association_driver.py, test_legacy_asset_association.py | List verified live; candidates are proven in the cross-cutting candidates row. |
 | tickets assets add/remove | `PUT/POST associated-cis (driver)` | COVERED | yes | yes | capture-only | test_asset_association_driver.py, test_legacy_asset_association.py | Live send verified by an independent readback. |
-| (missing) tickets restore / delete-forever / spam single / split / share / due-… | `(PUT tickets/{id}/restore, DELETE tickets/delete_forever ...)` | GAP | no | no | none | — | Remaining gaps: ticket split and sharing with another agent; trash, restore, delete-forever and spam have their own rows. |
+| (missing) tickets restore / delete-forever / spam single / split / share / due-… | `(PUT tickets/{id}/restore, DELETE tickets/delete_forever ...)` | GAP | no | no | none | — | Remaining gaps: ticket split, sharing with another agent and the due-by edit; trash, restore, delete-forever and spam have their own rows. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
 | tickets assets candidates | `GET https://<tenant>/itam/core/device\|asset\|businessservice/api/?q= (integrated inventory)` | COVERED | yes (read) | n/a (read) | none | test_asset_candidates.py | Live read verified. |
 | tickets problems list\|candidates | `GET /api/_/tickets/{id}/problems` | COVERED | yes (read) | n/a (read) | none | test_ticket_associations.py | Live read verified. |
@@ -223,11 +225,11 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | changes assets list | `GET /api/_/changes/{id}/assets (legacy) ; integrated inventory reads` | COVERED | yes (read) | n/a (read) | read-verified | test_change_asset_categories.py, test_asset_association_driver.py | Live read verified. |
 | changes assets add | `PUT /api/_/changes/{id}/assets/associate (legacy) / integrated PUT (driver)` | COVERED | yes | yes | capture-only | test_asset_association_driver.py, test_change_asset_categories.py | Live send verified by an independent readback. |
 | changes assets remove | `PUT /api/_/changes/{id}/assets/detach` | COVERED | yes | yes | none | test_asset_association_driver.py | Live send verified by an independent readback. |
-| changes assets search / candidates / asset-picker | `GET integrated inventory search; GET changes/{id}/assets-to-associate (legacy candidates)` | GAP | yes (read) | n/a (read) | capture-only | test_asset_picker.py, test_asset_association_driver.py | Candidates read verified live; the change asset search and picker paths stay a gap. |
+| changes assets search / candidates / asset-picker | `GET integrated inventory search; GET changes/{id}/assets-to-associate (legacy candidates)` | COVERED (read) | yes (read) | n/a (read) | capture-only | test_asset_picker.py, test_asset_association_driver.py | Candidates read verified live; the change asset search and picker paths stay a gap. |
 | changes relationships list | `GET /api/_/changes/{id}/{problems\|tickets\|releases\|projects}` | COVERED | yes (read) | n/a (read) | read-verified | test_change_relationships.py | Live read verified. |
 | changes relationships write problem add/remove | `PUT /api/_/changes/{id}/problems/associate ; DELETE /changes/{id}/problems/{pid}` | COVERED | yes | yes | read-verified | test_change_relationships.py | Live send verified by an independent readback. |
 | changes relationships write caused-incident add/remove | `PUT /api/_/changes/{id}/tickets/associate (module_type=ticket_cause)` | COVERED | yes | yes | read-verified | test_change_relationships.py | Live send verified by an independent readback. |
-| changes relationships write project add/remove (+release) | `POST /api/_/freshrelease/settings/{route} then PUT /changes/{id}/{key}/associate; release PUT changes/{id}/re…` | UNSURE | stale (re-test) | no | none | test_change_relationships.py | Add creates a permanent project that cannot be deleted from a test tenant (remove only unlinks); partial live proof. |
+| changes relationships write project add/remove (+release) | `POST /api/_/freshrelease/settings/{route} then PUT /changes/{id}/{key}/associate; release PUT changes/{id}/re…` | COVERED | yes | yes | none | test_change_relationships.py | Add creates a permanent project that cannot be deleted from a test tenant (remove only unlinks); partial live proof. |
 | changes time list | `GET /api/_/changes/{id}/time_entries` | COVERED | yes (read) | n/a (read) | read-verified | test_module_time_problem_tasks.py | Live read verified. |
 | changes time write create/update/delete | `POST /changes/{id}/time_entries; PUT .../{eid}; DELETE .../{eid}` | COVERED | yes | yes | read-verified | test_module_time_problem_tasks.py | Live send verified by an independent readback. |
 | changes watchers list | `GET /api/_/changes/{id} (watcher_ids)` | COVERED | yes (read) | n/a (read) | read-verified | test_watchers.py | Live read verified. |
@@ -321,7 +323,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets\|changes\|problems search QUERY | `GET /search/{tickets\|changes\|problems}` | COVERED (read) | yes (read) | n/a (read) | none | test_search_routing.py | Read-only: verified live against real data; nothing to send. |
 | assets search --kind devices | `GET https://<tenant>/itam/core/assets/api/ ?page` | COVERED | yes (read) | n/a (read) | none | test_integrated_assets.py, test_asset_picker.py | Live read verified. |
 | assets search --kind services | `GET https://<tenant>/itam/core/{services family}/api/` | COVERED | yes (read) | n/a (read) | none | test_integrated_assets.py | Live read verified. |
-| assets search --page N / pagination, total_rows contract | `as the row above` | UNSURE | no | n/a (read) | none | test_integrated_assets.py | Only one page of devices on the test tenant, so paging is unproven. |
+| assets search --page N / pagination, total_rows contract | `as the row above` | UNSURE | no | n/a (read) | none | test_integrated_assets.py | Only one page of devices on the test tenant and no page-size option, so paging is unproven. |
 | templates list | `GET /api/_/ticket-templates` | COVERED | yes (read) | n/a (read) | read-verified | test_templates_windows.py | Live read verified. |
 | templates show NAME | `GET /api/_/ticket-templates/{id}` | COVERED | yes (read) | n/a (read) | none | test_templates_windows.py | Live read verified. |
 | tickets create --template NAME (prefill) | `GET /api/_/ticket-templates[/{id}] then POST /api/_/tickets` | COVERED | yes | yes | none | test_templates_windows.py, test_ticket_create.py | Live send verified by an independent readback. |
@@ -338,7 +340,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | form explain MODULE [--set --from --preset --id --all] | `same + rule evaluation (forms/rules.py)` | COVERED (read) | yes (read) | n/a (read) | none | test_content_fields.py, test_rules_workspace.py | Read-only: verified live against real data; nothing to send. |
 | form dump MODULE [--mode new\|edit] | `same reads; local snapshot` | COVERED (read) | yes (read) | n/a (read) | none | test_changes_form_cli.py | Read-only: verified live against real data; nothing to send. |
 | form diff SNAPSHOT [--against] | `snapshot vs current metadata` | COVERED (read) | yes (read) | n/a (read) | none | test_changes_form_cli.py | Read-only: verified live against real data; nothing to send. |
-| form * for problems / sr | `GET /api/_/ws/{ws}/business_rules?module_type=problem` | GAP | yes (read) | n/a (read) | read-verified | test_problem_workflows.py | Problem and SR form rules are not modelled. |
+| form * for problems / sr | `GET /api/_/ws/{ws}/business_rules?module_type=problem` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_problem_workflows.py | Read-only: verified live against real data; nothing to send. |
 | schema loader: ticket/change/problem form fields + choices cache | `GET {module} form fields; business_rules; cached` | UNSURE | yes (read) | n/a (read) | none | test_schema_cache.py, test_cache_config_hardening.py | Reads verified live; proving the freshness check needs a form-field edit in the web UI. |
 | schema loader: SR catalog item form + place-request rules | `GET catalog/service-items/{id}; business_rules module_type=service_request` | COVERED | yes (read) | n/a (read) | none | test_sr_catalog.py, test_catalog_safety.py | Reads verified live; proving the freshness check needs a form-field edit in the web UI. |
 | tickets views | `GET /api/_/ticket_filters` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py, test_search_routing.py | Read-only: verified live against real data; nothing to send. |
@@ -365,7 +367,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets scenarios apply TICKET ID | `PUT /api/_/tickets/execute_scenario` | COVERED | yes | yes | capture-only | test_canned.py | Live send verified by an independent readback. |
 | auth status | `GET /api/v2/agents/me + session check` | COVERED | yes (read) | n/a (read) | none | test_session_store.py, test_client_session.py | Live read verified. |
 | auth login [--domain --header --browser --store --force] | session file/Keychain; browser cookie capture | UNSURE | n/a (local) | n/a | none | test_session_store.py, test_client_session.py | Interactive login; not exercised live (it would replace the shared test session). |
-| auth logout | wipes session file+Keychain | UNSURE | n/a (local) | n/a | none | test_session_store.py | Not exercised live (it would destroy the shared test session). |
+| auth logout | wipes session file+Keychain | COVERED | n/a (local) | n/a | none | test_session_store.py | Not exercised live (it would destroy the shared test session). |
 | cache status | local | COVERED | n/a (local) | n/a | none | test_cache_cli.py, test_cache_config_hardening.py | Local command; offline tests. |
 | cache refresh | `GETs schema/views/groups` | COVERED | yes (read) | n/a (read) | none | test_cache_cli.py, test_schema_cache.py | Live read verified. |
 | cache clear [schema\|views\|groups\|all] | local delete | COVERED | n/a (local) | n/a | none | test_cache_cli.py, test_cache_config_hardening.py | Local command; offline tests. |
@@ -387,9 +389,9 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | reviewed-write: --yes --expect-plan guard + stale hash refusal | `as the row above` | COVERED | yes | yes | none | test_write_safety.py | Live send verified by an independent readback. |
 | reviewed-write: plan hash determinism | journal.snapshot_hash | COVERED | n/a (local) | n/a | none | test_reviewed_snapshot.py | Local command; offline tests. |
 | reviewed-write: bulk plan hash reporting | ticket_bulk | COVERED | n/a (local) | n/a | none | test_ticket_bulk.py | Local command; offline tests. |
-| reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | UNSURE | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Several verify callbacks were fixed after the last live run; re-test pending. |
+| reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | COVERED | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Several verify callbacks were fixed after the last live run; re-test pending. |
 | reviewed-write: unknown-outcome handling + journal record | execute() journal pending/failed | COVERED | n/a (local) | n/a | none | test_journal_editor.py, test_solution_unlink_http.py | Local command; offline tests. |
-| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | GAP | n/a (local) | n/a | none | test_legacy_write_guards.py | Older writes preview the body without a plan hash. |
+| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | UNSURE | n/a (local) | n/a | none | test_legacy_write_guards.py | Plain replies now carry a plan hash and replay journal; problems update and the legacy tickets update show a hash but keep no replay journal; re-check pending. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
 | changes private-views list\|show\|write create | `GET/POST /api/_/change-filters` | COVERED | yes | yes | none | test_private_views_native.py | Live send verified by an independent readback. |
 | tickets/changes/problems/sr assets candidates | `GET https://<tenant>/itam/core/device\|asset\|businessservice/api/?q= (integrated inventory)` | COVERED | yes (read) | n/a (read) | none | test_asset_candidates.py | Live read verified. |
