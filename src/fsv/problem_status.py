@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from fsv import config, journal, planning_text, task_status
+from fsv import config, journal, planning_text, readback, task_status
 from fsv.formmeta import ClientResolver, existing_from_record, load_meta, rules_gate, rules_unavailable_warning
 from fsv.forms import FormState
 from fsv.problem_workflows import inventory, record
@@ -166,24 +166,42 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
 
 
 def status_readback(before: Any, after: Any, sent: Any) -> tuple[bool, str | None]:
-    """(verified, note). A problem workflow may rewrite the status right after
-    the write (for example to a monitoring status): a readback status that
-    differs from both the sent and the pre-write status is that rewrite, so
-    the write is verified with a note. An unchanged status is not verified."""
+    """(verified, note) from the record alone: only the requested status
+    verifies. Any other readback status (a workflow rewrite, or one back to
+    the pre-write status) needs activity evidence (``workflow_rewrite``)."""
     if after is None or isinstance(after, bool):
         return False, None
     if submitted_value_matches(after, sent):
         return True, None
-    if before is not None and str(after) != str(before):
-        return True, f"status rewritten server-side to {after} after the write (workflow)"
     return False, None
 
 
-_SET_STATUS = re.compile(r"set status as\s*(.+?)\s*(?:,|$)")
+# Status segments of a native activity row: ``set status as <b>LABEL</b>``
+# (agent rows in ``content``, workflow rows in ``sub_contents``). Native rows
+# carry no field/old/new ids, so the bolded value is mapped to a runtime
+# status id through the plan's status choices and every comparison is by id.
+_STATUS_SEGMENT = re.compile(r"set\s+status\s+as\s*<b>(.*?)</b>", re.IGNORECASE | re.DOTALL)
+
+# Workflow rows are logged asynchronously after the save: read the activity
+# again a few times before calling a rewrite unproven.
+ACTIVITY_ATTEMPTS = 4
+ACTIVITY_DELAY = 1.5  # seconds between activity reads (fsv.readback._sleep)
+
+# A workflow triggered by the write can be stamped a moment before the
+# write's own activity row (a closure also fills planned dates in the same
+# save). Rows older than this before the write's entry are not its evidence.
+WORKFLOW_SKEW = dt.timedelta(seconds=5)
 
 
-def _activity_rows(rows: Any) -> list[tuple[dt.datetime, str, str, str]]:
-    """(created_at, content text, sub_contents text, actor name) for parseable rows."""
+@dataclass(frozen=True)
+class _Row:
+    at: dt.datetime
+    workflow: bool  # structural: system actor (id 0, not an agent) with sub_contents
+    actor: str
+    statuses: tuple[str, ...]  # status labels this row set
+
+
+def _activity_rows(rows: Any) -> list[_Row]:
     out = []
     for row in rows if isinstance(rows, list) else []:
         if not isinstance(row, dict):
@@ -194,68 +212,82 @@ def _activity_rows(rows: Any) -> list[tuple[dt.datetime, str, str, str]]:
             continue
         if at.tzinfo is None:
             continue
-        subs = row.get("sub_contents")
-        sub = " , ".join(strip_html(str(s)) for s in subs if isinstance(s, str)) if isinstance(subs, list) else ""
         actor = row.get("actor") if isinstance(row.get("actor"), dict) else {}
-        out.append((at, strip_html(str(row.get("content") or "")), sub, str(actor.get("name") or "")))
+        subs = row.get("sub_contents")
+        workflow = (actor.get("id") == 0 and not isinstance(actor.get("id"), bool)
+                    and actor.get("is_agent") is not True and isinstance(subs, list))
+        fragments = [s for s in subs if isinstance(s, str)] if workflow else [row.get("content")]
+        statuses = tuple(" ".join(strip_html(m).split()) for f in fragments if isinstance(f, str)
+                         for m in _STATUS_SEGMENT.findall(f))
+        out.append(_Row(at, workflow, str(actor.get("name") or ""), statuses))
     return out
 
 
-def _set_status(text: str) -> str | None:
-    found = _SET_STATUS.search(" ".join(text.split()))
-    return found.group(1).strip() if found else None
+def _label_ids(labels: dict[str, str]) -> dict[str, int | None]:
+    """casefolded runtime label -> status id (None when two ids share a label)."""
+    out: dict[str, int | None] = {}
+    for key, name in labels.items():
+        if not isinstance(name, str) or not str(key).isdigit():
+            continue
+        folded = " ".join(name.split()).casefold()
+        out[folded] = None if folded in out else int(key)
+    return out
 
 
-# A workflow triggered by the write can be stamped a moment before the
-# write's own activity row (a closure also fills planned dates in the same
-# save). Rows older than this before the write's entry are not its evidence.
-WORKFLOW_SKEW = dt.timedelta(seconds=5)
+def workflow_rewrite(rows: Any, since: dt.datetime, labels: dict[str, str], requested_id: Any,
+                     final_id: Any) -> tuple[str | None, str | None]:
+    """(note, conflict) from one activity page.
 
-
-def workflow_activity_note(client: Any, target: int, since: dt.datetime, requested: str | None = None) -> str | None:
-    found = workflow_activity(client, target, since, requested)
-    return found[0] if found else None
-
-
-def workflow_activity(client: Any, target: int, since: dt.datetime,
-                      requested: str | None = None) -> tuple[str, str] | None:
-    """(note, label) when the first activity page shows a workflow that set
-    the status after the write (for example back to the pre-write status).
-
-    Native rows: the agent write is ``set status as <b>LABEL</b>`` (a closure
-    adds ``, set planned end/start date as ...`` to the same row); the
-    workflow run is ``executed <a>NAME</a> workflow from ... event`` with the
-    status it set in ``sub_contents``. With ``requested``, the activity must
-    also show this write's own status entry, and the workflow entry must not
-    be older than it (beyond ``WORKFLOW_SKEW``); otherwise the readback stays
-    unverified.
+    Verified (note) only when the activity shows this write's own entry (an
+    agent row setting the requested status id) and a workflow row, not older
+    than it beyond ``WORKFLOW_SKEW``, setting the readback status id. A
+    workflow row that set a different status is a conflict; anything else
+    (no own entry, no workflow row, unmapped labels) is (None, None).
     """
+    ids = _label_ids(labels)
+    try:
+        requested, final = int(requested_id), int(final_id)
+    except (TypeError, ValueError):
+        return None, None
+    parsed = [r for r in _activity_rows(rows) if r.at >= since]
+    mine = [r.at for r in parsed if not r.workflow and any(ids.get(s.casefold()) == requested for s in r.statuses)]
+    if not mine:
+        return None, None
+    written = max(mine)
+    conflict = None
+    for row in parsed:
+        if not row.workflow or row.at < written - WORKFLOW_SKEW or not row.statuses:
+            continue
+        label = row.statuses[-1]
+        if ids.get(label.casefold()) == final:
+            name = labels.get(str(final), label)
+            return (f"status set to {labels.get(str(requested), requested)} by this write, then rewritten "
+                    f"server-side to {name} (status {final}) by a workflow ({row.actor or 'workflow'}) "
+                    "per the activity log"), None
+        conflict = conflict or (f"activity shows a workflow setting {label}, but the readback status is "
+                                f"{labels.get(str(final), final)}; not verified")
+    return None, conflict
+
+
+def read_workflow_rewrite(client: Any, target: int, since: dt.datetime, labels: dict[str, str],
+                          requested_id: Any, final_id: Any) -> tuple[str | None, str | None]:
+    """``workflow_rewrite`` over the first activity page, read again (up to
+    ``ACTIVITY_ATTEMPTS``) while the evidence has not been logged yet. An
+    unreadable activity log is (None, None): the readback stays unverified."""
     from fsv import service
     from fsv.resources import PROBLEMS
-    try:
-        rows = _activity_rows(service.get_activities(PROBLEMS, target, client=client))
-    except Exception:
-        return None
-    rows = [r for r in rows if r[0] >= since]
-    written = None
-    if requested is not None:
-        want = " ".join(requested.split()).casefold()
-        mine = [at for at, text, _sub, _actor in rows
-                if "workflow" not in text.casefold() and (_set_status(text) or "").casefold() == want]
-        if not mine:
-            return None
-        written = max(mine)
-    for at, text, sub, actor in rows:
-        if "workflow" not in text.casefold() or (written is not None and at < written - WORKFLOW_SKEW):
+    result: tuple[str | None, str | None] = (None, None)
+    for attempt in range(ACTIVITY_ATTEMPTS):
+        if attempt:
+            readback._sleep(ACTIVITY_DELAY)
+        try:
+            rows = service.get_activities(PROBLEMS, target, client=client)
+        except Exception:
             continue
-        label = _set_status(sub) or _set_status(text)
-        if label is None:
-            continue
-        if requested is None:
-            return "status rewritten server-side after the write (activity shows a workflow set it)", label
-        return (f"status set to {requested} by this write, then rewritten server-side to {label} "
-                f"by a workflow ({actor or 'workflow'}) per the activity log"), label
-    return None
+        result = workflow_rewrite(rows, since, labels, requested_id, final_id)
+        if result[0]:
+            return result
+    return result
 
 
 def rejection(exc: Any) -> str:
@@ -280,23 +312,20 @@ def send(plan: StatusPlan, client: Any, *, reviewed_hash: str | None) -> dict[st
         verified, note = status_readback(json.loads(plan.before_json).get("status"), row.get("status"),
                                          plan.payload["status"])
         conflict = None
-        if not verified and row.get("status") is not None:
-            found = workflow_activity(client, plan.target, since, plan.label)
-            note = found[0] if found else None
+        if not verified and row.get("status") is not None and not isinstance(row.get("status"), bool):
+            # A tenant workflow may rewrite the status right after the save,
+            # also back to the status the problem already had: accept the
+            # readback only when the activity shows this write's transition
+            # followed by a workflow setting exactly the readback status.
+            note, conflict = read_workflow_rewrite(client, plan.target, since, json.loads(plan.status_labels_json),
+                                                   plan.payload["status"], row.get("status"))
             verified = note is not None
-            # The workflow's status must be the server's resulting status
-            # (compared by runtime label when the plan carries the labels).
-            labels = json.loads(plan.status_labels_json)
-            observed = labels.get(str(row.get("status")))
-            if found and observed is not None and observed.casefold() != found[1].casefold():
-                verified, note = False, None
-                conflict = (f"activity shows a workflow setting {found[1]}, but the readback status is {observed}; "
-                            "not verified")
         out = {"problem_id": plan.target, "verified": verified,
                "readback": {k: row[k] for k in ("status", "planned_start_date", "planned_end_date") if k in row},
                "unavailable": [k for k in ("planned_start_date", "planned_end_date") if k not in row]}
         if note:
             out["verified_with_note"] = note
+            out["final_status"] = json.loads(plan.status_labels_json).get(str(row.get("status")), row.get("status"))
         if conflict:
             out["readback_conflict"] = conflict
         return out

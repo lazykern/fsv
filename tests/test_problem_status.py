@@ -307,3 +307,71 @@ def test_remembered_solution_rule_blocks_the_dry_run_up_front(api):
     assert r.exit_code == 2
     assert "missing linked workaround / solution" in r.output and "rejected a closure" in r.output
     assert not s["writes"]
+
+
+
+def _agent_row(label, at):
+    return {"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": True},
+            "content": f"set status as  <b>{label}</b>", "sub_contents": None, "created_at": at}
+
+
+def _workflow_row(label, at):
+    return {"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": False},
+            "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed</b>  event",
+            "sub_contents": [f"set status as <b>{label}</b>", "<b>Workflow Ends</b>"], "created_at": at}
+
+
+@pytest.mark.parametrize("label", ["Open", "Resolve"])
+def test_workflow_rewrite_back_to_the_prior_status_is_verified_once_activity_is_logged(api, monkeypatch, label):
+    """Wave-9 shape: the problem already sat in the monitoring status; the
+    agent sets Open/Resolve, the workflow puts it back, and the workflow row
+    is logged a moment after the save (first activity read lacks it)."""
+    import datetime as dt
+    c, s, fields, n = api
+    fields[1]["choices"].append({"id": n + 4, "value": "Monitor 1 month"})
+    s["row"]["status"] = n + 4
+    plan = flow.build_plan(c, 123, label)
+    s["mismatch"] = True
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    s["activities"] = [_agent_row(label, now)]
+    reads = []
+    monkeypatch.setattr(flow.readback, "_sleep",
+                        lambda _s: reads.append(1) or s["activities"].insert(0, _workflow_row("Monitor 1 month", now)))
+    result = flow.send(plan, c, reviewed_hash=plan.hash)
+    assert len(s["writes"]) == 1 and result["readback"]["status"] == n + 4
+    assert result["verified"] is True and len(reads) == 1
+    assert result["final_status"] == "Monitor 1 month"
+    assert f"set to {label} by this write, then rewritten server-side to Monitor 1 month (status {n + 4})" \
+        in result["verified_with_note"]
+
+
+def test_rewrite_to_a_third_status_needs_activity_evidence(api, monkeypatch):
+    import datetime as dt
+    c, s, fields, n = api
+    fields[1]["choices"].append({"id": n + 4, "value": "Monitor 1 month"})
+    plan = flow.build_plan(c, 123, "In Progress")
+    s["mismatch"] = True
+    real = flow.record
+    # after the write the server shows neither the requested nor the prior status
+    monkeypatch.setattr(flow, "record", lambda *a: {**real(*a), **({"status": n + 4} if s["writes"] else {})})
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    s["activities"] = [_workflow_row("Monitor 1 month", now), _agent_row("In Progress", now)]
+    result = flow.send(plan, c, reviewed_hash=plan.hash)
+    assert result["verified"] is True and "Monitor 1 month" in result["verified_with_note"]
+
+
+def test_rewrite_without_activity_stays_unverified(api, monkeypatch):
+    from fsv import service
+    c, s, fields, n = api
+    fields[1]["choices"].append({"id": n + 4, "value": "Monitor 1 month"})
+    s["row"]["status"] = n + 4
+    plan = flow.build_plan(c, 123, "Open")
+    s["mismatch"] = True
+    calls = []
+    def unavailable(*a, **k):
+        calls.append(1)
+        raise RuntimeError("activity unavailable")
+    monkeypatch.setattr(service, "get_activities", unavailable)
+    result = flow.send(plan, c, reviewed_hash=plan.hash)
+    assert result["verified"] is False and "verified_with_note" not in result
+    assert "do not resend" in result["warning"] and len(calls) == flow.ACTIVITY_ATTEMPTS

@@ -68,7 +68,7 @@ def test_problem_405_is_explained():
 
 @pytest.mark.parametrize(("before", "after", "sent", "verified", "noted"), [
     (1, 5, 5, True, False),   # exact
-    (1, 7, 4, True, True),    # workflow moved it on: verified with a note
+    (1, 7, 4, False, False),  # anything but the requested status: activity decides
     (4, 4, 5, False, False),  # unchanged: not verified (activity decides)
     (1, None, 5, False, False),
 ])
@@ -86,15 +86,7 @@ class ActivityClient:
         return {"activities": self.rows}
 
 
-def test_workflow_activity_confirms_rewrite_back_to_prior_status():
-    since = dt.datetime(2030, 1, 1, tzinfo=dt.timezone.utc)
-    row = {"created_at": "2030-01-01T00:01:00Z",
-           "content": "executed <a>Acme status workflow</a> (Workflow), set status as <b>Monitor</b>"}
-    assert problem_status.workflow_activity_note(ActivityClient([row]), 7, since)
-    old = {**row, "created_at": "2029-12-31T23:00:00Z"}
-    assert problem_status.workflow_activity_note(ActivityClient([old]), 7, since) is None
-    other = {**row, "content": "set priority as <b>Low</b>"}
-    assert problem_status.workflow_activity_note(ActivityClient([other]), 7, since) is None
+LABELS = {"1": "Open", "5": "In Progress", "7": "Monitor", "8": "Resolve", "9": "Closed"}
 
 
 def _native_activity(write_at, workflow_at, requested="Resolve", rewritten="Monitor"):
@@ -112,20 +104,50 @@ def _native_activity(write_at, workflow_at, requested="Resolve", rewritten="Moni
 def test_workflow_rewrite_back_to_prior_status_uses_native_activity_rows():
     since = dt.datetime(2030, 1, 1, tzinfo=dt.timezone.utc)
     rows = _native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z")
-    note = problem_status.workflow_activity_note(ActivityClient(rows), 7, since, "Resolve")
-    assert note and "Resolve" in note and "Monitor" in note and "Problem Workflow" in note
-    # No entry for this write: the readback stays unverified.
-    assert problem_status.workflow_activity_note(ActivityClient(rows), 7, since, "Closed") is None
+    note, conflict = problem_status.workflow_rewrite(rows, since, LABELS, 8, 7)
+    assert note and "Resolve" in note and "Monitor (status 7)" in note and "Problem Workflow" in note and not conflict
+    # No entry for this write (requested Closed): the readback stays unverified.
+    assert problem_status.workflow_rewrite(rows, since, LABELS, 9, 7) == (None, None)
+    # The workflow set another status than the readback: a conflict, not verified.
+    note, conflict = problem_status.workflow_rewrite(rows, since, LABELS, 8, 1)
+    assert note is None and "readback status is Open" in conflict
     # Workflow entry older than the write is not evidence.
     stale = _native_activity("2030-01-01T00:02:00Z", "2030-01-01T00:01:00Z")
-    assert problem_status.workflow_activity_note(ActivityClient(stale), 7, since, "Resolve") is None
+    assert problem_status.workflow_rewrite(stale, since, LABELS, 8, 7) == (None, None)
     # Entries before the write window do not count.
     old = _native_activity("2029-12-31T00:01:00Z", "2029-12-31T00:01:01Z")
-    assert problem_status.workflow_activity_note(ActivityClient(old), 7, since, "Resolve") is None
+    assert problem_status.workflow_rewrite(old, since, LABELS, 8, 7) == (None, None)
     # A workflow row that did not set a status is not a rewrite.
     noset = _native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z")
     noset[0]["sub_contents"] = ["send email to <b>requester</b>", "<b>Workflow Ends</b>"]
-    assert problem_status.workflow_activity_note(ActivityClient(noset), 7, since, "Resolve") is None
+    assert problem_status.workflow_rewrite(noset, since, LABELS, 8, 7) == (None, None)
+
+
+def test_workflow_row_is_detected_structurally_not_by_wording():
+    since = dt.datetime(2030, 1, 1, tzinfo=dt.timezone.utc)
+    rows = _native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z")
+    # An agent row that merely mentions a workflow is not a workflow row.
+    rows[0]["actor"] = {"id": 9000002, "name": "Acme Agent Two", "is_agent": True}
+    assert problem_status.workflow_rewrite(rows, since, LABELS, 8, 7) == (None, None)
+    # A system actor row with sub_contents is one, whatever its content says.
+    rows = _native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z")
+    rows[0]["content"] = "ran automation"
+    assert problem_status.workflow_rewrite(rows, since, LABELS, 8, 7)[0]
+    # Labels map to ids through the plan's choices; an unknown label is unproven.
+    assert problem_status.workflow_rewrite(rows, since, {"8": "Resolve"}, 8, 7)[0] is None
+    # Two ids sharing a label are ambiguous.
+    assert problem_status.workflow_rewrite(rows, since, {**LABELS, "10": "Monitor"}, 8, 7)[0] is None
+
+
+def test_real_fixture_activity_shape_parses():
+    # tests/fixtures/problem_activity.json is a private capture kept out of
+    # git; when present, its rows must parse into agent and workflow entries.
+    import pathlib
+    path = pathlib.Path(__file__).parent / "fixtures" / "problem_activity.json"
+    if not path.exists():
+        pytest.skip("private activity capture not present")
+    rows = problem_status._activity_rows(json.loads(path.read_text()))
+    assert any(r.workflow and r.statuses for r in rows) and any(not r.workflow and r.statuses for r in rows)
 
 
 class FieldsClient:

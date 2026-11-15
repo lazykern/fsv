@@ -614,9 +614,15 @@ returned note id and compare its body. The result (`--json`) carries
 
 `problems update --set` nests custom fields in `custom_fields` (only the
 changed keys) and refuses a deleted (trashed) problem before sending; the
-server answers 405 there. `problems status` reads back the status: a
-workflow that moves it on right after the write (or back, when the first
-activity page shows the workflow) is `verified` with `verified_with_note`.
+server answers 405 there. `problems status` reads back the status: only the
+requested status verifies from the record alone. Any other readback status
+(a workflow that moved it on, or put it back to the status it already had)
+is `verified` with `verified_with_note` and `final_status` only when the
+activity shows this write's own status entry followed by a workflow entry
+(a system actor row with `sub_contents`) that set exactly the readback
+status; labels are mapped to runtime status ids and compared by id. The
+activity is read again a few times because workflow rows are logged just
+after the save; when it stays unavailable the result is `verified: false`.
 `problems create` sends only the captured create keys and names any other
 top-level field it would need; set those with `problems update` afterwards.
 An `update --dry-run` on a cached schema makes one GET of the form fields
