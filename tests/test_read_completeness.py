@@ -13,7 +13,10 @@ from fsv.resources import CHANGES, TICKETS
 def test_root_cli_note_registration_preserves_resource_flows(resource):
     result = CliRunner().invoke(cli.app, [resource, 'add-note', '--help'])
     assert result.exit_code == 0, result.output
-    assert ('--expect-plan' in result.output) is (resource in ('tickets', 'problems'))
+    # Every note flow binds a review hash; changes keep the legacy flow
+    # (controllable visibility) with an optional --expect-plan.
+    assert '--expect-plan' in result.output
+    assert ('changes only: public note' in ' '.join(result.output.split())) is (resource == 'changes')
     assert not TICKETS.has_notes
 
 
