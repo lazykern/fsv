@@ -2843,8 +2843,18 @@ def _download_dir(out: Path | None, label: str) -> Path:
     return target
 
 
+def _note_plan_hash(res: Resource, cid: int, payload: dict[str, Any]) -> str | None:
+    """Review hash of a legacy change note: tenant, target and the exact POST
+    body (visibility included). None without a configured tenant."""
+    from fsv import journal
+    if res.name != "changes" or not config.DOMAIN:
+        return None
+    return journal.plan_hash({"action": "add_note", "resource": res.name, "target": cid, "tenant": config.DOMAIN,
+                              "method": "POST", "path": f"{res.api_path}/{cid}/notes", "payload": payload})
+
+
 def note_resource(res: Resource, id_: str, body: str, public: bool, dry_run: bool = False,
-                  yes: bool = False, no_input: bool = False) -> None:
+                  yes: bool = False, no_input: bool = False, expect_plan: str | None = None) -> None:
     from fsv import service
     from fsv.safety import note_risks
     from fsv.errors import UsageError
@@ -2856,9 +2866,14 @@ def note_resource(res: Resource, id_: str, body: str, public: bool, dry_run: boo
         return
     risks = note_risks(public)
     problem = res.name == "problems"
+    plan_hash = _note_plan_hash(res, cid, payload)
+    if expect_plan is not None and (plan_hash is None or expect_plan.strip().lower() != plan_hash):
+        _err(f"note on {format_id({'id': cid}, res)} does not match the reviewed plan (body, visibility or "
+             "tenant changed, or a partial hash); review again with --dry-run. Nothing was sent")
     if dry_run:
         _emit_dry_run(res, cid, payload, "add_note", risks=risks,
-                      warnings=["visibility: " + service.PROBLEM_NOTE_VISIBILITY] if problem else None)
+                      warnings=["visibility: " + service.PROBLEM_NOTE_VISIBILITY] if problem else None,
+                      plan_hash=plan_hash)
         return
     _confirm_writes(risks, f"note on {format_id({'id': cid}, res)}", yes, no_input)
     c = _client()
@@ -4916,7 +4931,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                                        no_input=no_input, expect_plan=expect_plan, json_out=json_out)
         else:
             @sub.command("add-note", help=f"Add {singular} note.", epilog=(
-                f"[bold]Note:[/bold] Changes use add-note (legacy, unhashed); ticket and problem notes have a separate reviewed flow (docs/ticket-notes.md).  "
+                f"[bold]Note:[/bold] --dry-run shows a plan_hash; pass it with --expect-plan to refuse a changed body, "
+                f"visibility or tenant (ticket and problem notes have a separate reviewed flow, docs/ticket-notes.md).  "
                 f"[bold]Examples:[/bold]  "
                 f"fsv {res.name} add-note {_pfx}-1234 'Checked deployment evidence'"
                 + (f"  |  fsv {res.name} add-note {_pfx}-1234 'Visible update' --public" if res.name != "problems" else
@@ -4929,8 +4945,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 dry_run: bool = typer.Option(False, "--dry-run", help="print the note without adding it"),
                 yes: bool = typer.Option(False, "--yes", "-y", help="confirm a public note"),
                 no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
+                expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full plan_hash from the --dry-run review; a mismatch sends nothing"),
             ) -> None:
-                note_resource(res, id_, body, public, dry_run, yes, no_input)
+                note_resource(res, id_, body, public, dry_run, yes, no_input, expect_plan=expect_plan)
     else:
         @sub.command("conversations", help="List ticket conversations/replies.", epilog=(
             f"[bold]Examples:[/bold]  "
