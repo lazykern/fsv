@@ -1,8 +1,17 @@
 # fsv
 
-Freshservice from your terminal. Browse changes, tickets and problems, update records, or fill out change and service-request forms without opening an editor.
+Freshservice from your terminal. Browse changes, tickets and problems, update records, and fill out change and service-request forms.
 
-fsv signs in with your browser session, so you don't need an API key. It uses the same internal endpoints as the Freshservice website, plus a few public v2 endpoints. Those internal APIs aren't a stable contract: a Freshservice update can break things.
+> [!WARNING]
+> In development and unstable. Commands, flags, JSON output and on-disk formats can change or break without notice. Use `--dry-run` before any `--yes` write.
+>
+> fsv uses your browser session, not an API key. It sends your Freshservice session cookies to the same internal endpoints the website uses (plus a few public v2 endpoints), so every call runs as you, with your permissions, and shows up in audit logs as you.
+>
+> - The stored session is a credential. Treat it like a password.
+> - Internal endpoints are undocumented and can change at any time.
+> - Check your organization's policy before using a browser session in scripts or agents.
+> - Sessions expire; run `fsv auth login` again.
+> - Test with a separate config dir and tenant.
 
 ## Get started
 
@@ -13,13 +22,13 @@ cargo build --release -p fsv-cli --bin fsv
 ./target/release/fsv setup
 ```
 
-The setup wizard asks for your domain and helps with login, shell completion and defaults. If you'd rather just sign in:
+The setup wizard asks for your domain and handles login, shell completion and defaults. To sign in directly:
 
 ```bash
 fsv auth login --browser --domain acme.freshservice.com
 ```
 
-Finish login and any SSO or MFA prompts in the browser window. Then try a few read-only commands:
+Finish login and any SSO or MFA prompts in the browser window. Then try some read-only commands:
 
 ```bash
 fsv auth status
@@ -28,11 +37,11 @@ fsv changes get CHN-1234
 fsv tickets ls --where requester=alice@example.com
 ```
 
-You can pipe JSON from any command into other tools. The full-screen TUI is being redesigned and is not in this build.
+Commands can output JSON for other tools. The full-screen TUI is being redesigned and is not in this build.
 
 ## Fill out a form
 
-Run these in a terminal to open the interactive form:
+Run these in a terminal to open an interactive form:
 
 ```bash
 fsv changes create
@@ -41,7 +50,7 @@ fsv tickets create
 fsv sr create ITEM_ID
 ```
 
-Fields, labels, choices and business rules come from your Freshservice account. Dropdowns filter as you type, people fields offer search, and required fields change as you answer. You get a review before submitting. Edit forms start with the record's current values and send only what changed.
+Fields, labels, choices and business rules come from your Freshservice account. Dropdowns filter as you type, people fields search, and required fields update as you answer. You review before submitting. Edit forms start with the record's current values and send only what changed.
 
 To try a change form without creating anything:
 
@@ -49,7 +58,7 @@ To try a change form without creating anything:
 fsv changes create --dry-run
 ```
 
-You can also inspect the form without filling it out:
+To inspect a form without filling it out:
 
 ```bash
 fsv form fields changes --choices Priority
@@ -58,7 +67,7 @@ fsv sr catalog
 fsv sr fields ITEM_ID
 ```
 
-Custom labels such as `Cloud Only` are examples; use the labels from your own account. See [the form UI guide](docs/formui.md) for keys and widgets, [the forms guide](docs/forms.md) for rules and drafts, and [service requests](docs/service-requests.md) for catalog forms.
+`Cloud Only` is an example label; use the labels from your account. See [the form UI guide](docs/formui.md) for keys and widgets, [the forms guide](docs/forms.md) for rules and drafts, and [service requests](docs/service-requests.md) for catalog forms.
 
 ## Common commands
 
@@ -79,7 +88,7 @@ fsv changes state CHN-1234
 fsv changes download CHN-1234 --all --dir ./evidence
 ```
 
-View names and status labels depend on your account. Lists use the website's saved views and columns; detail pages show properties, planning or requested items, conversations and available tabs. See [the views guide](docs/views.md) for filters, pagination and output formats.
+View names and status labels depend on your account. Lists use the website's saved views and columns. Detail pages show properties, planning or requested items, conversations and available tabs. See [the views guide](docs/views.md) for filters, pagination and output formats.
 
 ### Make changes
 
@@ -95,13 +104,13 @@ fsv changes assets add CHN-1234 myapp --category "Application Portfolio" --dry-r
 fsv changes associations add CHN-1234 SR-5678 --dry-run
 ```
 
-Use `--dry-run` first when you're unsure. Writes can trigger your account's workflows, send notifications or create tasks. fsv can't discover every downstream effect.
+Use `--dry-run` first. Writes can trigger your account's workflows, send notifications or create tasks, and fsv can't see every downstream effect.
 
-[Change-task creation](docs/change-tasks.md) uses an exact reviewed hash for scripted sends (`--yes --expect-plan FULL_HASH --no-input`), defaults to no owner, and never retries an uncertain POST. Task CREATE is backed by a blocked request capture; its accepted live response remains unobserved.
+[Change-task creation](docs/change-tasks.md) uses an exact reviewed hash for scripted sends (`--yes --expect-plan FULL_HASH --no-input`), defaults to no owner, and never retries an uncertain POST. Task creation is based on a captured request that was blocked; a successful live response has not been observed.
 
-[Change–ticket associations](docs/change-associations.md) use a reviewed hash, one write attempt and complete paginated readback. Scripted sends require `--yes --expect-plan FULL_HASH`; uncertain outcomes block resubmission. Lists retain partial rows with explicit completeness warnings.
+[Change–ticket associations](docs/change-associations.md) use a reviewed hash, one write attempt and complete paginated readback. Scripted sends require `--yes --expect-plan FULL_HASH`; uncertain outcomes block resubmission. Lists keep partial rows and warn that they are incomplete.
 
-For the full command list, run `fsv --help` or a module's help:
+For the full command list, run `fsv --help` or a command's help:
 
 ```bash
 fsv changes --help
@@ -110,7 +119,7 @@ fsv problems --help
 fsv sr --help
 ```
 
-`fsv tickets create` supports incident creation with review and dry run. It refuses to send when rules or required rule context are unavailable. Live incident creation has not yet been tested; see [the incident guide](docs/incidents.md).
+`fsv tickets create` supports incident creation with review and dry run. It refuses to send when rules or required rule context are unavailable. Live incident creation has not been tested; see [the incident guide](docs/incidents.md).
 
 ## Drafts and scripts
 
@@ -142,21 +151,21 @@ fsv changes update CHN-1234 --set "Stage=Live" --dry-run
 
 Copy the plan hash from your own dry run; the one above is an example. `--expect-plan` accepts at least 12 hex characters and refuses to send if the answers, files or form rules changed. Without a terminal, writes that require confirmation need `--yes`.
 
-If you prefer an external editor, `fsv changes create --edit` opens an annotated YAML draft in `$VISUAL` or `$EDITOR`. It's optional, not the default.
+`fsv changes create --edit` opens an annotated YAML draft in `$VISUAL` or `$EDITOR`.
 
 The [forms guide](docs/forms.md) covers presets, answer precedence, rule messages, local workflow hints and attachment handling.
 
 ## Login and session storage
 
-Browser login opens a temporary profile, waits for you to sign in, and saves the session cookies locally. It doesn't read your existing browser profile or saved passwords. You'll need Chrome, Chromium, Edge or Brave; set `FSV_BROWSER=/path/to/browser` if fsv can't find it.
+Browser login opens a temporary profile, waits for you to sign in, and saves the session cookies locally. It doesn't read your existing browser profile or saved passwords. It needs Chrome, Chromium, Edge or Brave; set `FSV_BROWSER=/path/to/browser` if fsv can't find one.
 
-If browser login doesn't work, sign in normally, open DevTools → Network, and copy the `Cookie` header from a Freshservice `/api/_/` request. Paste it into the prompt:
+If browser login fails, sign in normally, open DevTools → Network, copy the `Cookie` header from a Freshservice `/api/_/` request, and paste it into the prompt:
 
 ```bash
 fsv auth login --domain acme.freshservice.com
 ```
 
-Treat that header like a password. It includes HttpOnly cookies that `document.cookie` can't read. Avoid putting it directly in a shell command, where it could end up in your history.
+Treat that header like a password. It includes HttpOnly cookies that `document.cookie` can't read. Don't put it in a shell command, where it can end up in your history.
 
 Choose where to store the session with `--store`:
 
@@ -174,17 +183,17 @@ fsv auth status
 fsv auth logout
 ```
 
-On macOS, Keychain may ask for access the first time. Switching backends removes the old stored copy. Run login again when your session expires.
+On macOS, Keychain may ask for access the first time. Switching backends removes the old stored copy. Log in again when the session expires.
 
 ## Account differences and limits
 
 fsv reads your account's fields, choices, planning labels and rules rather than shipping a fixed configuration. It supports accounts without workspaces or business rules, and optional endpoints that return 403 or 404. When rules can't be loaded, forms warn and use static flags; incident creation refuses to send.
 
-That doesn't mean every Freshservice feature or account configuration has been tested. A few limits worth knowing:
+Not every Freshservice feature or account configuration has been tested. Known limits:
 
 - The change form's **Request for** field is display-only for now. Its request key is unverified, so the review marks it "not sent".
 - Your role and plan determine which tabs, lookups and actions are available.
-- Custom workflows can add work that isn't visible in the form metadata. You can document known effects in local `hints.yaml`; see [the forms guide](docs/forms.md).
+- Custom workflows can add work that the form metadata doesn't show. You can record known effects in a local `hints.yaml`; see [the forms guide](docs/forms.md).
 - A create can succeed even if a later attachment or planning step fails. fsv prints the created ID and partial results. Check that record before retrying.
 - Form creates with the same plan hash are blocked for 24 hours unless you pass `--allow-duplicate`. Reviewed task creates instead keep identical sent/unknown plans blocked without an override.
 
@@ -203,7 +212,7 @@ fsv config set completion.network on
 fsv tickets ls --where requester=ali<TAB>
 ```
 
-Remote lookups need at least two characters. Use `fsv completion doctor` to troubleshoot completion, or `fsv cache refresh` after an admin changes the form.
+Remote lookups need at least two characters. Run `fsv completion doctor` to troubleshoot, or `fsv cache refresh` after an admin changes the form.
 
 ## Troubleshooting
 
@@ -211,7 +220,7 @@ Add `-v` for request and response details. List commands also accept `--debug` t
 
 `fsv journal tail -n 20` shows recent writes, including failed requests and created IDs. The journal stores metadata, not request bodies or cookies. Each resolved configuration directory and configured domain has its own journal under `$XDG_STATE_HOME/fsv/journals/` (default `~/.local/state/fsv/journals/`). The directory names are hashes; `fsv journal path` prints the active path. Without a configured domain, it uses an `unknown` tenant directory. An explicit `XDG_STATE_HOME` controls the root for every profile.
 
-The former shared journal at `$XDG_STATE_HOME/fsv/journal.jsonl` is left untouched. You can inspect it directly as JSONL; there is no legacy-view or migration flag. It is not used for duplicate checks because its entries cannot reliably be assigned to a profile and tenant. Review old entries before retrying a create after upgrading.
+The old shared journal at `$XDG_STATE_HOME/fsv/journal.jsonl` is left untouched. It is plain JSONL, and there is no migration flag. It isn't used for duplicate checks because its entries can't be assigned to a profile and tenant. After upgrading, review old entries before retrying a create.
 
 | Exit code | Meaning |
 |---|---|
