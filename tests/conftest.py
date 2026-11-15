@@ -121,6 +121,17 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     readback = sys.modules.get("fsv.readback")
     if readback is not None:
         monkeypatch.setattr(readback, "_sleep", lambda _seconds: None)
+    # Process-global state that would otherwise outlive a test: the in-memory
+    # plan-hash -> tenant maps and the command-nesting/write state of the
+    # tenant hook (a leaked depth skips the tenant check for every later
+    # command), and the client's --verbose switch.
+    tenant = sys.modules.get("fsv.tenant")
+    if tenant is not None:
+        monkeypatch.setattr(tenant, "_RAW_OF", {})
+        monkeypatch.setattr(tenant, "_TENANT_OF", {})
+        monkeypatch.setattr(tenant, "_state", {"depth": 0, "write": False, "new": []})
+    if client is not None:
+        monkeypatch.setattr(client, "_VERBOSE", False)
     yield
     for name in [k for k in sys.modules if k == "fsv" or k.startswith("fsv.")]:
         if name not in saved_modules:
