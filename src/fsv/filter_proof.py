@@ -34,6 +34,7 @@ def name_valued_choice(field: dict[str, Any], raw: str) -> str | None:
         return None
     folded = raw.strip().casefold()
     found = []
+    active: list[str] = []
     for choice in field.get("choices") or []:
         if not isinstance(choice, dict) or any(choice.get(k) for k in ("deleted", "is_deleted", "deactivated")):
             continue
@@ -41,10 +42,13 @@ def name_valued_choice(field: dict[str, Any], raw: str) -> str | None:
         ident = choice.get("id")
         if not isinstance(value, str) or not value.strip():
             continue
+        active.append(value.strip())
         if value.strip().casefold() == folded or (ident is not None and not isinstance(ident, bool) and str(ident) == raw.strip()):
             found.append(value)
     if len({v.casefold() for v in found}) != 1:
-        raise ValueError(f"no unique runtime choice {raw!r} for {field.get('label') or field.get('name')}")
+        shown = ", ".join(dict.fromkeys(active)) or "none"
+        raise ValueError(f"no unique runtime choice {raw!r} for {field.get('label') or field.get('name')}; "
+                         f"this tenant's choices: {shown}; nothing was sent")
     return found[0]
 
 

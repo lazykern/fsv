@@ -240,11 +240,34 @@ def is_text_field(f: dict[str, Any]) -> bool:
     return ftype in TEXT_FIELD_TYPES or str(f.get("name") or "") in {"subject", "description"}
 
 
-def text_filter_refusal(res_name: str, f: dict[str, Any]) -> ValueError:
+def filterable_labels(sch: dict[str, Any] | None, limit: int = 15) -> list[str]:
+    """Labels of the schema fields a list filter can take (choice, people,
+    number and date fields); text fields are never listed."""
+    from fsv.filter_proof import require_filterable_field
+    out: list[str] = []
+    for f in (sch or {}).get("fields") or []:
+        if not isinstance(f, dict) or is_text_field(f):
+            continue
+        label = str(f.get("label") or f.get("name") or "").strip()
+        if not label or label in out:
+            continue
+        if str(f.get("name") or "") not in DATE_FIELDS:
+            try:
+                require_filterable_field(f)
+            except ValueError:
+                continue
+        out.append(label)
+    return out[:limit] + (["..."] if len(out) > limit else [])
+
+
+def text_filter_refusal(res_name: str, f: dict[str, Any], sch: dict[str, Any] | None = None) -> ValueError:
     label = f.get("label") or f.get("name")
+    fields = filterable_labels(sch)
+    hint = (f"; filterable fields on this tenant: {', '.join(fields)}" if fields else
+            "; filter on a choice, status, priority, group, agent, requester, ID, number or date field instead")
     return ValueError(f"no list filter exists for text field {label!r}: the web's filter panels and builders offer "
                       f"no subject/description/text condition, so nothing was sent; use `fsv {res_name} search TEXT` "
-                      "for a keyword search")
+                      f"for a keyword search{hint}")
 
 
 def date_condition(res_name: str, field: str, op: str, raw: str, explain: list[dict[str, Any]],
@@ -474,6 +497,8 @@ def _resolve_where(
     ftype = str(f.get("field_type") or "")
     if name in DATE_FIELDS:
         return date_condition(getattr(res, "name", ""), str(name), op, raw, explain, field_text)
+    if is_text_field(f):
+        raise text_filter_refusal(getattr(res, "name", ""), f, sch)
     typed = typed_condition(getattr(res, "name", ""), f, op, raw, explain, field_text)
     if typed is not None:
         return typed

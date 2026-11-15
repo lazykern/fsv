@@ -1049,6 +1049,8 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
     if name in pseudo_dates:
         return _date_condition(str(name), op, raw, explain, field_text, res.name)
     from fsv import query as Q
+    if Q.is_text_field(f):
+        _err(str(Q.text_filter_refusal(res.name, f, sch)))
     try:
         typed = Q.typed_condition(res.name, f, op, raw, explain, field_text)
     except ValueError as exc:
