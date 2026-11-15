@@ -173,16 +173,31 @@ def test_reviewed_update_blocking_message_needs_ack(monkeypatch):
     sent = runner.invoke(cli.app, args + ["--ack", "--yes", "--expect-plan", body["plan_hash"]])
     assert sent.exit_code == 0, sent.output
     assert len(c.writes) == 1
-    assert runner.invoke(cli.app, ["tickets", "update", "INC-123", "--priority", "High", "--ack", "--dry-run"]).exit_code != 0
+    # --ack works without --reviewed (the reviewed path is the default) and
+    # reviews the same plan; the deprecated --no-review path has no --ack.
+    default = runner.invoke(cli.app, ["tickets", "update", "INC-123", "--priority", "High", "--ack", "--dry-run"])
+    assert default.exit_code == 0, default.output
+    again = json.loads(default.stdout)
+    assert again["acknowledged_rule_messages"] == body["acknowledged_rule_messages"]
+    assert again["record_state"]["sends"] == 1 and again["plan_hash"] != body["plan_hash"]
+    no_review = runner.invoke(cli.app, ["tickets", "update", "--no-review", "INC-123", "--priority", "High", "--ack",
+                                        "--dry-run"])
+    assert no_review.exit_code == 2 and "drop --no-review" in no_review.output and len(c.writes) == 1
 
 
 def test_legacy_property_hash_identity_is_unchanged():
+    """The pre-token hash identity is kept as prior_hash; the plan hash adds
+    the record-state token, and an unresolved pre-token send still refuses."""
     c = Client()
     plan = props.build_plan(c, 123, tags=["Acme"])
     expected = journal.plan_hash({"tenant": plan.tenant, "ticket_id": plan.ticket_id,
                                   "payload": plan.payload, "before": plan.before,
                                   "record_hash": plan.record_hash})
-    assert plan.hash == expected
+    assert plan.prior_hash == expected
+    assert plan.hash == journal.plan_hash({"tenant": plan.tenant, "ticket_id": plan.ticket_id,
+                                           "payload": plan.payload, "before": plan.before,
+                                           "record_hash": plan.record_hash,
+                                           "state": {"sends": 0, "server_version": None}})
     journal.record_plan("started", expected, action="ticket_properties", target=123)
     with pytest.raises(props.PropertyError, match="outcome is unknown"):
         props.send(plan, c, reviewed_hash=plan.hash)

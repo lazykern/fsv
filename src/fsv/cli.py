@@ -2753,6 +2753,14 @@ def _update_state_token(row: Any) -> dict[str, Any]:
     return {"sends": 0, "server_version": row.get("updated_at") if isinstance(row, dict) else None}
 
 
+def _no_review_notice(res: Resource) -> None:
+    """One-line deprecation notice for the old body-only update (stderr only,
+    so --json stdout stays pure)."""
+    typer.echo(f"warning: {res.name} update --no-review is deprecated and will be removed in the next release: it "
+               "sends a body-only update with no journal or readback; drop --no-review for the reviewed default",
+               err=True)
+
+
 def update_resource(
     res: Resource,
     id_: str,
@@ -2786,7 +2794,7 @@ def update_resource(
         if isinstance(row, dict) and row.get("deleted") is True:
             _err(f"{format_id({'id': cid}, res)} is deleted (in trash); restore it before updating")
     elif res.name == "tickets" and (dry_run or expect_plan is not None):
-        # Legacy (non --reviewed) ticket update: the review hash binds the
+        # --no-review (deprecated) ticket update: the review hash binds the
         # record snapshot, so read it only when a hash is shown or checked.
         try:
             row = c.int_get(f"{res.api_path}/{cid}")
@@ -4619,10 +4627,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 ticket_associations_resource(id_, format_, json_out)
 
         @sub.command("update", help=f"Update {singular} fields.", epilog=(
-            f"[bold]Examples:[/bold]  "
-            f"fsv {res.name} update {_pfx}-1234 --status 'In Progress'  |  "
+            (f"[bold]Note:[/bold] reviewed by default: --dry-run prints the plan_hash and record_state; send with "
+               f"--yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is "
+               f"deprecated (body-only update, removed in the next release).  " if res == TICKETS else "")
+            + f"[bold]Examples:[/bold]  "
             f"fsv {res.name} update {_pfx}-1234 --priority High --dry-run  |  "
-            f"fsv {res.name} update {_pfx}-1234 --status Closed --yes"
+            f"fsv {res.name} update {_pfx}-1234 --priority High --yes --expect-plan FULL_HASH"
         ))
         def update(
             id_: str = typer.Argument(..., metavar="ID"),
@@ -4635,8 +4645,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_start: Optional[str] = typer.Option(None, "--planned-start", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_effort: Optional[str] = typer.Option(None, "--planned-effort", help="problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field"),
-            reviewed: bool = typer.Option(False, "--reviewed", help="tickets only: evaluate --set and core flags as a hash-bound property plan"),
-            ack: bool = typer.Option(False, "--ack", help="tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)"),
+            reviewed: bool = typer.Option(True, "--reviewed/--no-review", help="tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release"),
+            ack: bool = typer.Option(False, "--ack", help="tickets: acknowledge blocking rule messages (bound to the review hash)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash (ticket property update, problem update)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
@@ -4646,11 +4656,18 @@ def _make_subapp(res: Resource) -> typer.Typer:
             """Update basic fields."""
             if res == PROBLEMS and (planned_start is not None or planned_end is not None or planned_effort is not None):
                 _problem_planning_update(id_, planned_start, planned_end, planned_effort, dry_run, yes, expect_plan,
-                                         status, priority, agent_id, group_id, set_, tag, reviewed)
+                                         status, priority, agent_id, group_id, set_, tag, ack)
                 return
             if planned_effort is not None:
                 _err("--planned-effort is supported only for problems")
-            if reviewed or tag or planned_start is not None or planned_end is not None:
+            if not reviewed and res == TICKETS:
+                if tag or planned_start is not None or planned_end is not None or ack:
+                    _err("--tag, --planned-start/--planned-end and --ack have no --no-review path; drop --no-review")
+                _no_review_notice(res)
+                update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input,
+                                set_, expect_plan=expect_plan)
+                return
+            if res == TICKETS or tag or planned_start is not None or planned_end is not None:
                 import json
                 from fsv.ticket_properties import PropertyError, build_plan, send
                 try:
@@ -4675,7 +4692,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         return
                     typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
                     if expect_plan is not None and expect_plan != plan.hash:
-                        raise PropertyError("review hash changed; review again")
+                        from fsv import journal
+                        raise PropertyError(journal.stale_plan_refusal(expect_plan, ("ticket_properties",))
+                                            or "review hash changed; review again")
                     if yes:
                         if expect_plan != plan.hash:
                             raise PropertyError("--yes requires the full --expect-plan from a prior review")
@@ -4689,11 +4708,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 except (ValueError, PropertyError) as exc:
                     typer.echo(str(exc), err=True)
                     raise typer.Exit(2) from None
+                if result.get("status") == "submitted" and not result.get("verified"):
+                    raise typer.Exit(4)
                 return
-            if expect_plan and res not in (PROBLEMS, TICKETS):
-                _err("--expect-plan requires --reviewed, --tag, --planned-start or --planned-end")
             if ack:
-                _err("--ack requires tickets --reviewed")
+                _err("--ack applies to ticket updates only")
             update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input, set_,
                             expect_plan=expect_plan)
 

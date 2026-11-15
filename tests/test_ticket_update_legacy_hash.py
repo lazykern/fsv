@@ -1,4 +1,4 @@
-"""Legacy (non --reviewed) ticket update: the dry run shows a review hash bound
+"""Deprecated --no-review ticket update (the reviewed path is the default): the dry run shows a review hash bound
 to the tenant, the exact PUT body and the ticket snapshot; --expect-plan
 refuses a changed body or record and sends nothing."""
 import json
@@ -37,13 +37,13 @@ def state(monkeypatch):
     return s
 
 
-ARGS = ["tickets", "update", "SR-11", "--priority", "Medium"]
+ARGS = ["tickets", "update", "--no-review", "SR-11", "--priority", "Medium"]
 
 
 def _review(args=ARGS):
     r = CliRunner().invoke(cli.app, args + ["--dry-run", "--json"])
     assert r.exit_code == 0, r.output
-    return json.loads(r.output)["plan_hash"]
+    return json.loads(r.stdout)["plan_hash"]
 
 
 def test_dry_run_shows_hash_and_matching_send_goes_once(state):
@@ -56,7 +56,7 @@ def test_dry_run_shows_hash_and_matching_send_goes_once(state):
 
 def test_hash_is_stable_and_bound_to_body(state):
     assert _review() == _review()
-    assert _review(["tickets", "update", "SR-11", "--priority", "Low"]) != _review()
+    assert _review(["tickets", "update", "--no-review", "SR-11", "--priority", "Low"]) != _review()
     assert _review(ARGS + ["--set", "subject=Acme desk"]) != _review()
 
 
@@ -68,7 +68,7 @@ def test_stale_or_partial_hash_refuses_and_sends_nothing(state, change):
         state["row"]["updated_at"] = "2030-01-02T00:00:00Z"
         state["row"]["subject"] = "Acme laptop (edited)"
     elif change == "body":
-        args = ["tickets", "update", "SR-11", "--priority", "Low"]
+        args = ["tickets", "update", "--no-review", "SR-11", "--priority", "Low"]
     else:
         h = h[:16]
     r = CliRunner().invoke(cli.app, args + ["--yes", "--expect-plan", h])
@@ -80,7 +80,7 @@ def test_unreadable_record_has_no_hash_and_expect_plan_refuses(state):
     h = _review()
     state["get_fails"] = True
     r = CliRunner().invoke(cli.app, ARGS + ["--dry-run", "--json"])
-    assert r.exit_code == 0 and "plan_hash" not in json.loads(r.output)
+    assert r.exit_code == 0 and "plan_hash" not in json.loads(r.stdout)
     r = CliRunner().invoke(cli.app, ARGS + ["--yes", "--expect-plan", h])
     assert r.exit_code == 2 and not state["puts"]
 
@@ -88,6 +88,8 @@ def test_unreadable_record_has_no_hash_and_expect_plan_refuses(state):
 def test_plain_send_without_hash_keeps_the_legacy_path_and_reads_nothing(state):
     r = CliRunner().invoke(cli.app, ARGS + ["--yes"])
     assert r.exit_code == 0, r.output
+    notice = [line for line in r.stderr.splitlines() if "--no-review is deprecated" in line]
+    assert len(notice) == 1 and "deprecated" not in r.stdout
     assert state["gets"] == 0 and state["puts"] == [("tickets/11", {"priority": 2})]
 
 

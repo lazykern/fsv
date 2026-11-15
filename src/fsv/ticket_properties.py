@@ -46,6 +46,10 @@ class PropertyPlan:
     # display only (not in the hash): the default-form assumption, when the
     # metadata or the record shows that more than one form exists
     form_notes_json: str = "[]"
+    # Record-state token (journal.repeat_token): server updated_at at review
+    # and the verified sends of this action on this ticket, so an A/B/A/B
+    # alternation plans fresh hashes. Empty only for pre-token plans.
+    state_json: str = ""
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -64,7 +68,15 @@ class PropertyPlan:
         if self.acknowledged:
             # Bound only when used, so unacknowledged review hashes are unchanged.
             intent["acknowledged"] = self.acknowledged
+        if self.state_json:
+            intent["state"] = json.loads(self.state_json)
         return journal.plan_hash(intent) or ""
+
+    @property
+    def prior_hash(self) -> str:
+        """The same plan without its record-state token (journals written
+        before the token was bound): an unresolved send still refuses."""
+        return replace(self, state_json="").hash if self.state_json else ""
 
     @property
     def acknowledged(self) -> list[str]:
@@ -77,6 +89,8 @@ class PropertyPlan:
                "plan_hash": self.hash, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}
         if self.acknowledged:
             out["acknowledged_rule_messages"] = self.acknowledged
+        if self.state_json:
+            out["record_state"] = json.loads(self.state_json)
         notes = json.loads(self.form_notes_json)
         if notes:
             out["form_notes"] = notes
@@ -194,7 +208,8 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
                         json.dumps(before, sort_keys=True, ensure_ascii=False), journal.snapshot_hash(row) or "",
                         json.dumps(answers or {}, sort_keys=True, ensure_ascii=False),
                         meta.fingerprint.hash if answers else "", json.dumps(acknowledged, ensure_ascii=False),
-                        json.dumps(meta.form_notes, ensure_ascii=False))
+                        json.dumps(meta.form_notes, ensure_ascii=False),
+                        json.dumps(journal.repeat_token((_ACTION,), cid, row), sort_keys=True))
 
 
 def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
@@ -205,6 +220,10 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
     rows = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == plan.hash]
     if rows and rows[-1].get("event") in ("started", "done"):
         raise PropertyError(journal.note_refusal("update was sent or its outcome is unknown; inspect the ticket and journal before retry"))
+    older = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and plan.prior_hash
+             and r.get("plan") == plan.prior_hash]
+    if older and older[-1].get("event") == "started":
+        raise PropertyError(journal.note_refusal("update outcome is unknown; inspect the ticket and journal before retry"))
     payload = plan.payload
     fresh = build_plan(c, plan.ticket_id, tags=payload.get("tags"),
                        planned_start=payload.get("planned_start_date"), planned_end=payload.get("planned_end_date"),
@@ -257,6 +276,8 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
         result["verified"] = all(v == "matched" for v in fields.values())
     except Exception:
         result["warning"] = "Read-back failed; do not resend."
+    if result["verified"]:
+        journal.record_verified(plan.hash, action=_ACTION, target=plan.ticket_id)
     if not result["verified"]:
         result["warning"] = "Ticket fields not fully verified on read-back; do not resend."
     return result

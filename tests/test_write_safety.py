@@ -108,9 +108,9 @@ def test_notifying_notes_and_replies():
 
 # ── CLI gate: quick flags, --set, --edit, tasks, notes ───────────────────────
 def test_update_planning_refused_without_yes_then_allowed(fake):
-    r = runner.invoke(cli.app, ["tickets", "update", "INC-1", "--status", "Closed"])
+    r = runner.invoke(cli.app, ["tickets", "update", "--no-review", "INC-1", "--status", "Closed"])
     assert r.exit_code == 2 and "--yes" in r.output and not fake.writes
-    r = runner.invoke(cli.app, ["tickets", "update", "INC-1", "--status", "Closed", "--yes"])
+    r = runner.invoke(cli.app, ["tickets", "update", "--no-review", "INC-1", "--status", "Closed", "--yes"])
     assert r.exit_code == 0 and fake.writes == [("PUT", "tickets/1", {"status": 3})]
 
 
@@ -123,7 +123,7 @@ def test_change_planning_status_needs_yes(fake, monkeypatch):
 
 
 def test_set_status_is_gated_like_status_flag(fake, monkeypatch):
-    r = runner.invoke(cli.app, ["tickets", "update", "INC-1", "--set", "status=Closed"])
+    r = runner.invoke(cli.app, ["tickets", "update", "--no-review", "INC-1", "--set", "status=Closed"])
     assert r.exit_code == 2 and not fake.writes
     # changes --set runs the edit form's rules; the same gate applies
     import acme_change_form as A

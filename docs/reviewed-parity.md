@@ -554,11 +554,12 @@ fsv changes update CHN-123 --status Planning --yes --expect-plan REVIEWED_HASH
 Review the full JSON payload before sending. A mismatched hash refuses the
 write. Dry runs do not send mutations. A same-status edit is a no-op.
 
-Ticket and service-request property forms have an explicit reviewed mode:
+Ticket and service-request property updates are reviewed by default
+(`--reviewed` is accepted as a no-op alias):
 
 ```sh
-fsv tickets update INC-123 --reviewed --set 'Subject=Acme maintenance' --priority High --dry-run
-fsv tickets update INC-123 --reviewed --set 'Subject=Acme maintenance' --priority High --yes --expect-plan REVIEWED_HASH
+fsv tickets update INC-123 --set 'Subject=Acme maintenance' --priority High --dry-run
+fsv tickets update INC-123 --set 'Subject=Acme maintenance' --priority High --yes --expect-plan REVIEWED_HASH
 ```
 
 It resolves choices and lookups from fresh metadata, evaluates edit rules, and
@@ -566,8 +567,12 @@ supports the captured subject/description/requester/assignment, category/type,
 priority/urgency/impact/source/status and runtime custom-field update shape.
 Tags and planned dates can be included in the same review. Uncaptured core
 fields and combined Resolved/Closed workflows are refused. Readback reports
-missing fields as unavailable, not verified. Legacy basic update flags remain
-available; `--reviewed` selects this stricter path explicitly. A real runtime
+missing fields as unavailable, not verified. The plan hash binds a
+record-state token (`record_state`: server `updated_at` and verified sends), so
+an A/B/A/B alternation plans fresh hashes while a replay exits 2. `--ack`
+acknowledges blocking rule messages. The old body-only update is deprecated:
+`--no-review` keeps it for one release and prints a one-line notice on stderr.
+A real runtime
 `default_requested_for` field uses the separately captured SR
 `requested_for_id` update key; this does not enable that field for change or
 incident creation. Beneficiary edits discard the previous person's rule

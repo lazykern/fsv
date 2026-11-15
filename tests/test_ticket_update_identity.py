@@ -22,6 +22,6 @@ def test_update_preview_uses_real_ticket_identity(monkeypatch, entered, human, e
     monkeypatch.setattr(cli, "_client", lambda: Client())
     monkeypatch.setattr("fsv.schema.load", lambda *args: {"fields": [
         {"name": "subject", "label": "Subject", "field_type": "default_subject", "default_field": True}]})
-    out = CliRunner().invoke(cli.app, ["tickets", "update", entered, "--set", "subject=Acme", "--dry-run", "--json"])
+    out = CliRunner().invoke(cli.app, ["tickets", "update", "--no-review", entered, "--set", "subject=Acme", "--dry-run", "--json"])
     assert out.exit_code == 0, out.output
-    assert json.loads(out.output)["id"] == expected
+    assert json.loads(out.stdout)["id"] == expected

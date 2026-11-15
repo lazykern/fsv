@@ -24,8 +24,8 @@ again later (an A/B/A/B priority alternation, the same note twice). `changes
 update`, `changes tasks-update`, `problems add-note`, `tickets add-note`,
 `tickets reply`/`forward`, `changes approval-request`, `problems status`,
 `tickets status`/`resolve`/`close`/`reopen`, `tickets assign`/`pick-up`,
-`problems link-incident`/`unlink-incident` and `problems update` of planned
-dates/effort bind a record-state token into the plan hash (`record_state` in
+`problems link-incident`/`unlink-incident`, `tickets update` (SRs included)
+and `problems update` of planned dates/effort bind a record-state token into the plan hash (`record_state` in
 the dry-run): the server
 `updated_at` read at review time, where the write reads a record, and the
 number of earlier sends of the same action on the same record that the journal
@@ -36,8 +36,17 @@ record, because it plans the same hash again. A status transition that a
 tenant workflow puts straight back (Open, then the workflow restores the
 previous status, then Open again) is such a legitimate repeat once the first
 send was verified. An unresolved send of a hash from before the token existed
-still refuses. Other `problems update` fields and the legacy `tickets update`
-keep no plan journal and never refuse repeats; their dry-run shows the same token.
+still refuses. Other `problems update` fields and the deprecated
+`tickets update --no-review` keep no plan journal and never refuse repeats;
+their dry-run shows the same token.
+
+`tickets update` (incidents and service requests) is a reviewed write by
+default: `--dry-run` prints the `plan_hash` and `record_state`, and
+`--yes --expect-plan FULL_HASH` sends it once (journaled), reads the ticket
+back and reports `verified` (exit 4 when not verified). `--reviewed` is still
+accepted and changes nothing; `--ack` works without it. `--no-review` selects
+the old body-only update for one more release and prints a one-line
+deprecation notice on stderr (never on `--json` stdout).
 
 
 A no-op update (every value already equals the current one) has no plan:
