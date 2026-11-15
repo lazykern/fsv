@@ -480,6 +480,18 @@ def update_command(
             return _s.build_plan(ack_all or _s.ack, m)
 
     if dry_run:
+        if plan.ok and not plan.hash:
+            # A no-op update (every value equals the current one) has no plan:
+            # say so instead of printing an empty payload and a null hash.
+            if as_json:
+                print(tenant_json({"action": "update", "target": plan.target, "changed": False,
+                                   "message": f"nothing to change: {subject} already has these values",
+                                   "warnings": plan.review.warnings}, indent=2, default=str, ensure_ascii=False))
+            else:
+                console.print(f"[yellow]nothing to change[/] {subject}: it already has these values", highlight=False)
+            if expect_plan:
+                raise FlowExit(2, "--expect-plan given but there is nothing to change (no plan)")
+            return
         _print_plan(plan, as_json=as_json)
         if not plan.ok:
             raise FlowExit(2)

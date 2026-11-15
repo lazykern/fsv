@@ -529,3 +529,23 @@ def test_submit_change_rejects_user_supplied_excludes_token():
     import fsv.create as create
     with pytest.raises(ValueError, match="computed by fsv"):
         create.submit_change({"subject": "x", "br_validation_excludes": "eyJ.eyJ"}, c=object())
+
+
+@pytest.mark.parametrize("args", [("--priority", "Medium"), ("--priority", "2"), ("--set", "Subject=Billing: rotate keys")])
+def test_update_dry_run_noop_says_nothing_to_change_without_a_null_hash(fake, args):
+    r = run("changes", "update", "CHN-501", *args, "--dry-run", "--json")
+    assert r.exit_code == 0, r.output
+    doc = json.loads(r.raw)
+    assert doc["changed"] is False and "nothing to change" in doc["message"]
+    assert "plan_hash" not in doc and "payload" not in doc and "null" not in r.raw.split('"warnings"')[0]
+    text = run("changes", "update", "CHN-501", *args, "--dry-run")
+    assert text.exit_code == 0 and "nothing to change" in text.output and "plan_hash" not in text.output
+    assert run("changes", "update", "CHN-501", *args, "--dry-run", "--expect-plan", "0" * 64).exit_code == 2
+    assert not fake.writes()
+
+
+def test_update_dry_run_real_priority_change_still_has_a_plan(fake):
+    r = run("changes", "update", "CHN-501", "--priority", "High", "--dry-run", "--json")
+    assert r.exit_code == 0, r.output
+    doc = json.loads(r.raw)
+    assert doc["payload"] == {"priority": 3} and len(doc["plan_hash"]) == 64
