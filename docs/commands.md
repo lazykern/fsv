@@ -166,6 +166,9 @@ complete history; source edits invalidate the review. Send using
 conversations do not expose source identity, so readback verifies delivery fields,
 not an independently returned source link (`source_link_verified: false` is
 reported separately). No attachment/CC/BCC/status combinations.
+A rejected send names the server's answer (`HTTP 400: <message>`); with an
+explicit `--sender` it adds that the sender must be a configured support
+mailbox, because the tenant's mailbox list is not readable offline.
 
 ## Plain ticket reply
 

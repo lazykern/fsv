@@ -5105,7 +5105,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             body: str = typer.Argument(...),
             conversation: Optional[int] = typer.Option(None, "--conversation", min=1, help="exact source conversation ID in this ticket"),
             to: List[str] = typer.Option(..., "--to", help="plain recipient email (repeatable)"),
-            sender: str = typer.Option(..., "--sender", help="configured support mailbox; not inferred"),
+            sender: str = typer.Option(..., "--sender", help="configured support mailbox (a tenant support email address); not inferred; any other address is rejected by the server with HTTP 400"),
             output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
             dry_run: bool = typer.Option(False, "--dry-run"),

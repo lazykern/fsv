@@ -296,6 +296,20 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
                             sends=journal.verified_sends((f"ticket_{kind}_reviewed",), note.ticket_id))
 
 
+def rejection_message(exc: APIError, payload: dict[str, Any]) -> str:
+    """Name the server's answer (sanitized: one line, tags stripped, bounded).
+    A 400 on a send with an explicit sender usually means the address is not
+    one of the tenant's configured support mailboxes; the tenant's list is not
+    readable offline, so say what the sender must be."""
+    from fsv.errors import server_message
+    reason = server_message(exc.body)
+    text = f"conversation rejected (HTTP {exc.status}): " + (reason or "empty response body")
+    if exc.status == 400 and payload.get("from_email"):
+        text += (f"; sender must be a configured support mailbox (one of the tenant's support email "
+                 f"addresses) and {payload['from_email']!r} may not be one")
+    return text + "; nothing was delivered, no retry"
+
+
 def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
          public_confirmed: bool = False) -> dict[str, Any]:
     if reviewed_hash is None:
@@ -353,7 +367,7 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     except APIError as exc:
         if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=action, target=plan.ticket_id)
-            raise ConversationError(f"conversation rejected (HTTP {exc.status}); no retry") from None
+            raise ConversationError(rejection_message(exc, payload)) from None
         raise ConversationError("conversation outcome unknown; inspect ticket and journal before retry") from None
     except Exception:
         raise ConversationError("conversation outcome unknown; inspect ticket and journal before retry") from None
