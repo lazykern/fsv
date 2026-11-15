@@ -114,3 +114,23 @@ def test_mismatch_and_cli_review(api):
     result = runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_, "--output", "json"])
     assert result.exit_code == 0 and not json.loads(result.output)["verified"]
     assert len(state["writes"]) == 1
+
+
+def test_relink_after_unlink_plans_fresh_hash_and_replay_refused(api):
+    c, state = api
+    hashes = []
+    for unlink in (False, True, False):
+        plan = flow.build_plan(c, "PRB-7", "INC-123", unlink=unlink)
+        assert "record_state" in plan.review()
+        assert flow.send(plan, c, "INC-123", reviewed_hash=plan.hash)["verified"]
+        hashes.append(plan.hash)
+    assert len(set(hashes)) == 3 and len(state["writes"]) == 3
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(plan, c, "INC-123", reviewed_hash=plan.hash)
+    state["mismatch"] = True
+    plan = flow.build_plan(c, "PRB-7", "INC-123", unlink=True)
+    assert not flow.send(plan, c, "INC-123", reviewed_hash=plan.hash)["verified"]
+    again = flow.build_plan(c, "PRB-7", "INC-123", unlink=True)
+    assert again.hash == plan.hash
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(again, c, "INC-123", reviewed_hash=again.hash)

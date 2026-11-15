@@ -23,7 +23,9 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                 typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expected != plan.hash:
-                raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
+                from fsv import journal
+                raise ReviewedWriteError(journal.stale_plan_refusal(expected, (plan.write.action,)) if yes else None
+                                         or "review with --dry-run, then pass --yes and the full --expect-plan hash")
             typer.echo(tenant_json(flow.send(plan, client, reviewed_hash=expected), indent=2))
         except (ValueError, PropertyError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)

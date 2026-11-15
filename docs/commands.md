@@ -22,17 +22,21 @@ rather than silently ignoring a limit on the legacy after-create route.
 A reviewed plan is single-use, but the same values may legitimately be sent
 again later (an A/B/A/B priority alternation, the same note twice). `changes
 update`, `changes tasks-update`, `problems add-note`, `tickets add-note`,
-`tickets reply`/`forward` and `changes approval-request` bind a record-state
-token into the plan hash (`record_state` in the dry-run): the server
+`tickets reply`/`forward`, `changes approval-request`, `problems status`,
+`tickets status`/`resolve`/`close`/`reopen`, `tickets assign`/`pick-up` and
+`problems link-incident`/`unlink-incident` and `problems update` of planned
+dates/effort bind a record-state token into the plan hash (`record_state` in the dry-run): the server
 `updated_at` read at review time, where the write reads a record, and the
 number of earlier sends of the same action on the same record that the journal
 recorded as answered and verified. A later review after the record changed
 plans a fresh hash. Replaying an already-sent hash is refused, and so is a new
 review after an ambiguous (no answer) or unverified send against an unchanged
-record, because it plans the same hash again. A count of zero keeps the hash
-format used before the token existed, and an unresolved send of that older
-hash still refuses. `problems update` and the legacy `tickets update` keep no
-plan journal and never refuse repeats; their dry-run shows the same token.
+record, because it plans the same hash again. A status transition that a
+tenant workflow puts straight back (Open, then the workflow restores the
+previous status, then Open again) is such a legitimate repeat once the first
+send was verified. An unresolved send of a hash from before the token existed
+still refuses. Other `problems update` fields and the legacy `tickets update`
+keep no plan journal and never refuse repeats; their dry-run shows the same token.
 
 
 ## Remaining accepted-wire blockers

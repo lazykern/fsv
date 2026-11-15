@@ -7,7 +7,7 @@ from typing import Any
 from fsv import config, journal, views
 from fsv.change_associations import AssociationReader
 from fsv.resources import PROBLEMS, TICKETS, parse_id
-from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
+from fsv.reviewed_write import ReviewedWriteError, StatefulWritePlan, WritePlan, execute, prior_guards, stateful_context
 
 
 def _inventory(client: Any, problem_id: int) -> list[dict[str, Any]]:
@@ -46,9 +46,14 @@ def build_plan(client: Any, problem: str | int, incident: str | int, *, unlink: 
         raise ReviewedWriteError("incident is already in the requested association state")
     path = f"problems/{pid}/tickets/{tid if unlink else 'associate'}"
     payload = {"type": "unlink"} if unlink else {"item_ids": [tid]}
-    context = journal.snapshot_hash({"problem": pr, "ticket": ticket, "inventory": rows}) or ""
-    return WritePlan("problem_unlink_incident" if unlink else "problem_link_incident", pid, config.DOMAIN,
-                     "DELETE" if unlink else "PUT", path, json.dumps(payload, sort_keys=True), context)
+    action = "problem_unlink_incident" if unlink else "problem_link_incident"
+    # Link -> unlink -> link reads the same problem, ticket and inventory, so
+    # bind the server updated_at and the verified sends of this action on the
+    # problem (journal.repeat_token): a later re-link plans a fresh hash.
+    context, state, prior = stateful_context({"problem": pr, "ticket": ticket, "inventory": rows},
+                                             journal.repeat_token((action,), pid, pr))
+    return StatefulWritePlan(action, pid, config.DOMAIN, "DELETE" if unlink else "PUT", path,
+                             json.dumps(payload, sort_keys=True), context, state, prior)
 
 
 def send(plan: WritePlan, client: Any, incident: str | int, *, reviewed_hash: str | None) -> dict[str, Any]:
@@ -60,4 +65,4 @@ def send(plan: WritePlan, client: Any, incident: str | int, *, reviewed_hash: st
         rows = _inventory(client, plan.target)
         present = any(str(row["id"]) == str(tid) for row in rows)
         return {"problem_id": plan.target, "incident_id": tid, "linked": present, "verified": present != unlink}
-    return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)
+    return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify, guards=prior_guards(plan))

@@ -8,7 +8,7 @@ from typing import Any, Sequence
 from fsv import config, journal, ticket_properties
 from fsv.readback import submitted_value_matches
 from fsv.resources import TICKETS, parse_id
-from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
+from fsv.reviewed_write import ReviewedWriteError, StatefulWritePlan, WritePlan, execute, prior_guards, stateful_context
 
 
 def _positive(value: Any) -> int | None:
@@ -82,6 +82,7 @@ def build_plan(client: Any, ids: Sequence[str | int], *, agent: str | None = Non
     group_row = _resolve(boot["groups"], group, "group") if group is not None else None
     before = []
     plans = []
+    versions: list[Any] = []
     for cid in cids:
         row = ticket_properties._record(client, cid)
         if "group_id" not in row or "responder_id" not in row:
@@ -103,13 +104,21 @@ def build_plan(client: Any, ids: Sequence[str | int], *, agent: str | None = Non
         prop = ticket_properties.build_plan(client, cid, answers=answers)
         plans.append(prop)
         before.append({"ticket_id": cid, "group_id": row["group_id"], "responder_id": row["responder_id"]})
+        versions.append(row.get("updated_at"))
     if pickup:
         path, body, action = "tickets/pick_up", {"ids": cids}, "ticket_pick_up"
     else:
         path, body, action = f"tickets/{cids[0]}", plans[0].payload, "ticket_assign"
-    context = journal.snapshot_hash({"properties": [p.hash for p in plans], "bootstrap": boot,
-                                 "pickup_agent": _positive(agent_row["id"]) if pickup and agent_row else None}) or ""
-    write = WritePlan(action, cids[0], config.DOMAIN, "PUT", path, json.dumps(body, sort_keys=True), context)
+    # Assign A -> B -> A reads the same routing again, so bind each ticket's
+    # server updated_at and the verified sends of this action
+    # (journal.repeat_token): a legitimate re-assignment plans a fresh hash.
+    token = journal.repeat_token((action,), cids[0])
+    token["server_version"] = versions if len(versions) > 1 else versions[0]
+    context, state, prior = stateful_context(
+        {"properties": [p.hash for p in plans], "bootstrap": boot,
+         "pickup_agent": _positive(agent_row["id"]) if pickup and agent_row else None}, token)
+    write = StatefulWritePlan(action, cids[0], config.DOMAIN, "PUT", path, json.dumps(body, sort_keys=True),
+                              context, state, prior)
     intent = {"ids": cids, "agent": agent, "group": group, "unassign": unassign, "pickup": pickup,
               "expected": [{k: v for k, v in p.payload.items() if k != "br_validation_excludes"} for p in plans]}
     return AssignmentPlan(write, json.dumps(intent, sort_keys=True), json.dumps(before, sort_keys=True))
@@ -135,4 +144,4 @@ def send(plan: AssignmentPlan, client: Any, *, reviewed_hash: str | None) -> dic
             results[str(cid)] = fields
         return {"tickets": results, "verified": all(fields and all(v == "matched" for v in fields.values()) for fields in results.values())}
     from fsv.readback import bounded_readback
-    return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=lambda response: bounded_readback(lambda: verify(response)))
+    return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=rebuild, guards=prior_guards(plan.write), verify=lambda response: bounded_readback(lambda: verify(response)))

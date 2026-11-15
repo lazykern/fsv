@@ -20,20 +20,29 @@ from fsv.forms import FormState
 from fsv.problem_workflows import record
 from fsv.readback import same_instant
 from fsv.resources import PROBLEMS, parse_id
-from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
+from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute, prior_guards, stateful_context
 from fsv.watchers import positive_id
 
 KEYS = ("planned_start_date", "planned_end_date", "planned_effort")
+
+
+ACTION = "problem_planning"
 
 
 @dataclass(frozen=True)
 class PlanningPlan(WritePlan):
     before_json: str
     warnings_json: str = "[]"
+    # Record-state token (journal.repeat_token) bound in context_hash, and the
+    # context without it (journals written before the token was bound).
+    state_json: str = ""
+    prior_context: str = ""
 
     def review(self) -> dict[str, Any]:
         out = {**super().review(), "before": json.loads(self.before_json), "after": self.payload,
                "side_effects": "Tenant workflows may react to planning changes."}
+        if self.state_json:
+            out["record_state"] = json.loads(self.state_json)
         warnings = json.loads(self.warnings_json)
         if warnings:
             out["warnings"] = warnings
@@ -92,9 +101,12 @@ def build_plan(client: Any, target: str | int, *, planned_start: str | None = No
                                  + ("".join("; " + b for b in gate.blockers)))
     before = {k: before_row.get(k) for k in payload}
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules}
-    return PlanningPlan("problem_planning", target, config.DOMAIN, "PUT", f"problems/{target}",
-                        json.dumps(payload, sort_keys=True), journal.snapshot_hash(context) or "",
-                        json.dumps(before, sort_keys=True), json.dumps(warnings))
+    # Planned dates A -> B -> A read the same values again: bind the server
+    # updated_at and the verified planning sends on this problem.
+    bound, state, prior = stateful_context(context, journal.repeat_token((ACTION,), target, before_row))
+    return PlanningPlan(ACTION, target, config.DOMAIN, "PUT", f"problems/{target}",
+                        json.dumps(payload, sort_keys=True), bound,
+                        json.dumps(before, sort_keys=True), json.dumps(warnings), state, prior)
 
 
 def send(plan: PlanningPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
@@ -113,7 +125,7 @@ def send(plan: PlanningPlan, client: Any, *, reviewed_hash: str | None) -> dict[
         return {"problem_id": plan.target, "fields": fields,
                 "verified": all(v == "matched" for v in fields.values())}
 
-    return execute(plan, client, reviewed_hash=reviewed_hash, verify=verify,
+    return execute(plan, client, reviewed_hash=reviewed_hash, verify=verify, guards=prior_guards(plan),
                    rebuild=lambda: build_plan(client, plan.target, planned_start=inputs.get("planned_start_date"),
                                               planned_end=inputs.get("planned_end_date"),
                                               planned_effort=inputs.get("planned_effort")))

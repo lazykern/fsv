@@ -14,7 +14,7 @@ from fsv.problem_workflows import inventory, record
 from fsv.readback import submitted_value_matches
 from fsv.render import strip_html
 from fsv.resources import PROBLEMS, parse_id
-from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
+from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute, prior_guards
 from fsv.watchers import positive_id
 
 
@@ -29,10 +29,16 @@ class StatusPlan(WritePlan):
     # Closure preflight summary shown up front in the review (bound through
     # context_hash, which hashes the closure inventories).
     closure_check_json: str = "{}"
+    # Record-state token (journal.repeat_token) bound in context_hash, and the
+    # context without it (journals written before the token was bound).
+    state_json: str = ""
+    prior_context: str = ""
 
     def review(self) -> dict[str, Any]:
         out = {**super().review(), "to": self.label, "before": json.loads(self.before_json),
                "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."}
+        if self.state_json:
+            out["record_state"] = json.loads(self.state_json)
         closure_check = json.loads(self.closure_check_json)
         if closure_check:
             out["closure_check"] = closure_check
@@ -116,6 +122,9 @@ def closure_summary(closure: dict[str, Any]) -> dict[str, str]:
     return {"analysis": "Root Cause, Impact and Symptoms are filled", "linked_solution": solution}
 
 
+ACTION = "problem_status"
+
+
 def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     target = positive_id(parse_id(str(target), PROBLEMS))
     before = record(client, target)
@@ -157,12 +166,18 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
             raise ReviewedWriteError("violated_closure_rules: missing required closure fields: " + ", ".join(missing))
         warnings += closure.get("warnings", [])
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules, "closure": closure}
-    return StatusPlan("problem_status", target, config.DOMAIN, "PUT", f"problems/{target}",
-                      json.dumps({"status": status_id}), journal.snapshot_hash(context) or "", label,
+    # A problem workflow may put the record back to the status it had before
+    # (Open -> In Progress -> Open), so target, payload and stable snapshot
+    # repeat: bind the server updated_at and the verified status sends on
+    # this problem so a legitimate repeated transition plans a fresh hash.
+    token = journal.repeat_token((ACTION,), target, before)
+    return StatusPlan(ACTION, target, config.DOMAIN, "PUT", f"problems/{target}",
+                      json.dumps({"status": status_id}), journal.snapshot_hash({**context, "state": token}) or "", label,
                       json.dumps(before, sort_keys=True), json.dumps(warnings),
                       json.dumps({str(i): name for i, name in task_status.active_choices(meta.raw_fields, "problem")},
                                  sort_keys=True),
-                      json.dumps(closure_summary(closure) if closure else {}))
+                      json.dumps(closure_summary(closure) if closure else {}),
+                      json.dumps(token, sort_keys=True), journal.snapshot_hash(context) or "")
 
 
 def status_readback(before: Any, after: Any, sent: Any) -> tuple[bool, str | None]:
@@ -330,5 +345,5 @@ def send(plan: StatusPlan, client: Any, *, reviewed_hash: str | None) -> dict[st
             out["readback_conflict"] = conflict
         return out
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=2)  # tolerate clock skew
-    return execute(plan, client, reviewed_hash=reviewed_hash,
+    return execute(plan, client, reviewed_hash=reviewed_hash, guards=prior_guards(plan),
                    rebuild=lambda: build_plan(client, plan.target, plan.label), verify=verify, rejection=rejection)

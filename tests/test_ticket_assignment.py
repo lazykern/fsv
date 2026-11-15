@@ -144,3 +144,24 @@ def test_cli_review(api, monkeypatch):
     assert payload["payload"]["responder_id"] is None
     bad = runner.invoke(cli.app, args + ["--yes", "--expect-plan", payload["plan_hash"][:16]])
     assert bad.exit_code == 2 and not state["writes"]
+
+
+def test_reassignment_back_plans_fresh_hash_and_replay_refused(api):
+    c, state = api
+    hashes = []
+    for i, group in enumerate(["Globex Desk", "Acme Desk", "Globex Desk", "Acme Desk"]):
+        p = flow.build_plan(c, [123], group=group)
+        assert p.review()["record_state"]["sends"] == i
+        assert flow.send(p, c, reviewed_hash=p.hash)["verified"]
+        hashes.append(p.hash)
+    assert len(set(hashes)) == 4 and len(state["writes"]) == 4
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(p, c, reviewed_hash=p.hash)
+    state["mismatch"] = True  # unverified: a fresh review is the same plan
+    p = flow.build_plan(c, [123], group="Globex Desk")
+    assert not flow.send(p, c, reviewed_hash=p.hash)["verified"]
+    again = flow.build_plan(c, [123], group="Globex Desk")
+    assert again.hash == p.hash
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(again, c, reviewed_hash=again.hash)
+    assert len(state["writes"]) == 5

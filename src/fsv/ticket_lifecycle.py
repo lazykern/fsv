@@ -19,6 +19,9 @@ from fsv.ticket_notes import build_plan as note_plan
 from fsv.ticket_properties import _record
 
 
+ACTION = "ticket_transition"
+
+
 def context(client: Any, cid: int, status: "str | Role", answers: dict[str, Any] | None = None,
             *, resolution: str | None = None, row: dict[str, Any] | None = None,
             warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
@@ -117,7 +120,12 @@ def _context(client: Any, cid: int, status: "str | Role", answers: dict[str, Any
         payload[key] = row[key]
     if custom:
         payload["custom_fields"] = custom
-    bound = {"record": journal.snapshot_hash(row), "metadata": meta.fingerprint.hash}
+    # Pending -> Open -> Pending -> Open reads the same stable record again, so
+    # bind the server updated_at and the verified transitions of this ticket
+    # (journal.repeat_token): a legitimate repeated transition plans a fresh
+    # hash while a replay or an unverified send still hashes the same.
+    bound = {"record": journal.snapshot_hash(row), "metadata": meta.fingerprint.hash,
+             "state": journal.repeat_token((ACTION,), cid, row)}
     if acknowledged:
         bound["acknowledged"] = acknowledged  # only when used: unacknowledged plan hashes stay stable
     return payload, json.dumps(bound, sort_keys=True), choice.label
@@ -150,8 +158,8 @@ class LifecyclePlan:
                           "payload": {"resolution_notes": self.note_html,
                                       "br_validation_excludes": self.payload["br_validation_excludes"]}})
         steps.append({"method": "PUT", "path": f"/api/_/tickets/{self.target}", "payload": self.payload})
-        out = {"action": "ticket_transition", "status_label": self.status, "steps": steps,
-                "plan_hash": self.hash, "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."}
+        out = {"action": ACTION, "status_label": self.status, "steps": steps,
+                "plan_hash": self.hash, "record_state": json.loads(self.context_hash).get("state"), "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."}
         if self.rule_warnings:
             out["rule_warnings"] = list(self.rule_warnings)
         acknowledged = self.acknowledged
@@ -160,6 +168,15 @@ class LifecyclePlan:
             out["warning"] += (" Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them,"
                                " and the server or a workflow may still reject or revert the transition.")
         return out
+
+    @property
+    def prior_hash(self) -> str:
+        """Hash of this plan without the record-state token (journals written
+        before the token was bound)."""
+        from dataclasses import replace
+        bound = json.loads(self.context_hash)
+        bound.pop("state", None)
+        return replace(self, context_hash=json.dumps(bound, sort_keys=True)).hash
 
     @property
     def acknowledged(self) -> list[str]:
@@ -232,11 +249,15 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
         return {"status": "cancelled", "verified": False}
     if not plan.tenant or config.DOMAIN != plan.tenant or reviewed_hash != plan.hash:
         raise ReviewedWriteError("tenant or full review hash changed; review again")
-    action = "ticket_transition"
+    action = ACTION
+    unknown = "transition was sent or outcome unknown; inspect ticket and journal before retry"
     events = [r for r in journal.read() if r.get("kind") == "plan:" + action and r.get("plan") == plan.hash]
-    refusal = journal.replay_refusal(events, "transition was sent or outcome unknown; inspect ticket and journal before retry")
+    refusal = journal.replay_refusal(events, unknown)
     if refusal:
         raise ReviewedWriteError(refusal)
+    older = [r for r in journal.read() if r.get("kind") == "plan:" + action and r.get("plan") == plan.prior_hash]
+    if older and older[-1].get("event") == "started":
+        raise ReviewedWriteError(unknown)
     answers = json.loads(plan.answers_json)
     before = _record(client, plan.target)
     ack = bool(plan.acknowledged)
@@ -294,6 +315,7 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
         raise ReviewedWriteError("transition readback mismatch (" + "; ".join(notes) +
                                  "); outcome unknown; do not resend")
     journal.record_plan("done", plan.hash, action=action, target=plan.target)
+    journal.record_verified(plan.hash, action=action, target=plan.target)
     out = {"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,
            "plan_hash": plan.hash, "verified": True}
     if notes:

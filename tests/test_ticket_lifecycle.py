@@ -320,7 +320,7 @@ def test_blocking_rule_message_needs_explicit_ack_bound_to_review(monkeypatch, a
 
 def test_unacknowledged_plans_keep_their_context_identity():
     plan = flow.build_plan(Client(), 123, "Pending", answers={"reason": "Waiting"})
-    assert set(json.loads(plan.context_hash)) == {"record", "metadata"} and plan.acknowledged == []
+    assert set(json.loads(plan.context_hash)) == {"record", "metadata", "state"} and plan.acknowledged == []
 
 
 
@@ -352,3 +352,37 @@ def test_invalid_set_is_a_clean_refusal_not_a_traceback(monkeypatch, args, answe
     assert len(r.output.strip().splitlines()) == 1
     if expected == "not a valid choice":
         assert "Service" in r.output and "Event" in r.output and "nothing was sent" in r.output
+
+
+def test_repeated_transition_plans_fresh_hash_and_replay_refused():
+    """Pending -> Open -> Pending -> Open: the stable record repeats, the
+    record-state token (verified transitions) makes each plan new."""
+    c = Client()
+    hashes = []
+    for i, status in enumerate(["Pending", "Open", "Pending", "Open"]):
+        p = flow.build_plan(c, 123, status, answers={"reason": "Waiting for self"} if status == "Pending" else {})
+        assert p.review()["record_state"]["sends"] == i
+        assert flow.send(p, c, reviewed_hash=p.hash)["verified"]
+        hashes.append(p.hash)
+    assert len(set(hashes)) == 4 and len(c.writes) == 4
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(p, c, reviewed_hash=p.hash)
+    # unverified: the status stays put, a fresh review rebuilds the same plan
+    c.bad_status = True
+    p = flow.build_plan(c, 123, "Pending", answers={"reason": "Waiting for self"})
+    with pytest.raises(ReviewedWriteError, match="do not resend"):
+        flow.send(p, c, reviewed_hash=p.hash)
+    again = flow.build_plan(c, 123, "Pending", answers={"reason": "Waiting for self"})
+    assert again.hash == p.hash
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(again, c, reviewed_hash=again.hash)
+    assert len(c.writes) == 5
+
+
+def test_unresolved_pre_token_transition_refuses():
+    c = Client()
+    p = flow.build_plan(c, 123, "Open")
+    journal.record_plan("started", p.prior_hash, action=flow.ACTION, target=123)
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(p, c, reviewed_hash=p.hash)
+    assert not c.writes

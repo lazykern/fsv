@@ -95,3 +95,29 @@ def test_rules_500_warns_and_still_reviews(api):
     s["rules"] = 500
     p = flow.build_plan(c, 123, planned_end="2026-12-06T09:00:00Z")
     assert "rules unavailable" in p.review()["warnings"][0]
+
+
+def test_planning_alternation_plans_fresh_hashes_and_replay_refuses(api):
+    """Effort 2h -> 3h -> 2h: the record-state token (verified planning sends)
+    makes the repeated value a new plan; replaying an old hash names the send."""
+    c, s = api
+    hashes = []
+    for i, effort in enumerate(["2h", "3h", "2h"]):
+        p = flow.build_plan(c, 123, planned_effort=effort)
+        assert p.review()["record_state"]["sends"] == i
+        assert flow.send(p, c, reviewed_hash=p.hash)["verified"] is True
+        hashes.append(p.hash)
+    assert len(set(hashes)) == 3 and len(s["writes"]) == 3
+    r = CliRunner().invoke(cli.app, ["problems", "update", "PRB-123", "--planned-effort", "2h",
+                                     "--yes", "--expect-plan", hashes[0]])
+    assert r.exit_code != 0 and "already sent" in r.output and len(s["writes"]) == 3
+
+
+def test_unresolved_pre_token_planning_send_still_refuses(api):
+    from dataclasses import replace
+    c, s = api
+    p = flow.build_plan(c, 123, planned_effort="2h")
+    journal.record_plan("started", replace(p, context_hash=p.prior_context).hash, action=flow.ACTION, target=123)
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(p, c, reviewed_hash=p.hash)
+    assert not s["writes"]

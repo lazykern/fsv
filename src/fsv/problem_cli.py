@@ -42,7 +42,9 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                                        "incident_id": incident}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
-                raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
+                from fsv import journal
+                raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (plan.action,)) if yes else None
+                                         or "review with --dry-run, then pass --yes and the full --expect-plan hash")
             typer.echo(tenant_json(problem_incidents.send(plan, client, incident, reviewed_hash=expect_plan), indent=2))
         except (ValueError, AssociationError, ReviewedWriteError, APIError) as exc:
             typer.echo(str(exc), err=True)
@@ -95,7 +97,9 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                 typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
-                raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+                from fsv import journal
+                raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (problem_status.ACTION,)) if yes else None
+                                         or "review with --dry-run, then --yes --expect-plan FULL_HASH")
             result = problem_status.send(plan, client, reviewed_hash=expect_plan)
             typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):

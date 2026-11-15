@@ -2704,7 +2704,9 @@ def _problem_planning_update(id_: str, planned_start: Optional[str], planned_end
             typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
             return
         if not yes or expect_plan != plan.hash:
-            raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+            from fsv import journal
+            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (plan.action,)) if yes else None
+                                     or "review with --dry-run, then --yes --expect-plan FULL_HASH")
         result = problem_properties.send(plan, c, reviewed_hash=expect_plan)
         typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
         if not result.get("verified"):

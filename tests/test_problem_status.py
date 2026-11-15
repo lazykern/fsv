@@ -375,3 +375,71 @@ def test_rewrite_without_activity_stays_unverified(api, monkeypatch):
     result = flow.send(plan, c, reviewed_hash=plan.hash)
     assert result["verified"] is False and "verified_with_note" not in result
     assert "do not resend" in result["warning"] and len(calls) == flow.ACTIVITY_ATTEMPTS
+
+
+@pytest.mark.parametrize("workflow", [True, False])
+def test_repeated_transition_plans_a_fresh_hash_after_a_verified_send(api, monkeypatch, workflow):
+    """Open -> In Progress -> Open -> Resolve -> Open. With a workflow that
+    always puts the problem back to the monitoring status, the record, target
+    and payload repeat; the record-state token still makes each plan new."""
+    import datetime as dt
+    c, s, fields, n = api
+    fields[1]["choices"].append({"id": n + 4, "value": "Monitor 1 month"})
+    if workflow:
+        s["row"]["status"] = n + 4
+        s["mismatch"] = True
+    hashes = []
+    for i, label in enumerate(["In Progress", "Open", "Resolve", "Open"]):
+        s["row"]["updated_at"] = f"2030-01-01T00:0{i}:00Z" if not workflow else "2030-01-01T00:00:00Z"
+        plan = flow.build_plan(c, 123, label)
+        assert plan.review()["record_state"]["sends"] == i
+        now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        s["activities"] = [_workflow_row("Monitor 1 month", now), _agent_row(label, now)]
+        assert flow.send(plan, c, reviewed_hash=plan.hash)["verified"] is True
+        hashes.append(plan.hash)
+    assert len(set(hashes)) == 4 and len(s["writes"]) == 4
+    with pytest.raises(ReviewedWriteError, match="already sent"):  # a true replay
+        flow.send(plan, c, reviewed_hash=plan.hash)
+    # A replayed hash through the CLI names the earlier send; nothing is sent.
+    r = CliRunner().invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Open", "--yes", "--expect-plan", hashes[1]])
+    assert r.exit_code == 2 and "already sent" in r.output and len(s["writes"]) == 4
+    dry = CliRunner().invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Open", "--dry-run"])
+    assert json.loads(dry.output)["record_state"]["sends"] == 4
+
+
+def test_unverified_or_ambiguous_transition_is_not_replanned(api, monkeypatch):
+    from fsv import service
+    c, s, fields, n = api
+    fields[1]["choices"].append({"id": n + 4, "value": "Monitor 1 month"})
+    s["row"]["status"] = n + 4
+    s["mismatch"] = True
+    monkeypatch.setattr(service, "get_activities", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("unavailable")))
+    monkeypatch.setattr(flow.readback, "_sleep", lambda _s: None)
+    # planned dates already filled: the record does not change at all
+    s["row"].update(planned_start_date="2030-01-02T10:00:00Z", planned_end_date="2030-01-02T11:00:00Z")
+    plan = flow.build_plan(c, 123, "Open")
+    assert flow.send(plan, c, reviewed_hash=plan.hash)["verified"] is False
+    again = flow.build_plan(c, 123, "Open")
+    assert again.hash == plan.hash  # nothing verified: the same plan, refused
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(again, c, reviewed_hash=again.hash)
+    s["fail"] = "disconnect"
+    other = flow.build_plan(c, 123, "In Progress")
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(other, c, reviewed_hash=other.hash)
+    s["fail"] = None
+    retry = flow.build_plan(c, 123, "In Progress")
+    assert retry.hash == other.hash
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(retry, c, reviewed_hash=retry.hash)
+    assert len(s["writes"]) == 2
+
+
+def test_unresolved_pre_token_transition_still_refuses(api):
+    from dataclasses import replace
+    c, s, _, _ = api
+    plan = flow.build_plan(c, 123, "In Progress")
+    journal.record_plan("started", replace(plan, context_hash=plan.prior_context).hash, action=flow.ACTION, target=123)
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(plan, c, reviewed_hash=plan.hash)
+    assert not s["writes"]

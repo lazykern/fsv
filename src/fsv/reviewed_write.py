@@ -63,6 +63,35 @@ class WritePlan:
                 "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."}
 
 
+@dataclass(frozen=True)
+class StatefulWritePlan(WritePlan):
+    """A write that may legitimately repeat the same payload: ``context_hash``
+    binds a record-state token (journal.repeat_token), shown in the review;
+    ``prior_context`` is the context without it (pre-token journals)."""
+    state_json: str = ""
+    prior_context: str = ""
+
+    def review(self) -> dict[str, Any]:
+        out = super().review()
+        if self.state_json:
+            out["record_state"] = json.loads(self.state_json)
+        return out
+
+
+def stateful_context(context: Any, token: dict[str, Any]) -> tuple[str, str, str]:
+    """(context_hash with the token, token JSON, context_hash without it)."""
+    return (journal.snapshot_hash({"context": context, "state": token}) or "",
+            json.dumps(token, sort_keys=True), journal.snapshot_hash(context) or "")
+
+
+def prior_guards(plan: Any) -> tuple[str, ...]:
+    """Hash of ``plan`` without its record-state token (``prior_context``),
+    so an unresolved send journaled before the token was bound still refuses."""
+    from dataclasses import replace
+    prior = getattr(plan, "prior_context", "")
+    return (replace(plan, context_hash=prior).hash,) if prior and prior != plan.context_hash else ()
+
+
 def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
             rebuild: Callable[[], WritePlan], verify: Callable[[Any], dict[str, Any]],
             rejection: Callable[[APIError], str] | None = None, guards: tuple[str, ...] = ()) -> dict[str, Any]:
