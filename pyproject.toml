@@ -1,7 +1,7 @@
 [project]
 name = "fsv"
 version = "2026.11.12"
-description = "Freshservice CLI"
+description = "Unofficial Freshservice CLI that uses your browser session. Browse records, inspect forms, review writes before sending."
 readme = "README.md"
 authors = [
     { name = "Phusit Somboonyingsuk" }
