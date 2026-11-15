@@ -52,6 +52,15 @@ class FakeClient:
     def autocomplete(self, kind, query, params=None):
         return []
 
+    def _get_csrf(self):
+        return "synthetic-csrf"
+
+    def _request(self, method, url, content=None, headers=None):
+        # reviewed single-attempt sends (plain reply) go through _request
+        body = json.loads(content) if content else None
+        self.writes.append((method, url.split("/api/_/", 1)[-1], body))
+        return {"conversation": {"id": 6, "body": (body or {}).get("body")}}
+
 
 @pytest.fixture
 def fake(monkeypatch):
@@ -196,7 +205,9 @@ def test_tasks_update_flags_and_edit_gated(monkeypatch):
     assert r.exit_code == 2 and not sent
 
 
-def test_public_note_and_reply_gated_private_note_is_not(fake):
+def test_public_note_and_reply_gated_private_note_is_not(fake, monkeypatch):
+    from fsv import views
+    monkeypatch.setattr(views, "load_conversations", lambda c, tid, all_pages=True: ([{"id": 6, "body": "hello"}], {}, []))
     r = runner.invoke(cli.app, ["changes", "add-note", "CHN-1", "hi"])
     assert r.exit_code == 0 and fake.writes[-1][2]["private"] is True
     fake.writes.clear()

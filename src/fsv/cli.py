@@ -2896,18 +2896,43 @@ def note_resource(res: Resource, id_: str, body: str, public: bool, dry_run: boo
 
 
 def reply_resource(res: Resource, id_: str, body: str, dry_run: bool = False,
-                   yes: bool = False, no_input: bool = False) -> None:
-    from fsv import service
+                   yes: bool = False, no_input: bool = False, expect_plan: str | None = None,
+                   json_out: bool = False) -> None:
+    """Plain reply (no CC/BCC/sender/status) on the reviewed-write contract:
+    plan hash, optional --expect-plan, journal, conversation readback."""
+    from fsv import journal, ticket_plain_reply as plain
     from fsv.safety import reply_risks
     cid = _cid(id_, res)
     risks = reply_risks()
+    try:
+        plan = plain.build_plan(cid, body)
+    except plain.PlainReplyError as exc:
+        _err(str(exc))
     if dry_run:
-        _emit_dry_run(res, cid, {"body": body}, "reply", risks=risks)
+        _emit_dry_run(res, cid, plan.payload, "reply", risks=risks, plan_hash=plan.hash,
+                      record_state={"sends": plan.sends})
         return
+    if expect_plan is not None and expect_plan.strip().lower() != plan.hash:
+        _err(journal.stale_plan_refusal(expect_plan, (plain.ACTION,)) or
+             f"reply on {format_id({'id': cid}, res)} does not match the reviewed plan (body or tenant changed, "
+             "or a partial hash); review again with --dry-run. Nothing was sent")
     _confirm_writes(risks, f"reply on {format_id({'id': cid}, res)}", yes, no_input)
     c = _client()
-    reply = _api(lambda: service.add_reply(res, cid, body, client=c))
-    console.print(f"[green]added[/] reply {reply.get('id', '')}")
+    try:
+        result = plain.send(plan, c)
+    except plain.PlainReplyError as exc:
+        if json_out:
+            emit_json({"status": "error", "plan_hash": plan.hash, "verified": False, "error": str(exc)})
+        _err(str(exc))
+    if json_out:
+        emit_json(result)
+    else:
+        console.print(f"[green]added[/] reply {result['conversation_id']}; verified: "
+                      f"{str(bool(result['verified'])).lower()}", highlight=False)
+        if result.get("warning"):
+            err.print(result["warning"], highlight=False)
+    if not result["verified"]:
+        raise typer.Exit(4)
 
 
 auth_app = typer.Typer(
@@ -4986,7 +5011,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
             conversations_resource(id_, page, per_page, json_out, all_pages, n_pages, format_)
 
         @sub.command("reply", help="Add a ticket reply.", epilog=(
-            f"[bold]Note:[/bold] Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md).  "
+            f"[bold]Note:[/bold] Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md). "
+            f"--dry-run prints the plan_hash (exact body, recipients, tenant); --expect-plan HASH refuses anything else; "
+            f"the result reports verified from the conversation readback.  "
             f"[bold]Examples:[/bold]  "
             f"fsv {res.name} reply {_pfx}-1234 'Working on this'"
         ))
@@ -5042,8 +5069,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 except (ValueError, ReviewedWriteError) as exc:
                     typer.echo(str(exc), err=True)
                     raise typer.Exit(2) from None
-            if not cc and not bcc and sender is None and set_status is None and expect_plan is None and not ack:
-                reply_resource(res, id_, body, dry_run, yes, no_input)
+            if not cc and not bcc and sender is None and set_status is None and not ack:
+                reply_resource(res, id_, body, dry_run, yes, no_input, expect_plan=expect_plan, json_out=json_out)
                 return
             import json
             from fsv.ticket_conversation import ConversationError, build_plan, recipients, send

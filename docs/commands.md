@@ -167,6 +167,17 @@ conversations do not expose source identity, so readback verifies delivery field
 not an independently returned source link (`source_link_verified: false` is
 reported separately). No attachment/CC/BCC/status combinations.
 
+## Plain ticket reply
+
+`fsv tickets reply INC-123 'Acme is working on it' --dry-run` prints the
+unchanged reply preview plus `plan_hash` (tenant, target, exact body, empty
+CC/BCC) and `record_state`. `--yes --expect-plan FULL_HASH` refuses a changed
+body or tenant; `--expect-plan` stays optional with `--yes`. The send is one
+journaled POST of `{"body": ...}` (no retry); the result (`--json`) carries
+`conversation_id` and `verified` from listing the ticket's conversations
+(exit 4 when unverified). CC/BCC/`--sender`/`--set-status`, `--attach` and
+`--inline-image` keep their own reviewed flows.
+
 
 ## Accepted initial attachment scope
 
