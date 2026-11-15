@@ -14,8 +14,8 @@ plans, roles, forms and workflows differ (see the
 | Tickets | 93 | 78 | 11 | 1 | 2 | 1 | 89 |
 | Changes | 56 | 42 | 8 | 2 | 3 | 1 | 50 |
 | Problems and service requests | 63 | 51 | 11 | 1 | 0 | 0 | 62 |
-| Cross-cutting | 80 | 57 | 15 | 8 | 0 | 0 | 72 |
-| **All** | **292** | **228** | **45** | **12** | **5** | **2** | **273** |
+| Cross-cutting | 80 | 58 | 15 | 7 | 0 | 0 | 73 |
+| **All** | **292** | **229** | **45** | **11** | **5** | **2** | **274** |
 
 **Overall covered** is COVERED plus COVERED (read). N/A rows are local
 commands with no wire. Counts are per row: a few commands
@@ -61,10 +61,6 @@ Still UNSURE, and why:
   (it sends the same wire as `associations add`);
 * asset search paging: the test tenant has one page of devices and fsv has no
   page-size option;
-* `tickets update` and `problems update`: reviewed by default (plan hash,
-  replay journal, independent readback, `verified`), with `--no-review`
-  deprecated; the reviewed defaults still need a live re-test. There is no
-  separate `sr update` command (an SR subject goes through `tickets update`).
 
 Needs seeding on the test tenant before a live proof is possible:
 
@@ -86,6 +82,8 @@ Blocked (no accepted wire or not reachable from a test tenant):
 * bulk close: a successful close needs a saved resolution note first;
 * change private-view rename and delete (wires not captured; fsv refuses);
 * export delivery (the file is emailed, not returned);
+* `changes add-note` keeps no replay journal;
+* a no-op `tickets update` is not short-circuited (it is still sent);
 * the TUI (`fsv tui`) is not covered by this matrix.
 
 ## Tickets
@@ -391,7 +389,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | reviewed-write: bulk plan hash reporting | ticket_bulk | COVERED | n/a (local) | n/a | none | test_ticket_bulk.py | Local command; offline tests. |
 | reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | COVERED | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Several verify callbacks were fixed after the last live run; re-test pending. |
 | reviewed-write: unknown-outcome handling + journal record | execute() journal pending/failed | COVERED | n/a (local) | n/a | none | test_journal_editor.py, test_solution_unlink_http.py | Local command; offline tests. |
-| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | UNSURE | n/a (local) | n/a | none | test_legacy_write_guards.py | tickets update (SRs included) and problems update follow the reviewed-write contract by default: plan hash with a record-state token, replay journal, independent readback and a verified flag. --no-review keeps the old body-only update for one release (deprecated, one-line stderr notice). Plain replies carry a plan hash and replay journal. A live re-test of the reviewed defaults is still needed. There is no separate sr update command: an SR subject goes through tickets update. |
+| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | COVERED | n/a (local) | n/a | none | test_legacy_write_guards.py | tickets update (SRs included) and problems update follow the reviewed contract by default (verified readback, journal, replay refusal). --no-review is deprecated for one release (one-line stderr notice). Plain replies carry a plan hash and replay journal. There is no separate sr update command: an SR subject goes through tickets update. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
 | changes private-views list\|show\|write create | `GET/POST /api/_/change-filters` | COVERED | yes | yes | none | test_private_views_native.py | Live send verified by an independent readback. |
 | tickets/changes/problems/sr assets candidates | `GET https://<tenant>/itam/core/device\|asset\|businessservice/api/?q= (integrated inventory)` | COVERED | yes (read) | n/a (read) | none | test_asset_candidates.py | Live read verified. |
