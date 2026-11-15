@@ -2712,9 +2712,9 @@ def _problem_planning_update(id_: str, planned_start: Optional[str], planned_end
 
 
 def _problem_update_hash(res: Resource, cid: int, body: dict[str, Any], row: Any) -> str | None:
-    """Review hash of a problem update: tenant, target, exact PUT body and the
-    stable snapshot of the problem it was reviewed against (None when the
-    problem could not be read)."""
+    """Review hash of a problem or legacy ticket update: tenant, target, exact
+    PUT body and the stable snapshot of the record it was reviewed against
+    (None when the record could not be read)."""
     from fsv import journal
     if not isinstance(row, dict) or not config.DOMAIN:
         return None
@@ -2755,6 +2755,14 @@ def update_resource(
         row = row.get(res.item_key, row) if isinstance(row, dict) else None
         if isinstance(row, dict) and row.get("deleted") is True:
             _err(f"{format_id({'id': cid}, res)} is deleted (in trash); restore it before updating")
+    elif res.name == "tickets" and (dry_run or expect_plan is not None):
+        # Legacy (non --reviewed) ticket update: the review hash binds the
+        # record snapshot, so read it only when a hash is shown or checked.
+        try:
+            row = c.int_get(f"{res.api_path}/{cid}")
+        except Exception:  # no snapshot -> no hash; --expect-plan then refuses
+            row = None
+        row = row.get(res.item_key, row) if isinstance(row, dict) else None
     body: dict[str, Any] = {}
     if status is not None:
         body["status"] = _resolve_update_choice(sch, "status", status)
@@ -2784,9 +2792,9 @@ def update_resource(
         _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
     current = _current_flat(res, cid, c) if dry_run and res.name == "tickets" else None
     risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
-    plan_hash = _problem_update_hash(res, cid, body, row) if res.name == "problems" else None
+    plan_hash = _problem_update_hash(res, cid, body, row) if res.name in ("problems", "tickets") else None
     if expect_plan is not None and (plan_hash is None or expect_plan != plan_hash):
-        _err(f"{format_id({'id': cid}, res)} or the update changed since review (or the problem could not be "
+        _err(f"{format_id({'id': cid}, res)} or the update changed since review (or the record could not be "
              "read); review again with --dry-run. Nothing was sent")
     if dry_run:
         display_id = None
@@ -4603,7 +4611,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     typer.echo(str(exc), err=True)
                     raise typer.Exit(2) from None
                 return
-            if expect_plan and res != PROBLEMS:
+            if expect_plan and res not in (PROBLEMS, TICKETS):
                 _err("--expect-plan requires --reviewed, --tag, --planned-start or --planned-end")
             if ack:
                 _err("--ack requires tickets --reviewed")
