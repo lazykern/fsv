@@ -61,10 +61,10 @@ Still UNSURE, and why:
   (it sends the same wire as `associations add`);
 * asset search paging: the test tenant has one page of devices and fsv has no
   page-size option;
-* legacy un-hashed writes (problems update, tickets update): they send and
-  read back correctly but print a plan hash in dry-run only and keep no
-  replay journal; there is no separate `sr update` command (an SR subject goes
-  through `tickets update`).
+* `tickets update` and `problems update`: reviewed by default (plan hash,
+  replay journal, independent readback, `verified`), with `--no-review`
+  deprecated; the reviewed defaults still need a live re-test. There is no
+  separate `sr update` command (an SR subject goes through `tickets update`).
 
 Needs seeding on the test tenant before a live proof is possible:
 
@@ -391,7 +391,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | reviewed-write: bulk plan hash reporting | ticket_bulk | COVERED | n/a (local) | n/a | none | test_ticket_bulk.py | Local command; offline tests. |
 | reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | COVERED | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Several verify callbacks were fixed after the last live run; re-test pending. |
 | reviewed-write: unknown-outcome handling + journal record | execute() journal pending/failed | COVERED | n/a (local) | n/a | none | test_journal_editor.py, test_solution_unlink_http.py | Local command; offline tests. |
-| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | UNSURE | n/a (local) | n/a | none | test_legacy_write_guards.py | Plain replies carry a plan hash and replay journal. The legacy problems update and tickets update paths send and read back correctly, but print a hash in dry-run only and keep no replay journal. There is no separate sr update command: an SR subject goes through tickets update. |
+| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | UNSURE | n/a (local) | n/a | none | test_legacy_write_guards.py | tickets update (SRs included) and problems update follow the reviewed-write contract by default: plan hash with a record-state token, replay journal, independent readback and a verified flag. --no-review keeps the old body-only update for one release (deprecated, one-line stderr notice). Plain replies carry a plan hash and replay journal. A live re-test of the reviewed defaults is still needed. There is no separate sr update command: an SR subject goes through tickets update. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
 | changes private-views list\|show\|write create | `GET/POST /api/_/change-filters` | COVERED | yes | yes | none | test_private_views_native.py | Live send verified by an independent readback. |
 | tickets/changes/problems/sr assets candidates | `GET https://<tenant>/itam/core/device\|asset\|businessservice/api/?q= (integrated inventory)` | COVERED | yes (read) | n/a (read) | none | test_asset_candidates.py | Live read verified. |
