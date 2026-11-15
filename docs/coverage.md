@@ -14,8 +14,8 @@ plans, roles, forms and workflows differ (see the
 | Tickets | 93 | 78 | 11 | 1 | 2 | 1 | 89 |
 | Changes | 56 | 42 | 8 | 2 | 3 | 1 | 50 |
 | Problems and service requests | 63 | 51 | 11 | 1 | 0 | 0 | 62 |
-| Cross-cutting | 80 | 57 | 12 | 11 | 0 | 0 | 69 |
-| **All** | **292** | **228** | **42** | **15** | **5** | **2** | **270** |
+| Cross-cutting | 80 | 57 | 15 | 8 | 0 | 0 | 72 |
+| **All** | **292** | **228** | **45** | **12** | **5** | **2** | **273** |
 
 **Overall covered** is COVERED plus COVERED (read). N/A rows are local
 commands with no wire. Counts are per row: a few commands
@@ -61,10 +61,10 @@ Still UNSURE, and why:
   (it sends the same wire as `associations add`);
 * asset search paging: the test tenant has one page of devices and fsv has no
   page-size option;
-* text-filter refusals, type filters by name and raw query hashes: verified as
-  refusals or matching row counts only; a positive re-test is pending;
-* problems update and the legacy tickets update: they show a plan hash but
-  keep no replay journal; re-check pending.
+* legacy un-hashed writes (problems update, tickets update): they send and
+  read back correctly but print a plan hash in dry-run only and keep no
+  replay journal; there is no separate `sr update` command (an SR subject goes
+  through `tickets update`).
 
 Needs seeding on the test tenant before a live proof is possible:
 
@@ -380,18 +380,18 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | journal path | local journal file (see `fsv journal path`) | COVERED | n/a (local) | n/a | none | test_journal_editor.py | Local command; offline tests. |
 | config defaults show\|set\|clear (default --where) | local config | COVERED | n/a (local) | n/a | none | test_universal_config.py, test_list_preferences.py | Local command; offline tests. |
 | {module} ls --where / --or / --no-defaults / --debug | `GET {module} list with query_hash params (filter=...)` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_filter_wires.py, test_strict_filter_contract.py, test_query_matrix.py, test_query_edge_cases.py, test_query_hash_params.py, test_list_filter_surface.py, test_ticket_type_filter.py | Read-only: verified live against real data; nothing to send. |
-| --where text filters (subject/description) fail closed | refused client-side | UNSURE | n/a (local) | n/a | none | test_strict_filter_contract.py | Refused client-side; nothing is sent. |
-| --where type=NAME (name not id) | `query_hash value:['Service Request']` | UNSURE | yes (read) | n/a (read) | read-verified | test_ticket_type_filter.py | Read verified live; row-by-row comparison with the web UI pending. |
+| --where text filters (subject/description) fail closed | refused client-side | COVERED (read) | n/a (local) | n/a | none | test_strict_filter_contract.py | Local command; offline tests. |
+| --where type=NAME (name not id) | `query_hash value:['Service Request']` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_ticket_type_filter.py | Read-only: verified live against real data; nothing to send. |
 | --where date ranges, relative dates, numbers, multi-select | `query_hash conditions` | COVERED | yes (read) | n/a (read) | capture-only | test_filter_wires.py | Live read verified. |
 | --where approval_status on tickets (refused), changes (allowed) | `query_hash` | COVERED | yes (read) | n/a (read) | none | test_strict_filter_contract.py | Live read verified. |
-| --query-hash RAW | `query_hash raw JSON` | UNSURE | no | n/a (read) | none | test_query_hash_params.py | Live run found a bug, since fixed; re-test pending. |
+| --query-hash RAW | `query_hash raw JSON` | COVERED (read) | yes (read) | n/a (read) | none | test_query_hash_params.py | Read-only: verified live against real data; nothing to send. |
 | reviewed-write: --dry-run emits plan_hash | reviewed_write.execute / review.py | COVERED | n/a (local) | n/a | capture-only | test_write_safety.py, test_reviewed_cli_output.py, test_reviewed_snapshot.py | Local command; offline tests. |
 | reviewed-write: --yes --expect-plan guard + stale hash refusal | `as the row above` | COVERED | yes | yes | none | test_write_safety.py | Live send verified by an independent readback. |
 | reviewed-write: plan hash determinism | journal.snapshot_hash | COVERED | n/a (local) | n/a | none | test_reviewed_snapshot.py | Local command; offline tests. |
 | reviewed-write: bulk plan hash reporting | ticket_bulk | COVERED | n/a (local) | n/a | none | test_ticket_bulk.py | Local command; offline tests. |
 | reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | COVERED | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Several verify callbacks were fixed after the last live run; re-test pending. |
 | reviewed-write: unknown-outcome handling + journal record | execute() journal pending/failed | COVERED | n/a (local) | n/a | none | test_journal_editor.py, test_solution_unlink_http.py | Local command; offline tests. |
-| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | UNSURE | n/a (local) | n/a | none | test_legacy_write_guards.py | Plain replies now carry a plan hash and replay journal; problems update and the legacy tickets update show a hash but keep no replay journal; re-check pending. |
+| reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | UNSURE | n/a (local) | n/a | none | test_legacy_write_guards.py | Plain replies carry a plan hash and replay journal. The legacy problems update and tickets update paths send and read back correctly, but print a hash in dry-run only and keep no replay journal. There is no separate sr update command: an SR subject goes through tickets update. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
 | changes private-views list\|show\|write create | `GET/POST /api/_/change-filters` | COVERED | yes | yes | none | test_private_views_native.py | Live send verified by an independent readback. |
 | tickets/changes/problems/sr assets candidates | `GET https://<tenant>/itam/core/device\|asset\|businessservice/api/?q= (integrated inventory)` | COVERED | yes (read) | n/a (read) | none | test_asset_candidates.py | Live read verified. |
