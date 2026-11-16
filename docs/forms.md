@@ -139,8 +139,8 @@ trusted for 15 minutes only:
 
 | cache (`fsv cache status`) | kind | TTL | stale on a read | on a write |
 | --- | --- | --- | --- | --- |
-| `<module>` schema (form fields, choices) | `schema` | 15 min | used once, refreshed in the background | refetched first when older than 15 min |
-| `forms/<module>-fields` (form engine) | `schema` | 15 min | refetched | form writes load fresh metadata (ticket property reviews use the cache, the send refetches) |
+| `<module>` schema (form fields, choices; `cache clear schema`) | `schema` | 15 min | used once, refreshed in the background | refetched first when older than 15 min |
+| `forms/<module>-fields` (form engine; `cache clear forms`) | `schema` | 15 min | refetched | form writes load fresh metadata (ticket property reviews use the cache, the send refetches) |
 | `forms/<module>-rules-...` (business rules) | `form_rules` | 15 min | refetched | form writes load fresh rules |
 | `<module>` views (saved filters) | `filters` | 15 min | used once, refreshed in the background | not used |
 | groups | `groups` | 6 h | used once, refreshed in the background | not used |
@@ -154,7 +154,9 @@ that module's schema is refetched ONCE and the validation runs again, so a
 choice added minutes ago is accepted without clearing the cache. A second
 refusal is final (no loop); a schema just fetched from the server is never
 refetched. `fsv --refresh <command>` refetches every cache it reads once in
-that run; `fsv cache clear schema|views|groups|all` still empties them.
+that run; `fsv cache clear schema|forms|views|groups|all` still empties them:
+`schema` removes only the `<module>` schemas, `forms` only the `forms/*`
+form-engine fields and rules, `all` both (plus views and groups).
 
 `tickets update` (and the ticket property plans of `tickets assign`/bulk)
 reviews against the form-engine caches (`forms/ticket-fields`, rules): a

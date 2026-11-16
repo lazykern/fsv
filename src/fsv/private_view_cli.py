@@ -54,7 +54,17 @@ def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = 
               json_out: bool = typer.Option(False, "--json")) -> None:
         try:
             c = client_factory()
-            plan = private_views.build_plan(c, id_, action=action, name=name, kind=kind)
+            try:
+                plan = private_views.build_plan(c, id_, action=action, name=name, kind=kind)
+            except private_views.NothingToChange as exc:
+                if expect_plan is not None:
+                    from fsv import journal
+                    raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (kind.prefix + "edit",))
+                                             or "nothing to change; the reviewed plan does not exist. "
+                                                "Nothing was sent") from None
+                typer.echo(tenant_json({"status": "nothing_to_change", "view_id": id_, "message": str(exc)},
+                                       indent=2))
+                return
             if dry_run:
                 typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return

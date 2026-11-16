@@ -205,3 +205,23 @@ def test_conflicting_nonempty_aliases_fail_closed(clear):
     with pytest.raises(ReviewedWriteError, match="contradictory"):
         planning.build_plan(c, "changes", 123, "Rollout Plan", None if clear else "Acme new", clear=clear)
     assert not c.writes
+
+
+def test_cli_clear_of_an_empty_section_is_a_no_op_exit_0_unless_expect_plan(monkeypatch, target):
+    module, section, _key = target
+    c = Client(module)
+    c.rows = []
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    args = [module, "planning-text", "123", "--section", section, "--clear"]
+    for extra in (["--dry-run"], ["--yes"]):
+        r = CliRunner().invoke(cli.app, args + extra)
+        assert r.exit_code == 0, r.output
+        assert json.loads(r.output)["status"] == "nothing_to_change"
+    r = CliRunner().invoke(cli.app, args + ["--yes", "--expect-plan", "b" * 64])
+    assert r.exit_code == 2 and "nothing to change" in r.output and not c.writes
+
+
+def test_first_write_post_and_later_put_share_one_path_helper():
+    assert planning.save_path("changes", 7, "acme plan", "POST") == "changes/7/planning-fields?id=acme%20plan"
+    for method in ("PUT", "DELETE"):
+        assert planning.save_path("problems", 7, "problem_cause", method) == "problems/7/planning-fields/problem_cause"

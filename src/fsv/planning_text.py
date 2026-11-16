@@ -84,6 +84,20 @@ def editable_content(row: dict[str, Any] | None) -> str:
     return content
 
 
+class NothingToChange(ReviewedWriteError):
+    """Clearing a section that is already empty: no plan exists (exit 0
+    unless --expect-plan was given)."""
+
+
+def save_path(module: str, cid: int, key: str, method: str) -> str:
+    """The captured planning-section wire: the first write of a section is
+    ``POST .../planning-fields?id=<key>``; later writes (PUT, DELETE) address
+    ``.../planning-fields/<key>``. Shared by planning-text and
+    ``update --planning`` (planning_files)."""
+    base = f"{module}/{cid}/planning-fields"
+    return f"{base}?id={quote(key, safe='')}" if method == "POST" else f"{base}/{quote(key, safe='')}"
+
+
 def build_plan(client: Any, module: str, target: str | int, section: str,
                description: str | None = None, *, clear: bool = False) -> PlanningTextPlan:
     if clear:
@@ -107,10 +121,9 @@ def build_plan(client: Any, module: str, target: str | int, section: str,
     if existing is not None and not before and existing.get("id") is not None:
         raise ReviewedWriteError("stored empty planning row has unknown create/edit state; no write attempted")
     if clear and not before:
-        raise ReviewedWriteError("planning section is already empty; no write attempted")
+        raise NothingToChange("planning section is already empty; nothing to change, no write attempted")
     method = "DELETE" if clear else "PUT" if before else "POST"
-    base = f"{module}/{cid}/planning-fields"
-    path = f"{base}?id={quote(key, safe='')}" if method == "POST" else f"{base}/{quote(key, safe='')}"
+    path = save_path(module, cid, key, method)
     return PlanningTextPlan(f"{module}_planning_text", cid, config.DOMAIN, method, path,
                             json.dumps(None if clear else {"description": description},
                                        sort_keys=True, ensure_ascii=False),

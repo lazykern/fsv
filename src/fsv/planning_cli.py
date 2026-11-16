@@ -62,7 +62,14 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
                  expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
         try:
             c = client_factory()
-            plan = planning_text.build_plan(c, resource.name, id_, section, description, clear=clear)
+            try:
+                plan = planning_text.build_plan(c, resource.name, id_, section, description, clear=clear)
+            except planning_text.NothingToChange as exc:
+                if expect_plan is not None:
+                    raise ReviewedWriteError("nothing to change; the reviewed plan does not exist. "
+                                             "Nothing was sent") from None
+                typer.echo(tenant_json({"status": "nothing_to_change", "message": str(exc)}, indent=2))
+                return
             if dry_run:
                 typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
                 return

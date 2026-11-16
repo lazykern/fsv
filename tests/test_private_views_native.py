@@ -208,3 +208,16 @@ def test_change_cli_list_show_and_full_hash_gate(wire, monkeypatch):
     assert gone.exit_code == 0 and json.loads(gone.output)["verified"]
     replay = runner.invoke(cli.app, delete + ["--yes", "--expect-plan", digest, "--confirm-destructive"])
     assert replay.exit_code == 2 and len(wire["writes"]) == writes + 1
+
+
+@pytest.mark.parametrize("module, vid, name", [("changes", 811, "Globex changes"), ("tickets", 801, "Acme queue")])
+def test_same_name_rename_is_a_no_op_exit_0_unless_expect_plan(wire, monkeypatch, module, vid, name):
+    monkeypatch.setattr(cli, "_client", lambda: wire["client"])
+    args = [module, "private-views", "write", str(vid), "rename", "--name", name]
+    for extra in (["--dry-run"], ["--yes"], []):
+        r = CliRunner().invoke(cli.app, args + extra)
+        assert r.exit_code == 0, r.output
+        assert json.loads(r.output)["status"] == "nothing_to_change"
+    r = CliRunner().invoke(cli.app, args + ["--yes", "--expect-plan", "a" * 64])
+    assert r.exit_code == 2 and "nothing to change" in r.output
+    assert not wire["writes"]

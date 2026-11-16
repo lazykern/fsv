@@ -239,6 +239,12 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
   downloadable, so delivery cannot be read back: fsv reports `submitted`, not
   `verified`. [CAPTURED]
 
+* fsv convention, not a server rule: a no-op update or rename (nothing to
+  change) sends nothing and exits 0; only a supplied `--expect-plan` turns it
+  into exit 2, because the reviewed plan cannot exist. `fsv cache clear
+  schema` and `fsv cache clear forms` are separate caches (`all` clears
+  both).
+
 * The export body's `data_hash` takes string condition values only. A saved
   view read back with integer values (e.g. `responder_id is_in [0]`,
   `workspace_id is_in [1]`) is refused with HTTP 400 `Validation failed

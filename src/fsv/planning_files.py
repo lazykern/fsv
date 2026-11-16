@@ -27,12 +27,11 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
-from urllib.parse import quote
 
 from fsv import config, journal
 from fsv.attachments import (NOT_PUBLISHED, LocalFile, local_files, owner_row, resolve_limit)
 from fsv.create import match_planning_row, planning_server_key, resolve_planning_definition
-from fsv.planning_text import definitions, inventory, section_content
+from fsv.planning_text import definitions, inventory, save_path, section_content
 from fsv.readback import same_text, submitted_value_matches
 from fsv.reviewed_write import ReviewedWriteError
 from fsv.watchers import positive_id
@@ -223,8 +222,7 @@ def build_plan(client: Any, target: int, section: str, description: str | None, 
     if existing is None and description is None:
         raise ReviewedWriteError("a new planning section needs --description text; no write attempted")
     method = "PUT" if existing is not None else "POST"
-    base = f"{module}/{cid}/planning-fields"
-    path = f"{base}/{quote(key, safe='')}" if method == "PUT" else f"{base}?id={quote(key, safe='')}"
+    path = save_path(module, cid, key, method)
     owner = owner_row(client, module, cid)
     state = journal.repeat_token((ACTIONS[module],), cid, owner)
     return PlanningUpdatePlan(config.DOMAIN, cid, key, str(definition.get("label") or section), method, path,

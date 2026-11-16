@@ -504,7 +504,10 @@ fsv cache refresh -h
 fsv cache clear -h
 ```
 
-`cache status` prints each cache's age and TTL. Form schemas and form rules
+`cache status` prints each cache's age and TTL (`forms/*` rows are the form
+engine's "form fields" / "form rules"). `cache clear` targets are precise:
+`schema` (per-module schemas), `forms` (`forms/*` form-engine fields and
+rules), `views`, `groups`, `all` (every one of them). Form schemas and form rules
 live 15 minutes; every write (dry-run included) refetches a schema older
 than that first, and a write whose value, field or required field is
 refused against a cached schema refetches that module's schema once and
@@ -513,6 +516,13 @@ validates again (docs/forms.md, "Cache lifetimes"). `fsv --refresh
 `tickets update` reviews against the cached ticket form (no
 `ticket_form_fields` GET per dry-run inside the 15 minutes), refetches it
 once on such a refusal and always reads it fresh at send.
+
+No-op writes: an update or rename whose every value already matches the
+record (`changes update`, `problems update`, `changes update --due-by`,
+`--planning`, attach-only `--attach` with every file skipped, a
+`private-views write ... rename` to the current name, `planning-text --clear`
+of an empty section) prints "nothing to change" and exits 0; with
+`--expect-plan` it exits 2 (the reviewed plan does not exist).
 
 ### journal
 

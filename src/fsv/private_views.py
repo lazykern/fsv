@@ -34,6 +34,11 @@ class ViewKind:
     prefix: str
 
 
+class NothingToChange(ValueError):
+    """A rename to the view's current name: no plan exists (exit 0 unless
+    --expect-plan was given)."""
+
+
 TICKETS = ViewKind("tickets", "ticket_filters", "ticket_filter", frozenset({"create", "edit", "delete"}),
                    "private_view_")
 # Change views: create (POST), rename (PUT re-sending the whole filter) and
@@ -190,7 +195,7 @@ def build_plan(client: Any, source_id: int, *, action: str, name: str | None = N
         if not isinstance(name, str) or not name.strip():
             raise ValueError("create/rename requires a nonempty --name")
         if action == "edit" and name == row.get("name"):
-            raise ValueError(f"the view is already named {name!r}; nothing to change")
+            raise NothingToChange(f"the view is already named {name!r}; nothing to change")
         if row.get("order_by") != "created_at" or row.get("order_type") != "desc":
             raise ReviewedWriteError("only captured created-at descending views are supported")
         ws = workspace(row, kind)

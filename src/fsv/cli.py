@@ -3851,9 +3851,10 @@ def cache_status() -> None:
         ttl = TTL.get(kind, 3600)
         ttl_s = f"{ttl / 3600:.0f}h" if ttl >= 3600 else f"{ttl / 60:.0f}m"
         name = fp.stem.split("--", 1)[-1]
-        items.append((f"forms/{name}", "rules" if kind == "form_rules" else "schema",
+        items.append((f"forms/{name}", "form rules" if kind == "form_rules" else "form fields",
                       _age_text(time.time() - saved), "stale" if stale else "ok", ttl_s))
-    t = Table(title="cache status")
+    t = Table(title="cache status", caption="clear: fsv cache clear schema (module schemas) | forms (forms/*) "
+                                             "| views | groups | all")
     t.add_column("cache")
     t.add_column("kind")
     t.add_column("age")
@@ -3870,15 +3871,20 @@ def cache_refresh() -> None:
     _refresh_cache(verbose=True, blocking=True)
 
 
-@cache_app.command("clear", epilog="[bold]Examples:[/bold]  fsv cache clear views  |  fsv cache clear all")
+@cache_app.command("clear", epilog="[bold]Examples:[/bold]  fsv cache clear views  |  fsv cache clear forms  |  fsv cache clear all")
 def cache_clear(
-    target: Optional[str] = typer.Argument(None, help="schema|views|groups|all", autocompletion=completion.complete_cache_target),
+    target: Optional[str] = typer.Argument(None, help="schema|forms|views|groups|all", autocompletion=completion.complete_cache_target),
 ) -> None:
-    """Delete cached data."""
+    """Delete cached data.
+
+    schema: the per-module field schemas (`fsv <module> fields`, list filters,
+    quick updates); forms: the form engine's fields and business rules
+    (`forms/*`: form create/update, ticket property reviews); all: both plus
+    views and groups. Each target removes only its own files."""
     import shutil
 
-    if target is None or target not in {"schema", "views", "filters", "groups", "all"}:
-        _err("choose schema|views|groups|all")
+    if target is None or target not in {"schema", "forms", "views", "filters", "groups", "all"}:
+        _err("choose schema|forms|views|groups|all")
     def remove_tree(path: Any) -> bool:
         """Remove a cache directory, tolerating a parallel process that
         removes it (or entries in it) first: a vanished path is cleared."""
@@ -3893,6 +3899,9 @@ def cache_clear(
     if target in ("schema", "all"):
         if remove_tree(config.SCHEMA_DIR):
             console.print("schema cache cleared")
+    if target in ("forms", "all"):
+        if remove_tree(config.CACHE_DIR / "forms"):
+            console.print("forms cache cleared")
     if target in ("views", "filters", "all"):
         if remove_tree(config.CONFIG_DIR / "filters"):
             console.print("views cache cleared")
