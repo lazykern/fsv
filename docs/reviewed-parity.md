@@ -943,6 +943,31 @@ Clear refuses already-empty sections. Unknown text state, stored empty rows
 whose create/edit state is unproven, existing attachments or unavailable
 attachment inventories block text-only writes. Whitespace/HTML is not stripped
 to infer emptiness; contradictory text/empty representations fail closed.
+
+### Planning text with files (`changes update --planning`)
+
+```sh
+fsv changes update CHN-123 --planning 'Rollout Plan' --file plan.docx --description '<div>Acme plan</div>' --dry-run
+fsv changes update CHN-123 --planning 'Rollout Plan' --file plan.docx --yes --expect-plan FULL_HASH
+```
+
+The dry-run prints the plan hash and the steps: one `POST /api/_/attachments`
+per new file, then the planning save (`PUT planning-fields/SECTION` for an
+existing row, `POST planning-fields?id=SECTION` for a new one) carrying the
+kept and the uploaded attachment IDs. The hash binds the tenant, change,
+section, description (before and after), each file's name, size and sha256,
+the `--duplicate` decisions (`skip`, `replace`, `append`; `prompt` asks only in
+a terminal and refuses otherwise), the size limit (the tenant's published
+limit or `--max-bytes N`, required to send when none is published) and a
+record-state token (the change's `updated_at` and the verified sends), so an
+identical later update plans a new hash. `--yes` alone sends nothing. Each
+upload and the save get a journal entry; a failed or unknown step stops the
+transaction, names the step and the uploaded IDs, and is never replayed (no
+duplicate attachments). Readback re-reads the planning inventory and reports
+the section's attachments (`id`, `name`) and description (`verified`; exit 4
+otherwise). `--backup-replaced` is refused on this path: download the old file
+first with `changes download ID --planning SECTION`. Problems have no captured
+planning file wire; `problems planning-text` stays text-only.
 These operations delete section text, not the section definition or parent record.
 
 The review shows `operation`, `before` and `after` text alongside the exact

@@ -2820,6 +2820,69 @@ def _problem_reviewed_update(res: Resource, id_: str, status: Optional[str], pri
         raise typer.Exit(4)
 
 
+def _change_planning_update(cid: int, section: str, description: str | None, files: list[str], *,
+                            duplicate: str, backup_replaced: bool | None, max_bytes: int | None,
+                            dry_run: bool, yes: bool, expect_plan: str | None, json_out: bool,
+                            no_input: bool) -> None:
+    """``changes update --planning``: description and file uploads on the
+    reviewed contract (planning_files): dry-run prints the plan hash,
+    ``--yes --expect-plan`` sends the uploads then the planning save, each
+    journaled, and reads the section back (exit 4 when unverified)."""
+    from fsv import journal, planning_files as flow
+    from fsv.reviewed_write import ReviewedWriteError
+    c = _client()
+
+    def build():
+        return flow.build_plan(c, cid, section, description, files, duplicate=duplicate,
+                               backup_replaced=backup_replaced, max_bytes=max_bytes)
+    try:
+        plan = build()
+    except (ValueError, ReviewedWriteError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+    if plan.noop:
+        if expect_plan is not None:
+            typer.echo(journal.stale_plan_refusal(expect_plan, (flow.ACTION,))
+                       or "nothing to change; the reviewed plan does not exist. Nothing was sent", err=True)
+            raise typer.Exit(2)
+        skipped = ", ".join(plan.skipped)
+        if json_out:
+            emit_json({"status": "nothing_to_change", "target": cid, "section": plan.section,
+                       "skipped_files": list(plan.skipped)})
+        else:
+            typer.echo(f"nothing to change in planning field {plan.label!r}"
+                       + (f" ({skipped} already attached)" if skipped else ""))
+        return
+    if dry_run:
+        typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+        return
+    try:
+        if expect_plan is not None and expect_plan != plan.hash:
+            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (flow.ACTION,))
+                                     or "the change, planning section or files changed since review (or a partial "
+                                        "hash); review again with --dry-run. Nothing was sent")
+        if yes:
+            if expect_plan != plan.hash:
+                raise ReviewedWriteError("--yes requires the full --expect-plan from a prior --dry-run review")
+        elif _no_input(no_input):
+            raise ReviewedWriteError("sending requires --yes and --expect-plan in no-input mode")
+        else:
+            typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
+            if not typer.confirm("Upload these files and save this planning section?", default=False):
+                typer.echo("Cancelled; nothing sent.")
+                return
+        result = flow.send(plan, c, reviewed_hash=plan.hash, rebuild=build)
+    except (ValueError, ReviewedWriteError, APIError) as exc:
+        if json_out:
+            detail = exc.as_dict() if isinstance(exc, ReviewedWriteError) else {"error": str(exc)}
+            emit_json({"status": "error", "plan_hash": plan.hash, "verified": False, **detail})
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+    typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
+    if not result.get("verified"):
+        raise typer.Exit(4)
+
+
 def _no_review_notice(res: Resource) -> None:
     """One-line deprecation notice for the old body-only update (stderr only,
     so --json stdout stays pure)."""
@@ -4377,6 +4440,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             backup_name: Optional[str] = typer.Option(None, "--backup-name", help="backup filename for replaced attachment"),
             attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file(s) to attach to main change (Attachments section)"),
             due_by: Optional[str] = typer.Option(None, "--due-by", help="set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)"),
+            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="--planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
@@ -4437,37 +4501,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     return
 
                 if planning is not None:
-                    planning_def = resolve_planning_definition(  # by label first: names differ per account
-                        planning, _api(lambda: schema_mod.load(res, _client())).get("fields", []))
-                    planning_id = planning_server_key(planning_def)
                     desc = sys.stdin.read() if description == "-" else description
-                    if dry_run:
-                        _emit_dry_run(res, cid, {"planning_field": planning_id, "description": desc, "files": list(files or []), "duplicate": duplicate}, "update_planning_field")
-                        return
-                    updated = update_planning_field(
-                        cid,
-                        planning_id,
-                        description=desc,
-                        file_paths=list(files or []),
-                        duplicate=duplicate,
-                        backup_replaced=backup_replaced,
-                        backup_name=backup_name,
-                        label=str(planning_def.get("label") or planning),
-                    )
-                    if json_out:
-                        emit_json(updated)
-                    elif updated.get("_fsv_noop"):
-                        skipped = ", ".join(updated.get("skipped") or [])
-                        console.print(f"[yellow]no changes[/] planning field {planning_id!r}" + (f" ({skipped} already attached)" if skipped else ""))
-                    else:
-                        n_files = len(files or [])
-                        suffix = []
-                        if desc is not None:
-                            suffix.append("description")
-                        if n_files:
-                            suffix.append(f"{n_files} file(s)")
-                        console.print(f"[green]updated[/] planning field {planning_id!r}" +
-                                      (f" ({', '.join(suffix)})" if suffix else ""))
+                    _change_planning_update(cid, planning, desc, list(files or []), duplicate=duplicate,
+                                            backup_replaced=backup_replaced, max_bytes=max_bytes,
+                                            dry_run=dry_run, yes=yes, expect_plan=expect_plan,
+                                            json_out=json_out, no_input=no_input)
                     return
 
                 if edit:
