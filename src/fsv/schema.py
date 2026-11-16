@@ -229,7 +229,7 @@ class SchemaRefusal(Exception):
 
 _RETRY_SCOPE: ContextVar[bool] = ContextVar("fsv_schema_retry_scope", default=False)
 _REFUSAL_MARKERS = ("not offered", "field not found", "required field", "no choice ", "unknown ",
-                    "did not match a")
+                    "did not match a", "not a valid choice")
 T = TypeVar("T")
 
 
@@ -238,6 +238,12 @@ def is_schema_refusal(message: str) -> bool:
     lift: an unknown choice value, an unknown field, a missing required field."""
     if not _RETRY_SCOPE.get():
         return False
+    return looks_like_schema_refusal(message)
+
+
+def looks_like_schema_refusal(message: str) -> bool:
+    """A local refusal a newer schema could lift (see is_schema_refusal),
+    for callers that run their own refetch-once loop (ticket properties)."""
     low = str(message).lower()
     return any(m in low for m in _REFUSAL_MARKERS)
 

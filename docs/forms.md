@@ -140,7 +140,7 @@ trusted for 15 minutes only:
 | cache (`fsv cache status`) | kind | TTL | stale on a read | on a write |
 | --- | --- | --- | --- | --- |
 | `<module>` schema (form fields, choices) | `schema` | 15 min | used once, refreshed in the background | refetched first when older than 15 min |
-| `forms/<module>-fields` (form engine) | `schema` | 15 min | refetched | form writes load fresh metadata |
+| `forms/<module>-fields` (form engine) | `schema` | 15 min | refetched | form writes load fresh metadata (ticket property reviews use the cache, the send refetches) |
 | `forms/<module>-rules-...` (business rules) | `form_rules` | 15 min | refetched | form writes load fresh rules |
 | `<module>` views (saved filters) | `filters` | 15 min | used once, refreshed in the background | not used |
 | groups | `groups` | 6 h | used once, refreshed in the background | not used |
@@ -155,6 +155,15 @@ choice added minutes ago is accepted without clearing the cache. A second
 refusal is final (no loop); a schema just fetched from the server is never
 refetched. `fsv --refresh <command>` refetches every cache it reads once in
 that run; `fsv cache clear schema|views|groups|all` still empties them.
+
+`tickets update` (and the ticket property plans of `tickets assign`/bulk)
+reviews against the form-engine caches (`forms/ticket-fields`, rules): a
+dry-run inside the 15-minute TTL sends no `ticket_form_fields` GET (a rule
+set with no entries is never cached, so its read repeats). A refusal a newer
+form could lift (unknown field label, value not offered or not a valid
+choice, required field) refetches the ticket form ONCE and reviews again.
+The send's own rebuild always loads fresh metadata, so a form edited since
+the review changes the hash and the write is refused ("review again").
 
 ## FormSpec
 

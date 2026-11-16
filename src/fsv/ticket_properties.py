@@ -99,7 +99,32 @@ class PropertyPlan:
 
 def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
                planned_start: str | None = None, planned_end: str | None = None,
-               answers: dict[str, Any] | None = None, ack: bool = False) -> PropertyPlan:
+               answers: dict[str, Any] | None = None, ack: bool = False, fresh: bool = False) -> PropertyPlan:
+    """Review a ticket property update. The edit form's fields and rules come
+    from the form cache (15-minute TTL, docs/forms.md): a review inside the TTL
+    sends no metadata GET. A refusal a newer schema could lift (unknown
+    field, value not offered, required field) refetches the metadata ONCE and
+    reviews again; ``fresh`` (the send's own rebuild) always refetches, so a
+    form edited since the review changes the hash and is refused."""
+    kw = dict(tags=tags, planned_start=planned_start, planned_end=planned_end, answers=answers, ack=ack)
+    if fresh:
+        return _build_plan(c, ticket_id, fresh=True, **kw)
+    from fsv.formmeta import _cached
+    cached = _cached("ticket-fields") is not None  # rules with no entries are never cached
+    try:
+        return _build_plan(c, ticket_id, fresh=False, **kw)
+    except PropertyError as exc:
+        from fsv.schema import looks_like_schema_refusal
+        if not cached or not looks_like_schema_refusal(str(exc)):
+            raise
+        import sys
+        print(f"note: {exc}; refetching the ticket form once and validating again", file=sys.stderr)
+    return _build_plan(c, ticket_id, fresh=True, **kw)
+
+
+def _build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
+                planned_start: str | None = None, planned_end: str | None = None,
+                answers: dict[str, Any] | None = None, ack: bool = False, fresh: bool = False) -> PropertyPlan:
     cid = parse_id(str(ticket_id), TICKETS)
     if cid <= 0:
         raise ValueError("ticket ID must be positive")
@@ -124,7 +149,7 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
         raise PropertyError("ticket read did not include: " + ", ".join(missing))
     before = {k: row[k] for k in body}
     try:
-        meta = load_meta(c, "ticket", "edit", fresh=True, module_id=cid, record=row)
+        meta = load_meta(c, "ticket", "edit", fresh=fresh, module_id=cid, record=row)
         if meta.rules.get(RULES_UNAVAILABLE_KEY):
             raise PropertyError("ticket business rules are unavailable; use the web form")
         engine = meta.engine()
@@ -227,7 +252,7 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
     payload = plan.payload
     fresh = build_plan(c, plan.ticket_id, tags=payload.get("tags"),
                        planned_start=payload.get("planned_start_date"), planned_end=payload.get("planned_end_date"),
-                       answers=json.loads(plan.answers_json), ack=bool(plan.acknowledged))
+                       answers=json.loads(plan.answers_json), ack=bool(plan.acknowledged), fresh=True)
     if fresh.hash != plan.hash:
         raise PropertyError("ticket or form changed since review; review again")
     try:

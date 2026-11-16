@@ -229,7 +229,9 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
   cached for days kept the old label until it was cleared. fsv trusts form
   schemas and rules for 15 minutes, refetches an older one before every
   write and refetches once when a write's value or field is refused
-  locally (docs/forms.md, "Cache lifetimes"). [CAPTURED]
+  locally (docs/forms.md, "Cache lifetimes"). `tickets update` follows the same
+  rules on the form-engine cache: no metadata GET per dry-run inside the TTL,
+  one refetch on a refusal, a fresh read at send. [CAPTURED]
 
 * An export (`POST /api/_/<module>/export`) answers 202 `{"success": true}`
   and the server emails the file to the signed-in agent, "usually within 15

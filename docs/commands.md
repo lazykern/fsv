@@ -510,6 +510,9 @@ than that first, and a write whose value, field or required field is
 refused against a cached schema refetches that module's schema once and
 validates again (docs/forms.md, "Cache lifetimes"). `fsv --refresh
 <command>` refetches every cache the command reads once.
+`tickets update` reviews against the cached ticket form (no
+`ticket_form_fields` GET per dry-run inside the 15 minutes), refetches it
+once on such a refusal and always reads it fresh at send.
 
 ### journal
 
