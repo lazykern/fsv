@@ -574,7 +574,7 @@ Other filter facts:
 | Change | `DELETE /api/_/changes/<id>` (204) | — | — | VERIFIED LIVE (readback was `deleted: true` once and 404 once) |
 | Release | `DELETE /api/_/releases/<id>` (204) | — | — | VERIFIED LIVE |
 | KB article | `DELETE /api/_/solutions/articles/<id>` (trash; GET then shows `deleted: true`) | — | `DELETE /api/_/solutions/articles/<id>/delete_forever` (then 404) | VERIFIED LIVE |
-| Project (Freshrelease host) | `DELETE https://<tenant>.freshrelease.com/projects/<id>` with `{"delete_project_name": "<exact name>"}` | — | — | VERIFIED LIVE |
+| Project (Freshrelease host) | `DELETE https://<tenant>.freshrelease.com/projects/<id>` with `{"delete_project_name": "<exact name>"}` (the name typed in the confirm modal); 200 `{"success": true}`; sent by the project iframe with that host's session | — | — | VERIFIED LIVE (UI); fsv does not send it (no session or captured read on that host) |
 
 * Ids in bulk deletes go in the **query string**, not a JSON body.
   [VERIFIED LIVE]

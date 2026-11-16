@@ -201,6 +201,19 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
 * **Selection by multi-select remove**: the CI "Remove" button removes one
   row even when several are checked. [VERIFIED LIVE]
 
+* Scenario automation names are unique per workspace: saving a clone under
+  an existing name re-renders the legacy admin form with "Name has already
+  been taken" and creates nothing, so a lookup by exact name cannot be
+  ambiguous. [CAPTURED]
+* Deleting a project (Freshrelease, the project UI is an iframe on
+  `https://<tenant>.freshrelease.com`) makes you type the exact project
+  name; the request is `DELETE /projects/<id>` on that host with
+  `{"delete_project_name": "<exact name>"}`, sent with that host's own
+  session, not through the Freshservice `/api/_/` proxy. fsv does not send
+  it: its session has no credentials for that host and no read of a project
+  there was captured, so neither the review name nor the 404/absence
+  readback could be proven. [CAPTURED]
+
 ## Caches and timing
 
 * Saves are asynchronous: a GET right after a successful write can still
