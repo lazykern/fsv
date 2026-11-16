@@ -392,6 +392,9 @@ fsv assets search 'Acme' --per-page 2 --page 2   # JSON: page, per_page, pages, 
 fsv solutions create --title 'Restore service' --body 'Restart the service' --type workaround --dry-run
 fsv attachments delete 123 --owner tickets/INC-1234 --dry-run
 fsv attachments delete 123 --owner tickets/INC-1234 --yes --expect-plan FULL_HASH --confirm-destructive
+fsv problems update PRB-1234 --planning 'Root Cause' --description '<div>Acme cause</div>' --file cause.txt --dry-run
+fsv problems download PRB-1234 --all-planning
+fsv attachments delete 123 --owner problems/1234 --section problem_cause --dry-run
 fsv form fields changes --choices Priority
 fsv form explain changes --set 'Priority=High'
 fsv form dump changes > snapshot.json

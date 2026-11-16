@@ -411,9 +411,23 @@ def delete_plan(client: Any, ident: int | str, owner: str, *, child: int | None 
 
 def delete(plan: WritePlan, client: Any, owner: str, *, reviewed_hash: str | None,
            child: int | None = None, section: str | None = None) -> dict[str, Any]:
-    before_ids = {positive_id(r["id"]) for r in _rows_attachments(deletion_owner(client, owner, child, section))}
+    before_row = deletion_owner(client, owner, child, section)
+    before_ids = {positive_id(r["id"]) for r in _rows_attachments(before_row)}
+    if section is not None:
+        from fsv.planning_text import section_content
+        before_text = section_content(before_row)
+
     def verify(_response):
-        rows = _rows_attachments(deletion_owner(client, owner, child, section))
-        return {"attachment_id": plan.target, "verified": {positive_id(r["id"]) for r in rows} == before_ids - {plan.target}}
+        row = deletion_owner(client, owner, child, section)
+        rows = _rows_attachments(row)
+        out = {"attachment_id": plan.target,
+               "verified": {positive_id(r["id"]) for r in rows} == before_ids - {plan.target}}
+        if section is not None:
+            # captured: deleting a section's file keeps the section text
+            after_text = section_content(row)
+            kept = before_text is not None and after_text is not None and same_text(after_text, before_text)
+            out["section_text"] = "kept" if kept else "unavailable" if after_text is None else "changed"
+            out["verified"] = out["verified"] and kept
+        return out
     return execute(plan, client, reviewed_hash=reviewed_hash,
                    rebuild=lambda: delete_plan(client, plan.target, owner, child=child, section=section), verify=verify)

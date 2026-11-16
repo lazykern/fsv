@@ -975,8 +975,25 @@ transaction, names the step and the uploaded IDs, and is never replayed (no
 duplicate attachments). Readback re-reads the planning inventory and reports
 the section's attachments (`id`, `name`) and description (`verified`; exit 4
 otherwise). `--backup-replaced` is refused on this path: download the old file
-first with `changes download ID --planning SECTION`. Problems have no captured
-planning file wire; `problems planning-text` stays text-only.
+first with `changes download ID --planning SECTION`.
+
+Problems use the same wire (CAPTURED) on their three analysis sections (Root
+Cause `problem_cause`, Impact `problem_impact`, Symptoms `problem_symptom`):
+
+```sh
+fsv problems update PRB-123 --planning 'Root Cause' --description '<div>Acme cause</div>' --file cause.txt --dry-run
+fsv problems update PRB-123 --planning 'Root Cause' --description '<div>Acme cause</div>' --file cause.txt --yes --expect-plan FULL_HASH
+fsv problems download PRB-123 --all-planning
+fsv attachments delete 611 --owner problems/123 --section problem_cause --dry-run
+```
+
+The first write of a section is `POST problems/ID/planning-fields?id=SECTION`
+(201), later edits `PUT problems/ID/planning-fields/SECTION`; the size limit
+comes from the problem form metadata or `--max-bytes`. `--planning` is its own
+update mode (no other field flags in the same run). `attachments delete` of a
+section file is one `DELETE /api/_/attachments/ID` (204) with no planning
+save; its readback requires the file gone from the section and the section
+text unchanged (`section_text: kept`).
 These operations delete section text, not the section definition or parent record.
 
 The review shows `operation`, `before` and `after` text alongside the exact

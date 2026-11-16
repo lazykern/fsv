@@ -2837,8 +2837,8 @@ def _problem_reviewed_update(res: Resource, id_: str, status: Optional[str], pri
 def _change_planning_update(cid: int, section: str, description: str | None, files: list[str], *,
                             duplicate: str, backup_replaced: bool | None, max_bytes: int | None,
                             dry_run: bool, yes: bool, expect_plan: str | None, json_out: bool,
-                            no_input: bool) -> None:
-    """``changes update --planning``: description and file uploads on the
+                            no_input: bool, module: str = "changes") -> None:
+    """``changes|problems update --planning``: description and file uploads on the
     reviewed contract (planning_files): dry-run prints the plan hash,
     ``--yes --expect-plan`` sends the uploads then the planning save, each
     journaled, and reads the section back (exit 4 when unverified)."""
@@ -2848,7 +2848,7 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
 
     def build():
         return flow.build_plan(c, cid, section, description, files, duplicate=duplicate,
-                               backup_replaced=backup_replaced, max_bytes=max_bytes)
+                               backup_replaced=backup_replaced, max_bytes=max_bytes, module=module)
     try:
         plan = build()
     except (ValueError, ReviewedWriteError) as exc:
@@ -2856,7 +2856,7 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
         raise typer.Exit(2) from None
     if plan.noop:
         if expect_plan is not None:
-            typer.echo(journal.stale_plan_refusal(expect_plan, (flow.ACTION,))
+            typer.echo(journal.stale_plan_refusal(expect_plan, (plan.action,))
                        or "nothing to change; the reviewed plan does not exist. Nothing was sent", err=True)
             raise typer.Exit(2)
         skipped = ", ".join(plan.skipped)
@@ -2872,8 +2872,8 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
         return
     try:
         if expect_plan is not None and expect_plan != plan.hash:
-            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (flow.ACTION,))
-                                     or "the change, planning section or files changed since review (or a partial "
+            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (plan.action,))
+                                     or f"the {module[:-1]}, planning section or files changed since review (or a partial "
                                         "hash); review again with --dry-run. Nothing was sent")
         if yes:
             if expect_plan != plan.hash:
@@ -4832,6 +4832,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_start: Optional[str] = typer.Option(None, "--planned-start", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_effort: Optional[str] = typer.Option(None, "--planned-effort", help="problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field"),
+            planning: Optional[str] = typer.Option(None, "--planning", help="problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update"),
+            description: Optional[str] = typer.Option(None, "--description", "--desc", help="problems --planning: section text/HTML; '-' reads stdin"),
+            files: Optional[List[str]] = typer.Option(None, "--file", "-f", help="problems --planning: file(s) to upload to the section"),
+            duplicate: str = typer.Option("prompt", "--duplicate", help="problems --planning --file: same-name attachment behavior: prompt|skip|replace|append"),
+            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)"),
             reviewed: bool = typer.Option(True, "--reviewed/--no-review", help="--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release"),
             ack: bool = typer.Option(False, "--ack", help="tickets: acknowledge blocking rule messages (bound to the review hash)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash (ticket property update, problem update)"),
@@ -4841,6 +4846,23 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update basic fields."""
+            if planning is not None or description is not None or files:
+                if res != PROBLEMS:
+                    _err("--planning/--description/--file are supported only for problems here "
+                         "(changes have their own `changes update --planning`)")
+                if planning is None:
+                    _err("--description/--file need --planning SECTION")
+                if (not reviewed or any(v is not None for v in (status, priority, agent_id, group_id, planned_start,
+                                                                   planned_end, planned_effort)) or set_ or tag or ack):
+                    _err("--planning is its own update mode; send other fields in a separate update")
+                desc = sys.stdin.read() if description == "-" else description
+                _change_planning_update(_cid(id_, res), planning, desc, list(files or []), duplicate=duplicate,
+                                        backup_replaced=None, max_bytes=max_bytes, dry_run=dry_run, yes=yes,
+                                        expect_plan=expect_plan, json_out=json_out, no_input=no_input,
+                                        module="problems")
+                return
+            if max_bytes is not None:
+                _err("--max-bytes applies to problems --planning --file")
             if not reviewed:
                 if (tag or planned_start is not None or planned_end is not None or planned_effort is not None
                         or ack):
@@ -4926,6 +4948,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
             main_attachments: bool = typer.Option(False, "--attachments", "--main-attachments", help="download main attachments"),
             threads: bool = typer.Option(False, _threads_flag, help=_threads_help),
             description_attachments: bool = typer.Option(False, "--description-attachments", help="download attachment links found in description HTML"),
+            planning: Optional[List[str]] = typer.Option(None, "--planning", help="problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)"),
+            all_planning: bool = typer.Option(False, "--all-planning", help="problems: download every analysis section's attachments"),
             all_: bool = typer.Option(False, "--all", help="download all attachments from all sources"),
             out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./downloads/<ID>)"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
@@ -4936,12 +4960,16 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 from fsv.create import download_attachment
                 cid = _cid(id_, res)
                 c = _client()
+                if (planning or all_planning) and res != PROBLEMS:
+                    _err("--planning/--all-planning here are for problems; use `fsv changes download --planning`")
                 limit = _download_limit(c, max_bytes)
                 if all_:
                     main_attachments = True
                     threads = True
                     description_attachments = True
-                if not main_attachments and not threads and not description_attachments:
+                    all_planning = res == PROBLEMS
+                if not main_attachments and not threads and not description_attachments and not planning \
+                        and not all_planning:
                     main_attachments = True
                 pfx = res.display_prefixes[0]
                 out_dir = _download_dir(out, f"{pfx}-{cid}")
@@ -4990,6 +5018,28 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         r["source"] = "description"
                         r["status"] = _download_status(r)
                         results.append(r)
+
+                if planning or all_planning:
+                    from fsv import planning_files, planning_text
+                    from fsv.reviewed_write import ReviewedWriteError
+                    try:
+                        defs = planning_text.definitions(c, "problems")
+                        rows = planning_text.inventory(c, "problems", cid)
+                        wanted = [d["name"] for d in defs] if all_planning else \
+                            [planning_files._resolve_section("problems", v, defs)["name"] for v in planning or []]
+                    except (ValueError, ReviewedWriteError) as exc:
+                        _err(str(exc))
+                    for key in dict.fromkeys(wanted):
+                        row = next((r for r in rows if r.get("name") == key), None)
+                        atts = (row or {}).get("attachments") or []
+                        if not atts:
+                            results.append({"source": f"planning:{key}", "status": "no attachments"})
+                            continue
+                        for att in atts:
+                            r = download_attachment(att, out_dir, force=force, c=c, max_bytes=limit)
+                            r["source"] = f"planning:{key}"
+                            r["status"] = _download_status(r)
+                            results.append(r)
 
                 if json_out:
                     emit_json(results)

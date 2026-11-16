@@ -1,6 +1,7 @@
-"""Reviewed change planning-field update: description text plus file uploads.
+"""Reviewed planning-field update (changes and problems): description text
+plus file uploads.
 
-``changes update ID --planning FIELD [--description TEXT] [--file F ...]``
+``changes|problems update ID --planning FIELD [--description TEXT] [--file F ...]``
 is one reviewed transaction of two kinds of step: one attachment upload
 (``POST /api/_/attachments``) per new file, then the planning-field save
 (``PUT .../planning-fields/<name>`` for an existing row, ``POST
@@ -12,8 +13,10 @@ upload and one for the save; an unknown step is never replayed (no
 duplicate attachments). Readback re-reads the planning inventory and
 compares the row's attachment IDs and names and its description.
 
-Problems have no captured planning file wire; their planning text stays on
-``problems planning-text`` (text only).
+Problems use the same captured wire on ``problems/<id>/planning-fields``
+for their three native analysis sections (``problem_cause``,
+``problem_impact``, ``problem_symptom``); the size limit then comes from the
+problem form metadata.
 """
 from __future__ import annotations
 
@@ -35,6 +38,20 @@ from fsv.reviewed_write import ReviewedWriteError
 from fsv.watchers import positive_id
 
 ACTION = "change_planning_update"
+PROBLEM_ACTION = "problem_planning_update"
+ACTIONS = {"changes": ACTION, "problems": PROBLEM_ACTION}
+FORM_FIELDS = {"changes": "change_form_fields", "problems": "problem_form_fields"}
+
+
+def _resolve_section(module: str, section: str, defs: list[dict[str, Any]]) -> dict[str, Any]:
+    if module == "changes":
+        return resolve_planning_definition(section, defs)
+    raw = str(section or "").strip()
+    hits = [d for d in defs if raw == d["name"] or raw.casefold() == str(d["label"]).casefold()]
+    if len(hits) != 1:
+        known = ", ".join(f"{d['label']} ({d['name']})" for d in defs)
+        raise ValueError(f"unknown problem planning section {section!r}; choices: {known}")
+    return hits[0]
 DUPLICATE_MODES = ("prompt", "skip", "replace", "append")
 
 
@@ -89,6 +106,11 @@ class PlanningUpdatePlan:
     published_limit: int | None
     context_hash: str
     state: dict[str, Any] = field(default_factory=dict)
+    module: str = "changes"
+
+    @property
+    def action(self) -> str:
+        return ACTIONS[self.module]
 
     @property
     def noop(self) -> bool:
@@ -98,7 +120,7 @@ class PlanningUpdatePlan:
     @property
     def hash(self) -> str:
         return journal.plan_hash({
-            "action": ACTION, "tenant": self.tenant, "target": self.target, "section": self.section,
+            "action": self.action, "tenant": self.tenant, "target": self.target, "section": self.section,
             "method": self.method, "path": self.path, "description": self.description,
             "kept_attachment_ids": list(self.kept_ids), "replaced": [list(r) for r in self.replaced],
             "skipped": list(self.skipped), "files": [f.review() for f in self.files], "duplicate": self.duplicate,
@@ -117,7 +139,7 @@ class PlanningUpdatePlan:
 
     def review(self) -> dict[str, Any]:
         out: dict[str, Any] = {
-            "action": ACTION, "target": self.target, "section": self.section, "label": self.label,
+            "action": self.action, "target": self.target, "section": self.section, "label": self.label,
             "steps": ([{"step": "upload", "method": "POST", "path": "/api/_/attachments", "file": f.name}
                        for f in self.files] +
                       [{"step": "planning", "method": self.method, "path": "/api/_/" + self.path}]),
@@ -144,21 +166,23 @@ class PlanningUpdatePlan:
 
 def build_plan(client: Any, target: int, section: str, description: str | None, paths: list[str], *,
                duplicate: str = "prompt", backup_replaced: bool | None = None,
-               max_bytes: int | None = None) -> PlanningUpdatePlan:
+               max_bytes: int | None = None, module: str = "changes") -> PlanningUpdatePlan:
+    if module not in ACTIONS:
+        raise ValueError("planning files are supported for changes and problems")
     mode = (duplicate or "").casefold()
     if mode not in DUPLICATE_MODES:
         raise ValueError("--duplicate must be one of: prompt, skip, replace, append")
     if backup_replaced:
         raise ValueError("--backup-replaced is not on the reviewed planning path; download the attachment "
-                         "first (fsv changes download ID --planning SECTION), then --duplicate replace")
+                         f"first (fsv {module} download ID --planning SECTION), then --duplicate replace")
     if description is not None and not description.strip():
         raise ValueError("--description must be nonempty text/HTML")
     if description is None and not paths:
         raise ValueError("--planning needs --description and/or --file")
     cid = positive_id(target)
-    defs = definitions(client, "changes")
-    definition = resolve_planning_definition(section, defs)
-    rows = inventory(client, "changes", cid)
+    defs = definitions(client, module)
+    definition = _resolve_section(module, section, defs)
+    rows = inventory(client, module, cid)
     existing = match_planning_row(definition, rows, defs)
     key = str(existing["name"]) if existing is not None and existing.get("name") else planning_server_key(definition)
     attachments = _existing_attachments(existing)
@@ -191,7 +215,7 @@ def build_plan(client: Any, target: int, section: str, description: str | None, 
     limit_value, source, published = None, NOT_PUBLISHED, None
     files: tuple[LocalFile, ...] = ()
     if upload:
-        limit = resolve_limit(client, client.int_get("change_form_fields"), max_bytes)
+        limit = resolve_limit(client, client.int_get(FORM_FIELDS[module]), max_bytes)
         limit_value, source, published = limit.max_bytes, limit.source, limit.published
         files = local_files(upload, limit_value)
     elif max_bytes is not None and (type(max_bytes) is not int or max_bytes <= 0):
@@ -199,20 +223,20 @@ def build_plan(client: Any, target: int, section: str, description: str | None, 
     if existing is None and description is None:
         raise ReviewedWriteError("a new planning section needs --description text; no write attempted")
     method = "PUT" if existing is not None else "POST"
-    base = f"changes/{cid}/planning-fields"
+    base = f"{module}/{cid}/planning-fields"
     path = f"{base}/{quote(key, safe='')}" if method == "PUT" else f"{base}?id={quote(key, safe='')}"
-    change = owner_row(client, "changes", cid)
-    state = journal.repeat_token((ACTION,), cid, change)
+    owner = owner_row(client, module, cid)
+    state = journal.repeat_token((ACTIONS[module],), cid, owner)
     return PlanningUpdatePlan(config.DOMAIN, cid, key, str(definition.get("label") or section), method, path,
                               description, before, tuple(kept), tuple(replaced), tuple(skipped), files, mode,
                               limit_value, source, published,
-                              journal.snapshot_hash({"definitions": defs, "rows": rows}) or "", state)
+                              journal.snapshot_hash({"definitions": defs, "rows": rows}) or "", state, module)
 
 
 def readback(client: Any, plan: PlanningUpdatePlan, uploaded: list[int]) -> dict[str, Any]:
-    defs = definitions(client, "changes")
+    defs = definitions(client, plan.module)
     definition = next((d for d in defs if planning_server_key(d) == plan.section), {"name": plan.section})
-    row = match_planning_row(definition, inventory(client, "changes", plan.target), defs)
+    row = match_planning_row(definition, inventory(client, plan.module, plan.target), defs)
     if row is None:
         return {"section": plan.section, "attachments": "unavailable", "description": "unavailable", "verified": False}
     observed = {positive_id(a.get("id")): a for a in _existing_attachments(row)}
@@ -240,19 +264,21 @@ def send(plan: PlanningUpdatePlan, client: Any, *, reviewed_hash: str | None,
     if plan.files and plan.limit is None:
         raise ReviewedWriteError("the tenant publishes no attachment size limit; review again with --max-bytes N; "
                                  "no upload attempted")
-    events = [e for e in journal.read() if e.get("kind") == "plan:" + ACTION and e.get("plan") == plan.hash]
+    action = plan.action
+    events = [e for e in journal.read() if e.get("kind") == "plan:" + action and e.get("plan") == plan.hash]
     refusal = journal.replay_refusal(events, "planning transaction was sent or outcome unknown; do not replay")
     if refusal:
         raise ReviewedWriteError(refusal)
     fresh = rebuild()
     if fresh.hash != plan.hash or (plan.files and local_files([f.path for f in plan.files], plan.limit) != plan.files):
-        raise ReviewedWriteError("change, planning section or file bytes changed since review; review again")
+        raise ReviewedWriteError(f"{plan.module[:-1]}, planning section or file bytes changed since review; "
+                                 "review again")
     try:
         csrf = client._get_csrf()
     except Exception:
         raise ReviewedWriteError("could not prepare session; no write attempted") from None
-    journal.record_plan("started", plan.hash, action=ACTION, target=plan.target)
-    events = [e for e in journal.read() if e.get("kind") == "plan:" + ACTION and e.get("plan") == plan.hash]
+    journal.record_plan("started", plan.hash, action=action, target=plan.target)
+    events = [e for e in journal.read() if e.get("kind") == "plan:" + action and e.get("plan") == plan.hash]
     if not events or events[-1].get("event") != "started":
         raise ReviewedWriteError("could not persist planning journal; no write attempted")
     headers = {"Content-Type": "application/json", "X-CSRF-Token": csrf}
@@ -271,9 +297,9 @@ def send(plan: PlanningUpdatePlan, client: Any, *, reviewed_hash: str | None,
             if ident in uploaded:
                 raise ReviewedWriteError("upload returned duplicate attachment identity")
             uploaded.append(ident)
-            journal.record_plan("uploaded", plan.hash, action=ACTION + "_upload", target=plan.target, created_id=ident)
+            journal.record_plan("uploaded", plan.hash, action=action + "_upload", target=plan.target, created_id=ident)
             persisted = [e for e in journal.read()
-                         if e.get("kind") == "plan:" + ACTION + "_upload" and e.get("plan") == plan.hash]
+                         if e.get("kind") == "plan:" + action + "_upload" and e.get("plan") == plan.hash]
             if not persisted or persisted[-1].get("created_id") != ident:
                 raise ReviewedWriteError("could not persist uploaded attachment identity")
         step = "planning"
@@ -283,16 +309,16 @@ def send(plan: PlanningUpdatePlan, client: Any, *, reviewed_hash: str | None,
         status = getattr(exc, "status", None)
         detail = f" (HTTP {status})" if isinstance(status, int) and status else ""
         raise ReviewedWriteError(f"planning transaction failed at the {step} step{detail} or outcome unknown; "
-                                 "uploaded IDs: " + json.dumps(uploaded) + "; inspect the change and journal, "
+                                 "uploaded IDs: " + json.dumps(uploaded) + f"; inspect the {plan.module[:-1]} and journal, "
                                  "do not replay", http_status=status if isinstance(status, int) and status else None) from None
-    journal.record_plan("done", plan.hash, action=ACTION, target=plan.target)
+    journal.record_plan("done", plan.hash, action=action, target=plan.target)
     result: dict[str, Any] = {"status": "submitted", "plan_hash": plan.hash, "uploaded_ids": uploaded, "verified": False}
     try:
         result.update(readback(client, plan, uploaded))
     except Exception:
         result["warning"] = "Independent planning readback failed; do not resend."
     if result.get("verified") is True:
-        journal.record_verified(plan.hash, action=ACTION, target=plan.target)
+        journal.record_verified(plan.hash, action=action, target=plan.target)
     else:
         result.setdefault("warning", "Planning readback was not fully verified; do not resend.")
     return result

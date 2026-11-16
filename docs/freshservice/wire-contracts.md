@@ -143,6 +143,8 @@ write.
 | Attach on create | owner create body `attachments: [<id>, ...]` | — | owner's `attachments[]` | VERIFIED LIVE (incident, change, problem, notes, replies) |
 | Attach to existing change | `PUT /api/_/changes/<id>` | `{"attachments": [<all ids>]}` (replaces the whole list) | 200 | VERIFIED LIVE |
 | Planning-section file | `POST /api/_/changes/<id>/planning-fields?id=<section>` | `{description, attachments: [<id>]}` (description required) | 201 | VERIFIED LIVE |
+| Problem analysis-section file | `POST /api/_/attachments` (base64 `{content, content_file_name, content_file_size, content_content_type}` → `{id, ...}`), then `POST /api/_/problems/<id>/planning-fields?id=problem_cause\|problem_impact\|problem_symptom` (first write) or `PUT .../planning-fields/<section>` | `{description, attachments: [<id>]}`, same shape as changes | 201 `{problem_planning_field: {id, name, description, description_text, attachments: [...], problem_id}}` | CAPTURED |
+| Planning-section file delete | `DELETE /api/_/attachments/<id>` | none; no planning-fields request follows | 204; the section keeps its text, its `attachments` list no longer has the file | CAPTURED |
 | SR file field | place-request `custom_fields: {<file field>: [<id>]}` | — | the requested item's field value | VERIFIED LIVE |
 | SR general attachments | place-request `attachments: [<id>]` | — | on the **requested item**, not the ticket | VERIFIED LIVE |
 | Delete | `DELETE /api/_/attachments/<id>` | none | 204; then 404 | VERIFIED LIVE |
