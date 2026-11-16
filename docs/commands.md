@@ -387,6 +387,7 @@ exists, else the legacy list (`tickets/<id>/associated_assets`,
 
 ```bash
 fsv assets search 'Acme'
+fsv assets search 'Acme' --per-page 2 --page 2   # JSON: page, per_page, pages, total_rows
 fsv solutions create --title 'Restore service' --body 'Restart the service' --type workaround --dry-run
 fsv attachments delete 123 --owner tickets/INC-1234 --dry-run
 fsv attachments delete 123 --owner tickets/INC-1234 --yes --expect-plan FULL_HASH --confirm-destructive

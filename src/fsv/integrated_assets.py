@@ -19,37 +19,49 @@ def target_id(module: str, target: str | int) -> tuple[str, int]:
     return ("tickets" if module == "sr" else module, positive_id(parse_id(str(target), RESOURCES[module])))
 
 
-def _past_end(kind: str, page: int, total: int) -> ValueError:
+def _past_end(kind: str, page: int, total: int, per_page: int) -> ValueError:
     return ValueError(f"no results on page {page}: the {kind} inventory has {total} row(s) "
-                      f"({max(1, -(-total // PAGE_SIZE))} page(s) of {PAGE_SIZE})")
+                      f"({max(1, -(-total // per_page))} page(s) of {per_page})")
 
 
-PAGE_SIZE = 50
+PAGE_SIZE = 50  # integrated inventory search default page size
+LEGACY_PAGE_SIZE = 30  # legacy assets-to-associate picker default page size
+MAX_PAGE_SIZE = 100
 
 
-def search(client: Any, query: str = "", *, kind: str = "devices", page: int = 1) -> dict[str, Any]:
+def _per_page(value: int | None, default: int) -> int:
+    if value is None:
+        return default
+    if type(value) is not int or not 1 <= value <= MAX_PAGE_SIZE:
+        raise ValueError(f"--per-page must be a whole number from 1 to {MAX_PAGE_SIZE}")
+    return value
+
+
+def search(client: Any, query: str = "", *, kind: str = "devices", page: int = 1,
+           per_page: int | None = None) -> dict[str, Any]:
     if kind not in FAMILIES or type(page) is not int or page < 1:
         raise ValueError("choose devices, assets or services and a positive page")
+    per_page = _per_page(per_page, PAGE_SIZE)
     from fsv.errors import APIError
     try:
         raw = client._request("GET", f"https://{config.DOMAIN}/itam/core/{FAMILIES[kind]}/api/",
-                              params={"order": "", "page": page, "page_size": PAGE_SIZE, "q": query})
+                              params={"order": "", "page": page, "page_size": per_page, "q": query})
     except APIError as exc:
         if page == 1 or exc.status not in (400, 404):
             raise
         raw = None
     if (page > 1 and isinstance(raw, dict) and isinstance(raw.get("error"), str) and raw.get("data") == []
-            and type(raw.get("total_rows")) is int and 0 <= raw["total_rows"] <= (page - 1) * PAGE_SIZE):
+            and type(raw.get("total_rows")) is int and 0 <= raw["total_rows"] <= (page - 1) * per_page):
         # Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
-        raise _past_end(kind, page, raw["total_rows"])
+        raise _past_end(kind, page, raw["total_rows"], per_page)
     valid = (isinstance(raw, dict) and not raw.get("error") and isinstance(raw.get("data"), list)
              and raw.get("page") == page and type(raw.get("total_rows")) is int)
     if page > 1 and not (valid and raw["data"]):
         # Other past-the-end shapes (404/400, an error without a total, an
         # empty page): page 1's total decides; a read-only GET, never a guess.
-        first = search(client, query, kind=kind, page=1)
-        if first["total_rows"] <= (page - 1) * PAGE_SIZE:
-            raise _past_end(kind, page, first["total_rows"])
+        first = search(client, query, kind=kind, page=1, per_page=per_page)
+        if first["total_rows"] <= (page - 1) * per_page:
+            raise _past_end(kind, page, first["total_rows"], per_page)
     if not isinstance(raw, dict) or raw.get("error") or not isinstance(raw.get("data"), list):
         raise ReviewedWriteError("integrated inventory unavailable")
     total = raw.get("total_rows")
@@ -64,9 +76,10 @@ def search(client: Any, query: str = "", *, kind: str = "devices", page: int = 1
         if pk is not None and positive_id(pk) != ident:
             raise ReviewedWriteError("conflicting inventory identities")
         ids.append(ident)
-    if len(set(ids)) != len(ids) or total < len(ids):
+    if len(set(ids)) != len(ids) or total < len(ids) or len(ids) > per_page:
         raise ReviewedWriteError("invalid inventory totals or duplicate identities")
-    return {**raw, "kind": kind, "complete": page == 1 and len(ids) == total}
+    return {**raw, "kind": kind, "page": page, "per_page": per_page, "total_rows": total,
+            "pages": max(1, -(-total // per_page)), "complete": page == 1 and len(ids) == total}
 
 
 INTEGRATED = "integrated"
@@ -132,7 +145,8 @@ LEGACY_WRITES = {"changes": "changes/{id}/assets/associate", "tickets": "tickets
 LEGACY_ENTITY = {"changes": "change", "tickets": "ticket"}
 
 
-def legacy_candidates(client: Any, module: str, target: str | int) -> list[dict[str, Any]]:
+def legacy_candidates(client: Any, module: str, target: str | int,
+                      per_page: int | None = None) -> list[dict[str, Any]]:
     """Assets the web offers to associate (the requester's assets):
     ``GET assets-to-associate?entity=&user_id=<requester>&entity_id=``, all
     pages; incomplete pagination fails closed."""
@@ -144,10 +158,11 @@ def legacy_candidates(client: Any, module: str, target: str | int) -> list[dict[
     if not isinstance(row, dict) or str(row.get("id")) != str(target):
         raise ReviewedWriteError("exact record identity unavailable")
     requester = positive_id(row.get("requester_id"))
+    per_page = _per_page(per_page, LEGACY_PAGE_SIZE)
     rows: list[dict[str, Any]] = []
-    for page in range(1, 51):
+    for page in range(1, max(50, 1500 // per_page) + 1):  # the same 1500-row bound for any page size
         data = client.int_get("assets-to-associate", params={
-            "entity": LEGACY_ENTITY[module], "per_page": 30, "page": page, "user_id": requester,
+            "entity": LEGACY_ENTITY[module], "per_page": per_page, "page": page, "user_id": requester,
             "entity_id": target, "include_meta": "true"})
         if not isinstance(data, dict) or not isinstance(data.get("assets"), list):
             raise ReviewedWriteError("asset candidates unreadable")
@@ -168,7 +183,7 @@ def legacy_candidates(client: Any, module: str, target: str | int) -> list[dict[
 
 
 def candidates(client: Any, module: str, target: str | int, query: str = "", *, kind: str = "devices",
-               page: int = 1) -> dict[str, Any]:
+               page: int = 1, per_page: int | None = None) -> dict[str, Any]:
     """Assets offered for association on whichever driver the tenant exposes.
 
     The legacy ``assets-to-associate`` list is used only on a legacy-driver
@@ -188,13 +203,16 @@ def candidates(client: Any, module: str, target: str | int, query: str = "", *, 
     note = None
     if found == LEGACY and kind == "devices" and module_name in LEGACY_ENTITY:
         try:
-            return {"data": legacy_candidates(client, module, target_num), "complete": True, "driver": LEGACY}
+            rows = legacy_candidates(client, module, target_num, per_page)
+            size = _per_page(per_page, LEGACY_PAGE_SIZE)
+            return {"data": rows, "complete": True, "driver": LEGACY, "page": "all",
+                    "per_page": size, "pages": max(1, -(-len(rows) // size)), "total_rows": len(rows)}
         except APIError as exc:
             if exc.status not in (403, 404):
                 raise
             note = (f"legacy assets-to-associate answered HTTP {exc.status}; "
                     "listed from the integrated inventory search instead")
-    result = search(client, query, kind=kind, page=page)
+    result = search(client, query, kind=kind, page=page, per_page=per_page)
     associated: set[int] | None = None
     if found == INTEGRATED:
         associated = {positive_id(r["item_id"]) for r in inventory(client, module, target_num, kind)}
@@ -204,7 +222,7 @@ def candidates(client: Any, module: str, target: str | int, query: str = "", *, 
         rows.append({"id": ident, "name": row["name"].get("label"),
                      "associated": None if associated is None else ident in associated, "inventory": row})
     out = {"data": rows, "driver": INTEGRATED, "kind": kind, "query": query, "page": page,
-           "total_rows": result.get("total_rows"), "complete": result.get("complete", False),
+           "per_page": result["per_page"], "pages": result["pages"], "total_rows": result.get("total_rows"), "complete": result.get("complete", False),
            "id_meaning": "inventory IDs (use with assets add)"}
     if associated is None:
         out["associated_note"] = "no association list for this record; association state unknown"

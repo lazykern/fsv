@@ -36,8 +36,12 @@ def guard(fn: Callable) -> None:
 def register_search(app: typer.Typer, factory: Callable[[], Any]) -> None:
     @app.command("search")
     def search(query: str = typer.Argument(""), kind: str = typer.Option("devices", "--kind"),
-               page: int = typer.Option(1, "--page", min=1), json_out: bool = typer.Option(False, "--json")) -> None:
-        guard(lambda: typer.echo(tenant_json(assets.search(factory(), query, kind=kind, page=page), indent=2)))
+               page: int = typer.Option(1, "--page", min=1),
+               per_page: int | None = typer.Option(None, "--per-page", min=1, max=100,
+                                                      help=f"rows per page, 1 to 100 (default {assets.PAGE_SIZE})"),
+               json_out: bool = typer.Option(False, "--json")) -> None:
+        guard(lambda: typer.echo(tenant_json(assets.search(factory(), query, kind=kind, page=page, per_page=per_page),
+                                             indent=2)))
 
 
 def register(app: typer.Typer, module: str, factory: Callable[[], Any]) -> None:
@@ -54,9 +58,12 @@ def register(app: typer.Typer, module: str, factory: Callable[[], Any]) -> None:
                                       "records, else (or when it answers 403/404) the integrated inventory search.")
     def candidates(target: str, query: str = typer.Option("", "--search", help="integrated search text"),
                    kind: str = typer.Option("devices", "--kind"), page: int = typer.Option(1, "--page", min=1),
+                   per_page: int | None = typer.Option(None, "--per-page", min=1, max=100,
+                                                          help=f"rows per page, 1 to 100 (default {assets.PAGE_SIZE}; "
+                                                               f"legacy picker {assets.LEGACY_PAGE_SIZE}, all pages read)"),
                    json_out: bool = typer.Option(False, "--json")) -> None:
-        guard(lambda: typer.echo(tenant_json(assets.candidates(factory(), module, target, query, kind=kind, page=page),
-                                            indent=2)))
+        guard(lambda: typer.echo(tenant_json(assets.candidates(factory(), module, target, query, kind=kind, page=page,
+                                                               per_page=per_page), indent=2)))
 
     if module == "changes":
         @group.command("legacy", hidden=True)
