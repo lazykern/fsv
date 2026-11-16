@@ -966,6 +966,25 @@ whose create/edit state is unproven, existing attachments or unavailable
 attachment inventories block text-only writes. Whitespace/HTML is not stripped
 to infer emptiness; contradictory text/empty representations fail closed.
 
+### Change due date (`changes update --due-by`)
+
+```sh
+fsv changes update CHN-123 --due-by 2030-06-09T18:00:00+07:00 --dry-run
+fsv changes update CHN-123 --due-by 2030-06-09T18:00:00+07:00 --yes --expect-plan FULL_HASH
+```
+
+One `PATCH /api/_/changes/ID` of only `{"due_by": ...}` on the reviewed
+contract. The value must be an ISO-8601 date-time with an explicit offset
+(`Z` or `+07:00`); an unparsable, date-only or offset-less value is refused at
+dry-run time (the naive case names the agent profile time zone as a hint),
+before the server could answer 400. The plan hash binds the tenant, change,
+payload, a stable snapshot of the change and a record-state token; the same
+instant as the current due date is "nothing to change". `--yes` needs the full
+`--expect-plan`; the send is journaled once, and readback compares the stored
+`due_by` with the sent one as instants (the server may render it in UTC) and
+reports `manual_dueby` (`verified`; exit 4 otherwise). There is no
+`tickets update --due-by`: no reviewed ticket due-by wire exists.
+
 ### Planning text with files (`changes update --planning`)
 
 ```sh

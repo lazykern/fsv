@@ -145,6 +145,7 @@ write.
 | Planning-section file | `POST /api/_/changes/<id>/planning-fields?id=<section>` | `{description, attachments: [<id>]}` (description required) | 201 | VERIFIED LIVE |
 | Problem analysis-section file | `POST /api/_/attachments` (base64 `{content, content_file_name, content_file_size, content_content_type}` → `{id, ...}`), then `POST /api/_/problems/<id>/planning-fields?id=problem_cause\|problem_impact\|problem_symptom` (first write) or `PUT .../planning-fields/<section>` | `{description, attachments: [<id>]}`, same shape as changes | 201 `{problem_planning_field: {id, name, description, description_text, attachments: [...], problem_id}}` | CAPTURED |
 | Planning-section file delete | `DELETE /api/_/attachments/<id>` | none; no planning-fields request follows | 204; the section keeps its text, its `attachments` list no longer has the file | CAPTURED |
+| Change resolution due date | `PATCH /api/_/changes/<id>` | `{"due_by": "<ISO-8601 with offset>"}` only | 200; the change then reads back the instant (possibly in UTC) and `manual_dueby: true`; an invalid timestamp answers 400 "valid ISO8601" and changes nothing | VERIFIED LIVE |
 | SR file field | place-request `custom_fields: {<file field>: [<id>]}` | — | the requested item's field value | VERIFIED LIVE |
 | SR general attachments | place-request `attachments: [<id>]` | — | on the **requested item**, not the ticket | VERIFIED LIVE |
 | Delete | `DELETE /api/_/attachments/<id>` | none | 204; then 404 | VERIFIED LIVE |

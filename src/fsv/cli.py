@@ -2897,6 +2897,55 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
         raise typer.Exit(4)
 
 
+def _change_due_by_update(cid: int, due_by: str, *, dry_run: bool, yes: bool, expect_plan: str | None,
+                          json_out: bool, no_input: bool) -> None:
+    """``changes update --due-by`` on the reviewed contract (change_due_by):
+    ISO-8601 with an offset checked first, plan hash with a record-state
+    token, ``--yes --expect-plan``, one journaled PATCH, instant readback."""
+    from fsv import change_due_by as flow, journal
+    from fsv.reviewed_write import ReviewedWriteError
+    c = _client()
+    try:
+        flow.parse_due_by(due_by, c)
+        plan = flow.build_plan(c, cid, due_by)
+    except flow.NothingToChange as exc:
+        if expect_plan is not None:
+            typer.echo(journal.stale_plan_refusal(expect_plan, (flow.ACTION,))
+                       or "nothing to change; the reviewed plan does not exist. Nothing was sent", err=True)
+            raise typer.Exit(2) from None
+        if json_out:
+            emit_json({"status": "nothing_to_change", "target": cid})
+        else:
+            typer.echo(str(exc))
+        return
+    except (ValueError, ReviewedWriteError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+    except APIError as exc:
+        typer.echo(f"could not read change {cid} (HTTP {exc.status}); nothing was sent", err=True)
+        raise typer.Exit(2) from None
+    if dry_run:
+        typer.echo(tenant_json({"status": "dry_run", **flow.review(plan, c)}, ensure_ascii=False, indent=2))
+        return
+    try:
+        if expect_plan is not None and expect_plan != plan.hash:
+            raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (flow.ACTION,))
+                                     or "the change or the due date changed since review (or a partial hash); "
+                                        "review again with --dry-run. Nothing was sent")
+        if not yes or expect_plan != plan.hash:
+            raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash. "
+                                     "Nothing was sent")
+        result = flow.send(plan, c, reviewed_hash=plan.hash)
+    except ReviewedWriteError as exc:
+        if json_out:
+            emit_json({"status": "error", "plan_hash": plan.hash, "verified": False, **exc.as_dict()})
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+    typer.echo(tenant_json(result, ensure_ascii=False, indent=2))
+    if not result.get("verified"):
+        raise typer.Exit(4)
+
+
 def _download_limit(c: Any, max_bytes: int | None) -> int | None:
     """``--max-bytes``, else the tenant's published attachment limit, else
     no limit (with a note on stderr)."""
@@ -4472,7 +4521,6 @@ def _make_subapp(res: Resource) -> typer.Typer:
             match_planning_row,
             planning_server_key,
             resolve_planning_definition,
-            set_due_by,
             submit_change,
             update_change,
             update_planning_field,
@@ -4501,7 +4549,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             backup_replaced: Optional[bool] = typer.Option(None, "--backup-replaced/--no-backup-replaced", help="when --duplicate replace, backup old attachment first"),
             backup_name: Optional[str] = typer.Option(None, "--backup-name", help="backup filename for replaced attachment"),
             attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file(s) to attach to main change (Attachments section)"),
-            due_by: Optional[str] = typer.Option(None, "--due-by", help="set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)"),
+            due_by: Optional[str] = typer.Option(None, "--due-by", help="reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH"),
             max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="--planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
@@ -4555,11 +4603,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     _err("--duplicate prompt disabled by --no-input; use --duplicate skip|replace|append")
 
                 if due_by is not None:
-                    if dry_run:
-                        _emit_dry_run(res, cid, {"due_by": due_by}, "set_due_by")
-                        return
-                    set_due_by(cid, due_by)
-                    console.print(f"[green]updated[/] #{cid} resolution due → {due_by}")
+                    _change_due_by_update(cid, due_by, dry_run=dry_run, yes=yes, expect_plan=expect_plan,
+                                          json_out=json_out, no_input=no_input)
                     return
 
                 if planning is not None:
