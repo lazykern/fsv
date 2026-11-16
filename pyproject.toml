@@ -34,4 +34,4 @@ dev = [
 
 [tool.pytest.ini_options]
 # Parallel by default (pytest-xdist); `-n 0` or `-p no:xdist` runs serially.
-addopts = "-n auto"
+addopts = "-n 6 --dist loadgroup"

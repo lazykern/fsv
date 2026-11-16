@@ -108,7 +108,7 @@ and the README's safety model.
 * **Failure matrix.** For writes, test timeout, 403, 404, 409, 429, 5xx and
   disconnect, and assert no second request.
 * Run the full suite before each commit: `uv run pytest -q` runs it in
-  parallel (pytest-xdist, `-n auto` is the configured default; about a
+  parallel (pytest-xdist, 6 workers is the configured default; the Textual pilot tests share one worker; about a
   minute and a half). Pass a path for one file
   (`uv run pytest -q tests/test_client_session.py`) and add `-n 0` (or `-p no:xdist`)
   for serial debugging with `pdb` or ordered output.

@@ -117,7 +117,7 @@ git clone https://github.com/lazykern/fsv.git
 cd fsv
 uv sync
 uv run fsv -h
-uv run pytest -q                       # full suite, parallel (-n auto is the default)
+uv run pytest -q                       # full suite, parallel (6 workers by default)
 uv run pytest -q tests/test_client_session.py     # one file
 uv run pytest -q -n 0 tests/test_client_session.py  # serial, for debugging (or -p no:xdist)
 ```

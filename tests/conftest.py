@@ -146,3 +146,16 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
             if "." not in attr:
                 setattr(pkg, attr, mod)
     typer_main.TyperCommand, typer_main.TyperGroup = saved_typer
+
+
+def pytest_collection_modifyitems(config, items):
+    """Keep the timing-sensitive Textual pilot tests on one xdist worker.
+
+    They wait on a UI event loop and flake when many CPU-bound workers compete
+    with them; grouping them lets the other workers run the pure-logic tests.
+    """
+    import pytest
+
+    for item in items:
+        if item.path.name.startswith("test_tui_"):
+            item.add_marker(pytest.mark.xdist_group("tui"))
