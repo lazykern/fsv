@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | COVERED (read) | UNSURE | GAP | N/A | Overall covered |
 |---|---|---|---|---|---|---|---|
-| Tickets | 93 | 78 | 11 | 1 | 2 | 1 | 89 |
-| Changes | 56 | 42 | 8 | 2 | 3 | 1 | 50 |
-| Problems and service requests | 63 | 51 | 11 | 1 | 0 | 0 | 62 |
-| Cross-cutting | 80 | 58 | 15 | 7 | 0 | 0 | 73 |
-| **All** | **292** | **229** | **45** | **11** | **5** | **2** | **274** |
+| Tickets | 93 | 79 | 11 | 0 | 2 | 1 | 90 |
+| Changes | 58 | 46 | 8 | 0 | 3 | 1 | 54 |
+| Problems and service requests | 67 | 53 | 13 | 0 | 1 | 0 | 66 |
+| Cross-cutting | 83 | 61 | 20 | 2 | 0 | 0 | 81 |
+| **All** | **301** | **239** | **52** | **2** | **6** | **2** | **291** |
 
 **Overall covered** is COVERED plus COVERED (read). N/A rows are local
 commands with no wire. Counts are per row: a few commands
@@ -48,42 +48,27 @@ appear both in their module table and in the cross-cutting table.
 
 ## Known gaps
 
-Still UNSURE, and why:
+Not fully proven live, and why:
 
-* exports (tickets, changes, problems): review-only; delivery not verified
-  (the server emails the file to the requesting agent, which fsv cannot read);
-* auth login: interactive; not exercised live (it would replace the shared
-  test session);
-* planning-section attachment delete: needs an attachment uploaded through
-  the web UI;
-* schema freshness check: proving it needs a form-field edit in the web UI;
-* change associations pick: interactive picker, not run by automated tests
-  (it sends the same wire as `associations add`);
-* asset search paging: the test tenant has one page of devices and fsv has no
-  page-size option;
+* `auth login --browser` needs an SSO/MFA sign-in (header login is covered);
+* schema freshness against a server-side field edit is not live-proven
+  beyond the 15-minute TTL and the forced refetch;
+* assets paging with more than one page of devices (the test tenant has one
+  page and fsv has no page-size option);
+* export of saved views whose conditions are integer lists, status or
+  workspace conditions: serialisation is not captured yet, so fsv refuses at
+  dry-run; delivery of any export is by email and is not read back.
 
-Needs seeding on the test tenant before a live proof is possible:
+Blocked (no accepted wire, or not reachable from a test tenant):
 
-* planning-section attachment delete (an attachment uploaded through the web
-  UI);
-* asset search paging (more than one page of inventory);
-* ambiguous scenario names in bulk scenario apply (a second scenario with a
-  similar name).
-
-Blocked (no accepted wire or not reachable from a test tenant):
-
-* project delete (it runs on a separate project-management host);
-* legacy approvals respond/cancel (the legacy approval model is not available
-  on the test tenant; only aborted captures exist);
-* approval delegation (no delegate control in the captured approval UI);
-* ticket split;
-* share a ticket with another agent (share add-user);
-* ticket due-by edit;
-* bulk close: a successful close needs a saved resolution note first;
-* change private-view rename and delete (wires not captured; fsv refuses);
-* export delivery (the file is emailed, not returned);
-* `changes add-note` keeps no replay journal;
-* a no-op `tickets update` is not short-circuited (it is still sent);
+* project delete (it runs on the project host with its own session);
+* legacy approvals respond/cancel (the legacy model is not on the test
+  tenant);
+* approval delegation;
+* ticket due-by edit (no ticket wire);
+* bulk close success (needs a saved resolution note first);
+* ticket share and split commands do not exist (they need a second agent and
+  an inbound email);
 * the TUI (`fsv tui`) is not covered by this matrix.
 
 ## Tickets
@@ -133,7 +118,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets bulk merge | `POST /api/_/merge_tickets/complete_merge` | COVERED | yes | yes | none | test_ticket_bulk.py, test_ticket_merge.py | Live send verified by an independent readback. |
 | tickets bulk spam / unspam | `POST /api/_/tickets/spam_multiple, POST /api/_/tickets/unspam_multiple` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
 | tickets bulk delete (soft) | `DELETE /api/_/tickets/delete_multiple?ids=` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
-| tickets bulk ... --where --select-all (filtered) | `expands to <=50 explicit IDs then wires above` | COVERED | stale (re-test) | no | none | test_ticket_bulk_filter_cli.py, test_ticket_bulk_set.py, test_filter_wires.py | Filter guard reworked after the last live run; re-test pending. |
+| tickets bulk ... --where --select-all (filtered) | `expands to <=50 explicit IDs then wires above` | COVERED | yes (read) | n/a (read) | none | test_ticket_bulk_filter_cli.py, test_ticket_bulk_set.py, test_filter_wires.py | Live read verified. |
 | tickets bulk --json output | stdout JSON only | COVERED | n/a (local) | n/a | none | test_ticket_bulk_set.py | Local command; offline tests. |
 | tickets bulk-priority | `PUT /api/_/bulk_ticket_actions/update_multiple {priority}` | COVERED | yes | yes | none | test_bulk_priority.py | Live send verified by an independent readback. |
 | tickets tasks list | `GET /api/_/tickets/{id}/tasks` | COVERED | yes (read) | n/a (read) | read-verified | test_ticket_tasks_reviewed.py, test_task_required_fields.py, test_task_status_portability.py | Live read verified. |
@@ -162,13 +147,13 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets private-views write create/edit/delete | `POST\|PUT\|DELETE /api/_/ticket_filters[/{id}]` | COVERED | yes | yes | none | test_private_views.py | Live send verified by an independent readback. |
 | tickets columns list | `GET /api/_/tickets/headers` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_list_preferences.py, test_views_cli.py | Read-only: verified live against real data; nothing to send. |
 | tickets columns set | `POST /api/_/tickets/headers` | COVERED | yes | yes | none | test_list_preferences.py | Live send verified by an independent readback. |
-| tickets export | `POST /api/_/tickets/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only; delivery not verified. |
+| tickets export | `POST /api/_/tickets/export` | COVERED | yes | yes | none | test_list_preferences.py | Submit-only (server emails the signed-in agent); delivery not read back; saved views whose conditions cannot be serialised yet are refused at dry-run. |
 | tickets associations (list) | `GET /api/_/tickets/{id}/associations ({id} for INC on prod)` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_ticket_details.py | Read-only: verified live against real data; nothing to send. |
-| (missing) ticket-side associate: problem/change/parent/child | `PUT tickets/{id}/problems/{pid}; PUT tickets/{id}/changes/associate; POST tickets/{id}/associate-child-ticket…` | GAP | no | no | none | — | Matrix placeholder; ticket-side problem, change and child links are proven in their own rows. |
+| (missing) ticket-side associate: problem/change/parent/child | `none (not implemented as one command)` | GAP | no | n/a (read) | none | — | Matrix placeholder; ticket-side problem, change and child links are proven in their own rows. |
 | tickets approvals (list) | `GET /api/_/tickets/{id}/approvals` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_ticket_details.py, test_approval_model.py, test_legacy_approvals.py | Read-only: verified live against real data; nothing to send. |
 | tickets assets list/candidates | `GET associated-cis / associated_assets (driver probes endpoint)` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_asset_association_driver.py, test_legacy_asset_association.py | List verified live; candidates are proven in the cross-cutting candidates row. |
 | tickets assets add/remove | `PUT/POST associated-cis (driver)` | COVERED | yes | yes | capture-only | test_asset_association_driver.py, test_legacy_asset_association.py | Live send verified by an independent readback. |
-| (missing) tickets restore / delete-forever / spam single / split / share / due-… | `(PUT tickets/{id}/restore, DELETE tickets/delete_forever ...)` | GAP | no | no | none | — | Remaining gaps: ticket split, sharing with another agent and the due-by edit; trash, restore, delete-forever and spam have their own rows. |
+| (missing) tickets restore / delete-forever / spam single / split / share / due-… | `none` | GAP | no | no | none | — | Remaining gaps: ticket split, sharing with another agent and the due-by edit; trash, restore, delete-forever and spam have their own rows. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
 | tickets assets candidates | `GET https://<tenant>/itam/core/device\|asset\|businessservice/api/?q= (integrated inventory)` | COVERED | yes (read) | n/a (read) | none | test_asset_candidates.py | Live read verified. |
 | tickets problems list\|candidates | `GET /api/_/tickets/{id}/problems` | COVERED | yes (read) | n/a (read) | none | test_ticket_associations.py | Live read verified. |
@@ -219,7 +204,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | changes associations ls/search | `GET /api/_/changes/{id}/tickets ; GET /changes/tickets/search?module_type=change&q=` | COVERED | yes (read) | n/a (read) | read-verified | test_change_associations.py | Live read verified. |
 | changes associations add | `PUT /api/_/changes/{id}/tickets/associate` | COVERED | yes | yes | read-verified | test_change_associations.py | Live send verified by an independent readback. |
 | changes associations remove | `DELETE /api/_/changes/{id}/tickets/{tid}?module_type=ticket_cause` | COVERED | yes | yes | none | test_change_associations.py | Live send verified by an independent readback. |
-| changes associations pick | `interactive; same wire as add` | UNSURE | no | no | none | test_change_associations.py | Interactive picker; sends the same wire as add. |
+| changes associations pick | `PUT /api/_/changes/{id}/associate (same wire as add; interactive picker)` | COVERED | no (interactive) | n/a | none | test_change_associations.py | Interactive picker: not run by automated tests; it sends the same wire as associations add. |
 | changes assets list | `GET /api/_/changes/{id}/assets (legacy) ; integrated inventory reads` | COVERED | yes (read) | n/a (read) | read-verified | test_change_asset_categories.py, test_asset_association_driver.py | Live read verified. |
 | changes assets add | `PUT /api/_/changes/{id}/assets/associate (legacy) / integrated PUT (driver)` | COVERED | yes | yes | capture-only | test_asset_association_driver.py, test_change_asset_categories.py | Live send verified by an independent readback. |
 | changes assets remove | `PUT /api/_/changes/{id}/assets/detach` | COVERED | yes | yes | none | test_asset_association_driver.py | Live send verified by an independent readback. |
@@ -238,12 +223,14 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | changes views | `GET /api/_/change-filters` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py, test_tui_views.py | Read-only: verified live against real data; nothing to send. |
 | changes columns list | `GET /api/_/changes/headers or list prefs` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_list_preferences.py | Read-only: verified live against real data; nothing to send. |
 | changes columns set | `POST /api/_/changes/headers` | COVERED | yes | yes | none | test_list_preferences.py | Live send verified by an independent readback. |
-| changes export | `POST /api/_/changes/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only; delivery not verified. |
+| changes export | `POST /api/_/changes/export` | GAP | no | no | none | test_list_preferences.py | Implemented and tested offline; the proven send is in the cross-cutting export rows. |
 | changes fields / lookup | `GET /api/_/change_form_fields ; lookup user/group/choices` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_completion_gen.py, test_change_optional_fields.py | Read-only: verified live against real data; nothing to send. |
 | changes url | local (browser URL print) | N/A | n/a (local) | n/a | none | test_completion_gen.py | Local only; no wire. |
 | changes private-views list\|show | `GET /api/_/change-filters` | COVERED | yes (read) | n/a (read) | none | test_private_views_native.py | Live read verified. |
 | changes private-views write create | `POST /api/_/change-filters` | COVERED | yes | yes | none | test_private_views_native.py | Live send verified by an independent readback. |
-| changes private-views write rename\|delete | `PUT/DELETE /api/_/change-filters/{id}` | GAP | no | n/a | none | test_private_views_native.py | Refused by fsv: the rename and delete wires are not captured; use the web UI. |
+| changes private-views write rename\|delete | `PUT /api/_/change-filters/{id}; DELETE /api/_/change-filters/{id}` | COVERED | yes | yes | none | test_private_views_native.py | Rename and delete of a private change view go through the reviewed-write contract. |
+| changes update --due-by ISO8601-with-offset (reviewed) | `PATCH /api/_/changes/{id} {due_by}` | COVERED | yes | yes | none | test_change_due_by_cli.py | Live send verified by an independent readback. |
+| changes update --attach FILE --max-bytes N (size limit) | `POST /api/_/attachments; PUT /api/_/changes/{id} {attachments}` | COVERED | yes | yes | none | test_change_attach_max_bytes.py | Live send verified by an independent readback. |
 
 ## Problems and service requests
 
@@ -255,7 +242,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | problems tasks | `GET problems/{id}/tasks` | COVERED | yes (read) | n/a (read) | read-verified | test_module_time_problem_tasks.py | Live read verified. |
 | problems notes | `GET problems/{id}/notes` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_problem_internal_api.py | Read-only: verified live against real data; nothing to send. |
 | problems add-note | `POST problems/{id}/notes {body} (reviewed body path; same wire as note)` | COVERED | yes | yes | none | test_problem_internal_api.py, test_attachments_reviewed.py | Live send verified by an independent readback. |
-| problems export | `POST /api/_/problems/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only; delivery not verified. |
+| problems export | `POST /api/_/problems/export` | GAP | no | no | none | test_list_preferences.py | Implemented and tested offline; the proven send is in the cross-cutting export rows. |
 | problems fields | `GET problem_form_fields (cached schema)` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_schema_cache.py, test_completion_matrix.py | Read-only: verified live against real data; nothing to send. |
 | problems lookup | `GET search/autocomplete requesters/agents; bootstrap groups; field choices` | COVERED (read) | yes (read) | n/a (read) | none | test_agent_owner_lookup.py | Read-only: verified live against real data; nothing to send. |
 | problems views | `GET problem-filters` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py, test_private_views.py | Read-only: verified live against real data; nothing to send. |
@@ -312,6 +299,10 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | sr approvals reject | `PUT tickets/{id}/approvals/{aid}` | COVERED | yes | yes | none | test_sr_approvals.py, test_approval_model.py | Live send verified by an independent readback. |
 | sr approvals cancel | `PUT tickets/{id}/approval-groups/{gid}/cancel` | COVERED | yes | yes | none | test_sr_approvals.py, test_approval_model.py, test_legacy_approvals.py | Live send verified by an independent readback. |
 | problems time update | `PUT /api/_/problems/{id}/time_entries/{eid}` | COVERED | yes | yes | none | test_module_time_problem_tasks.py | Live send verified by an independent readback. |
+| problems planning section file upload / planning download (no fsv command) | `POST /api/_/attachments; POST /api/_/problems/{id}/planning-fields?id={key}; PUT /api/_/problems/{id}/planning-fields/{key}` | COVERED | yes | yes | none | — | Live send verified by an independent readback. |
+| problems update --planning SECTION --description/--file/--duplicate/--max-bytes… | `POST /api/_/attachments; POST /api/_/problems/N/planning-fields?id=KEY (first write) or PUT .../planning-fiel…` | COVERED | yes | yes | none | test_problem_planning_files.py | Live send verified by an independent readback. |
+| problems download N --planning KEY \| --all-planning [--dir] | `GET /api/_/problems/{id}/planning-fields; GET /helpdesk/attachments/{id}?download=true` | COVERED (read) | yes (read) | n/a (read) | none | test_problem_planning_files.py | Read-only: verified live against real data; nothing to send. |
+| sr create ITEM --attach FILE --max-bytes N (size limit, dry-run only) | `POST /api/_/attachments; place-request (not reached)` | COVERED (read) | yes (read) | n/a (read) | none | test_sr_max_bytes.py | Read-only: verified live against real data; nothing to send. |
 
 ## Cross-cutting (search, forms, filters, views, exports, auth, cache, reviewed-write engine)
 
@@ -321,41 +312,44 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets\|changes\|problems search QUERY | `GET /search/{tickets\|changes\|problems}` | COVERED (read) | yes (read) | n/a (read) | none | test_search_routing.py | Read-only: verified live against real data; nothing to send. |
 | assets search --kind devices | `GET https://<tenant>/itam/core/assets/api/ ?page` | COVERED | yes (read) | n/a (read) | none | test_integrated_assets.py, test_asset_picker.py | Live read verified. |
 | assets search --kind services | `GET https://<tenant>/itam/core/{services family}/api/` | COVERED | yes (read) | n/a (read) | none | test_integrated_assets.py | Live read verified. |
-| assets search --page N / pagination, total_rows contract | `as the row above` | UNSURE | no | n/a (read) | none | test_integrated_assets.py | Only one page of devices on the test tenant and no page-size option, so paging is unproven. |
+| assets search --page N / pagination, total_rows contract | `GET https://<tenant>/itam/core/device/api/?q=&page={n}` | UNSURE | no | n/a (read) | none | test_integrated_assets.py | Only one page of devices on the test tenant and no page-size option, so paging is unproven. |
 | templates list | `GET /api/_/ticket-templates` | COVERED | yes (read) | n/a (read) | read-verified | test_templates_windows.py | Live read verified. |
 | templates show NAME | `GET /api/_/ticket-templates/{id}` | COVERED | yes (read) | n/a (read) | none | test_templates_windows.py | Live read verified. |
 | tickets create --template NAME (prefill) | `GET /api/_/ticket-templates[/{id}] then POST /api/_/tickets` | COVERED | yes | yes | none | test_templates_windows.py, test_ticket_create.py | Live send verified by an independent readback. |
 | attachments delete ID --owner tickets/N (root attachment) | `DELETE /api/_/attachments/{id}; owner readback GET tickets/N` | COVERED | yes | yes | none | test_attachments_reviewed.py, test_attachment_failure_matrix.py, test_attachment_capture_hardening.py | Live send verified by an independent readback. |
 | attachments delete ID --owner tickets/N --child CONV_ID | `DELETE /api/_/attachments/{id}; readback child conversation/note` | COVERED | yes | yes | none | test_attachments_reviewed.py | Live send verified by an independent readback. |
-| attachments delete ID --owner changes/N | `DELETE /api/_/attachments/{id}; readback changes/N` | COVERED | yes | yes | none | test_attachments_reviewed.py | Needs a change attachment uploaded through a complete change create; re-test pending. |
+| attachments delete ID --owner changes/N | `DELETE /api/_/attachments/{id}; readback changes/N` | COVERED | yes | yes | none | test_attachments_reviewed.py | Live send verified by an independent readback. |
 | attachments delete ID --owner problems/N | `as the row above` | COVERED | yes | yes | none | test_attachments_reviewed.py | Live send verified by an independent readback. |
-| attachments delete ID --owner ... --section KEY (planning section) | `DELETE /api/_/attachments/{id}; readback planning section` | UNSURE | no | no | none | test_attachments_reviewed.py | Needs a planning-section attachment uploaded in the web UI. |
+| attachments delete ID --owner ... --section KEY (planning section) | `DELETE /api/_/attachments/{id}; readback planning section` | COVERED | yes | yes | none | test_attachments_reviewed.py | Planning-section attachment delete is reviewed and read back. |
 | --attach on tickets reply / add-note | `POST /api/_/attachments (base64 JSON) then reply/note POST` | COVERED | yes | yes | none | test_attachments_reviewed.py, test_attachment_capture_hardening.py | Live send verified by an independent readback. |
 | tickets create --attach / changes create --attach (before-create) | `POST /api/_/attachments then create` | COVERED | yes | yes | none | test_attachments_reviewed.py | Live send verified by an independent readback. |
 | --attach on forward / inline images in reply/note | `POST /api/_/solutions/inline_images / attachments` | COVERED | yes | yes | none | test_inline_images.py | Live send verified by an independent readback. |
+| tickets\|changes\|problems export --yes --expect-plan HASH --confirm-send-to-me… | `POST /api/_/{module}/export -> {id}` | COVERED | yes | yes | none | test_list_preferences.py | Submit-only (server emails the signed-in agent); delivery not read back; saved views whose conditions cannot be serialised yet are refused at dry-run. |
+| global --refresh flag | `GET form schemas, rules and views (once per run)` | COVERED (read) | yes (read) | n/a (read) | none | test_schema_freshness.py | Read-only: verified live against real data; nothing to send. |
+| write dry-run revalidates a form schema older than 15 min (schema.revalidate_fo… | `GET /api/_/{module}_form_fields; GET form rules` | COVERED (read) | yes (read) | n/a (read) | none | test_schema_freshness.py | Read-only: verified live against real data; nothing to send. |
 | tickets\|changes\|problems download ID [--all] | `GET attachment URLs (signed) per record` | COVERED | yes (read) | n/a (read) | none | test_download_attachments.py, test_tui_download_collision.py | Live read verified. |
 | form fields MODULE [--choices F] | `GET {module} form fields (internal /api/_/{module}_form_fields) + ws/N/business_rules` | COVERED (read) | yes (read) | n/a (read) | none | test_rules_workspace.py, test_content_fields.py | Read-only: verified live against real data; nothing to send. |
 | form explain MODULE [--set --from --preset --id --all] | `same + rule evaluation (forms/rules.py)` | COVERED (read) | yes (read) | n/a (read) | none | test_content_fields.py, test_rules_workspace.py | Read-only: verified live against real data; nothing to send. |
 | form dump MODULE [--mode new\|edit] | `same reads; local snapshot` | COVERED (read) | yes (read) | n/a (read) | none | test_changes_form_cli.py | Read-only: verified live against real data; nothing to send. |
 | form diff SNAPSHOT [--against] | `snapshot vs current metadata` | COVERED (read) | yes (read) | n/a (read) | none | test_changes_form_cli.py | Read-only: verified live against real data; nothing to send. |
 | form * for problems / sr | `GET /api/_/ws/{ws}/business_rules?module_type=problem` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_problem_workflows.py | Read-only: verified live against real data; nothing to send. |
-| schema loader: ticket/change/problem form fields + choices cache | `GET {module} form fields; business_rules; cached` | UNSURE | yes (read) | n/a (read) | none | test_schema_cache.py, test_cache_config_hardening.py | Reads verified live; proving the freshness check needs a form-field edit in the web UI. |
-| schema loader: SR catalog item form + place-request rules | `GET catalog/service-items/{id}; business_rules module_type=service_request` | COVERED | yes (read) | n/a (read) | none | test_sr_catalog.py, test_catalog_safety.py | Reads verified live; proving the freshness check needs a form-field edit in the web UI. |
+| schema loader: ticket/change/problem form fields + choices cache | `GET {module} form fields; business_rules; cached` | COVERED (read) | yes (read) | n/a (read) | none | test_schema_cache.py, test_cache_config_hardening.py | Reads verified live; freshness against a server-side field edit is not live-proven beyond the 15-minute TTL and forced refetch. |
+| schema loader: SR catalog item form + place-request rules | `GET catalog/service-items/{id}; business_rules module_type=service_request` | COVERED | yes (read) | n/a (read) | none | test_sr_catalog.py, test_catalog_safety.py | Reads verified live; freshness against a server-side field edit is not live-proven beyond the 15-minute TTL and forced refetch. |
 | tickets views | `GET /api/_/ticket_filters` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py, test_search_routing.py | Read-only: verified live against real data; nothing to send. |
 | changes views | `GET /api/_/change-filters` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py | Read-only: verified live against real data; nothing to send. |
 | problems views | `GET /api/_/problem-filters` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py | Read-only: verified live against real data; nothing to send. |
 | tickets private-views show | `GET ticket_filters/{id}` | COVERED | yes (read) | n/a (read) | capture-only | test_private_views.py | Live read verified. |
-| tickets private-views write clone\|rename\|delete | `POST ticket_filters; PUT/DELETE ticket_filters/{id}` | COVERED | yes | yes | none | test_private_views.py | Live send verified by an independent readback. |
+| tickets private-views write clone\|rename\|delete | `POST /api/_/ticket_filters; PUT\|DELETE /api/_/ticket_filters/{id}` | COVERED | yes | yes | none | test_private_views.py | Live send verified by an independent readback. |
 | --view NAME / default view | `filters_path GET then list GET` | COVERED (read) | yes (read) | n/a (read) | read-verified | test_views_cli.py | Read-only: verified live against real data; nothing to send. |
 | tickets columns list | `GET /api/_/tickets/headers` | COVERED | yes (read) | n/a (read) | capture-only | test_list_preferences.py | Live read verified. |
 | tickets columns set | `POST /api/_/tickets/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
-| tickets export | `POST /api/_/tickets/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only; delivery not verified. |
+| tickets export | `POST /api/_/tickets/export (CSV / date_filter30)` | COVERED | yes | yes | capture-only | test_list_preferences.py | Submit-only (server emails the signed-in agent); delivery not read back; saved views whose conditions cannot be serialised yet are refused at dry-run. |
 | changes columns list | `GET /api/_/changes/headers` | COVERED | yes (read) | n/a (read) | capture-only | test_list_preferences.py | Live read verified. |
 | changes columns set | `POST /api/_/changes/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
-| changes export | `POST /api/_/changes/export (CSV / date_filter30)` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only; delivery not verified. |
+| changes export | `POST /api/_/changes/export (CSV / date_filter30)` | COVERED (read) | yes (read) | n/a (read) | capture-only | test_list_preferences.py | Submit-only (server emails the signed-in agent); delivery not read back; saved views whose conditions cannot be serialised yet are refused at dry-run. |
 | problems columns list | `GET /api/_/problems/headers` | COVERED | yes (read) | n/a (read) | capture-only | test_list_preferences.py | Live read verified. |
 | problems columns set | `POST /api/_/problems/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
-| problems export | `POST /api/_/problems/export` | UNSURE | no (dry-run only) | no | capture-only | test_list_preferences.py | Review-only; delivery not verified. |
+| problems export | `POST /api/_/problems/export` | COVERED (read) | yes (read) | n/a (read) | capture-only | test_list_preferences.py | Submit-only (server emails the signed-in agent); delivery not read back; saved views whose conditions cannot be serialised yet are refused at dry-run. |
 | tickets canned folders | `GET /api/_/canned_response_folders` | COVERED | yes (read) | n/a (read) | read-verified | test_canned.py | Live read verified. |
 | tickets canned list FOLDER | `GET canned_response_folders/{id}/canned_responses` | COVERED | yes (read) | n/a (read) | none | test_canned.py | Live read verified. |
 | tickets canned show ID | `GET canned_responses/{id}` | COVERED | yes (read) | n/a (read) | none | test_canned.py | Live read verified. |
@@ -364,11 +358,11 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets scenarios show ID | `GET scenario_automations (filter by id)` | COVERED | yes (read) | n/a (read) | read-verified | test_canned.py | Live read verified. |
 | tickets scenarios apply TICKET ID | `PUT /api/_/tickets/execute_scenario` | COVERED | yes | yes | capture-only | test_canned.py | Live send verified by an independent readback. |
 | auth status | `GET /api/v2/agents/me + session check` | COVERED | yes (read) | n/a (read) | none | test_session_store.py, test_client_session.py | Live read verified. |
-| auth login [--domain --header --browser --store --force] | session file/Keychain; browser cookie capture | UNSURE | n/a (local) | n/a | none | test_session_store.py, test_client_session.py | Interactive login; not exercised live (it would replace the shared test session). |
+| auth login [--domain --header --browser --store --force] | session file/Keychain; browser cookie capture | UNSURE | n/a (local) | n/a | none | test_session_store.py, test_client_session.py | `--header` login is covered; `--browser` needs an SSO/MFA sign-in and is not exercised live. |
 | auth logout | wipes session file+Keychain | COVERED | n/a (local) | n/a | none | test_session_store.py | Not exercised live (it would destroy the shared test session). |
-| cache status | local | COVERED | n/a (local) | n/a | none | test_cache_cli.py, test_cache_config_hardening.py | Local command; offline tests. |
-| cache refresh | `GETs schema/views/groups` | COVERED | yes (read) | n/a (read) | none | test_cache_cli.py, test_schema_cache.py | Live read verified. |
-| cache clear [schema\|views\|groups\|all] | local delete | COVERED | n/a (local) | n/a | none | test_cache_cli.py, test_cache_config_hardening.py | Local command; offline tests. |
+| cache status | `local (reads the cache directory)` | COVERED | n/a (local) | n/a | none | test_cache_cli.py, test_cache_config_hardening.py | Local command; offline tests. |
+| cache refresh | `GET form schemas, rules, views and groups` | COVERED | yes (read) | n/a (read) | none | test_cache_cli.py, test_schema_cache.py | Live read verified. |
+| cache clear [schema\|views\|groups\|all] | `local (deletes cache files)` | COVERED | n/a (local) | n/a | none | test_cache_cli.py, test_cache_config_hardening.py | Local command; offline tests. |
 | completion show | local shell/cache | COVERED | n/a (local) | n/a | none | test_completion_gen.py, test_completion_matrix.py, test_completion_autocomplete.py, test_completion_coverage_subprocess.py, test_completion_shell_fallback.py | Local command; offline tests. |
 | completion install | local shell/cache | COVERED | n/a (local) | n/a | none | test_completion_gen.py, test_completion_matrix.py, test_completion_autocomplete.py, test_completion_coverage_subprocess.py, test_completion_shell_fallback.py | Local command; offline tests. |
 | completion refresh | local shell/cache | COVERED | n/a (local) | n/a | none | test_completion_gen.py, test_completion_matrix.py, test_completion_autocomplete.py, test_completion_coverage_subprocess.py, test_completion_shell_fallback.py | Local command; offline tests. |
@@ -387,7 +381,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | reviewed-write: --yes --expect-plan guard + stale hash refusal | `as the row above` | COVERED | yes | yes | none | test_write_safety.py | Live send verified by an independent readback. |
 | reviewed-write: plan hash determinism | journal.snapshot_hash | COVERED | n/a (local) | n/a | none | test_reviewed_snapshot.py | Local command; offline tests. |
 | reviewed-write: bulk plan hash reporting | ticket_bulk | COVERED | n/a (local) | n/a | none | test_ticket_bulk.py | Local command; offline tests. |
-| reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | COVERED | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Several verify callbacks were fixed after the last live run; re-test pending. |
+| reviewed-write: readback verification (verified true/false) | readback.py, per-command verify callbacks | COVERED | n/a (local) | n/a | none | test_readback_normalization.py, test_readback_values.py, test_conversation_recipient_readback.py | Local command; offline tests. |
 | reviewed-write: unknown-outcome handling + journal record | execute() journal pending/failed | COVERED | n/a (local) | n/a | none | test_journal_editor.py, test_solution_unlink_http.py | Local command; offline tests. |
 | reviewed-write: legacy un-hashed writes (reply, problems update, tickets update… | body-only preview | COVERED | n/a (local) | n/a | none | test_legacy_write_guards.py | tickets update (SRs included) and problems update follow the reviewed contract by default (verified readback, journal, replay refusal). --no-review is deprecated for one release (one-line stderr notice). Plain replies carry a plan hash and replay journal. There is no separate sr update command: an SR subject goes through tickets update. |
 | tickets private-views list | `GET /api/_/ticket_filters` | COVERED | yes (read) | n/a (read) | none | test_private_views.py | Live read verified. |
