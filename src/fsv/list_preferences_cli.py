@@ -45,22 +45,37 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
 
-    @app.command("export", help="Review-only: print the native CSV/30-day export request (body keys, recipient "
-                                "mailbox); fsv never sends it (delivery unknown).")
+    @app.command("export", help="Native CSV/30-day export of a saved view, emailed by the server to the signed-in "
+                                "agent (submit-only). Without --yes: review only (body, fields, view, recipient). "
+                                "Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.")
     def export(view: str = typer.Option(..., "--view", help="saved view ID or unique name"),
                field: list[str] = typer.Option(..., "--field", help="captured export field key (repeatable)"),
                dry_run: bool = typer.Option(False, "--dry-run"),
-               yes: bool = typer.Option(False, "--yes", hidden=True),
-               expect_plan: Optional[str] = typer.Option(None, "--expect-plan", hidden=True),
+               yes: bool = typer.Option(False, "--yes"),
+               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               confirm_send_to_me: bool = typer.Option(False, "--confirm-send-to-me",
+                                                       help="required with --yes: the server emails the export "
+                                                            "to your own mailbox"),
                output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
                json_out: bool = typer.Option(False, "--json")) -> None:
         try:
-            if yes or expect_plan is not None:
-                raise ReviewedWriteError("export is review-only in fsv (delivery cannot be verified); nothing was "
-                                         "sent; use --dry-run to review, and the web UI to export")
             c = client_factory()
             plan = flow.export_plan(c, resource.name, view, field)
-            typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
+            if dry_run or not yes:
+                if expect_plan is not None and not dry_run:
+                    raise ReviewedWriteError("--expect-plan sends only with --yes --confirm-send-to-me; nothing was sent")
+                typer.echo(tenant_json({"status": "dry_run", **plan.review()}, indent=2))
+                return
+            if expect_plan != plan.hash:
+                from fsv import journal
+                raise ReviewedWriteError((journal.stale_plan_refusal(expect_plan, ("list_export",))
+                                          if expect_plan else None)
+                                         or "review first, then pass --yes with the full --expect-plan hash; "
+                                            "nothing was sent")
+            if not confirm_send_to_me:
+                raise ReviewedWriteError("the server emails this export to your own mailbox; pass "
+                                         "--confirm-send-to-me with --yes --expect-plan. Nothing was sent")
+            typer.echo(tenant_json(flow.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

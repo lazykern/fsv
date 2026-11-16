@@ -316,6 +316,8 @@ fsv tickets watchers list INC-1234
 fsv tickets watchers set INC-1234 --watch --dry-run
 fsv tickets assets list INC-1234
 fsv tickets columns list
+fsv tickets export --view all_tickets --field subject --field display_id   # review only
+fsv tickets export --view all_tickets --field subject --field display_id --yes --expect-plan FULL_HASH --confirm-send-to-me
 fsv tickets canned folders
 fsv tickets scenarios list
 fsv tickets private-views list

@@ -794,14 +794,27 @@ ordinary saved-view query is copied without inventing choice IDs. Advanced
 queries/custom export fields/other format-date variants are blocked. Use the
 full hash with `--yes --expect-plan FULL_HASH` for the column write.
 
-Export is **review-only**: there is no send path, and `--yes` is refused. The
-dry-run prints the exact captured request body and its keys (`format`,
+Export is **submit-only**. Without `--yes` (or with `--dry-run`) the command
+only reviews: the exact captured request body and its keys (`format`,
 `date_filter`, `export_fields`, `custom_fields`, `data_hash`, `state_filter`,
 plus `advanced_data_hash` for changes; tickets use `ticket_state_filter` and
-`selected_filter_view`), the recipient mailbox from the signed-in agent
-profile, and `delivery: unknown`: the request has no recipient field, and the
-job, file and delivery (presumably mail) were never observed because the
-captures were browser-aborted. Run exports from the web UI.
+`selected_filter_view`), the view, the fields with their labels, the format,
+the recipient (the signed-in agent's own email, read from the agent profile;
+the request has no recipient key) and `delivery: emailed by the server, not
+downloadable here`. The mailbox is bound into the plan hash, and an
+unreadable mailbox refuses the send. Sending needs `--yes --expect-plan
+FULL_HASH --confirm-send-to-me`; the POST is journaled and sent once (an
+unknown outcome is never replayed). The server answers 202
+`{"success": true}` and emails the file, usually within 15 minutes and up to
+2 hours. Delivery cannot be read back, so the result is `submitted: true`,
+`status: 202`, `verified: false` with exit 0: check the mailbox, do not
+resend. After an accepted export a fresh review of the same view plans a new
+hash.
+
+```sh
+fsv tickets export --view all_tickets --field subject --field status_name --field display_id
+fsv tickets export --view all_tickets --field subject --field status_name --field display_id --yes --expect-plan FULL_HASH --confirm-send-to-me
+```
 
 ## Read-only CI/asset picker and task limits
 

@@ -14,8 +14,10 @@ from fsv.views import find_view, load_views
 @dataclass(frozen=True)
 class ListPlan(WritePlan):
     inputs_json: str
-    # Export only, display-only (the request itself names no recipient).
+    # Export only: the signed-in agent's mailbox (the request itself names no
+    # recipient; the server mails the file to the requesting agent).
     recipient_json: str = "{}"
+    view_json: str = "{}"
 
     def review(self) -> dict[str, Any]:
         out = super().review()
@@ -23,14 +25,17 @@ class ListPlan(WritePlan):
         if recipient:
             out["recipient"] = recipient
         if self.action == "list_export":
-            out.update(body_keys=sorted(self.payload), review_only=True, delivery="unknown",
-                       warning=EXPORT_REVIEW_ONLY)
+            payload = self.payload
+            out.update(body_keys=sorted(payload), view=json.loads(self.view_json), format=payload.get("format"),
+                       fields=payload.get("export_fields"), submit_only=True, delivery=EXPORT_DELIVERY,
+                       note=EXPORT_NOTE, requires="--yes --expect-plan FULL_HASH --confirm-send-to-me")
         return out
 
 
-EXPORT_REVIEW_ONLY = ("Review only: fsv never sends an export. The captured request carries the keys above; the "
-                      "server's job, file and delivery (presumably mail to the recipient below) are unknown, so a "
-                      "send could not be verified. Run the export from the web UI if you need it.")
+EXPORT_DELIVERY = "emailed by the server, not downloadable here"
+EXPORT_NOTE = ("Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own "
+               "mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the "
+               "mailbox, so the result is never verified; check the mailbox and do not resend.")
 _RECIPIENT_NOTE = ("the export request carries no recipient field; the server delivers the export to the requesting "
                    "agent's mailbox, which fsv cannot read back")
 
@@ -125,18 +130,55 @@ def export_plan(client: Any, module: str, view: str, fields: list[str]) -> ListP
         payload["state_filter"] = "created_at"
         if module == "changes":
             payload["advanced_data_hash"] = None
-    context = journal.snapshot_hash({"headers": rows, "view": row, "selection": selected.to_json()}) or ""
+    recipient = export_recipient(client)
+    bound: dict[str, Any] = {"headers": rows, "view": row, "selection": selected.to_json(),
+                             "recipient": recipient["mailbox"]}
+    accepted = journal.verified_sends((accepted_action(module),), 0)
+    if accepted:  # a later export of the same view plans a fresh hash; an unknown outcome does not
+        bound["accepted_exports"] = accepted
+    context = journal.snapshot_hash(bound) or ""
     return ListPlan("list_export", 0, config.DOMAIN, "POST", f"{module}/export",
                     json.dumps(payload, sort_keys=True), context,
                     json.dumps({"module": module, "view": selected.id, "fields": fields}),
-                    json.dumps(export_recipient(client), sort_keys=True))
+                    json.dumps(recipient, sort_keys=True),
+                    json.dumps({"id": selected.id, "name": selected.name}, ensure_ascii=False))
+
+
+def accepted_action(module: str) -> str:
+    """Journal kind counting exports the server accepted (2xx ``success: true``)."""
+    return f"list_export_accepted_{module}"
+
+
+def send_export(plan: ListPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
+    """POST the reviewed export once (journaled; an unknown outcome is never
+    replayed). Delivery is by mail and cannot be read back: the result says
+    ``submitted`` with the HTTP status and ``verified: False`` by definition."""
+    inputs = json.loads(plan.inputs_json)
+    mailbox = json.loads(plan.recipient_json).get("mailbox")
+    if not isinstance(mailbox, str) or "@" not in mailbox:
+        raise ReviewedWriteError("the signed-in agent's mailbox is unreadable, so the export recipient is unknown; "
+                                 "nothing was sent")
+
+    def verify(response: Any) -> dict[str, Any]:
+        status = getattr(client, "_last_status", None)
+        accepted = isinstance(response, dict) and response.get("success") is True
+        return {"submitted": True, "status": status, "accepted": accepted, "recipient": mailbox,
+                "delivery": EXPORT_DELIVERY, "verified": False,
+                "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to "
+                           "2 hours) and do not resend"}
+
+    result = execute(plan, client, reviewed_hash=reviewed_hash,
+                     rebuild=lambda: export_plan(client, **inputs), verify=verify)
+    if result.get("submitted") and result.get("accepted"):
+        journal.record_verified(plan.hash, action=accepted_action(inputs["module"]), target=0)
+    return result
 
 
 def send(plan: ListPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
     inputs = json.loads(plan.inputs_json)
     columns = plan.action == "list_columns"
     if not columns:
-        raise ReviewedWriteError("export is review-only in fsv; nothing was sent")
+        return send_export(plan, client, reviewed_hash=reviewed_hash)
 
     def verify(response: Any) -> dict[str, Any]:
         rows = headers(client, inputs["module"])

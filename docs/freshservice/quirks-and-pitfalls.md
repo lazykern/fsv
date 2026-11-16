@@ -218,6 +218,12 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
   write and refetches once when a write's value or field is refused
   locally (docs/forms.md, "Cache lifetimes"). [CAPTURED]
 
+* An export (`POST /api/_/<module>/export`) answers 202 `{"success": true}`
+  and the server emails the file to the signed-in agent, "usually within 15
+  minutes but up to 2 hours". The request has no recipient key and nothing is
+  downloadable, so delivery cannot be read back: fsv reports `submitted`, not
+  `verified`. [CAPTURED]
+
 ## The default config dir picks the tenant
 
 fsv's default config dir holds the domain that `fsv auth login` configured
