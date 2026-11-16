@@ -329,6 +329,13 @@ fsv tickets children link INC-1234 INC-1235 --dry-run
 fsv tickets time list INC-1234
 ```
 
+Downloads (`tickets`/`problems`/`changes download`) stream each file to a
+temporary file and rename it when complete. `--max-bytes N` refuses any file
+whose listed size, `Content-Length` or streamed bytes exceed N (status
+`refused` in the manifest, nothing written, exit 1 after the manifest). The
+default is the tenant's published attachment limit; when the tenant publishes
+none, a note on stderr says the download has no size limit.
+
 ## Service requests, problems, changes
 
 ```bash

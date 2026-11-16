@@ -336,7 +336,40 @@ def _safe_filename(name: str) -> str:
     return cleaned or "attachment"
 
 
-def download_attachment(att: dict[str, Any], out_dir: str | Path, force: bool = False, c: Client | None = None) -> dict[str, Any]:
+def _declared_size(att: dict[str, Any]) -> int | None:
+    """The attachment's size as the server lists it (bytes), if any."""
+    for key in ("size", "content_file_size", "file_size"):
+        value = att.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            return value
+        if isinstance(value, str) and value.isdigit():
+            return int(value)
+    return None
+
+
+def _too_large(name: str, path: Path, size: int, max_bytes: int, what: str) -> dict[str, Any]:
+    return {"name": name, "path": str(path), "size": size, "skipped": True,
+            "refused": f"{what} {size} bytes exceeds the {max_bytes}-byte limit; not downloaded"}
+
+
+def _disposition_name(headers: Any) -> str | None:
+    cd = headers.get("content-disposition", "")
+    if "filename=" not in cd:
+        return None
+    from email.message import Message
+    msg = Message()
+    msg["content-disposition"] = cd
+    filename = msg.get_filename()
+    return _safe_filename(filename) if filename else None
+
+
+def download_attachment(att: dict[str, Any], out_dir: str | Path, force: bool = False, c: Client | None = None,
+                        max_bytes: int | None = None) -> dict[str, Any]:
+    """Download one attachment, streamed to a temporary file and renamed.
+
+    ``max_bytes``: refuse (``refused`` in the result, nothing written) when
+    the listed size, the response Content-Length or the streamed bytes
+    exceed it."""
     if c is None:
         c = get_client()
     url = _attachment_url(att)
@@ -348,24 +381,52 @@ def download_attachment(att: dict[str, Any], out_dir: str | Path, force: bool = 
     path = out / name
     if path.exists() and not force:
         return {"name": name, "path": str(path), "size": path.stat().st_size, "skipped": True}
+    declared = _declared_size(att)
+    if max_bytes is not None and declared is not None and declared > max_bytes:
+        return _too_large(name, path, declared, max_bytes, "listed size")
     sys.stderr.write(f"  downloading {name}...\n")
     sys.stderr.flush()
-    r = c._client.get(url, follow_redirects=True)
-    if r.status_code >= 400:
-        raise APIError(r.status_code, r.text[:500])
-    cd = r.headers.get("content-disposition", "")
-    if not att.get("name") and "filename=" in cd:
-        from email.message import Message
-        msg = Message()
-        msg["content-disposition"] = cd
-        filename = msg.get_filename()
-        if filename:
-            name = _safe_filename(filename)
-            path = out / name
+    stream = getattr(c._client, "stream", None)
+    if stream is None:  # alternative transports without streaming
+        r = c._client.get(url, follow_redirects=True)
+        if r.status_code >= 400:
+            raise APIError(r.status_code, r.text[:500])
+        if not att.get("name") and (header_name := _disposition_name(r.headers)):
+            name, path = header_name, out / header_name
             if path.exists() and not force:
                 return {"name": name, "path": str(path), "size": path.stat().st_size, "skipped": True}
-    path.write_bytes(r.content)
-    return {"name": name, "path": str(path), "size": len(r.content), "skipped": False}
+        if max_bytes is not None and len(r.content) > max_bytes:
+            return _too_large(name, path, len(r.content), max_bytes, "downloaded size")
+        path.write_bytes(r.content)
+        return {"name": name, "path": str(path), "size": len(r.content), "skipped": False}
+    with stream("GET", url, follow_redirects=True) as r:
+        if r.status_code >= 400:
+            r.read()
+            raise APIError(r.status_code, r.text[:500])
+        if not att.get("name") and (header_name := _disposition_name(r.headers)):
+            name, path = header_name, out / header_name
+            if path.exists() and not force:
+                return {"name": name, "path": str(path), "size": path.stat().st_size, "skipped": True}
+        length = r.headers.get("content-length", "")
+        if max_bytes is not None and length.isdigit() and int(length) > max_bytes:
+            return _too_large(name, path, int(length), max_bytes, "declared size")
+        part = path.with_name("." + path.name + ".part")
+        size = 0
+        try:
+            with open(part, "wb") as fh:
+                for chunk in r.iter_bytes():
+                    size += len(chunk)
+                    if max_bytes is not None and size > max_bytes:
+                        break
+                    fh.write(chunk)
+            if max_bytes is not None and size > max_bytes:
+                part.unlink(missing_ok=True)
+                return _too_large(name, path, size, max_bytes, "streamed size over")
+            part.replace(path)
+        except BaseException:
+            part.unlink(missing_ok=True)
+            raise
+    return {"name": name, "path": str(path), "size": size, "skipped": False}
 
 
 def _reupload_attachment(att: dict[str, Any], c: Client) -> int | None:

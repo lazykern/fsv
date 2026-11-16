@@ -21,7 +21,7 @@ def calls(monkeypatch, tmp_path):
     monkeypatch.setattr(cli, "_client", lambda: Client())
     seen = []
 
-    def fake(att, out_dir, force=False, c=None):
+    def fake(att, out_dir, force=False, c=None, max_bytes=None):
         seen.append(Path(out_dir))
         return {"name": att["name"], "path": str(Path(out_dir) / att["name"]), "size": 4, "skipped": False}
     monkeypatch.setattr(create, "download_attachment", fake)

@@ -2883,6 +2883,35 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
         raise typer.Exit(4)
 
 
+def _download_limit(c: Any, max_bytes: int | None) -> int | None:
+    """``--max-bytes``, else the tenant's published attachment limit, else
+    no limit (with a note on stderr)."""
+    if max_bytes is not None:
+        return max_bytes
+    try:
+        from fsv.attachments import page_limit
+        limit = page_limit(c)
+    except Exception:
+        limit = None
+    if limit is None:
+        err.print("note: the tenant attachment size limit is unknown; downloading without a size limit "
+                  "(pass --max-bytes N to set one)")
+    return limit
+
+
+def _exit_if_refused(results: list[dict[str, Any]]) -> None:
+    """Exit 1 after the manifest when a file was refused by the size limit."""
+    if any(item.get("status") == "refused" for item in results):
+        raise typer.Exit(1)
+
+
+def _download_status(item: dict[str, Any]) -> str:
+    if item.get("refused"):
+        err.print(f"[yellow]refused[/yellow] {escape(str(item.get('name')))}: {escape(str(item['refused']))}")
+        return "refused"
+    return "skipped" if item.get("skipped") else "downloaded"
+
+
 def _no_review_notice(res: Resource) -> None:
     """One-line deprecation notice for the old body-only update (stderr only,
     so --json stdout stays pure)."""
@@ -4604,11 +4633,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
             all_: bool = typer.Option(False, "--all", help="download planning, main, and description attachments"),
             out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./downloads/CHN-<id>)"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
+            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON manifest"),
         ) -> None:
             try:
                 cid = _cid(id_, res)
                 c = _client()
+                limit = _download_limit(c, max_bytes)
                 if all_:
                     all_planning = True
                     main_attachments = True
@@ -4637,29 +4668,30 @@ def _make_subapp(res: Resource) -> typer.Typer:
                             results.append({"source": f"planning:{field_id}", "status": "no attachments"})
                             continue
                         for att in attachments:
-                            item = download_attachment(att, out_dir, force=force, c=c)
+                            item = download_attachment(att, out_dir, force=force, c=c, max_bytes=limit)
                             item["source"] = f"planning:{field_id}"
-                            item["status"] = "skipped" if item.get("skipped") else "downloaded"
+                            item["status"] = _download_status(item)
                             results.append(item)
 
                 if main_attachments or description_attachments:
                     evidence = evidence or service.get_change_evidence(cid, client=c)
                 if main_attachments:
                     for att in (evidence or {}).get("main_attachments") or []:
-                        item = download_attachment(att, out_dir, force=force, c=c)
+                        item = download_attachment(att, out_dir, force=force, c=c, max_bytes=limit)
                         item["source"] = "attachments"
-                        item["status"] = "skipped" if item.get("skipped") else "downloaded"
+                        item["status"] = _download_status(item)
                         results.append(item)
                 if description_attachments:
                     for url in (evidence or {}).get("description_attachment_urls") or []:
                         att_id = url.rstrip("/").split("/")[-1].split("?")[0]
-                        item = download_attachment({"canonical_url": url, "name": f"attachment-{att_id}"}, out_dir, force=force, c=c)
+                        item = download_attachment({"canonical_url": url, "name": f"attachment-{att_id}"}, out_dir, force=force, c=c, max_bytes=limit)
                         item["source"] = "description"
-                        item["status"] = "skipped" if item.get("skipped") else "downloaded"
+                        item["status"] = _download_status(item)
                         results.append(item)
 
                 if json_out:
                     emit_json(results)
+                    _exit_if_refused(results)
                     return
                 t = Table(title=f"Downloaded attachments for CHN-{cid}")
                 t.add_column("Status", style="cyan")
@@ -4670,6 +4702,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     t.add_row(str(item.get("status", "")), str(item.get("source", "")), str(item.get("name") or item.get("path") or ""), str(item.get("size", "")))
                 console.print(t)
                 console.print(f"[green]output[/] {out_dir}")
+                _exit_if_refused(results)
             except (SessionError, APIError) as e:
                 _err_exc(e)
             except (SystemExit, typer.Exit):
@@ -4856,12 +4889,14 @@ def _make_subapp(res: Resource) -> typer.Typer:
             all_: bool = typer.Option(False, "--all", help="download all attachments from all sources"),
             out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./downloads/<ID>)"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
+            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON manifest"),
         ) -> None:
             try:
                 from fsv.create import download_attachment
                 cid = _cid(id_, res)
                 c = _client()
+                limit = _download_limit(c, max_bytes)
                 if all_:
                     main_attachments = True
                     threads = True
@@ -4877,9 +4912,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
                 if main_attachments:
                     for att in item_data.get("attachments") or []:
-                        r = download_attachment(att, out_dir, force=force, c=c)
+                        r = download_attachment(att, out_dir, force=force, c=c, max_bytes=limit)
                         r["source"] = "attachments"
-                        r["status"] = "skipped" if r.get("skipped") else "downloaded"
+                        r["status"] = _download_status(r)
                         results.append(r)
 
                 if threads:
@@ -4894,9 +4929,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         err.print(escape(thread_meta["partial"]))
                     for thread in thread_rows:
                         for att in thread.get("attachments") or []:
-                            r = download_attachment(att, out_dir, force=force, c=c)
+                            r = download_attachment(att, out_dir, force=force, c=c, max_bytes=limit)
                             r["source"] = _threads_key
-                            r["status"] = "skipped" if r.get("skipped") else "downloaded"
+                            r["status"] = _download_status(r)
                             results.append(r)
 
                 if description_attachments:
@@ -4911,13 +4946,14 @@ def _make_subapp(res: Resource) -> typer.Typer:
                             urls.append(url)
                     for url in urls:
                         att_id = url.rstrip("/").split("/")[-1].split("?")[0]
-                        r = download_attachment({"canonical_url": url, "name": f"attachment-{att_id}"}, out_dir, force=force, c=c)
+                        r = download_attachment({"canonical_url": url, "name": f"attachment-{att_id}"}, out_dir, force=force, c=c, max_bytes=limit)
                         r["source"] = "description"
-                        r["status"] = "skipped" if r.get("skipped") else "downloaded"
+                        r["status"] = _download_status(r)
                         results.append(r)
 
                 if json_out:
                     emit_json(results)
+                    _exit_if_refused(results)
                     return
                 t = Table(title=f"Downloaded attachments for {pfx}-{cid}")
                 t.add_column("Status", style="cyan")
@@ -4928,6 +4964,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     t.add_row(str(r.get("status", "")), str(r.get("source", "")), str(r.get("name") or r.get("path") or ""), str(r.get("size", "")))
                 console.print(t)
                 console.print(f"[green]output[/] {out_dir}")
+                _exit_if_refused(results)
             except (SessionError, APIError) as e:
                 _err_exc(e)
 

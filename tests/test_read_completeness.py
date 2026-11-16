@@ -116,7 +116,7 @@ def test_ticket_download_includes_page_two_or_discloses_partial(monkeypatch, tmp
                  {'conversations': [{'id': 2, 'attachments': [{'name': 'later.txt'}]}],
                   'meta': {'has_next': False}}])
     monkeypatch.setattr(cli, '_client', lambda: c)
-    def download(att, out_dir, force=False, c=None):
+    def download(att, out_dir, force=False, c=None, max_bytes=None):
         target = out_dir / att['name']
         target.write_bytes(b'Acme evidence')
         return {'name': att['name'], 'path': str(target), 'size': target.stat().st_size}
