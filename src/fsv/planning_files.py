@@ -255,6 +255,30 @@ def readback(client: Any, plan: PlanningUpdatePlan, uploaded: list[int]) -> dict
             "verified": files_ok and desc in ("matched", "not sent")}
 
 
+def upload_files(client: Any, files: tuple[LocalFile, ...], headers: dict[str, str], uploaded: list[int], *,
+                 plan_hash: str, action: str, target: int) -> None:
+    """Upload each reviewed file once (``POST /api/_/attachments``), checking
+    its bytes against the review and journaling every returned ID before the
+    next step. ``uploaded`` collects the IDs (also on failure)."""
+    for file in files:
+        raw = Path(file.path).read_bytes()
+        if len(raw) != file.size or hashlib.sha256(raw).hexdigest() != file.sha256:
+            raise ReviewedWriteError("attachment changed after review")
+        body = {"content": f"data:{file.mime};base64," + base64.b64encode(raw).decode("ascii"),
+                "content_file_name": file.name, "content_file_size": file.size, "content_content_type": file.mime}
+        response = client._request("POST", f"{config.API_INT}/attachments",
+                                   content=json.dumps(body).encode(), headers=headers)
+        ident = positive_id(response.get("id") if isinstance(response, dict) else None)
+        if ident in uploaded:
+            raise ReviewedWriteError("upload returned duplicate attachment identity")
+        uploaded.append(ident)
+        journal.record_plan("uploaded", plan_hash, action=action + "_upload", target=target, created_id=ident)
+        persisted = [e for e in journal.read()
+                     if e.get("kind") == "plan:" + action + "_upload" and e.get("plan") == plan_hash]
+        if not persisted or persisted[-1].get("created_id") != ident:
+            raise ReviewedWriteError("could not persist uploaded attachment identity")
+
+
 def send(plan: PlanningUpdatePlan, client: Any, *, reviewed_hash: str | None,
          rebuild: Callable[[], PlanningUpdatePlan]) -> dict[str, Any]:
     if reviewed_hash is None:
@@ -285,23 +309,7 @@ def send(plan: PlanningUpdatePlan, client: Any, *, reviewed_hash: str | None,
     uploaded: list[int] = []
     step = "upload"
     try:
-        for file in plan.files:
-            raw = Path(file.path).read_bytes()
-            if len(raw) != file.size or hashlib.sha256(raw).hexdigest() != file.sha256:
-                raise ReviewedWriteError("attachment changed after review")
-            body = {"content": f"data:{file.mime};base64," + base64.b64encode(raw).decode("ascii"),
-                    "content_file_name": file.name, "content_file_size": file.size, "content_content_type": file.mime}
-            response = client._request("POST", f"{config.API_INT}/attachments",
-                                       content=json.dumps(body).encode(), headers=headers)
-            ident = positive_id(response.get("id") if isinstance(response, dict) else None)
-            if ident in uploaded:
-                raise ReviewedWriteError("upload returned duplicate attachment identity")
-            uploaded.append(ident)
-            journal.record_plan("uploaded", plan.hash, action=action + "_upload", target=plan.target, created_id=ident)
-            persisted = [e for e in journal.read()
-                         if e.get("kind") == "plan:" + action + "_upload" and e.get("plan") == plan.hash]
-            if not persisted or persisted[-1].get("created_id") != ident:
-                raise ReviewedWriteError("could not persist uploaded attachment identity")
+        upload_files(client, plan.files, headers, uploaded, plan_hash=plan.hash, action=action, target=plan.target)
         step = "planning"
         client._request(plan.method, f"{config.API_INT}/{plan.path}",
                         content=json.dumps(plan.payload(uploaded)).encode(), headers=headers)

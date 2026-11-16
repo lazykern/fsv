@@ -50,9 +50,10 @@ def test_form_path_refuses_over_the_limit_before_upload(fake):
 
 
 def test_quick_attach_path_refuses_over_the_limit(fake):
+    fake.change["id"] = 501  # the reviewed attach path reads the exact owner
     r = run("--attach", "plan.pdf", "--max-bytes", "100", "--no-input", "--duplicate", "append", "--yes")
     assert r.exit_code == 2 and "100-byte limit" in " ".join(r.output.split())
     assert not fake.writes()
     ok = run("--attach", "plan.pdf", "--max-bytes", "1000", "--no-input", "--duplicate", "append", "--dry-run")
     assert ok.exit_code == 0, ok.output
-    assert json.loads(ok.stdout)["body"]["attachments"]["max_bytes"] == 1000
+    assert json.loads(ok.stdout)["attachment_size_limit"]["max_bytes"] == 1000

@@ -214,6 +214,16 @@ use hash-bound two-step uploads and exact owning-record readback.
 the same durable transaction. Review with `--dry-run --json`; send with
 `--yes --expect-plan FULL_HASH`. No replay after an uncertain upload or send.
 Initial change attachments cannot combine with devices/planning in this path.
+`changes update ID --attach FILE` (attach-only, no field flags) is on the
+same contract: the plan hash binds the tenant, change, file names + sizes +
+sha256, the `--duplicate` decisions, the size limit (`--max-bytes` or the
+tenant's published limit) and a record-state token; `--yes` needs the full
+`--expect-plan`; one journal entry per upload and one for the
+`PUT changes/<id>` of the full attachment list; readback compares the
+change's attachment IDs and names (`verified`, exit 4 otherwise).
+`--duplicate prompt` under `--no-input` refuses only when a same-name
+attachment exists; `--backup-replaced` is refused on this path (download
+first, then `--duplicate replace`).
 Inline image uploads remain blocked: the accepted ledger records the response
 and final image HTML but omits the upload request body/media type. A null capture
 is not proof of a bodyless upload; no multipart contract is invented.

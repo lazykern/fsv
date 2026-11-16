@@ -2842,13 +2842,56 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
     reviewed contract (planning_files): dry-run prints the plan hash,
     ``--yes --expect-plan`` sends the uploads then the planning save, each
     journaled, and reads the section back (exit 4 when unverified)."""
-    from fsv import journal, planning_files as flow
-    from fsv.reviewed_write import ReviewedWriteError
+    from fsv import planning_files as flow
     c = _client()
 
     def build():
         return flow.build_plan(c, cid, section, description, files, duplicate=duplicate,
                                backup_replaced=backup_replaced, max_bytes=max_bytes, module=module)
+
+    def noop(plan: Any) -> tuple[dict[str, Any], str]:
+        skipped = ", ".join(plan.skipped)
+        return ({"status": "nothing_to_change", "target": cid, "section": plan.section,
+                 "skipped_files": list(plan.skipped)},
+                f"nothing to change in planning field {plan.label!r}" + (f" ({skipped} already attached)" if skipped else ""))
+    _reviewed_upload_update(c, build, flow.send, noop, dry_run=dry_run, yes=yes, expect_plan=expect_plan,
+                            json_out=json_out, no_input=no_input,
+                            changed=f"the {module[:-1]}, planning section or files changed since review",
+                            confirm="Upload these files and save this planning section?")
+
+
+def _change_attach_update(cid: int, files: list[str], *, duplicate: str, backup_replaced: bool | None,
+                          max_bytes: int | None, dry_run: bool, yes: bool, expect_plan: str | None,
+                          json_out: bool, no_input: bool) -> None:
+    """``changes update ID --attach FILE`` (attach-only) on the reviewed contract
+    (change_attach): plan hash, ``--yes --expect-plan``, one journal entry per
+    upload and one for the save, readback of the attachment list (exit 4 when
+    unverified)."""
+    from fsv import change_attach as flow
+    c = _client()
+
+    def build():
+        return flow.build_plan(c, cid, files, duplicate=duplicate, backup_replaced=backup_replaced,
+                               max_bytes=max_bytes, no_input=no_input)
+
+    def noop(plan: Any) -> tuple[dict[str, Any], str]:
+        skipped = ", ".join(plan.skipped)
+        return ({"status": "nothing_to_change", "target": cid, "skipped_files": list(plan.skipped)},
+                f"nothing to change on change {cid}" + (f" ({skipped} already attached)" if skipped else ""))
+    _reviewed_upload_update(c, build, flow.send, noop, dry_run=dry_run, yes=yes, expect_plan=expect_plan,
+                            json_out=json_out, no_input=no_input,
+                            changed="the change's attachments or files changed since review",
+                            confirm="Upload these files and attach them to the change?")
+
+
+def _reviewed_upload_update(c: Any, build: Callable[[], Any], send: Callable[..., dict[str, Any]],
+                            noop: Callable[[Any], tuple[dict[str, Any], str]], *, dry_run: bool, yes: bool,
+                            expect_plan: str | None, json_out: bool, no_input: bool, changed: str,
+                            confirm: str) -> None:
+    """Shared driver of the reviewed upload transactions (planning files,
+    attach-only): a no-op exits 0 unless --expect-plan was given (then 2)."""
+    from fsv import journal
+    from fsv.reviewed_write import ReviewedWriteError
     try:
         plan = build()
     except (ValueError, ReviewedWriteError) as exc:
@@ -2859,13 +2902,11 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
             typer.echo(journal.stale_plan_refusal(expect_plan, (plan.action,))
                        or "nothing to change; the reviewed plan does not exist. Nothing was sent", err=True)
             raise typer.Exit(2)
-        skipped = ", ".join(plan.skipped)
+        body, text = noop(plan)
         if json_out:
-            emit_json({"status": "nothing_to_change", "target": cid, "section": plan.section,
-                       "skipped_files": list(plan.skipped)})
+            emit_json(body)
         else:
-            typer.echo(f"nothing to change in planning field {plan.label!r}"
-                       + (f" ({skipped} already attached)" if skipped else ""))
+            typer.echo(text)
         return
     if dry_run:
         typer.echo(tenant_json({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
@@ -2873,8 +2914,7 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
     try:
         if expect_plan is not None and expect_plan != plan.hash:
             raise ReviewedWriteError(journal.stale_plan_refusal(expect_plan, (plan.action,))
-                                     or f"the {module[:-1]}, planning section or files changed since review (or a partial "
-                                        "hash); review again with --dry-run. Nothing was sent")
+                                     or f"{changed} (or a partial hash); review again with --dry-run. Nothing was sent")
         if yes:
             if expect_plan != plan.hash:
                 raise ReviewedWriteError("--yes requires the full --expect-plan from a prior --dry-run review")
@@ -2882,10 +2922,10 @@ def _change_planning_update(cid: int, section: str, description: str | None, fil
             raise ReviewedWriteError("sending requires --yes and --expect-plan in no-input mode")
         else:
             typer.echo(tenant_json(plan.review(), ensure_ascii=False, indent=2), err=True)
-            if not typer.confirm("Upload these files and save this planning section?", default=False):
+            if not typer.confirm(confirm, default=False):
                 typer.echo("Cancelled; nothing sent.")
                 return
-        result = flow.send(plan, c, reviewed_hash=plan.hash, rebuild=build)
+        result = send(plan, c, reviewed_hash=plan.hash, rebuild=build)
     except (ValueError, ReviewedWriteError, APIError) as exc:
         if json_out:
             detail = exc.as_dict() if isinstance(exc, ReviewedWriteError) else {"error": str(exc)}
@@ -4599,7 +4639,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 modes = sum(1 for active in (due_by is not None, planning is not None, edit, quick_flags) if active)
                 if modes > 1:
                     _err("choose one update mode: --due-by, --planning, --edit, or field/attachment flags")
-                if no_input and duplicate == "prompt" and (files or attach):
+                if no_input and duplicate == "prompt" and files:
                     _err("--duplicate prompt disabled by --no-input; use --duplicate skip|replace|append")
 
                 if due_by is not None:
@@ -4633,77 +4673,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         console.print(f"[green]updated[/] {format_id(updated, res)}")
                     return
 
-                if attach or set_ or any(v is not None for v in [status, priority, agent_id, group_id]):
-                    c = _client()
-                    _api(lambda: schema_mod.revalidate_for_write(res, c))
-                    sch = _api(lambda: schema_mod.load(res, c))
-
-                    def _quick_body(sch: dict[str, Any]) -> dict[str, Any]:
-                        quick: dict[str, Any] = {}
-                        if status is not None:
-                            quick["status"] = _resolve_update_choice(sch, "status", status)
-                        if priority is not None:
-                            quick["priority"] = _resolve_update_choice(sch, "priority", priority)
-                        if agent_id is not None:
-                            quick["agent_id"] = int(_resolve_agent(c, agent_id))
-                        if group_id is not None:
-                            quick["group_id"] = int(_resolve_group(c, group_id))
-                        for expr in set_ or []:
-                            if "=" not in expr:
-                                _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
-                            field_text, _, raw_value = expr.partition("=")
-                            k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
-                            quick[k] = v
-                        return quick
-
-                    sch, quick = schema_mod.validate_with_refetch(res, c, sch, _quick_body)
-                    risks = _risks_for_item_write(res, cid, quick, sch, c)
-                    if not dry_run:
-                        _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
-                    attach_result: dict[str, Any] | None = None
-                    if attach:
-                        from fsv.attachments import resolve_limit
-                        from fsv.reviewed_write import ReviewedWriteError
-                        try:
-                            limit = resolve_limit(c, None, max_bytes)
-                        except ReviewedWriteError as exc:
-                            _err(f"{exc}; pass --max-bytes N")
-                        total = sum(Path(p).expanduser().stat().st_size for p in attach if Path(p).expanduser().is_file())
-                        if limit.max_bytes is not None and total > limit.max_bytes:
-                            _err(f"--attach files total {total} bytes and exceed the {limit.max_bytes}-byte limit "
-                                 f"({limit.source}); nothing was uploaded")
-                        if dry_run:
-                            quick["attachments"] = {"preserve_existing": True, "upload_files": list(attach), "duplicate": duplicate,
-                                                    "max_bytes": limit.max_bytes, "limit_source": limit.source}
-                        else:
-                            attach_result = attach_files_to_change(
-                                cid,
-                                list(attach),
-                                c,
-                                duplicate=duplicate,
-                                backup_replaced=backup_replaced,
-                                backup_name=backup_name,
-                            )
-                    if dry_run:
-                        _emit_dry_run(res, cid, quick, risks=risks)
-                        return
-                    if quick:
-                        updated = update_change(cid, quick)
-                        if json_out:
-                            emit_json(updated)
-                            return
-                        console.print(f"[green]updated[/] {format_id(updated, res)}")
-                        return
-                    if attach_result and attach_result.get("_fsv_noop"):
-                        skipped = ", ".join(attach_result.get("skipped") or [])
-                        console.print(f"[yellow]no changes[/] {format_id({'id': cid}, res)}" + (f" ({skipped} already attached)" if skipped else ""))
-                        return
-                    if attach_result:
-                        if json_out:
-                            emit_json(attach_result)
-                            return
-                        console.print(f"[green]updated[/] {format_id({'id': cid}, res)}")
-                        return
+                if attach:
+                    # attach-only (every field flag above went to the form path): reviewed
+                    _change_attach_update(cid, list(attach), duplicate=duplicate,
+                                          backup_replaced=backup_replaced or (True if backup_name else None),
+                                          max_bytes=max_bytes, dry_run=dry_run, yes=yes, expect_plan=expect_plan,
+                                          json_out=json_out, no_input=no_input)
+                    return
 
                 _err("nothing to update; use --set, --from, --attach, --planning, --edit, or pass "
                      "--status/--priority/--agent/--group (in a terminal, no flags opens the edit form)")
