@@ -129,6 +129,33 @@ the parts.
   `position` but **no** conditions or actions. `evaluable` is False and
   `RulesEngine` raises `FormRuleError` for it.
 
+## Cache lifetimes
+
+An admin can rename a field label or add a choice at any time and nothing
+tells fsv (CAPTURED: a label edit in the field manager showed up in the
+form-fields API at once, while a 7-day schema cache kept the old label).
+Form metadata that validates writes or drives the rules is therefore
+trusted for 15 minutes only:
+
+| cache (`fsv cache status`) | kind | TTL | stale on a read | on a write |
+| --- | --- | --- | --- | --- |
+| `<module>` schema (form fields, choices) | `schema` | 15 min | used once, refreshed in the background | refetched first when older than 15 min |
+| `forms/<module>-fields` (form engine) | `schema` | 15 min | refetched | form writes load fresh metadata |
+| `forms/<module>-rules-...` (business rules) | `form_rules` | 15 min | refetched | form writes load fresh rules |
+| `<module>` views (saved filters) | `filters` | 15 min | used once, refreshed in the background | not used |
+| groups | `groups` | 6 h | used once, refreshed in the background | not used |
+| autocomplete / lookup completions | `autocomplete` / `lookup` | 30 min / 5 min | refetched | not used |
+
+Every write (dry-run included) calls `schema.revalidate_for_write` before it
+loads the schema. Its local validation then runs through
+`schema.validate_with_refetch`: when a value is not offered, a field is not
+found or a required field is missing and the schema came from the cache,
+that module's schema is refetched ONCE and the validation runs again, so a
+choice added minutes ago is accepted without clearing the cache. A second
+refusal is final (no loop); a schema just fetched from the server is never
+refetched. `fsv --refresh <command>` refetches every cache it reads once in
+that run; `fsv cache clear schema|views|groups|all` still empties them.
+
 ## FormSpec
 
 `FormSpec.from_form_fields(data, module)` accepts the response object

@@ -52,7 +52,7 @@ MODULES = {"change": ("change_form_fields", "change_fields"),
            "ticket": ("ticket_form_fields", "ticket_fields"),
            "problem": ("problem_form_fields", "problem_fields")}
 FORM_TYPES = {"new": "new_form", "edit": "edit_form"}
-cache.TTL.setdefault("form_rules", 3600)
+cache.TTL.setdefault("form_rules", 900)
 
 # default fields whose record key differs from the form field name
 RECORD_KEYS = {

@@ -240,6 +240,7 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
     s_wall, e_wall = _tenant_wall(s_at, tenant, "start"), _tenant_wall(e_at, tenant, "end")
     sd, st = _when(s_wall)
     ed, et = _when(e_wall)
+    schema_mod.revalidate_for_write(CHANGES, client)
     sch = schema_mod.load(CHANGES, client)
     rows = [_change_type_criterion(sch, c) for c in criteria]
     ws = positive_id(runtime_workspace(sch)) if runtime_workspace(sch) is not None else None

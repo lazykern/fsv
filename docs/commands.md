@@ -492,6 +492,13 @@ fsv cache refresh -h
 fsv cache clear -h
 ```
 
+`cache status` prints each cache's age and TTL. Form schemas and form rules
+live 15 minutes; every write (dry-run included) refetches a schema older
+than that first, and a write whose value, field or required field is
+refused against a cached schema refetches that module's schema once and
+validates again (docs/forms.md, "Cache lifetimes"). `fsv --refresh
+<command>` refetches every cache the command reads once.
+
 ### journal
 
 ```bash

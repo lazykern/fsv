@@ -10,13 +10,18 @@ from typing import Any
 
 from pathlib import Path
 
+from contextlib import contextmanager
+from contextvars import ContextVar
+from typing import Callable, TypeVar
+
+from fsv import cache as _cache
 from fsv.cache import load as _cache_load, refresh_async, save, update_meta
 from fsv.client import Client
 from fsv.errors import APIError, SessionError
 from fsv.config import ensure_dirs, schema_cache_candidates, schema_cache_path
 from fsv.resources import Resource
 
-CACHE_TTL = 7 * 86400  # 7 days — field definitions rarely change, payloads expensive
+CACHE_TTL = _cache.TTL["schema"]  # 15 minutes: admins edit labels/choices without notice
 
 
 def _path(res: Resource) -> Path:
@@ -44,7 +49,8 @@ def _cached_path(res: Resource) -> tuple[Path, dict[str, Any] | None, bool]:
         if doc is not None and _doc_fields(doc):
             saved = doc.get("saved_at", path.stat().st_mtime)
             valid = isinstance(saved, (int, float)) and not isinstance(saved, bool) and math.isfinite(saved)
-            stale = not valid or not 0 <= time.time() - saved <= CACHE_TTL
+            stale = (not valid or not 0 <= time.time() - saved <= _cache.TTL["schema"]
+                     or _cache.forced(path))
             return path, doc, stale
     primary = _path(res)
     return primary, None, True
@@ -154,15 +160,27 @@ def _unwrap(d: dict[str, Any]) -> dict[str, Any]:
     return {"saved_at": d.get("saved_at", 0), "fields": fields}
 
 
-def load(res: Resource, client: Client | None = None, force: bool = False) -> dict[str, Any]:
+def load(res: Resource, client: Client | None = None, force: bool = False, *,
+         for_write: bool = False) -> dict[str, Any]:
     """Return the cached schema for *res*, fetching on miss or when *force*.
 
-    Uses stale-while-revalidate: if cache exists but stale, returns old data
-    immediately and spawns a background refresh.  Empty schemas are never
-    cached or returned; a failed fetch raises.
+    Reads use stale-while-revalidate: if the cache exists but is stale, the
+    old data is returned immediately and a background refresh is spawned.
+    *for_write* (every write, dry-run included): a schema older than
+    ``cache.WRITE_MAX_AGE`` is refetched before it is returned, so a write is
+    never validated against stale field labels or choices.  Empty schemas
+    are never cached or returned; a failed fetch raises.
     """
     p = _path(res)
     cache_path, doc, stale = _cached_path(res)
+    if for_write and doc is not None and not stale:
+        saved = doc.get("saved_at")
+        if not isinstance(saved, (int, float)) or time.time() - saved > _cache.WRITE_MAX_AGE:
+            stale = True
+    if for_write and stale:
+        force = True
+    if doc is not None and _cache.forced(cache_path):
+        force = True  # global `fsv --refresh`: one blocking refetch per process
 
     if doc is not None and not force and not stale:
         update_meta(cache_path, checked_at=True, fetch_inc=True)
@@ -201,6 +219,68 @@ def load(res: Resource, client: Client | None = None, force: bool = False) -> di
     ensure_dirs()
     save(p, "schema", fields, latency_ms=latency)
     return {"saved_at": time.time(), "fields": fields, "stale": False, "source": "server"}
+
+
+class SchemaRefusal(Exception):
+    """A local validation refusal raised inside validate_with_refetch (the
+    CLI's error helper raises it instead of exiting) so the cached schema can
+    be refetched once and the validation retried."""
+
+
+_RETRY_SCOPE: ContextVar[bool] = ContextVar("fsv_schema_retry_scope", default=False)
+_REFUSAL_MARKERS = ("not offered", "field not found", "required field", "no choice ", "unknown ",
+                    "did not match a")
+T = TypeVar("T")
+
+
+def is_schema_refusal(message: str) -> bool:
+    """True inside validate_with_refetch for a refusal a newer schema could
+    lift: an unknown choice value, an unknown field, a missing required field."""
+    if not _RETRY_SCOPE.get():
+        return False
+    low = str(message).lower()
+    return any(m in low for m in _REFUSAL_MARKERS)
+
+
+@contextmanager
+def _retry_scope() -> Any:
+    token = _RETRY_SCOPE.set(True)
+    try:
+        yield
+    finally:
+        _RETRY_SCOPE.reset(token)
+
+
+def validate_with_refetch(res: Resource, client: Any, sch: dict[str, Any],
+                          build: Callable[[dict[str, Any]], T]) -> tuple[dict[str, Any], T]:
+    """Run ``build(sch)`` (the local validation of a write). When it refuses
+    with a schema refusal and *sch* came from the cache, refetch that module's
+    schema ONCE and run the validation again; a second refusal is final (no
+    loop). A schema just fetched from the server is never refetched.
+    Returns the schema actually used and the build result."""
+    if not isinstance(sch, dict) or sch.get("source") != "cache":
+        return sch, build(sch)
+    try:
+        with _retry_scope():
+            return sch, build(sch)
+    except SchemaRefusal as exc:
+        print(f"note: {exc}; refetching the {res.name} form schema once and validating again",
+              file=sys.stderr)
+    fresh = load(res, client, force=True)
+    return fresh, build(fresh)
+
+
+def revalidate_for_write(res: Resource, client: Any) -> None:
+    """Called before every write (dry-run included): a cached schema older
+    than ``cache.WRITE_MAX_AGE`` is refetched now (blocking), so the following
+    ``load`` validates against current labels and choices. No cache: no-op
+    (``load`` fetches on a miss anyway)."""
+    _path_, doc, stale = _cached_path(res)
+    if doc is None:
+        return
+    saved = doc.get("saved_at")
+    if stale or not isinstance(saved, (int, float)) or time.time() - saved > _cache.WRITE_MAX_AGE:
+        load(res, client, force=True)
 
 
 def field(name: str, schema: dict[str, Any]) -> dict[str, Any] | None:

@@ -118,9 +118,10 @@ def test_failed_force_refresh_does_not_fall_back_to_stale_cache():
 
 
 def test_legacy_cache_uses_schema_ttl_not_generic_ttl(monkeypatch):
+    # within the 15-minute schema TTL (shorter than the generic one)
     config.ensure_dirs()
     monkeypatch.setattr(schema.time, "time", lambda: 1000000)
-    _cache_file().write_text(json.dumps({"fields": FIELDS, "saved_at": 1000000 - 7200}))
+    _cache_file().write_text(json.dumps({"fields": FIELDS, "saved_at": 1000000 - 600}))
     c = FakeClient(internal=SessionError("must not fetch"))
     out = schema.load(CHANGES, c)
     assert out["source"] == "cache" and not out["stale"] and c.calls == 0

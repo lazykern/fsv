@@ -267,9 +267,14 @@ def main(
     version: bool = typer.Option(False, "--version", "-V", help="print version and exit", is_eager=True),
     quiet: bool = typer.Option(False, "--quiet", help="do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)"),
     tenant: Optional[str] = typer.Option(None, "--tenant", metavar="DOMAIN", help="assert the target tenant; confirms it for --yes writes when it equals the configured domain"),
+    refresh: bool = typer.Option(False, "--refresh", help="refetch every cached form schema, form rule set and view list once in this run"),
 ) -> None:
     """Freshservice CLI."""
     global NO_INPUT, VERBOSE
+    from fsv import cache as _cache_mod
+    _cache_mod.FORCE_REFRESH = refresh
+    if refresh:
+        _cache_mod._REFRESHED.clear()
     if version:
         try:
             from importlib.metadata import version as _pkg_version
@@ -306,7 +311,14 @@ class SortOrder(str, Enum):
 
 
 def _err(msg: str, code: int = 2) -> None:
-    """Print an error and exit. Default code 2 = validation/usage."""
+    """Print an error and exit. Default code 2 = validation/usage.
+
+    Inside schema.validate_with_refetch a schema refusal (unknown choice,
+    unknown field, missing required field) is raised as SchemaRefusal
+    instead, so the write refetches its form schema once and retries."""
+    schema_mod = sys.modules.get("fsv.schema")
+    if code == 2 and schema_mod is not None and schema_mod.is_schema_refusal(msg):
+        raise schema_mod.SchemaRefusal(msg)
     err.print(f"[red]error[/red]: {msg}")
     raise typer.Exit(code) from None
 
@@ -2767,11 +2779,13 @@ def _problem_reviewed_update(res: Resource, id_: str, status: Optional[str], pri
         _err("problem status changes go through `fsv problems status ID --to STATUS` (a reviewed transition with "
              "closure checks); nothing sent")
     c = _client()
+    _api(lambda: schema_mod.revalidate_for_write(res, c))
     sch = _api(lambda: schema_mod.load(res, c))
     stale_warning = schema_mod.freshness_warning(res, c, sch) if dry_run else None
     if stale_warning:
         err.print(f"[yellow]warning[/yellow]: {stale_warning}")
-    body = _update_body(res, c, sch, None, priority, agent_id, group_id, set_)
+    sch, body = schema_mod.validate_with_refetch(
+        res, c, sch, lambda s: _update_body(res, c, s, None, priority, agent_id, group_id, set_))
     try:
         plan = flow.build_update_plan(c, id_, body)
     except flow.NothingToChange as exc:
@@ -2973,6 +2987,7 @@ def update_resource(
     cid = _cid(id_, res)
     row: Any = None
     c = _client()
+    _api(lambda: schema_mod.revalidate_for_write(res, c))
     sch = _api(lambda: schema_mod.load(res, c))
     stale_warning = schema_mod.freshness_warning(res, c, sch) if dry_run else None
     if stale_warning:
@@ -2994,7 +3009,8 @@ def update_resource(
         except Exception:  # no snapshot -> no hash; --expect-plan then refuses
             row = None
         row = row.get(res.item_key, row) if isinstance(row, dict) else None
-    body = _update_body(res, c, sch, status, priority, agent_id, group_id, set_)
+    sch, body = schema_mod.validate_with_refetch(
+        res, c, sch, lambda s: _update_body(res, c, s, status, priority, agent_id, group_id, set_))
     current = _current_flat(res, cid, c) if dry_run and res.name == "tickets" else None
     risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
     plan_hash = _problem_update_hash(res, cid, body, row) if res.name in ("problems", "tickets") else None
@@ -3691,6 +3707,11 @@ cache_app = typer.Typer(
 )
 
 
+def _age_text(seconds: float) -> str:
+    """Cache age: minutes below an hour (TTLs are 15 minutes), else hours."""
+    return f"{seconds / 60:.0f}m" if seconds < 3600 else f"{seconds / 3600:.1f}h"
+
+
 @cache_app.command("status", epilog="[bold]Examples:[/bold]  fsv cache status")
 def cache_status() -> None:
     """Show cache health and TTL."""
@@ -3716,7 +3737,7 @@ def cache_status() -> None:
             age = (time.time() - saved) / 3600
             ttl = TTL.get(kind, 3600)
             ttl_s = f"{ttl / 3600:.0f}h" if ttl >= 3600 else f"{ttl / 60:.0f}m"
-            items.append((res.name, label, f"{age:.1f}h", f"{'stale' if stale else 'ok'}", ttl_s))
+            items.append((res.name, label, _age_text(age * 3600), f"{'stale' if stale else 'ok'}", ttl_s))
     chosen = None
     doc = None
     stale = True
@@ -3730,7 +3751,19 @@ def cache_status() -> None:
         age = (time.time() - saved) / 3600
         ttl = TTL.get("groups", 6 * 3600)
         ttl_s = f"{ttl / 3600:.0f}h" if ttl >= 3600 else f"{ttl / 60:.0f}m"
-        items.append(("groups", "groups", f"{age:.1f}h", f"{'stale' if stale else 'ok'}", ttl_s))
+        items.append(("groups", "groups", _age_text(age * 3600), f"{'stale' if stale else 'ok'}", ttl_s))
+    forms_dir = config.CACHE_DIR / "forms"
+    for fp in sorted(forms_dir.glob("*.json")) if forms_dir.is_dir() else []:
+        doc, stale = _l(fp)
+        if doc is None:
+            continue
+        kind = str(doc.get("_kind") or "schema")
+        saved = doc.get("saved_at", 0) or fp.stat().st_mtime
+        ttl = TTL.get(kind, 3600)
+        ttl_s = f"{ttl / 3600:.0f}h" if ttl >= 3600 else f"{ttl / 60:.0f}m"
+        name = fp.stem.split("--", 1)[-1]
+        items.append((f"forms/{name}", "rules" if kind == "form_rules" else "schema",
+                      _age_text(time.time() - saved), "stale" if stale else "ok", ttl_s))
     t = Table(title="cache status")
     t.add_column("cache")
     t.add_column("kind")
@@ -4541,6 +4574,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     current = get_change_for_edit(cid)
                     body = _edit_body(current, f"Editing change #{cid}", no_input)
                     c = _client()
+                    _api(lambda: schema_mod.revalidate_for_write(res, c))
                     sch = _api(lambda: schema_mod.load(res, c))
                     risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
                     if dry_run:
@@ -4556,22 +4590,28 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
                 if attach or set_ or any(v is not None for v in [status, priority, agent_id, group_id]):
                     c = _client()
+                    _api(lambda: schema_mod.revalidate_for_write(res, c))
                     sch = _api(lambda: schema_mod.load(res, c))
-                    quick: dict[str, Any] = {}
-                    if status is not None:
-                        quick["status"] = _resolve_update_choice(sch, "status", status)
-                    if priority is not None:
-                        quick["priority"] = _resolve_update_choice(sch, "priority", priority)
-                    if agent_id is not None:
-                        quick["agent_id"] = int(_resolve_agent(c, agent_id))
-                    if group_id is not None:
-                        quick["group_id"] = int(_resolve_group(c, group_id))
-                    for expr in set_ or []:
-                        if "=" not in expr:
-                            _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
-                        field_text, _, raw_value = expr.partition("=")
-                        k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
-                        quick[k] = v
+
+                    def _quick_body(sch: dict[str, Any]) -> dict[str, Any]:
+                        quick: dict[str, Any] = {}
+                        if status is not None:
+                            quick["status"] = _resolve_update_choice(sch, "status", status)
+                        if priority is not None:
+                            quick["priority"] = _resolve_update_choice(sch, "priority", priority)
+                        if agent_id is not None:
+                            quick["agent_id"] = int(_resolve_agent(c, agent_id))
+                        if group_id is not None:
+                            quick["group_id"] = int(_resolve_group(c, group_id))
+                        for expr in set_ or []:
+                            if "=" not in expr:
+                                _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
+                            field_text, _, raw_value = expr.partition("=")
+                            k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
+                            quick[k] = v
+                        return quick
+
+                    sch, quick = schema_mod.validate_with_refetch(res, c, sch, _quick_body)
                     risks = _risks_for_item_write(res, cid, quick, sch, c)
                     if not dry_run:
                         _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)

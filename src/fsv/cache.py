@@ -20,7 +20,12 @@ from typing import Any, Callable
 # built-in TTL defaults (seconds)
 # ---------------------------------------------------------------------------
 TTL: dict[str, int] = {
-    "schema": 7 * 86400,   # field definitions rarely change; expensive payloads
+    # Form fields/choices validate writes and drive the form rules: an admin
+    # can rename a label or add a choice at any time and nothing tells fsv,
+    # so they are trusted for 15 minutes only (writes revalidate, see
+    # fsv.schema.revalidate_for_write and validate_with_refetch).
+    "schema": 900,
+    "form_rules": 900,     # business rules evaluated by the form engine
     "filters": 900,        # saved-filter list may change daily; cheap payloads
     "groups": 6 * 3600,    # org groups; server supports ETag
     "autocomplete": 1800,  # requester/agent prefix matching; moderate volatility
@@ -28,8 +33,22 @@ TTL: dict[str, int] = {
 }
 
 
+# A write never validates against form metadata older than this.
+WRITE_MAX_AGE = 900
+
+# Global `fsv --refresh`: every cache read in this process refetches once.
+FORCE_REFRESH = False
+_REFRESHED: set[str] = set()
+
+
 def ttl_for(kind: str) -> int:
     return TTL.get(kind, 3600)
+
+
+def forced(path: Path) -> bool:
+    """True while `fsv --refresh` is in effect and *path* has not been
+    refetched yet in this process (one refetch per cache file)."""
+    return FORCE_REFRESH and str(path) not in _REFRESHED
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +90,7 @@ def load(path: Path) -> tuple[dict[str, Any] | None, bool]:
     if saved == 0 and "saved_at" not in doc:
         saved = path.stat().st_mtime  # backward compat: legacy files with no saved_at
     kind = doc.get("_kind", "")
-    stale = (now - saved) > ttl_for(kind)
+    stale = (now - saved) > ttl_for(kind) or forced(path)
     return doc, stale
 
 
@@ -90,6 +109,7 @@ def save(path: Path, kind: str, data: Any, *, etag: str = "", latency_ms: int = 
         "data": data,
     }
     _atomic_write(path, json.dumps(doc, indent=2, ensure_ascii=False))
+    _REFRESHED.add(str(path))
 
 
 def update_meta(path: Path, *, checked_at: bool = False, fetch_inc: bool = False, etag: str | None = None) -> None:

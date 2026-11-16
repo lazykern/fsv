@@ -211,6 +211,12 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
 * A client's own metadata cache goes stale when admins change fields,
   rules or flows. Fingerprint metadata into reviews and refetch before
   sending. [VERIFIED LIVE]
+* A field-label edit in the admin field manager (a legacy form POST that
+  answers 302) is visible in the form-fields API immediately; a schema
+  cached for days kept the old label until it was cleared. fsv trusts form
+  schemas and rules for 15 minutes, refetches an older one before every
+  write and refetches once when a write's value or field is refused
+  locally (docs/forms.md, "Cache lifetimes"). [CAPTURED]
 
 ## The default config dir picks the tenant
 

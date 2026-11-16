@@ -1175,7 +1175,8 @@ def download_planning_attachments(
 
 
 def _get_change_schema_fields() -> list[dict[str, Any]]:
-    """Load change schema fields, preferring cache."""
+    """Load change schema fields, preferring cache (writes call
+    fsv.schema.revalidate_for_write first)."""
     schema = load_schema(CHANGES)
     fields: list[dict[str, Any]] = schema.get("fields", []) or []
     if not fields:
@@ -1194,6 +1195,8 @@ def submit_change(body: dict[str, Any], c: Client | None = None) -> dict[str, An
     if c is None:
         c = get_client()
 
+    from fsv.schema import revalidate_for_write
+    revalidate_for_write(CHANGES, c)
     schema_fields = _get_change_schema_fields()
     sf_names = {f.get("name"): f for f in schema_fields}
 
