@@ -320,6 +320,7 @@ fsv tickets canned folders
 fsv tickets scenarios list
 fsv tickets private-views list
 fsv changes private-views list
+fsv changes private-views write 712 rename --name 'Globex renamed' --dry-run
 fsv tickets bulk scenario INC-1234 INC-1235 --scenario 'Assign to Acme Desk' --dry-run
 fsv tickets trash list
 fsv tickets restore INC-1234 --dry-run

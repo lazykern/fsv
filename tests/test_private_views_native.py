@@ -70,8 +70,11 @@ def wire(monkeypatch, tmp_path):
                                     {**c, "value": str(c["value"][0]["id"])} for c in body["query_hash"]]
             store[vid] = stored
             return httpx.Response(201 if req.method == "POST" else 200, json={"ticket_filter": {"id": vid}})
-        vid = state["next"]
-        state["next"] += 1
+        if req.method == "PUT":  # captured: the whole filter is re-sent; the id is kept
+            vid = int(parts[1])
+        else:
+            vid = state["next"]
+            state["next"] += 1
         store[vid] = {**_change_read(vid, body["name"]), "advanced_query_hash": body["advanced_query_hash"]}
         return httpx.Response(200, json={"change_filter": {"id": vid}})
 
@@ -125,7 +128,7 @@ def test_conflicting_or_missing_workspace_refused(wire):
     assert not wire["writes"]
 
 
-def test_change_view_create_verified_rename_delete_not_captured(wire):
+def test_change_view_create_rename_delete_verified(wire):
     c = wire["client"]
     p = views.build_plan(c, 811, action="create", name="Globex clone", kind="changes")
     assert (p.method, p.path) == ("POST", "change-filters")
@@ -133,10 +136,46 @@ def test_change_view_create_verified_rename_delete_not_captured(wire):
     assert p.payload["advanced_query_hash"]["all"][-1]["value"] == WS
     r = views.send(p, c, reviewed_hash=p.hash)
     assert r["verified"], r
-    for action in ("rename", "delete"):
-        with pytest.raises(ReviewedWriteError, match="not captured"):
-            views.build_plan(c, 811, action=action, name="x" if action == "rename" else None, kind="changes")
-    assert len(wire["writes"]) == 1
+    new = r["view_id"]
+    q = views.build_plan(c, new, action="rename", name="Globex renamed", kind="changes")
+    assert (q.method, q.path, q.action) == ("PUT", f"change-filters/{new}", "change_private_view_edit")
+    # the whole filter is re-sent unchanged except the name
+    assert q.payload == {**p.payload, "name": "Globex renamed"}
+    renamed = views.send(q, c, reviewed_hash=q.hash)
+    assert renamed["verified"] and renamed["fields"]["name"] == "matched"
+    assert wire["change-filters"][new]["name"] == "Globex renamed"
+    d = views.build_plan(c, new, action="delete", kind="changes")
+    assert (d.method, d.path, d.payload) == ("DELETE", f"change-filters/{new}", None)
+    gone = views.send(d, c, reviewed_hash=d.hash)
+    assert gone["verified"] and new not in wire["change-filters"]
+    assert [w[0] for w in wire["writes"]] == ["POST", "PUT", "DELETE"]
+
+
+def test_change_view_rename_to_same_name_and_shared_views_refused(wire):
+    c = wire["client"]
+    with pytest.raises(ValueError, match="nothing to change"):
+        views.build_plan(c, 811, action="rename", name="Globex changes", kind="changes")
+    for change in ({"visibility": 1}, {"group_ids": [44]}, {"user_id": 906}, {"default": True}):
+        wire["change-filters"][811] = {**_change_read(811), **change}
+        for action, name in (("rename", "x"), ("delete", None)):
+            with pytest.raises(ReviewedWriteError):
+                views.build_plan(c, 811, action=action, name=name, kind="changes")
+    assert not wire["writes"]
+
+
+def test_change_view_delete_unverified_when_still_readable(wire, monkeypatch):
+    c = wire["client"]
+    d = views.build_plan(c, 811, action="delete", kind="changes")
+    real = c._client._transport.handler
+
+    def keep(req):
+        resp = real(req)
+        if req.method == "DELETE":
+            wire["change-filters"][811] = _change_read(811)  # server kept it
+        return resp
+
+    c._client = httpx.Client(transport=httpx.MockTransport(keep))
+    assert views.send(d, c, reviewed_hash=d.hash)["verified"] is False
 
 
 def test_change_cli_list_show_and_full_hash_gate(wire, monkeypatch):
@@ -153,5 +192,19 @@ def test_change_cli_list_show_and_full_hash_gate(wire, monkeypatch):
     assert runner.invoke(cli.app, args + ["--yes"]).exit_code == 2 and not wire["writes"]
     done = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
     assert done.exit_code == 0 and json.loads(done.output)["verified"]
-    refused = runner.invoke(cli.app, ["changes", "private-views", "write", "811", "delete", "--dry-run"])
-    assert refused.exit_code == 2 and "not captured" in refused.output
+    rename = ["changes", "private-views", "write", "811", "rename", "--name", "Globex renamed"]
+    digest = json.loads(runner.invoke(cli.app, rename + ["--dry-run"]).output)["plan_hash"]
+    done = runner.invoke(cli.app, rename + ["--yes", "--expect-plan", digest])
+    assert done.exit_code == 0 and json.loads(done.output)["verified"]
+    delete = ["changes", "private-views", "write", "811", "delete"]
+    review = runner.invoke(cli.app, delete + ["--dry-run"])
+    assert review.exit_code == 0, review.output
+    digest = json.loads(review.output)["plan_hash"]
+    writes = len(wire["writes"])
+    no_confirm = runner.invoke(cli.app, delete + ["--yes", "--expect-plan", digest])
+    assert no_confirm.exit_code == 2 and "--confirm-destructive" in no_confirm.output
+    assert len(wire["writes"]) == writes
+    gone = runner.invoke(cli.app, delete + ["--yes", "--expect-plan", digest, "--confirm-destructive"])
+    assert gone.exit_code == 0 and json.loads(gone.output)["verified"]
+    replay = runner.invoke(cli.app, delete + ["--yes", "--expect-plan", digest, "--confirm-destructive"])
+    assert replay.exit_code == 2 and len(wire["writes"]) == writes + 1

@@ -36,8 +36,10 @@ class ViewKind:
 
 TICKETS = ViewKind("tickets", "ticket_filters", "ticket_filter", frozenset({"create", "edit", "delete"}),
                    "private_view_")
-# Only the change-view create wire is captured; rename/delete stay refused.
-CHANGES = ViewKind("changes", "change-filters", "change_filter", frozenset({"create"}), "change_private_view_")
+# Change views: create (POST), rename (PUT re-sending the whole filter) and
+# delete (DELETE -> 204) are captured on change-filters.
+CHANGES = ViewKind("changes", "change-filters", "change_filter", frozenset({"create", "edit", "delete"}),
+                   "change_private_view_")
 KINDS = {"tickets": TICKETS, "changes": CHANGES}
 
 
@@ -174,10 +176,8 @@ def build_plan(client: Any, source_id: int, *, action: str, name: str | None = N
     action = "edit" if action == "rename" else action
     if action not in {"create", "edit", "delete"}:
         raise ValueError("unsupported saved-view action (create | rename | delete)")
-    if action not in kind.actions:
-        raise ReviewedWriteError(
-            f"{kind.module} private-view {'rename' if action == 'edit' else action} is not captured "
-            f"(PUT/DELETE /api/_/{kind.path}/<id> has no accepted wire); nothing was sent; use the web UI")
+    if action not in kind.actions:  # every kind supports all three today; kept for new kinds
+        raise ReviewedWriteError(f"{kind.module} private-view {action} has no accepted wire; nothing was sent")
     source_id = positive_id(source_id)
     user = self_id(client)
     row = _detail(client, source_id, kind)
@@ -189,6 +189,8 @@ def build_plan(client: Any, source_id: int, *, action: str, name: str | None = N
     else:
         if not isinstance(name, str) or not name.strip():
             raise ValueError("create/rename requires a nonempty --name")
+        if action == "edit" and name == row.get("name"):
+            raise ValueError(f"the view is already named {name!r}; nothing to change")
         if row.get("order_by") != "created_at" or row.get("order_type") != "desc":
             raise ReviewedWriteError("only captured created-at descending views are supported")
         ws = workspace(row, kind)
@@ -221,6 +223,16 @@ def assess(client: Any, view_id: int, kind: "ViewKind | str" = TICKETS) -> dict[
         out["workspace_id"] = None
         out.setdefault("reason", str(exc))
     return out
+
+
+def _single_list(raw: Any) -> list[Any] | None:
+    """The one saved-view list in a list response (``*filters``/``*views``), else None."""
+    if isinstance(raw, list):
+        return raw
+    if not isinstance(raw, dict):
+        return None
+    lists = [v for k, v in raw.items() if isinstance(v, list) and (k.endswith("filters") or k.endswith("views"))]
+    return lists[0] if len(lists) == 1 else None
 
 
 def own_views(client: Any, kind: "ViewKind | str" = TICKETS) -> dict[str, Any]:
@@ -262,6 +274,12 @@ def send(plan: ViewPlan, client: Any, *, reviewed_hash: str | None) -> dict[str,
                     raise
             else:
                 return {"view_id": view_id, "verified": False}
+            if kind is CHANGES:
+                # captured unpaginated list: one GET, no invented page params
+                listed = _single_list(client.int_get(kind.path))
+                absent = listed is not None and not any(
+                    str(r.get("id")) == str(view_id) for r in listed if isinstance(r, dict))
+                return {"view_id": view_id, "status_on_read": 404, "absent_from_list": absent, "verified": absent}
             rows, meta, _ = collect_pages(client, kind.path, kind.path, {"page": 1, "per_page": 30},
                                           what="saved views")
             return {"view_id": view_id, "verified": bool(meta.get("complete")) and

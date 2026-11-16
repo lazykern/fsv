@@ -16,8 +16,7 @@ from fsv.reviewed_write import ReviewedWriteError
 
 def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = "tickets") -> None:
     kind = private_views.KINDS[module]
-    actions = "create (clone source) | rename | delete" if module == "tickets" else \
-        "create (clone source); rename/delete are not captured for change views"
+    actions = "create (clone source) | rename | delete"
     group = typer.Typer(help=f"Private {module[:-1]} views: list, show, and reviewed {actions} "
                              "on an exact self-owned non-default view visible only to you.")
 
@@ -49,6 +48,8 @@ def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = 
               dry_run: bool = typer.Option(False, "--dry-run"),
               yes: bool = typer.Option(False, "--yes"),
               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+              confirm_destructive: bool = typer.Option(False, "--confirm-destructive",
+                                                       help="required with --yes for delete"),
               output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
               json_out: bool = typer.Option(False, "--json")) -> None:
         try:
@@ -59,6 +60,9 @@ def register(app: typer.Typer, client_factory: Callable[[], Any], module: str = 
                 return
             if not yes or expect_plan != plan.hash:
                 raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
+            if plan.method == "DELETE" and not confirm_destructive:
+                raise ReviewedWriteError("deleting a view cannot be undone; pass --confirm-destructive with "
+                                         "--yes --expect-plan. Nothing was sent")
             typer.echo(tenant_json(private_views.send(plan, c, reviewed_hash=expect_plan), indent=2))
         except (ValueError, ReviewedWriteError) as exc:
             _fail(exc)

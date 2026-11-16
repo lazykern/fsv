@@ -701,10 +701,13 @@ fsv tickets private-views write 702 rename --name 'Acme renamed queue' --dry-run
 fsv tickets private-views write 702 delete --dry-run --json
 fsv changes private-views list --json
 fsv changes private-views write 711 create --name 'Globex my changes' --dry-run --json
+fsv changes private-views write 712 rename --name 'Globex renamed' --dry-run --json
+fsv changes private-views write 712 delete --dry-run --json
+fsv changes private-views write 712 delete --yes --expect-plan FULL_HASH --confirm-destructive
 ```
 
 `create` clones the source view's conditions; `rename` (alias `edit`) renames
-an exact ticket view. A view is treated as private only when a fresh exact read
+an exact ticket or change view. A view is treated as private only when a fresh exact read
 shows it owned by the signed-in agent, an explicitly false default flag, no
 system flag, an empty `group_ids` list, and visibility code 3. The codes come
 from the web UI's "Save as" radios, identical for tickets and changes:
@@ -723,9 +726,14 @@ the read returns a string. Other conditions are cloned unchanged. Change views
 use `query_hash: null` with `advanced_query_hash: {"all": [...]}`. Only
 created-at descending views are supported.
 
-Change views: only `create` (`POST /api/_/change-filters`) has a captured
-wire; `rename` and `delete` are refused with "not captured" and nothing is
-sent.
+Change views: `create` is `POST /api/_/change-filters`; `rename` is
+`PUT /api/_/change-filters/<id>` re-sending the whole filter as read (name,
+workspace, visibility 3, `query_hash: null`, order, `advanced_query_hash`)
+with only the name changed (renaming to the current name is "nothing to
+change"); `delete` is `DELETE /api/_/change-filters/<id>` (204). Deleting
+any view needs `--confirm-destructive` with `--yes --expect-plan`. A change
+view delete is verified by a 404 exact read plus absence from the one
+(unpaginated) `GET /api/_/change-filters` list.
 
 Use `--yes --expect-plan FULL_HASH` after each review. Source/target drift blocks
 sending. Creation requires the exact returned view ID and reads that object,
