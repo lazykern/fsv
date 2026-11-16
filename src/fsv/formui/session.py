@@ -677,7 +677,25 @@ class FormSession:
             from fsv import ticket_flow
             plan = ticket_flow.build_create_plan(m, self.draft, resolver=self.resolver, requester=self.requester, ack_all=ack)
         else:
-            plan = cat.build_sr_plan(m, self.draft, resolver=self.resolver, requester=self.requester, ack_all=ack)
+            limit_errors: list[str] = []
+
+            def upload_limit() -> Any:
+                # the same tenant upload limit `fsv sr create` binds into the hash
+                from fsv.attachments import Limit, resolve_limit
+                if getattr(self, "_sr_limit", None) is None:
+                    try:
+                        self._sr_limit = resolve_limit(self.client, None, None)
+                    except Exception as e:  # unreadable limit: no hash, the error is shown
+                        limit_errors.append(f"{e}; use `fsv sr create --max-bytes N`")
+                        return Limit(None, "unreadable")
+                return self._sr_limit
+
+            plan = cat.build_sr_plan(m, self.draft, resolver=self.resolver, requester=self.requester, ack_all=ack,
+                                     upload_limit=upload_limit)
+            if limit_errors:
+                plan.errors.extend(limit_errors)
+                plan.review.errors = list(plan.review.errors) + limit_errors
+                plan.hash = plan.review.plan_hash = ""
         pending = [e for e in self.input_errors() if e not in plan.errors]
         if pending:  # what the person typed last was not taken: never submit the older value silently
             plan.errors.extend(pending)

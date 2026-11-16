@@ -324,6 +324,8 @@ fsv tickets private-views list
 fsv changes private-views list
 fsv changes update CHN-1234 --due-by 2030-06-09T18:00:00+07:00 --dry-run
 fsv changes update CHN-1234 --due-by 2030-06-09T18:00:00+07:00 --yes --expect-plan FULL_HASH
+fsv changes update CHN-1234 --set 'Subject=Acme rollout' --attach plan.pdf --max-bytes 10485760 --dry-run
+fsv sr create 'Feature Request' --from sr.yaml --attach brief.pdf --max-bytes 10485760 --dry-run
 fsv changes private-views write 712 rename --name 'Globex renamed' --dry-run
 fsv tickets bulk scenario INC-1234 INC-1235 --scenario 'Assign to Acme Desk' --dry-run
 fsv tickets trash list

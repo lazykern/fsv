@@ -212,6 +212,9 @@ class AcmeCatalog:
         return httpx.Response(404, json={"message": f"no route {req.method} {p}"})
 
     def _get(self, p: str, q: dict[str, str]) -> httpx.Response:
+        if p == "/a/dashboard":  # agent page: publishes the upload limit (MiB)
+            return httpx.Response(200, text="<html><script>var MAX_ATTACHMENT_LIMIT = 15;</script></html>",
+                                  headers={"content-type": "text/html"})
         if p == "/api/_/catalog/service-categories":
             assert q.get("category_hierarchy") == "true"
             return httpx.Response(200, json=CATEGORIES)

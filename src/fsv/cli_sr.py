@@ -626,6 +626,7 @@ def create_command(
     no_input: bool,
     requested_for: str | None = None,
     cc: list[str] | None = None,
+    max_bytes: int | None = None,
 ) -> None:
     from fsv.editor import EditorAbort
     from fsv.formmeta import ClientResolver
@@ -661,6 +662,19 @@ def create_command(
     if tty and not form and not edit and not template_only and not who.value(draft):
         who.ask()
     resolver = ClientResolver(client)
+    limit_cache: dict[str, Any] = {}
+
+    def upload_limit() -> Any:
+        """The upload size limit: --max-bytes, else the tenant's published
+        limit; read once, only when the plan uploads files."""
+        if "limit" not in limit_cache:
+            from fsv.attachments import resolve_limit
+            from fsv.reviewed_write import ReviewedWriteError
+            try:
+                limit_cache["limit"] = resolve_limit(client, None, max_bytes)
+            except ReviewedWriteError as e:
+                raise FlowExit(2, f"{e}; pass --max-bytes N") from None
+        return limit_cache["limit"]
 
     def build(d: Draft, ack_all: bool = ack, m: cat.ItemMeta | None = None) -> cat.SRPlan:
         req, problem = who.resolve(d)
@@ -687,7 +701,8 @@ def create_command(
             except ValueError:
                 raise FlowExit(2, "each CC email must resolve to exactly one non-deleted user") from None
         plan = cat.build_sr_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all,
-                                 requested_for=target, cc_emails=tuple(resolved_cc), cc_ids=tuple(resolved_cc_ids))
+                                 requested_for=target, cc_emails=tuple(resolved_cc), cc_ids=tuple(resolved_cc_ids),
+                                 upload_limit=upload_limit)
         if problem:
             plan.errors[:] = [problem] + [e for e in plan.errors if e != cat.REQUESTER_MISSING]
             plan.review.errors = plan.errors
@@ -785,6 +800,7 @@ def create_cmd(
     requested_for: Optional[str] = typer.Option(None, "--requested-for", help="exact user email or name"),
     cc: Optional[List[str]] = typer.Option(None, "--cc", help="plain CC email (repeatable)"),
     attach: Optional[List[str]] = typer.Option(None, "--attach", help="general attachment (repeatable)"),
+    max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash"),
     dry_run: bool = typer.Option(False, "--dry-run", help="show the review, payload and plan hash; send nothing"),
     output: str = typer.Option("table", "--output", "-o", help="table|json (with --dry-run: the plan)"),
     yes: bool = typer.Option(False, "--yes", "-y", help="place without the prompt (required without a terminal)"),
@@ -798,7 +814,8 @@ def create_cmd(
     _guard(lambda: create_command(
         _client, item, from_file=from_, sets=set_, preset=preset, edit=edit, requester=requester, attach=attach,
         dry_run=dry_run, as_json=output == "json", yes=yes, expect_plan=expect_plan,
-        allow_duplicate=allow_duplicate, ack=ack, no_input=no_input, requested_for=requested_for, cc=cc))
+        allow_duplicate=allow_duplicate, ack=ack, no_input=no_input, requested_for=requested_for, cc=cc,
+        max_bytes=max_bytes))
 
 
 # ---------------------------------------------------------------------------

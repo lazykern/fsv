@@ -4550,7 +4550,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             backup_name: Optional[str] = typer.Option(None, "--backup-name", help="backup filename for replaced attachment"),
             attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file(s) to attach to main change (Attachments section)"),
             due_by: Optional[str] = typer.Option(None, "--due-by", help="reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH"),
-            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="--planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
+            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="--attach and --planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
@@ -4588,7 +4588,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                             legacy={"status": status, "priority": priority, "agent": agent_id, "group": group_id},
                             duplicate=duplicate, dry_run=dry_run, as_json=json_out, yes=yes,
                             expect_plan=expect_plan, ack=ack, no_input=no_input, status_label=None,
-                            subject=format_id({"id": cid}, res), form=open_form,
+                            subject=format_id({"id": cid}, res), form=open_form, max_bytes=max_bytes,
                         )
                     except FlowExit as e:
                         _flow_exit(e)
@@ -4662,8 +4662,19 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
                     attach_result: dict[str, Any] | None = None
                     if attach:
+                        from fsv.attachments import resolve_limit
+                        from fsv.reviewed_write import ReviewedWriteError
+                        try:
+                            limit = resolve_limit(c, None, max_bytes)
+                        except ReviewedWriteError as exc:
+                            _err(f"{exc}; pass --max-bytes N")
+                        total = sum(Path(p).expanduser().stat().st_size for p in attach if Path(p).expanduser().is_file())
+                        if limit.max_bytes is not None and total > limit.max_bytes:
+                            _err(f"--attach files total {total} bytes and exceed the {limit.max_bytes}-byte limit "
+                                 f"({limit.source}); nothing was uploaded")
                         if dry_run:
-                            quick["attachments"] = {"preserve_existing": True, "upload_files": list(attach), "duplicate": duplicate}
+                            quick["attachments"] = {"preserve_existing": True, "upload_files": list(attach), "duplicate": duplicate,
+                                                    "max_bytes": limit.max_bytes, "limit_source": limit.source}
                         else:
                             attach_result = attach_files_to_change(
                                 cid,

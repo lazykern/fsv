@@ -119,6 +119,7 @@ class Plan:
     # sends on this change, so an A/B/A/B alternation plans fresh hashes.
     state_token: dict[str, Any] | None = None
     prior_hash: str = ""  # same plan without the token (pre-token journals)
+    upload_limit: dict[str, Any] = dc_field(default_factory=dict)  # bound when files are uploaded
 
     @property
     def ok(self) -> bool:
@@ -344,9 +345,12 @@ UPDATE_ACTIONS = ("change_form_update", "update")  # journal kinds of answered c
 def update_hash(plan: Any) -> str:
     """Full change update plan hash: payload hash, record snapshot, form
     metadata, tenant and the record-state token."""
-    return journal.plan_hash({"legacy": plan.legacy_hash, "record": plan.record_hash,
-                              "metadata": plan.meta.fingerprint.hash, "tenant": plan.tenant,
-                              "state": plan.state_token}) or ""
+    doc = {"legacy": plan.legacy_hash, "record": plan.record_hash, "metadata": plan.meta.fingerprint.hash,
+           "tenant": plan.tenant, "state": plan.state_token}
+    limit = getattr(plan, "upload_limit", None)
+    if limit:  # only plans that upload files under a size limit (older hashes unchanged)
+        doc["upload_limit"] = limit
+    return journal.plan_hash(doc) or ""
 
 
 def _hash(request: Any, files: dict[str, list[str]], planning: list[dict[str, Any]], target: Any = None) -> str:
@@ -507,7 +511,11 @@ def build_update_plan(
     ack_all: bool = False,
     status_label: Callable[[Any], str] | None = None,
     lifecycle: Callable[[], Mapping[str, Any]] | None = None,
+    upload_limit: Callable[[], Any] | None = None,
 ) -> Plan:
+    """``upload_limit``: callable returning ``attachments.Limit`` (tenant
+    limit or ``--max-bytes``), asked only when the plan uploads files; the
+    limit is checked here and bound into the plan hash."""
     spec = meta.spec
     existing = name_existing(existing_from_record(spec, record), spec, record, resolver)
     state = FormState(spec, meta.engine(), mode="edit", resolver=resolver, existing=existing)
@@ -566,6 +574,17 @@ def build_update_plan(
     for p in planning:
         files[f"planning:{p['field_id']}"] = p["files"]
     problems += perr + _file_errors([x for paths in files.values() for x in paths])
+    limit_info: dict[str, Any] = {}
+    uploading = [x for paths in files.values() for x in paths]
+    if uploading and upload_limit is not None:
+        lim = upload_limit()
+        limit_info = {"max_bytes": lim.max_bytes, "source": lim.source}
+        total = sum(os.path.getsize(x) for x in uploading if os.path.isfile(x))
+        if lim.max_bytes is not None and total > lim.max_bytes:
+            problems.append(f"uploads total {total} bytes and exceed the {lim.max_bytes}-byte limit "
+                            f"({lim.source}); nothing would be uploaded")
+        elif lim.max_bytes is None:
+            warnings.append("the tenant publishes no attachment size limit; pass --max-bytes N to bind one")
     if lifecycle is not None and body:
         # Runtime state flow: edges, entry criteria and field locks the server
         # would otherwise reject with a bare HTTP 400.
@@ -603,6 +622,7 @@ def build_update_plan(
     review.warnings = warnings + hint_problems
     review.metadata = meta.as_of()
     plan = Plan("update", meta, state, draft, body, files, planning, review, problems, target=target, risks=risks)
+    plan.upload_limit = limit_info
     if not problems and (body or any(files.values()) or planning):
         plan.record_hash = journal.snapshot_hash(stable_snapshot(dict(record))) or ""
         plan.legacy_hash = _hash(body, files, planning, target)

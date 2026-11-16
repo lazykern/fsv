@@ -480,6 +480,9 @@ class SRPlan:
     errors: list[str]
     requester: LookupValue | None = None
     identity: dict[str, Any] = dc_field(default_factory=dict)
+    # Upload size limit bound into the hash when the plan uploads files:
+    # {"max_bytes": N | None, "source": ...} (tenant limit or --max-bytes).
+    upload_limit: dict[str, Any] = dc_field(default_factory=dict)
     hash: str = ""
     action: str = "create"  # journal / duplicate-check compatible with changes
 
@@ -530,7 +533,10 @@ def requester_line(req: LookupValue) -> str:
 
 def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: LookupValue | None,
                   ack_all: bool = False, requested_for: LookupValue | None = None,
-                  cc_emails: tuple[str, ...] = (), cc_ids: tuple[Any, ...] = ()) -> SRPlan:
+                  cc_emails: tuple[str, ...] = (), cc_ids: tuple[Any, ...] = (),
+                  upload_limit: Any = None) -> SRPlan:
+    """``upload_limit``: a callable returning ``attachments.Limit``, asked
+    only when the plan uploads files (tenant limit, or ``--max-bytes``)."""
     spec = meta.spec
     item = spec.item
     assert item is not None
@@ -576,6 +582,14 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
         uploads.append(Upload(ph, p, "attachments", "Other attachments"))
         general_ph.append(ph)
     errors += [f"file not found: {u.path}" for u in uploads if not os.path.isfile(u.path)]
+    limit_info: dict[str, Any] = {}
+    if uploads and upload_limit is not None:
+        lim = upload_limit()
+        limit_info = {"max_bytes": lim.max_bytes, "source": lim.source}
+        total = sum(os.path.getsize(u.path) for u in uploads if os.path.isfile(u.path))
+        if lim.max_bytes is not None and total > lim.max_bytes:
+            errors.append(f"uploads total {total} bytes and exceed the {lim.max_bytes}-byte limit ({lim.source}); "
+                          "nothing would be uploaded")
 
     skip = {f"{spec.by_name[n].label} is required" for n in failed}  # one report per field
     problems = list(errors) + [p for p in state.errors() if p not in skip]
@@ -658,11 +672,17 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
             from fsv.watchers import positive_id
             identity["requester_id"] = positive_id(requester.id)
         identity["tenant"] = config.DOMAIN
-    plan = SRPlan(meta, state, draft, payload, uploads, review, problems, requester=requester, identity=identity)
+    if limit_info:
+        review.warnings = [*review.warnings, *([] if limit_info["max_bytes"] is not None else [
+            "the tenant publishes no attachment size limit; pass --max-bytes N to bind one"])]
+    plan = SRPlan(meta, state, draft, payload, uploads, review, problems, requester=requester, identity=identity,
+                  upload_limit=limit_info)
     if payload is not None and not problems:
         hashed = {"request": payload, "target": plan.target}
         if identity:
             hashed["recipient_identity"] = identity
+        if limit_info:
+            hashed["upload_limit"] = limit_info
         plan.hash = plan_hash(hashed, plan.files)
         review.plan_hash = plan.hash
     return plan
@@ -721,6 +741,11 @@ def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] =
         hashed = {"request": plan.payload, "target": plan.target}
         if plan.identity:
             hashed["recipient_identity"] = plan.identity
+        if plan.upload_limit:
+            hashed["upload_limit"] = plan.upload_limit
+            limit = plan.upload_limit.get("max_bytes")
+            if limit is not None and sum(os.path.getsize(u.path) for u in plan.uploads) > limit:
+                raise FlowExit(2, f"uploads exceed the reviewed {limit}-byte limit; nothing was uploaded")
         current_hash = plan_hash(hashed, plan.files)
     except OSError as e:
         raise FlowExit(2, f"cannot verify reviewed files: {e}") from None
@@ -798,6 +823,12 @@ def duplicate_check(plan: SRPlan, allow_duplicate: bool) -> None:
         previous = {k: v for k, v in plan.identity.items() if k != "requester_id"}
         hashes.add(plan_hash({"request": plan.payload, "target": plan.target,
                               "recipient_identity": previous}, plan.files))
+    if plan.upload_limit:
+        # Plans reviewed before the upload limit was bound must still refuse.
+        older: dict[str, Any] = {"request": plan.payload, "target": plan.target}
+        if plan.identity:
+            older["recipient_identity"] = plan.identity
+        hashes.add(plan_hash(older, plan.files))
     latest = {}
     for row in journal.read():
         if row.get("kind") == "plan:create" and row.get("plan") in hashes:

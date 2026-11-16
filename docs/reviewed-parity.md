@@ -966,6 +966,18 @@ whose create/edit state is unproven, existing attachments or unavailable
 attachment inventories block text-only writes. Whitespace/HTML is not stripped
 to infer emptiness; contradictory text/empty representations fail closed.
 
+### Upload size limits (`--max-bytes`)
+
+`changes update --attach` and `sr create --attach` (plus SR file fields)
+check the total size of the files they would upload against a limit before
+anything is uploaded: `--max-bytes N`, else the tenant's published limit
+(the agent page's `MAX_ATTACHMENT_LIMIT`, in MiB). On the reviewed change
+form path and on the SR plan the limit and its source are bound into the
+plan hash (only when files are uploaded, so other plans keep their hashes;
+an unresolved send reviewed before the limit was bound still refuses). An
+unreadable published limit refuses with "pass --max-bytes N"; an
+unpublished one is a review warning.
+
 ### Change due date (`changes update --due-by`)
 
 ```sh

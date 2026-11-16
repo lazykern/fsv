@@ -423,9 +423,12 @@ def update_command(
     status_label: Callable[[Any], str] | None,
     subject: str,
     form: bool = False,
+    max_bytes: int | None = None,
 ) -> None:
     """``form``: open the in-terminal edit form (pre-filled; the edit
-    form's rules; only changed fields are sent)."""
+    form's rules; only changed fields are sent). ``max_bytes``: total upload
+    size limit for ``--attach`` (default: the tenant's published limit),
+    bound into the plan hash when files are uploaded."""
     from fsv.editor import EditorAbort
 
     tty = flow.interactive() and not no_input
@@ -462,10 +465,23 @@ def update_command(
             lifecycle_cache["flow"] = get_state_flow(record["state_flow_id"], client, record.get("workspace_id"))
         return lifecycle_cache["flow"]
 
+    limit_cache: dict[str, Any] = {}
+
+    def upload_limit() -> Any:
+        if "limit" not in limit_cache:
+            from fsv.attachments import resolve_limit
+            from fsv.reviewed_write import ReviewedWriteError
+            try:
+                limit_cache["limit"] = resolve_limit(client, None, max_bytes)
+            except ReviewedWriteError as e:
+                raise FlowExit(2, f"{e}; pass --max-bytes N") from None
+        return limit_cache["limit"]
+
     def build(d: Draft, ack_all: bool = ack, m: Any = None) -> Plan:
         return flow.build_update_plan(m or meta, d, record, cid, resolver=resolver, ack_all=ack_all,
                                       status_label=status_label,
-                                      lifecycle=lifecycle if record.get("state_flow_id") else None)
+                                      lifecycle=lifecycle if record.get("state_flow_id") else None,
+                                      upload_limit=upload_limit)
 
     session = None
     try:
