@@ -389,6 +389,7 @@ exists, else the legacy list (`tickets/<id>/associated_assets`,
 fsv assets search 'Acme'
 fsv solutions create --title 'Restore service' --body 'Restart the service' --type workaround --dry-run
 fsv attachments delete 123 --owner tickets/INC-1234 --dry-run
+fsv attachments delete 123 --owner tickets/INC-1234 --yes --expect-plan FULL_HASH --confirm-destructive
 fsv form fields changes --choices Priority
 fsv form explain changes --set 'Priority=High'
 fsv form dump changes > snapshot.json

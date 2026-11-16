@@ -34,15 +34,22 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                child: Optional[int] = typer.Option(None, "--child", help="exact conversation/note ID"),
                section: Optional[str] = typer.Option(None, "--section", help="exact native planning section key"),
                dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
-               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"), json_out: bool = typer.Option(False, "--json")) -> None:
+               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               confirm_destructive: bool = typer.Option(False, "--confirm-destructive",
+                                                        help="required with --yes: the delete is permanent (no restore wire)"),
+               json_out: bool = typer.Option(False, "--json")) -> None:
         try:
             client = client_factory()
             plan = flow.delete_plan(client, ident, owner, child=child, section=section)
             if dry_run:
-                typer.echo(tenant_json({"status": "dry_run", **plan.review(), "owner": owner, "child": child, "section": section}, indent=2))
+                typer.echo(tenant_json({"status": "dry_run", **plan.review(), "owner": owner, "child": child, "section": section,
+                                        "requires": "--confirm-destructive"}, indent=2))
                 return
             if not yes or expect_plan != plan.hash:
-                raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+                raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH --confirm-destructive")
+            if not confirm_destructive:
+                raise ReviewedWriteError("attachment deletion is permanent; pass --confirm-destructive with "
+                                         "--yes --expect-plan FULL_HASH. Nothing was sent")
             result = flow.delete(plan, client, owner, child=child, section=section, reviewed_hash=expect_plan)
             typer.echo(tenant_json(result, indent=2))
             if not result.get("verified"):

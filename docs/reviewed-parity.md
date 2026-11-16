@@ -230,7 +230,8 @@ fsv attachments delete 701 --owner tickets/123 --child 901 --dry-run --json
 ```
 
 Send with `--yes --expect-plan FULL_HASH --json`. Public ticket notes also need
-`--confirm-public`. Local files are read and SHA-256 hashed for review; metadata,
+`--confirm-public`; `attachments delete` also needs `--confirm-destructive`
+(the delete is permanent). Local files are read and SHA-256 hashed for review; metadata,
 owner, size limit and file bytes are rechecked before uploading. Each file uses
 one JSON data-URI POST to `/api/_/attachments`; returned IDs are supplied in the
 owning write's `attachments` array. Dry runs never upload. Independent exact-ID

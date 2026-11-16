@@ -301,8 +301,11 @@ def test_cli_delete_signed_attachment_uses_same_review_and_send_hash(api):
     hash_ = json.loads(first.output)["plan_hash"]
     assert json.loads(second.output)["plan_hash"] == hash_
     assert not s["writes"]
-    assert runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_[:16]]).exit_code == 2
-    sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_])
+    assert json.loads(first.output)["requires"] == "--confirm-destructive"
+    assert runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_[:16], "--confirm-destructive"]).exit_code == 2
+    unconfirmed = runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_])
+    assert unconfirmed.exit_code == 2 and "--confirm-destructive" in unconfirmed.output and not s["writes"]
+    sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_, "--confirm-destructive"])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.output)["verified"]
     assert s["writes"] == [("DELETE", f"attachments/{base}", None)]
@@ -351,7 +354,7 @@ def test_cli_review_full_hash_send_and_delete(api, kind):
     r = runner.invoke(cli.app, args+["--dry-run", "--json"])
     assert r.exit_code == 0, r.output
     hash_ = json.loads(r.output)["plan_hash"]
-    r = runner.invoke(cli.app, args+["--yes", "--expect-plan", hash_, "--json"])
+    r = runner.invoke(cli.app, args+["--yes", "--expect-plan", hash_, "--json", "--confirm-destructive"])
     assert r.exit_code == 0, r.output
     assert json.loads(r.output)["verified"]
     assert s["writes"][-1] == ("DELETE", "attachments/"+str(base), None)
