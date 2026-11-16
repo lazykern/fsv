@@ -29,4 +29,9 @@ build-backend = "uv_build"
 dev = [
     "hypothesis>=6.170.15",
     "pytest>=9.0.3",
+    "pytest-xdist>=3.8.0",
 ]
+
+[tool.pytest.ini_options]
+# Parallel by default (pytest-xdist); `-n 0` or `-p no:xdist` runs serially.
+addopts = "-n auto"

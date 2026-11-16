@@ -88,7 +88,11 @@ def test_file_field_validates_type_and_count(cat):
 
     async def script(app, pilot):
         await focus(app, pilot, "overview_deck")
-        await type_text(pilot, str(base / "brief.pdf"))
+        # Typing the long tmp-dir prefix key by key costs seconds; prefill it
+        # and type only the file name through real key events.
+        app.screen.rows["overview_deck"].editor.input.value = f"{base}/"
+        app.screen.rows["overview_deck"].editor.input.cursor_position = len(f"{base}/")
+        await type_text(pilot, "brief.pdf")
         await pilot.press("enter")
         await settle(app, pilot)
         err = text_of(app.screen.rows["overview_deck"].query_one(".field-error"))

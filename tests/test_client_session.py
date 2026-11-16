@@ -361,3 +361,23 @@ def test_auth_status_expired_session_shows_clear_error(monkeypatch):
     result = CliRunner().invoke(cli.app, ["auth", "status"])
     assert result.exit_code == 3
     assert "session expired or invalid" in result.output
+
+
+def test_retry_backoff_schedule_is_recorded_not_slept(monkeypatch):
+    """The conftest fixture stubs the sleep; the delays computed stay the
+    production schedule: fixed backoff, then Retry-After honoured."""
+    sleeps: list[float] = []
+    monkeypatch.setattr(client, "_sleep", sleeps.append)
+    calls = {"n": 0}
+
+    def handler(req):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return httpx.Response(503, headers=JSON, content="{}")
+        if calls["n"] == 2:
+            return httpx.Response(429, headers={**JSON, "retry-after": "3"}, content="{}")
+        return httpx.Response(200, headers=JSON, content='{"agent": {"first_name": "Ada"}}')
+
+    assert make_client(handler).check_session() == {"first_name": "Ada"}
+    assert calls["n"] == 3
+    assert sleeps == [client._RETRY_DELAYS[0], 3.0]

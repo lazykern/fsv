@@ -107,8 +107,15 @@ and the README's safety model.
   should re-sign on every GET, so hash stability is actually tested.
 * **Failure matrix.** For writes, test timeout, 403, 404, 409, 429, 5xx and
   disconnect, and assert no second request.
-* Run the full suite with a timeout long enough for it (`uv run pytest -q`
-  takes several minutes) before each commit.
+* Run the full suite before each commit: `uv run pytest -q` runs it in
+  parallel (pytest-xdist, `-n auto` is the configured default; about a
+  minute and a half). Pass a path for one file
+  (`uv run pytest -q tests/test_client_session.py`) and add `-n 0` (or `-p no:xdist`)
+  for serial debugging with `pdb` or ordered output.
+* HTTP retry backoff and readback polling sleep through module hooks
+  (`fsv.client._sleep`, `fsv.readback._sleep`) that `tests/conftest.py`
+  stubs for every test; record the delays instead of sleeping when a test
+  asserts the schedule.
 
 ## 4. Hygiene rules for public content
 

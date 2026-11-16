@@ -117,7 +117,9 @@ git clone https://github.com/lazykern/fsv.git
 cd fsv
 uv sync
 uv run fsv -h
-uv run pytest -q
+uv run pytest -q                       # full suite, parallel (-n auto is the default)
+uv run pytest -q tests/test_client_session.py     # one file
+uv run pytest -q -n 0 tests/test_client_session.py  # serial, for debugging (or -p no:xdist)
 ```
 
 Upgrade an installed copy with `uv tool upgrade fsv`. The [documentation index](docs/index.md) links the feature and safety guides.

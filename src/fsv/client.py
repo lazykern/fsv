@@ -32,6 +32,12 @@ _MAX_RETRIES = 2
 _RETRY_DELAYS = (0.5, 1.5)
 
 
+def _sleep(seconds: float) -> None:
+    """Retry backoff sleep; a module hook so offline tests can record the
+    schedule without waiting through it."""
+    time.sleep(seconds)
+
+
 def set_verbose(value: bool) -> None:
     global _VERBOSE
     _VERBOSE = bool(value)
@@ -252,7 +258,7 @@ class Client:
                 if attempt < _MAX_RETRIES and _should_retry(method, exc=e):
                     delay = _retry_delay(attempt)
                     _log_line(method, url, kw, f"{type(e).__name__}: {e}; retry in {delay:g}s")
-                    time.sleep(delay)
+                    _sleep(delay)
                     continue
                 _log_line(method, url, kw, f"{type(e).__name__}: {e}")
                 raise
@@ -271,7 +277,7 @@ class Client:
             if attempt < _MAX_RETRIES and _should_retry(method, response=r):
                 delay = _retry_delay(attempt, r)
                 _log_line(method, url, kw, f"{r.status_code} {elapsed}{rl}; retry in {delay:g}s")
-                time.sleep(delay)
+                _sleep(delay)
                 continue
             _log_line(method, url, kw, f"{r.status_code} {elapsed}{rl}")
             return r

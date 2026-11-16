@@ -116,6 +116,10 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     client = sys.modules.get("fsv.client")
     if client is not None:
         client._instance = None
+        # HTTP retry backoff (0.5 s, 1.5 s, Retry-After) is real time in
+        # production; record the schedule instead of sleeping through it.
+        # tests/test_client_session.py asserts the schedule itself.
+        monkeypatch.setattr(client, "_sleep", lambda _seconds: None)
     # Bounded read-only readback backoff is real time in production; keep the
     # observation count but not the wall-clock delay in offline tests.
     readback = sys.modules.get("fsv.readback")
