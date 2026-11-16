@@ -237,6 +237,16 @@ resend a write to obtain a missing field. [VERIFIED LIVE]
   downloadable, so delivery cannot be read back: fsv reports `submitted`, not
   `verified`. [CAPTURED]
 
+* The export body's `data_hash` takes string condition values only. A saved
+  view read back with integer values (e.g. `responder_id is_in [0]`,
+  `workspace_id is_in [1]`) is refused with HTTP 400 `Validation failed
+  (data_hash[i]: value: It should be of type String / key/value pair)`;
+  the dialog sends `workspace_id is "1"`. fsv converts a single integer ticket
+  `workspace_id` to that captured shape and scalar integers to strings, and
+  refuses any other non-string value at review time ("this view has
+  conditions fsv cannot serialise for export yet: <field>"), so nothing is
+  sent. [OBSERVED]
+
 ## The default config dir picks the tenant
 
 fsv's default config dir holds the domain that `fsv auth login` configured

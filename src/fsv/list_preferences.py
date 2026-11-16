@@ -105,6 +105,49 @@ def export_source(client: Any, module: str, view: str) -> tuple[Any, dict[str, A
     return selected, row
 
 
+def _plain_id(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def export_data_hash(module: str, query_hash: list[Any]) -> list[dict[str, Any]]:
+    """The view's ``query_hash`` as the export dialog's ``data_hash``.
+
+    Captured: every condition value the export endpoint accepted is a string or
+    a list of strings (tickets ``workspace_id is "1"``; problems ``status
+    is_in ["1"]``). A saved view read back with INTEGER values is rejected by
+    the server (HTTP 400 ``It should be of type String`` / ``key/value
+    pair``). Only the shapes the capture settles are normalised: a ticket
+    view's single integer ``workspace_id`` becomes the captured ``is "<id>"``
+    and a scalar integer becomes its string; string values pass unchanged
+    (a string-valued view was accepted, 202). Any other non-string value (integer
+    lists, objects, booleans, null) is refused at review time, naming the
+    condition, instead of sending a body the server rejects."""
+    out: list[dict[str, Any]] = []
+    unsupported: list[str] = []
+    for item in query_hash:
+        if not isinstance(item, dict) or not isinstance(item.get("condition"), str):
+            unsupported.append(repr(item)[:40])
+            continue
+        cond, value = dict(item), item.get("value")
+        name = cond["condition"]
+        if (module == "tickets" and name == "workspace_id" and cond.get("operator") in ("is", "is_in")
+                and isinstance(value, list) and len(value) == 1 and _plain_id(value[0])):
+            cond.update(operator="is", value=str(value[0]))
+        elif _plain_id(value):
+            cond["value"] = str(value)
+        elif isinstance(value, str) or (isinstance(value, list) and value and all(isinstance(v, str) for v in value)):
+            pass
+        else:
+            unsupported.append(name)
+            continue
+        out.append(cond)
+    if unsupported:
+        raise ReviewedWriteError("this view has conditions fsv cannot serialise for export yet: "
+                                 + ", ".join(unsupported) + " (the export endpoint takes string values only; "
+                                 "nothing was sent)")
+    return out
+
+
 def export_plan(client: Any, module: str, view: str, fields: list[str]) -> ListPlan:
     rows = headers(client, module)
     labels = {row["name"]: row.get("label") for row in rows}
@@ -121,7 +164,7 @@ def export_plan(client: Any, module: str, view: str, fields: list[str]) -> ListP
     # CSV / 30 days / created_at are the only captured export-dialog variant,
     # not guessed enum IDs or options inferred from another endpoint.
     payload = {"format": "csv", "date_filter": 30, "export_fields": export_fields,
-               "custom_fields": {}, "data_hash": row["query_hash"]}
+               "custom_fields": {}, "data_hash": export_data_hash(module, row["query_hash"])}
     if module == "tickets":
         payload.update(ticket_state_filter="created_at", advanced_data_hash=None,
                        selected_filter_view={"id": selected.id, "name": selected.name,

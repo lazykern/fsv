@@ -53,6 +53,8 @@ def wire(request, monkeypatch, tmp_path):
                               frozen=header["name"] in body["frozen_columns"])
         else:
             assert path == f"{module}/export"
+            if not _string_values(body["data_hash"]):  # the trial's server rule for data_hash
+                return httpx.Response(400, json={"description": "Validation failed"})
             return httpx.Response(202, json={"success": True})
         return httpx.Response(204)
 
@@ -220,3 +222,48 @@ def test_export_review_shows_the_recipient_mailbox(wire, monkeypatch, me, mailbo
     monkeypatch.setattr(wire["client"], "me", lambda: {"email": "other@example.com"})
     assert (plan(wire, "export").hash == p.hash) is (mailbox == "other@example.com")
     assert "recipient" not in plan(wire, "columns").review() and not wire["writes"]
+
+
+def _string_values(conds):
+    """Fake server rule from the trial: any non-string condition value -> HTTP 400."""
+    return all(isinstance(c["value"], str) or (isinstance(c["value"], list)
+                                                and all(isinstance(x, str) for x in c["value"])) for c in conds)
+
+
+def test_export_integer_workspace_view_is_normalised_to_captured_string_shape(wire):
+    wire["row"]["query_hash"] = [
+        {"condition": "status", "operator": "is_in", "value": ["2", "3"], "type": "default"},
+        {"condition": "workspace_id", "operator": "is_in", "value": [1], "type": "default"},
+        {"condition": "priority", "operator": "is", "value": 4, "type": "default"}]
+    if wire["module"] != "tickets":  # only the ticket dialog's workspace shape is captured
+        with pytest.raises(ReviewedWriteError, match="export yet: workspace_id"):
+            plan(wire, "export")
+        return
+    p = plan(wire, "export")
+    data = p.payload["data_hash"]
+    assert data[0] == wire["row"]["query_hash"][0]
+    assert data[1] == {"condition": "workspace_id", "operator": "is", "value": "1", "type": "default"}
+    assert data[2]["value"] == "4" and _string_values(data)
+    assert not _string_values(wire["row"]["query_hash"])  # as read, the fake server answers 400
+    assert wire["row"]["query_hash"][1]["value"] == [1]  # the read row itself is untouched
+    assert flow.send_export(p, wire["client"], reviewed_hash=p.hash)["accepted"] is True
+    assert len(wire["writes"]) == 1
+
+
+def test_export_string_view_body_unchanged(wire):
+    p = plan(wire, "export")
+    assert p.payload["data_hash"] == wire["row"]["query_hash"]
+    assert _string_values(p.payload["data_hash"])
+
+
+@pytest.mark.parametrize("value", [[0], [0, 1], {"from": "x", "to": "y"}, None, True, []])
+def test_export_unserialisable_view_refused_at_review_naming_the_field(wire, monkeypatch, value):
+    wire["row"]["query_hash"] = [
+        {"condition": "status", "operator": "is_in", "value": ["2"], "type": "default"},
+        {"condition": "responder_id", "operator": "is_in", "value": value, "type": "default"}]
+    with pytest.raises(ReviewedWriteError, match="cannot serialise for export yet: responder_id"):
+        plan(wire, "export")
+    _me(wire, monkeypatch)
+    monkeypatch.setattr(cli, "_client", lambda: wire["client"])
+    review = CliRunner().invoke(cli.app, [wire["module"], "export", "--view", "701", "--field", "subject"])
+    assert review.exit_code == 2 and "responder_id" in review.output and not wire["writes"]
