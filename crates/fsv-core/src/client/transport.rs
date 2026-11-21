@@ -172,9 +172,23 @@ fn decode_json_bytes(b: &[u8]) -> Option<String> {
     } else if b.starts_with(&[0xef, 0xbb, 0xbf]) {
         (Enc::Utf8, 3)
     } else if b.len() >= 4 && b[0] == 0 {
-        (if b[1] != 0 { Enc::Utf16(true) } else { Enc::Utf32(true) }, 0)
+        (
+            if b[1] != 0 {
+                Enc::Utf16(true)
+            } else {
+                Enc::Utf32(true)
+            },
+            0,
+        )
     } else if b.len() >= 4 && b[1] == 0 {
-        (if b[2] != 0 || b[3] != 0 { Enc::Utf16(false) } else { Enc::Utf32(false) }, 0)
+        (
+            if b[2] != 0 || b[3] != 0 {
+                Enc::Utf16(false)
+            } else {
+                Enc::Utf32(false)
+            },
+            0,
+        )
     } else if b.len() == 2 && b[0] == 0 {
         (Enc::Utf16(true), 0)
     } else if b.len() == 2 && b[1] == 0 {
@@ -186,30 +200,34 @@ fn decode_json_bytes(b: &[u8]) -> Option<String> {
     match enc {
         Enc::Utf8 => std::str::from_utf8(body).ok().map(str::to_string),
         Enc::Utf16(be) => {
-            if body.len() % 2 != 0 {
+            let (pairs, rest) = body.as_chunks::<2>();
+            if !rest.is_empty() {
                 return None;
             }
-            let units = body.chunks_exact(2).map(|c| {
+            let units = pairs.iter().map(|c| {
                 if be {
-                    u16::from_be_bytes([c[0], c[1]])
+                    u16::from_be_bytes(*c)
                 } else {
-                    u16::from_le_bytes([c[0], c[1]])
+                    u16::from_le_bytes(*c)
                 }
             });
-            char::decode_utf16(units).collect::<std::result::Result<String, _>>().ok()
+            char::decode_utf16(units)
+                .collect::<std::result::Result<String, _>>()
+                .ok()
         }
         Enc::Utf32(be) => {
-            if body.len() % 4 != 0 {
+            let (quads, rest) = body.as_chunks::<4>();
+            if !rest.is_empty() {
                 return None;
             }
-            body.chunks_exact(4)
+            quads
+                .iter()
                 .map(|c| {
-                    let n = if be {
-                        u32::from_be_bytes([c[0], c[1], c[2], c[3]])
+                    char::from_u32(if be {
+                        u32::from_be_bytes(*c)
                     } else {
-                        u32::from_le_bytes([c[0], c[1], c[2], c[3]])
-                    };
-                    char::from_u32(n)
+                        u32::from_le_bytes(*c)
+                    })
                 })
                 .collect()
         }
@@ -274,9 +292,7 @@ impl ReqwestTransport {
                 builder = builder.add_root_certificate(cert);
             }
         }
-        let client = builder
-            .build()
-            .map_err(|e| Error::other(e.to_string()))?;
+        let client = builder.build().map_err(|e| Error::other(e.to_string()))?;
         Ok(ReqwestTransport { client })
     }
 }
@@ -368,22 +384,24 @@ impl Transport for ReqwestTransport {
             .get("transfer-encoding")
             .and_then(|v| v.to_str().ok())
             .is_some_and(|v| v.to_ascii_lowercase().contains("chunked"));
-        let read = |resp: &mut reqwest::blocking::Response, body: &mut Vec<u8>, limit: Option<u64>| {
-            let mut buf = [0u8; 16384];
-            loop {
-                let want = limit.map_or(buf.len(), |l| {
-                    usize::try_from(l.saturating_sub(body.len() as u64)).map_or(buf.len(), |n| n.min(buf.len()))
-                });
-                if want == 0 {
-                    return Ok(());
+        let read =
+            |resp: &mut reqwest::blocking::Response, body: &mut Vec<u8>, limit: Option<u64>| {
+                let mut buf = [0u8; 16384];
+                loop {
+                    let want = limit.map_or(buf.len(), |l| {
+                        usize::try_from(l.saturating_sub(body.len() as u64))
+                            .map_or(buf.len(), |n| n.min(buf.len()))
+                    });
+                    if want == 0 {
+                        return Ok(());
+                    }
+                    match resp.read(&mut buf[..want]) {
+                        Ok(0) => return Ok(()),
+                        Ok(n) => body.extend_from_slice(&buf[..n]),
+                        Err(e) => return Err(e),
+                    }
                 }
-                match resp.read(&mut buf[..want]) {
-                    Ok(0) => return Ok(()),
-                    Ok(n) => body.extend_from_slice(&buf[..n]),
-                    Err(e) => return Err(e),
-                }
-            }
-        };
+            };
         let outcome = match req.body_limit.filter(|_| status < 400) {
             Some(limit) if declared.is_some_and(|n| n > limit) => Ok(()),
             Some(limit) => read(&mut resp, &mut body, Some(limit.saturating_add(1))),
@@ -447,20 +465,16 @@ fn map_reqwest(e: reqwest::Error) -> TransportError {
             "Server disconnected without sending a response.",
         );
     }
-    if lower.contains("invalid http") || lower.contains("invalid status") || lower.contains("parsed") {
+    if lower.contains("invalid http")
+        || lower.contains("invalid status")
+        || lower.contains("parsed")
+    {
         return TransportError::new("RemoteProtocolError", text);
     }
     if lower.contains("connection reset") || lower.contains("broken pipe") {
         return TransportError::new("ReadError", text);
     }
-    TransportError::new(
-        if body {
-            "ReadError"
-        } else {
-            "NetworkError"
-        },
-        text,
-    )
+    TransportError::new(if body { "ReadError" } else { "NetworkError" }, text)
 }
 
 fn map_read(
@@ -567,13 +581,22 @@ mod decode_tests {
         let want = serde_json::json!({"a": "é"});
         let text = r#"{"a": "é"}"#;
         assert_eq!(json(text.as_bytes()).unwrap(), want);
-        assert_eq!(json(&[b"\xef\xbb\xbf".as_slice(), text.as_bytes()].concat()).unwrap(), want);
+        assert_eq!(
+            json(&[b"\xef\xbb\xbf".as_slice(), text.as_bytes()].concat()).unwrap(),
+            want
+        );
         let utf16: Vec<u8> = text.encode_utf16().flat_map(u16::to_le_bytes).collect();
-        assert_eq!(json(&[b"\xff\xfe".as_slice(), &utf16].concat()).unwrap(), want);
+        assert_eq!(
+            json(&[b"\xff\xfe".as_slice(), &utf16].concat()).unwrap(),
+            want
+        );
         assert_eq!(json(&utf16).unwrap(), want);
         let utf16be: Vec<u8> = text.encode_utf16().flat_map(u16::to_be_bytes).collect();
         assert_eq!(json(&utf16be).unwrap(), want);
-        let utf32: Vec<u8> = text.chars().flat_map(|c| (c as u32).to_le_bytes()).collect();
+        let utf32: Vec<u8> = text
+            .chars()
+            .flat_map(|c| (c as u32).to_le_bytes())
+            .collect();
         assert_eq!(json(&utf32).unwrap(), want);
         assert!(json(b"{\"a\": \"\xff\"}").is_err());
     }
@@ -597,7 +620,9 @@ mod decode_tests {
     fn ssl_cert_env_empty_values_count_as_unset() {
         assert!(env_roots(None, None).unwrap().is_none());
         assert!(env_roots(Some(""), Some("")).unwrap().is_none());
-        let err = env_roots(Some("/nonexistent-ca.pem"), None).unwrap_err().to_string();
+        let err = env_roots(Some("/nonexistent-ca.pem"), None)
+            .unwrap_err()
+            .to_string();
         assert_eq!(err, "[Errno 2] No such file or directory");
     }
 
@@ -610,6 +635,9 @@ mod decode_tests {
         };
         let e = ReqwestTransport::new().unwrap().send(&req).unwrap_err();
         assert_eq!(e.kind, "UnsupportedProtocol");
-        assert_eq!(e.message, "Request URL has an unsupported protocol 'ftp://'.");
+        assert_eq!(
+            e.message,
+            "Request URL has an unsupported protocol 'ftp://'."
+        );
     }
 }
