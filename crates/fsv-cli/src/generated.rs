@@ -1484,7 +1484,7 @@ pub struct ChangesUpdateArgs {
     )]
     pub attach: Vec<String>,
     #[arg(
-        help = "set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)",
+        help = "reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH",
         long = "due-by",
         allow_hyphen_values = true,
         value_name = "TEXT"

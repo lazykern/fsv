@@ -1467,14 +1467,16 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
         backup_name: a.backup_name.clone(),
     };
     if let Some(due) = &a.due_by {
-        if a.dry_run {
-            emit_dry_run(&CHANGES, id, json!({"due_by": due}), "set_due_by", &[]);
-            return Ok(());
-        }
-        let c = client()?;
-        fsv_api::create::set_due_by(c.as_ref(), id, due).map_err(fail_exc)?;
-        out().print(&format!("[green]updated[/] #{id} resolution due → {due}"));
-        return Ok(());
+        return crate::cmd::due_by::change_due_by_update(
+            id,
+            due,
+            crate::cmd::due_by::DueByOpts {
+                dry_run: a.dry_run,
+                yes: a.yes,
+                expect_plan: a.expect_plan.as_deref(),
+                json_out: a.json_out,
+            },
+        );
     }
     if let Some(planning) = &a.planning {
         let c = client()?;

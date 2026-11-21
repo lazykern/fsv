@@ -1247,59 +1247,6 @@ fn clone_editor_no_input() {
 }
 
 #[test]
-fn update_due_by_dry_run() {
-    let r = run_fixture(
-        "change_helpers",
-        &[
-            "changes",
-            "update",
-            "5",
-            "--due-by",
-            "2026-06-09T18:00:00+07:00",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "dry_run": true,
-  "action": "set_due_by",
-  "id": "CHN-5",
-  "body": {
-    "due_by": "2026-06-09T18:00:00+07:00"
-  }
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn update_due_by() {
-    let r = run_fixture(
-        "change_helpers",
-        &[
-            "changes",
-            "update",
-            "5",
-            "--due-by",
-            "2026-06-09T18:00:00+07:00",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"updated #5 resolution due → 2026-06-09T18:00:00+07:00
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PATCH /api/_/changes/5"]);
-}
-
-#[test]
 fn update_planning_dry_run() {
     let r = run_fixture(
         "change_helpers",

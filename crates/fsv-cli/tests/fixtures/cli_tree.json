@@ -6036,7 +6036,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)",
+       "help": "reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH",
        "metavar": null,
        "envvar": null
       },

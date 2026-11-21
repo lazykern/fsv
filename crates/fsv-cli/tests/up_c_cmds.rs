@@ -613,3 +613,211 @@ fn problem_no_review_prints_one_notice_and_sends_body_only() {
     assert_eq!(r.code, 2);
     assert!(r.err.contains("drop --no-review"), "{}", r.err);
 }
+
+// changes update --due-by on the reviewed contract (a53b300,
+// `tests/test_change_due_by_cli.py`; 447450f pinned the old direct PATCH and
+// is superseded by it).
+
+const WHEN: &str = "2030-06-09T18:00:00+07:00";
+
+fn change(due_by: &str, manual: bool, updated_at: &str) -> Value {
+    json!({"change": {"id": 123, "due_by": due_by, "updated_at": updated_at, "manual_dueby": manual}})
+}
+
+fn due_routes(after: Value) -> Vec<Value> {
+    let before = change("2030-06-01T10:00:00+07:00", false, "2030-01-01T00:00:00Z");
+    let get = |once: bool, body: Value| {
+        let mut r = json!({"method": "GET", "path": "/api/_/changes/123", "json": body});
+        if once {
+            r["once"] = json!(true);
+        }
+        r
+    };
+    vec![
+        get(true, before.clone()),
+        get(true, before),
+        get(false, after),
+        json!({"method": "GET", "path": "/api/v2/agents/me",
+               "json": {"agent": {"id": 9, "time_zone": "Asia/Bangkok"}}}),
+        json!({"method": "PATCH", "path": "/api/_/changes/123", "json": {"change": {"id": 123}}}),
+        json!({"method": "GET", "path": "/a/dashboard",
+               "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"}),
+    ]
+}
+
+fn applied_due() -> Value {
+    change("2030-06-09T11:00:00Z", true, "2030-01-01T00:05:00Z")
+}
+
+fn due_review(env: &Env, when: &str) -> Value {
+    let r = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        when,
+        "--dry-run",
+    ]);
+    assert_eq!(r.code, 0, "{}", r.err);
+    serde_json::from_str(&r.out).unwrap()
+}
+
+#[test]
+fn due_by_dry_run_prints_plan_hash_and_sends_nothing() {
+    let env = Env::new(due_routes(applied_due()));
+    let out = due_review(&env, WHEN);
+    assert_eq!(out["action"], json!("change_due_by"));
+    assert_eq!(out["method"], json!("PATCH"));
+    assert_eq!(out["path"], json!("/api/_/changes/123"));
+    assert_eq!(out["payload"], json!({"due_by": WHEN}));
+    assert_eq!(out["record_state"]["sends"], json!(0));
+    assert_eq!(out["due_by"]["utc"], json!("2030-06-09T11:00:00+00:00"));
+    assert_eq!(out["plan_hash"].as_str().unwrap().len(), 64);
+    let r = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        WHEN,
+        "--dry-run",
+    ]);
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
+fn due_by_invalid_or_naive_timestamp_is_refused_at_dry_run() {
+    let env = Env::new(due_routes(applied_due()));
+    for bad in [
+        "not-a-date",
+        "2030-13-40T10:00:00+07:00",
+        "2030-06-09",
+        "2030-06-09T18:00:00",
+    ] {
+        let r = env.run(&["changes", "update", "CHN-123", "--due-by", bad, "--dry-run"]);
+        assert_eq!(r.code, 2, "{bad}: {}", r.err);
+        assert!(r.write_paths().is_empty());
+        if bad.ends_with("18:00:00") {
+            assert!(r.err.contains("no UTC offset"), "{}", r.err);
+            assert!(r.err.contains("Asia/Bangkok"), "{}", r.err);
+        }
+    }
+}
+
+#[test]
+fn due_by_send_needs_full_hash_then_one_patch_and_instant_readback() {
+    let env = Env::new(due_routes(applied_due()));
+    let digest = due_review(&env, WHEN)["plan_hash"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    let run = |extra: &[&str]| {
+        let mut args = vec!["changes", "update", "CHN-123", "--due-by", WHEN];
+        args.extend_from_slice(extra);
+        env.run(&args)
+    };
+    assert_eq!(run(&["--yes"]).code, 2);
+    let short = run(&["--yes", "--expect-plan", &digest[..12]]);
+    assert_eq!(short.code, 2);
+    assert!(short.write_paths().is_empty());
+    let sent = run(&["--yes", "--expect-plan", &digest]);
+    assert_eq!(sent.code, 0, "{}", sent.err);
+    let result: Value = serde_json::from_str(&sent.out).unwrap();
+    assert_eq!(result["verified"], json!(true));
+    assert_eq!(result["fields"], json!({"due_by": "matched"}));
+    assert_eq!(result["due_by"], json!("2030-06-09T11:00:00Z"));
+    assert_eq!(result["manual_dueby"], json!(true));
+    let writes = sent.writes();
+    assert_eq!(writes.len(), 1);
+    assert_eq!(
+        (writes[0].0.as_str(), writes[0].1.as_str(), &writes[0].2),
+        ("PATCH", "/api/_/changes/123", &json!({"due_by": WHEN}))
+    );
+    let replay = run(&["--yes", "--expect-plan", &digest]);
+    assert_eq!(replay.code, 2, "{}", replay.err);
+    assert!(replay.write_paths().is_empty());
+}
+
+#[test]
+fn due_by_same_instant_is_nothing_to_change() {
+    let env = Env::new(due_routes(applied_due()));
+    let r = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        "2030-06-01T03:00:00Z",
+        "--dry-run",
+    ]);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert!(r.out.contains("nothing to change"), "{}", r.out);
+    assert!(!r.out.contains("plan_hash"));
+    let r = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        "2030-06-01T03:00:00Z",
+        "--yes",
+        "--expect-plan",
+        &"0".repeat(64),
+    ]);
+    assert_eq!(r.code, 2, "{}", r.err);
+    let r = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        "2030-06-01T03:00:00Z",
+        "--dry-run",
+        "--json",
+    ]);
+    assert_eq!(
+        r.json(),
+        json!({"status": "nothing_to_change", "target": 123})
+    );
+}
+
+#[test]
+fn due_by_unapplied_value_is_unverified_exit_4() {
+    let unchanged = change("2030-06-01T10:00:00+07:00", false, "2030-01-01T00:00:00Z");
+    let env = Env::new(due_routes(unchanged));
+    let digest = due_review(&env, WHEN)["plan_hash"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    let sent = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        WHEN,
+        "--yes",
+        "--expect-plan",
+        &digest,
+    ]);
+    assert_eq!(sent.code, 4, "{}", sent.err);
+    let result: Value = serde_json::from_str(&sent.out).unwrap();
+    assert_eq!(result["fields"]["due_by"], json!("mismatched"));
+}
+
+#[test]
+fn due_by_does_not_combine_with_other_update_modes_and_tickets_have_none() {
+    let env = Env::new(due_routes(applied_due()));
+    let r = env.run(&[
+        "changes",
+        "update",
+        "CHN-123",
+        "--due-by",
+        WHEN,
+        "--planning",
+        "Rollout Plan",
+        "--description",
+        "x",
+        "--dry-run",
+    ]);
+    assert_ne!(r.code, 0);
+    assert!(r.err.contains("choose one update mode"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+    let r = env.run(&["tickets", "update", "INC-5", "--due-by", WHEN]);
+    assert_eq!(r.code, 2);
+}

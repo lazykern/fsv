@@ -56,11 +56,16 @@ pub(crate) fn stateful_context(
 /// `prior_guards`: the hash of `plan` without its record-state token, so an
 /// unresolved send journaled before the token was bound still refuses.
 pub(crate) fn prior_guards(plan: &PlanningPlan) -> Vec<String> {
-    if plan.prior_context.is_empty() || plan.prior_context == plan.write.context_hash {
+    prior_guard_hashes(&plan.write, &plan.prior_context)
+}
+
+/// [`prior_guards`] for any plan carrying a `prior_context`.
+pub(crate) fn prior_guard_hashes(write: &WritePlan, prior_context: &str) -> Vec<String> {
+    if prior_context.is_empty() || prior_context == write.context_hash {
         return Vec::new();
     }
-    let mut older = plan.write.clone();
-    older.context_hash = plan.prior_context.clone();
+    let mut older = write.clone();
+    older.context_hash = prior_context.to_string();
     vec![older.hash()]
 }
 

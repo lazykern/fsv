@@ -8,6 +8,7 @@ pub mod completion;
 pub mod config;
 pub mod deletes;
 pub mod download;
+pub mod due_by;
 pub mod form;
 pub mod formflow;
 pub mod inline_images;

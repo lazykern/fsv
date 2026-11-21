@@ -342,7 +342,7 @@ A	fsv changes update	--duplicate	same-name attachment behavior: prompt|skip|repl
 A	fsv changes update	--backup-replaced	when --duplicate replace, backup old attachment first
 A	fsv changes update	--backup-name	backup filename for replaced attachment
 A	fsv changes update	--attach	file(s) to attach to main change (Attachments section)
-A	fsv changes update	--due-by	set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)
+A	fsv changes update	--due-by	reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH
 A	fsv changes update	--dry-run	print resolved payload without updating
 A	fsv changes update	--yes	confirm status changes, reassignment and other notifying writes
 A	fsv changes update	--json	emit JSON
