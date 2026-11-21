@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "780c002ec61d25dbc465c54027312fc8bcef6d19",
+    "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
     "dirty": false
   },
   "fields": [
@@ -90,7 +90,7 @@
     }
   },
   "bound": {
-    "hash": "93147bcc40b5202f347bef0ed625f99698573fb32f1ddff8b94f0b5e7907fc6d",
+    "hash": "3758a963d1b513e0459b01a8870bd21376b9eb7b0525139bce0bd143c62a332a",
     "payload": {
       "title": "Acme",
       "status": 7,
@@ -106,7 +106,12 @@
     "fields_json": "[{\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Title\", \"name\": \"title\"}, {\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Workspace\", \"name\": \"workspace_id\"}, {\"choices\": [{\"id\": \"17\", \"value\": \"Acme\"}], \"default\": false, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"System\", \"name\": \"cf_system\"}, {\"choices\": [{\"id\": \"29\", \"value\": \"Test\"}], \"default\": false, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Environment\", \"name\": \"cf_environment\"}, {\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Planned Start\", \"name\": \"planned_start_date\"}, {\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Planned End\", \"name\": \"planned_end_date\"}, {\"choices\": [{\"id\": \"7\", \"value\": \"Open\"}], \"name\": \"status\"}, {\"choices\": [{\"id\": \"0\", \"value\": \"Never\"}], \"name\": \"notify_before\"}]",
     "custom_fields_json": "{\"environment\": 29, \"system\": 17}"
   },
-  "changed_hash": "1004eac98c2cd52b5ca32ab9e6adefadb2b34541af3fb0cf3107c74479965f33",
-  "bare_hash": "a7989bca2f44a9977f9d65c48bf438f5e04f359cc370537ad02d8a5304687adc",
-  "empty_fields_hash": "5f6a8c1d80d727bbf3a7023a3a7031dbdf390761b249f4e47d4976ba665920dc"
+  "changed_hash": "1b245ca4a164a3e8dbcb5e371acd4c5fb7de582f61b1b4ce84f6ed8bc4af02e2",
+  "bare_hash": "228b66f5e5b654cf24d2e370d711ce7ec1c280b64f4c130482c919dccdfc0a6d",
+  "empty_fields": {
+    "error": {
+      "type": "TaskError",
+      "msg": "runtime reminder metadata unavailable; no task POST attempted"
+    }
+  }
 }

@@ -1507,6 +1507,7 @@ mod tests {
 
     #[test]
     fn required_fields_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.example.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/change_tasks_required_oracle.json"))
                 .unwrap();
@@ -1590,7 +1591,7 @@ mod tests {
                 },
                 tenant,
             )),
-            "runtime reminder metadata unavailable; no task POST attempted"
+            oracle["empty_fields"]["error"]["msg"].as_str().unwrap()
         );
         let api = FakeApi::new().ok("GET change_task_fields", json!({}));
         assert_eq!(

@@ -63,14 +63,17 @@ def main():
     changed[2]["choices"].append({"id": "31", "value": "Globex"})
     other = flow.build_plan(23, "Acme", **{**kw, "fields": changed})
     bare = flow.build_plan(23, "Acme", status_id=7)
-    empty = flow.build_plan(23, "Acme", status_id=7, fields=[])
+    try:
+        empty = {"hash": flow.build_plan(23, "Acme", status_id=7, fields=[]).hash}
+    except Exception as exc:  # noqa: BLE001
+        empty = {"error": {"type": type(exc).__name__, "msg": str(exc)}}
     doc = {
         "fields": FIELDS,
         "missing": missing,
         "bound": plan_out(plan),
         "changed_hash": other.hash,
         "bare_hash": bare.hash,
-        "empty_fields_hash": empty.hash,
+        "empty_fields": empty,
     }
     json.dump(stamped(doc), sys.stdout, indent=2)
     sys.stdout.write("\n")

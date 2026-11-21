@@ -119,7 +119,7 @@ def gen_query():
     ex = []
     item = query._query_item("status", "is_in", [2], "default", ex, "status", "Planning")
     q["query_item"] = {"item": item, "explain": ex}
-    q["merge_date_ranges"] = query._merge_date_ranges([
+    q["merge_date_ranges"] = err(query._merge_date_ranges, [
         {"condition": "created_at", "type": "default", "operator": "custom_date", "value": {"from": "a"}},
         {"condition": "status", "type": "default", "operator": "is_in", "value": [1]},
         {"condition": "created_at", "type": "default", "operator": "custom_date", "value": {"to": "b"}},
