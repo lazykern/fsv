@@ -309,7 +309,13 @@ impl Client {
                 body: body.clone(),
                 body_limit: opts.body_limit,
             };
-            let mut resp = self.transport.send(&req).map_err(SendErr::Transport)?;
+            let mut resp = self.transport.send(&req).map_err(|e| {
+                if e.kind == "DecodingError" {
+                    SendErr::Fatal(e.into())
+                } else {
+                    SendErr::Transport(e)
+                }
+            })?;
             resp.url = req.url;
             self.state()
                 .jar
