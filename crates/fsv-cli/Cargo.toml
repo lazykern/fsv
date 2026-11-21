@@ -1,6 +1,6 @@
 [package]
 name = "fsv-cli"
-description = "The fsv command line"
+description = "Unofficial Freshservice CLI that uses your browser session. Browse records, inspect forms, review writes before sending."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
