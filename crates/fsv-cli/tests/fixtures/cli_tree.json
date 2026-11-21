@@ -15725,6 +15725,105 @@
        "envvar": null
       },
       {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "description",
+       "kind": "option",
+       "opts": [
+        "--description",
+        "--desc"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: section text/HTML; '-' reads stdin",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "files",
+       "kind": "option",
+       "opts": [
+        "--file",
+        "-f"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: file(s) to upload to the section",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "duplicate",
+       "kind": "option",
+       "opts": [
+        "--duplicate"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "prompt",
+       "hidden": false,
+       "help": "problems --planning --file: same-name attachment behavior: prompt|skip|replace|append",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "reviewed",
        "kind": "option",
        "opts": [
@@ -15942,6 +16041,44 @@
        "default": false,
        "hidden": false,
        "help": "download attachment links found in description HTML",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "all_planning",
+       "kind": "option",
+       "opts": [
+        "--all-planning"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "problems: download every analysis section's attachments",
        "metavar": null,
        "envvar": null
       },
@@ -24949,6 +25086,105 @@
        "envvar": null
       },
       {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "description",
+       "kind": "option",
+       "opts": [
+        "--description",
+        "--desc"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: section text/HTML; '-' reads stdin",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "files",
+       "kind": "option",
+       "opts": [
+        "--file",
+        "-f"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: file(s) to upload to the section",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "duplicate",
+       "kind": "option",
+       "opts": [
+        "--duplicate"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "prompt",
+       "hidden": false,
+       "help": "problems --planning --file: same-name attachment behavior: prompt|skip|replace|append",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "reviewed",
        "kind": "option",
        "opts": [
@@ -25166,6 +25402,44 @@
        "default": false,
        "hidden": false,
        "help": "download attachment links found in description HTML",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "all_planning",
+       "kind": "option",
+       "opts": [
+        "--all-planning"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "problems: download every analysis section's attachments",
        "metavar": null,
        "envvar": null
       },

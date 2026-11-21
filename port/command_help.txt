@@ -874,6 +874,11 @@ A	fsv tickets update	--tag	tickets only: replace all tags with these values (rep
 A	fsv tickets update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv tickets update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv tickets update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
+A	fsv tickets update	--planning	problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update
+A	fsv tickets update	--description	problems --planning: section text/HTML; '-' reads stdin
+A	fsv tickets update	--file	problems --planning: file(s) to upload to the section
+A	fsv tickets update	--duplicate	problems --planning --file: same-name attachment behavior: prompt|skip|replace|append
+A	fsv tickets update	--max-bytes	problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)
 A	fsv tickets update	--reviewed	tickets only: evaluate --set and core flags as a hash-bound property plan
 A	fsv tickets update	--ack	tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)
 A	fsv tickets update	--expect-plan	full reviewed hash (ticket property update, problem update)
@@ -886,6 +891,8 @@ A	fsv tickets download	<id_>
 A	fsv tickets download	--attachments	download main attachments
 A	fsv tickets download	--conversations	download attachments from conversations/replies
 A	fsv tickets download	--description-attachments	download attachment links found in description HTML
+A	fsv tickets download	--planning	problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)
+A	fsv tickets download	--all-planning	problems: download every analysis section's attachments
 A	fsv tickets download	--all	download all attachments from all sources
 A	fsv tickets download	--dir	output directory (default: ./downloads/<ID>)
 A	fsv tickets download	--force	overwrite existing files
@@ -1387,6 +1394,11 @@ A	fsv problems update	--tag	tickets only: replace all tags with these values (re
 A	fsv problems update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv problems update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv problems update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
+A	fsv problems update	--planning	problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update
+A	fsv problems update	--description	problems --planning: section text/HTML; '-' reads stdin
+A	fsv problems update	--file	problems --planning: file(s) to upload to the section
+A	fsv problems update	--duplicate	problems --planning --file: same-name attachment behavior: prompt|skip|replace|append
+A	fsv problems update	--max-bytes	problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)
 A	fsv problems update	--reviewed	tickets only: evaluate --set and core flags as a hash-bound property plan
 A	fsv problems update	--ack	tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)
 A	fsv problems update	--expect-plan	full reviewed hash (ticket property update, problem update)
@@ -1399,6 +1411,8 @@ A	fsv problems download	<id_>
 A	fsv problems download	--attachments	download main attachments
 A	fsv problems download	--notes	download attachments from notes
 A	fsv problems download	--description-attachments	download attachment links found in description HTML
+A	fsv problems download	--planning	problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)
+A	fsv problems download	--all-planning	problems: download every analysis section's attachments
 A	fsv problems download	--all	download all attachments from all sources
 A	fsv problems download	--dir	output directory (default: ./downloads/<ID>)
 A	fsv problems download	--force	overwrite existing files

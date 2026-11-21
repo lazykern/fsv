@@ -11,7 +11,7 @@ use fsv_core::term::{Column, Justify, Table, err, escape, out};
 use fsv_core::{Client, Error, Result};
 
 use crate::generated::{ChangesDownloadArgs, ResDownloadArgs};
-use crate::util::{CmdResult, cid, client, fail_exc, uncaught};
+use crate::util::{CmdResult, cid, client, fail_exc, uncaught, usage};
 use crate::{lookup, schema};
 
 /// `_download_dir`: exactly `--dir`, or by default `./downloads/<ID>`
@@ -68,7 +68,12 @@ fn download_status(item: &Value) -> &'static str {
     if item.get("refused").is_some_and(fsv_py::truthy) {
         err().print(&format!(
             "[yellow]refused[/yellow] {}: {}",
-            escape(&item.get("name").map(fsv_py::py_str).unwrap_or_else(|| "None".into())),
+            escape(
+                &item
+                    .get("name")
+                    .map(fsv_py::py_str)
+                    .unwrap_or_else(|| "None".into())
+            ),
             escape(&fsv_py::py_str(&item["refused"]))
         ));
         return "refused";
@@ -152,13 +157,21 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
     };
     let id = cid(&a.id_, res)?;
     let c = client()?;
+    let is_problems = res.name == fsv_core::resource::PROBLEMS.name;
+    if (!a.planning.is_empty() || a.all_planning) && !is_problems {
+        return Err(usage(
+            "--planning/--all-planning here are for problems; use `fsv changes download --planning`",
+        ));
+    }
     let limit = download_limit(&c, a.max_bytes);
     let (mut main, mut threads, mut description) =
         (a.main_attachments, a.threads, a.description_attachments);
+    let mut all_planning = a.all_planning;
     if a.all_ {
         (main, threads, description) = (true, true, true);
+        all_planning = is_problems;
     }
-    if !main && !threads && !description {
+    if !main && !threads && !description && a.planning.is_empty() && !all_planning {
         main = true;
     }
     let pfx = res.display_prefixes[0];
@@ -222,9 +235,66 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
         for url in service::extract_description_attachment_urls(html.as_deref(), &c.tenant().domain)
         {
             results.push(
-                fetch_one(&c, &description_att(&url), &dir, a.force, limit, "description")
-                    .map_err(caught)?,
+                fetch_one(
+                    &c,
+                    &description_att(&url),
+                    &dir,
+                    a.force,
+                    limit,
+                    "description",
+                )
+                .map_err(caught)?,
             );
+        }
+    }
+    if !a.planning.is_empty() || all_planning {
+        let defs_rows = (|| -> Result<(Vec<Value>, Vec<Value>, Vec<String>)> {
+            let defs = fsv_api::planning_text::definitions(
+                c.as_ref(),
+                "problems",
+                &fsv_api::planning_text::live_change_schema,
+            )?;
+            let rows = fsv_api::planning_text::inventory(c.as_ref(), "problems", id)?;
+            let wanted = if all_planning {
+                defs.iter().map(|d| fsv_py::py_str(&d["name"])).collect()
+            } else {
+                let mut w = Vec::new();
+                for v in &a.planning {
+                    let d = fsv_api::planning_files::resolve_section("problems", v, &defs)?;
+                    w.push(fsv_py::py_str(&d["name"]));
+                }
+                w
+            };
+            Ok((defs, rows, wanted))
+        })();
+        let (_, rows, wanted) = match defs_rows {
+            Ok(v) => v,
+            Err(e @ (Error::Value(_) | Error::Exit { code: 2, .. })) => {
+                return Err(usage(&e.to_string()));
+            }
+            Err(e) => return Err(caught(e)),
+        };
+        let mut seen: Vec<String> = Vec::new();
+        for key in wanted {
+            if seen.contains(&key) {
+                continue;
+            }
+            seen.push(key.clone());
+            let atts: Vec<Value> = rows
+                .iter()
+                .find(|r| r.get("name") == Some(&json!(key)))
+                .and_then(|r| r.get("attachments"))
+                .and_then(Value::as_array)
+                .cloned()
+                .unwrap_or_default();
+            let source = format!("planning:{key}");
+            if atts.is_empty() {
+                results.push(json!({"source": source, "status": "no attachments"}));
+                continue;
+            }
+            for att in &atts {
+                results.push(fetch_one(&c, att, &dir, a.force, limit, &source).map_err(caught)?);
+            }
         }
     }
     let _ = TICKETS;

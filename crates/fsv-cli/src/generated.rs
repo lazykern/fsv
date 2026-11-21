@@ -3288,6 +3288,44 @@ pub struct ResUpdateArgs {
     )]
     pub planned_effort: Option<String>,
     #[arg(
+        help = "problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update",
+        long = "planning",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub planning: Option<String>,
+    #[arg(
+        help = "problems --planning: section text/HTML; '-' reads stdin",
+        long = "description",
+        visible_alias = "desc",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub description: Option<String>,
+    #[arg(
+        help = "problems --planning: file(s) to upload to the section",
+        long = "file",
+        short = 'f',
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub files: Vec<String>,
+    #[arg(
+        help = "problems --planning --file: same-name attachment behavior: prompt|skip|replace|append",
+        long = "duplicate",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = "prompt"
+    )]
+    pub duplicate: String,
+    #[arg(
+        help = "problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
+    #[arg(
         help = "tickets only: evaluate --set and core flags as a hash-bound property plan",
         long = "reviewed"
     )]
@@ -3339,6 +3377,18 @@ pub struct ResDownloadArgs {
         long = "description-attachments"
     )]
     pub description_attachments: bool,
+    #[arg(
+        help = "problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)",
+        long = "planning",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub planning: Vec<String>,
+    #[arg(
+        help = "problems: download every analysis section's attachments",
+        long = "all-planning"
+    )]
+    pub all_planning: bool,
     #[arg(help = "download all attachments from all sources", long = "all")]
     pub all_: bool,
     #[arg(
