@@ -1,6 +1,10 @@
 {
+ "_python": {
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
+  "dirty": false
+ },
  "acme.example.com note": {
-  "hash": "ac984581946d9a70fdf70f55f2479bb7272e59232d458a5a3f0567a985a0db1a",
+  "hash": "1b9fe74d38a17f4e364350bb4dbff767030191c8e200b732a4660242798a509d",
   "review": {
    "action": "ticket_note_inline_images",
    "method": "POST",
@@ -11,7 +15,7 @@
     "notify_emails": [],
     "private": true
    },
-   "plan_hash": "ac984581946d9a70fdf70f55f2479bb7272e59232d458a5a3f0567a985a0db1a",
+   "plan_hash": "1b9fe74d38a17f4e364350bb4dbff767030191c8e200b732a4660242798a509d",
    "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
    "files": [
     {
@@ -51,7 +55,7 @@
   }
  },
  "acme.example.com reply": {
-  "hash": "aaa790adced301da531a59d0f1314ede07a4969a2fe77521ac20f57e3beb0423",
+  "hash": "fae4896a9a6abaccd9ac439b0dcac554c1f4e68670535582cf24eb1af182b8f0",
   "review": {
    "action": "ticket_reply_inline_images",
    "method": "POST",
@@ -65,7 +69,7 @@
     "full_text": "<div>Acme evidence</div>",
     "translate_reply": false
    },
-   "plan_hash": "aaa790adced301da531a59d0f1314ede07a4969a2fe77521ac20f57e3beb0423",
+   "plan_hash": "fae4896a9a6abaccd9ac439b0dcac554c1f4e68670535582cf24eb1af182b8f0",
    "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
    "files": [
     {
@@ -105,7 +109,7 @@
   }
  },
  "globex.example.com note": {
-  "hash": "c7d5a92c467322d5656f5a27c1f66c68f8153e8edb0e7bd318429f240b2b7c14",
+  "hash": "56cf5b04baf6985005bc7d08576d5836f3788d3f9181f3931c653d95a478ed7a",
   "review": {
    "action": "ticket_note_inline_images",
    "method": "POST",
@@ -116,7 +120,7 @@
     "notify_emails": [],
     "private": true
    },
-   "plan_hash": "c7d5a92c467322d5656f5a27c1f66c68f8153e8edb0e7bd318429f240b2b7c14",
+   "plan_hash": "56cf5b04baf6985005bc7d08576d5836f3788d3f9181f3931c653d95a478ed7a",
    "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
    "files": [
     {
@@ -156,7 +160,7 @@
   }
  },
  "globex.example.com reply": {
-  "hash": "94d7d14be3ee45fd5b1a488c0a443ec437ffcb89e4bfbe377a405184823b3936",
+  "hash": "207cf05b59fbf90cee0e4cd5a143ecd681424490a390d579a41a3dba7193b7c4",
   "review": {
    "action": "ticket_reply_inline_images",
    "method": "POST",
@@ -170,7 +174,7 @@
     "full_text": "<div>Acme evidence</div>",
     "translate_reply": false
    },
-   "plan_hash": "94d7d14be3ee45fd5b1a488c0a443ec437ffcb89e4bfbe377a405184823b3936",
+   "plan_hash": "207cf05b59fbf90cee0e4cd5a143ecd681424490a390d579a41a3dba7193b7c4",
    "warning": "Uploads and the reply/note are not atomic. A failed or unknown step leaves orphan inline images that cannot be deleted (no delete route exists). Inspect the journal and ticket; never replay.",
    "files": [
     {

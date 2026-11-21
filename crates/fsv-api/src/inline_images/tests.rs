@@ -308,6 +308,7 @@ fn review_matches_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/inline_images_oracle.json")).unwrap();
     for tenant in TENANTS {
+        fsv_core::config::use_domain_on_thread(tenant.0);
         for kind in ["note", "reply"] {
             let fx = fixture(tenant);
             let p = build(&fx, &fx.paths, kind, None).unwrap();
