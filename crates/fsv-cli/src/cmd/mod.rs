@@ -127,6 +127,7 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "url" => resource::url(res, parse(m)?),
         "notes" => resource::notes(res, parse(m)?),
         "add-note" if res.name == "tickets" => tickets::add_note(parse(m)?),
+        "add-note" if res.name == "problems" => reviewed::problem_add_note(parse(m)?),
         "add-note" => resource::add_note(res, parse(m)?),
         "update" if res.name == "changes" => changes::update(parse(m)?),
         "update" => resource::update(res, parse(m)?),
@@ -186,15 +187,15 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "private-views show" if res.name == "changes" => {
             native::private_views_show(res.name, parse::<ChangesPrivateViewsShowArgs>(m)?.id_)
         }
-        "private-views show" => native::private_views_show(res.name, parse::<PositiveIdArgs>(m)?.id_),
-        "private-views write" if res.name == "changes" => native::private_views_write(
-            res.name,
-            parse::<ChangesPrivateViewsWriteArgs>(m)?.into(),
-        ),
-        "private-views write" => native::private_views_write(
-            res.name,
-            parse::<TicketsPrivateViewsWriteArgs>(m)?.into(),
-        ),
+        "private-views show" => {
+            native::private_views_show(res.name, parse::<PositiveIdArgs>(m)?.id_)
+        }
+        "private-views write" if res.name == "changes" => {
+            native::private_views_write(res.name, parse::<ChangesPrivateViewsWriteArgs>(m)?.into())
+        }
+        "private-views write" => {
+            native::private_views_write(res.name, parse::<TicketsPrivateViewsWriteArgs>(m)?.into())
+        }
         "columns list" => native::columns_list(res, parse(m)?),
         "columns set" => native::columns_set(res, parse(m)?),
         "export" => native::export(res, parse(m)?),

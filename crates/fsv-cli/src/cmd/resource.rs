@@ -4,7 +4,7 @@ use serde_json::{Map, Value, json};
 
 use fsv_api::service;
 use fsv_api::site::{SavedView, default_view, parse_saved_views};
-use fsv_core::resource::{PROBLEMS, Resource, TICKETS};
+use fsv_core::resource::{CHANGES, PROBLEMS, Resource, TICKETS};
 use fsv_core::safety;
 use fsv_core::term::{Column, Justify, Table, err, escape, out};
 use fsv_core::{Error, Result, config, pystr};
@@ -1310,6 +1310,20 @@ pub fn notes(res: &'static Resource, a: ResNotesArgs) -> CmdResult {
     )
 }
 
+/// `_note_plan_hash`: review hash of a legacy change note: tenant, target and
+/// the exact POST body (visibility included). `None` without a tenant.
+fn note_plan_hash(res: &Resource, cid: i64, payload: &Map<String, Value>) -> Option<String> {
+    let tenant = fsv_core::config::domain();
+    if res.name != CHANGES.name || tenant.is_empty() {
+        return None;
+    }
+    let body = json!({
+        "action": "add_note", "resource": res.name, "target": cid, "tenant": tenant,
+        "method": "POST", "path": format!("{}/{cid}/notes", res.api_path), "payload": payload,
+    });
+    fsv_core::journal::plan_hash(Some(&body))
+}
+
 /// `note_resource` (changes, problems).
 pub fn add_note(res: &'static Resource, a: ResAddNoteArgs) -> CmdResult {
     let id = cid(&a.id_, res)?;
@@ -1320,13 +1334,24 @@ pub fn add_note(res: &'static Resource, a: ResAddNoteArgs) -> CmdResult {
     };
     let risks = safety::note_risks(a.public);
     let problem = res.name == PROBLEMS.name;
+    let plan_hash = note_plan_hash(res, id, &payload);
+    if let Some(expected) = a.expect_plan.as_deref()
+        && plan_hash
+            .as_deref()
+            .is_none_or(|h| fsv_core::pystr::strip(expected).to_lowercase() != h)
+    {
+        return Err(usage(&format!(
+            "note on {} does not match the reviewed plan (body, visibility or tenant changed, or a partial hash); review again with --dry-run. Nothing was sent",
+            format_cid(id, res)
+        )));
+    }
     if a.dry_run {
         let warnings: Vec<String> = if problem {
             vec![format!("visibility: {}", service::PROBLEM_NOTE_VISIBILITY)]
         } else {
             Vec::new()
         };
-        crate::util::emit_dry_run_full(
+        crate::util::emit_dry_run_hashed(
             res,
             id,
             Value::Object(payload),
@@ -1334,6 +1359,7 @@ pub fn add_note(res: &'static Resource, a: ResAddNoteArgs) -> CmdResult {
             &risks,
             None,
             &warnings,
+            plan_hash.as_deref(),
         );
         return Ok(());
     }

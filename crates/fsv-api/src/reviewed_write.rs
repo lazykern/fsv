@@ -110,6 +110,26 @@ pub fn execute_rejecting(
     verify: &dyn Fn(&Value) -> Result<Map<String, Value>>,
     rejection: Option<&dyn Fn(&fsv_core::ApiError) -> String>,
 ) -> Result<Value> {
+    execute_guarded(
+        plan, hash, c, journal, reviewed_hash, rebuild, verify, rejection, &[],
+    )
+}
+
+/// [`execute_rejecting`] with `guards=`: older hashes of the same plan (e.g.
+/// before a record-state token was bound); an unresolved (`started`) one
+/// still refuses.
+#[allow(clippy::too_many_arguments)]
+pub fn execute_guarded(
+    plan: &WritePlan,
+    hash: &str,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    reviewed_hash: Option<&str>,
+    rebuild: &dyn Fn() -> Result<String>,
+    verify: &dyn Fn(&Value) -> Result<Map<String, Value>>,
+    rejection: Option<&dyn Fn(&fsv_core::ApiError) -> String>,
+    guards: &[String],
+) -> Result<Value> {
     let Some(reviewed) = reviewed_hash else {
         return Ok(json!({"status": "cancelled", "verified": false}));
     };
@@ -124,6 +144,13 @@ pub fn execute_rejecting(
         "write was sent or outcome unknown; inspect target and journal before retry",
     ) {
         return Err(refused(refusal));
+    }
+    for guard in guards {
+        if last_event(journal, &plan.action, guard).as_deref() == Some("started") {
+            return Err(refused(fsv_core::journal::note_refusal(
+                "write was sent or outcome unknown; inspect target and journal before retry",
+            )));
+        }
     }
     if rebuild()? != hash {
         return Err(refused(
@@ -178,6 +205,9 @@ pub fn execute_rejecting(
                 json!("Independent readback failed; do not resend."),
             );
         }
+    }
+    if result.get("verified") == Some(&Value::Bool(true)) {
+        journal.record_verified(&hash, &plan.action, Some(&target));
     }
     if !result.get("verified").is_some_and(fsv_py::truthy) && !result.contains_key("warning") {
         result.insert(

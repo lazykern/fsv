@@ -284,6 +284,29 @@ pub trait Journal {
     fn record_event(&self, event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) {
         let _ = self.try_record_event(event, plan, action, extra);
     }
+    /// `journal.record_verified`: an answered plan that independent readback
+    /// verified (`verified.jsonl` beside the journal). Never fails.
+    fn record_verified(&self, plan: &str, action: &str, target: Option<&Value>) {
+        let _ = (plan, action, target);
+    }
+    /// `journal.verified_sends(actions, target)`.
+    fn verified_sends(&self, actions: &[&str], target: &Value) -> i64 {
+        let _ = (actions, target);
+        0
+    }
+    /// `journal.repeat_token(actions, target, row)`.
+    fn repeat_token(
+        &self,
+        actions: &[&str],
+        target: &Value,
+        row: Option<&Value>,
+    ) -> Map<String, Value> {
+        fsv_core::journal::token_from(self.verified_sends(actions, target), row)
+    }
+    /// `journal.stale_plan_refusal(expected, actions)` over this journal.
+    fn stale_plan_refusal(&self, expected: Option<&str>, actions: &[&str]) -> Option<String> {
+        fsv_core::journal::stale_plan_refusal_in(&self.read(), expected, actions)
+    }
     /// `journal.recent_plan`: the latest `done`, or a `started` with no
     /// outcome, within `hours`.
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Value> {
@@ -346,6 +369,15 @@ impl Journal for DiskJournal {
     }
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Value> {
         fsv_core::journal::recent_plan(plan, action, hours)
+    }
+    fn record_verified(&self, plan: &str, action: &str, target: Option<&Value>) {
+        fsv_core::journal::record_verified(plan, action, target);
+    }
+    fn verified_sends(&self, actions: &[&str], target: &Value) -> i64 {
+        fsv_core::journal::verified_sends(actions, target)
+    }
+    fn stale_plan_refusal(&self, expected: Option<&str>, actions: &[&str]) -> Option<String> {
+        fsv_core::journal::stale_plan_refusal(expected, actions)
     }
 }
 
@@ -1661,6 +1693,7 @@ pub(crate) mod testing {
     #[derive(Default)]
     pub struct MemJournal {
         pub rows: Mutex<Vec<Value>>,
+        pub verified: Mutex<Vec<Value>>,
     }
 
     impl Journal for MemJournal {
@@ -1682,6 +1715,15 @@ pub(crate) mod testing {
                 "epoch": epoch, "kind": format!("plan:{action}"), "event": event, "plan": plan,
                 "target": target.cloned(), "created_id": created_id.cloned(),
             }));
+        }
+        fn record_verified(&self, plan: &str, action: &str, target: Option<&Value>) {
+            self.verified.lock().unwrap().push(json!({
+                "kind": format!("verified:{action}"), "plan": plan,
+                "target": target.cloned().unwrap_or(Value::Null),
+            }));
+        }
+        fn verified_sends(&self, actions: &[&str], target: &Value) -> i64 {
+            fsv_core::journal::sends_in(&self.verified.lock().unwrap(), actions, target)
         }
     }
 

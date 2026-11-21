@@ -13,10 +13,10 @@ use std::sync::Arc;
 use serde_json::{Map, Value, json};
 
 use fsv_api::formmeta::{ClientResolver, DiskStore};
-use fsv_api::service::{Api, DiskJournal};
+use fsv_api::service::{Api, DiskJournal, Journal};
 use fsv_api::{
     asset_picker, bulk_priority, change_relationships, module_time, planning_text,
-    problem_incidents, problem_known_error, problem_status, problem_task_update,
+    problem_incidents, problem_known_error, problem_notes, problem_status, problem_task_update,
     sr_requested_items, ticket_assignment, ticket_bulk, ticket_lifecycle, ticket_merge,
     ticket_note_mutation, ticket_tasks, ticket_time, watchers,
 };
@@ -220,6 +220,85 @@ pub fn mark_known_error(a: ProblemsMarkKnownErrorArgs) -> CmdResult {
         require_review(a.yes, a.expect_plan.as_deref(), &hash)?;
         let result = problem_known_error::send(&plan, c.as_ref(), &DiskJournal, Some(&hash))?;
         println!("{}", dumps(&result));
+        Ok(())
+    };
+    run().map_err(refusal)
+}
+
+/// `json.dumps(value, ensure_ascii=False, indent=2)`.
+fn dumps_unicode(v: &Value) -> String {
+    fsv_py::Dumps::default()
+        .ensure_ascii(false)
+        .indent(2)
+        .dump(v)
+}
+
+/// Reviewed `problems add-note` (`problem_notes.add_note`).
+pub fn problem_add_note(a: ProblemsAddNoteArgs) -> CmdResult {
+    let tenant = fsv_core::config::domain();
+    let journal = DiskJournal;
+    let run = || -> Result<()> {
+        if a.public {
+            return Err(Error::value(format!(
+                "--public: {}",
+                problem_notes::VISIBILITY
+            )));
+        }
+        let plan = problem_notes::build_plan(&journal, &tenant, &a.id_, &a.body)?;
+        let doc = problem_notes::review(&plan);
+        if a.dry_run {
+            let mut out = Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.insert("dry_run".into(), json!(true));
+            out.extend(doc);
+            println!("{}", dumps_unicode(&Value::Object(out)));
+            return Ok(());
+        }
+        let hash = plan.hash();
+        if a.expect_plan.as_deref().is_some_and(|e| e != hash) {
+            return Err(Error::exit(
+                2,
+                journal
+                    .stale_plan_refusal(a.expect_plan.as_deref(), &[problem_notes::ACTION])
+                    .unwrap_or_else(|| {
+                        "note review hash does not match; review the exact body again".into()
+                    }),
+            ));
+        }
+        if a.yes {
+            if a.expect_plan.as_deref() != Some(hash.as_str()) {
+                return Err(Error::exit(
+                    2,
+                    "--yes requires the full --expect-plan from a prior --dry-run review",
+                ));
+            }
+        } else if a.no_input {
+            return Err(Error::exit(
+                2,
+                "sending requires --yes and --expect-plan in no-input mode",
+            ));
+        } else {
+            eprintln!("{}", dumps_unicode(&Value::Object(doc)));
+            if !fsv_core::term::confirm("Add this exact reviewed note?", Some(false), false)? {
+                println!("Cancelled; no note was sent.");
+                return Ok(());
+            }
+        }
+        let c = client()?;
+        let result = problem_notes::send(&plan, c.as_ref(), &journal, Some(&hash))?;
+        if a.json_out {
+            println!("{}", dumps_unicode(&result));
+        } else {
+            let verified = result.get("verified").is_some_and(fsv_py::truthy);
+            let nid = result.get("note_id").map_or("None".into(), fsv_py::py_str);
+            println!(
+                "added note {nid} on problem {} (visibility: tenant default; not controllable on problem notes); verified: {verified}",
+                plan.target
+            );
+            if let Some(w) = result.get("warning").filter(|w| fsv_py::truthy(w)) {
+                eprintln!("{}", fsv_py::py_str(w));
+            }
+        }
         Ok(())
     };
     run().map_err(refusal)

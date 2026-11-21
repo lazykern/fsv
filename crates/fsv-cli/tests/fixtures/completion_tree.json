@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "31a910336ac8b936d6d5891cb74c21632dd232f9",
+  "commit": "01a88d41e82448c1585f0e9f68e9e03e9b471834",
   "dirty": false
  },
  "path": [
@@ -3792,6 +3792,14 @@
         "--no-input"
        ],
        "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
        "completer": null,
        "resource": null
       }
@@ -12569,7 +12577,23 @@
       },
       {
        "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--no-input"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
        ],
        "kind": "boolean",
        "completer": null,

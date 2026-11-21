@@ -683,13 +683,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -a
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --npages
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -N
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --verbose
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a -v
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --public
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --dry-run
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --yes
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a -y
-complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --no-input
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --public
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --no-input
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and not __fish_seen_subcommand_from list write' -a list
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and not __fish_seen_subcommand_from list write' -a write
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships' -a --verbose
@@ -2091,13 +2092,15 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -a
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --npages
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -N
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --verbose
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a -v
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --public
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --dry-run
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --yes
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a -y
-complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --no-input
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --public
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --expect-plan
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --no-input
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates add remove' -a ls
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates add remove' -a list
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates add remove' -a candidates

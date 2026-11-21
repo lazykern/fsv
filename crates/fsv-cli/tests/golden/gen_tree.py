@@ -44,7 +44,7 @@ SHARED = {
     "ResSearchArgs": per_res("search"),
     "ResUrlArgs": per_res("url"),
     "ResNotesArgs": per_res("notes", "changes", "problems"),
-    "ResAddNoteArgs": per_res("add-note", "changes", "problems"),
+    "ResAddNoteArgs": per_res("add-note", "changes"),
     "ResUpdateArgs": per_res("update", "tickets", "problems"),
     "ResDownloadArgs": per_res("download", "tickets", "problems"),
     "ReviewedListArgs": per_res("watchers list", "changes", "tickets") + ["tickets time list"],

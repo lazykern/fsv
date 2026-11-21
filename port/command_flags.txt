@@ -16,7 +16,7 @@ fsv cache refresh		0
 fsv cache status		0
 fsv changes		0
 fsv changes activity	--all,--json,--limit,--output	1
-fsv changes add-note	--dry-run,--no-input,--public,--yes	2
+fsv changes add-note	--dry-run,--expect-plan,--no-input,--public,--yes	2
 fsv changes approval-cancel	--dry-run,--expect-plan,--json,--no-input,--read-only,--yes	2
 fsv changes approval-remind	--dry-run,--expect-plan,--json,--model,--yes	2
 fsv changes approval-request	--approver,--approver-cab,--approver-group,--cab,--dry-run,--expect-plan,--json,--message,--model,--name,--no-input,--read-only,--rule,--yes	1
@@ -107,7 +107,7 @@ fsv journal path		0
 fsv journal tail	--json,--limit	0
 fsv problems		0
 fsv problems activity	--all,--json,--limit,--output	1
-fsv problems add-note	--dry-run,--no-input,--public,--yes	2
+fsv problems add-note	--dry-run,--expect-plan,--json,--no-input,--public,--yes	2
 fsv problems assets		0
 fsv problems assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
 fsv problems assets candidates	--json,--kind,--page,--search	1

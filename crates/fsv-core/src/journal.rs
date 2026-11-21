@@ -266,7 +266,10 @@ fn command() -> Value {
 }
 
 fn append(entry: &Map<String, Value>) -> Result<()> {
-    let p = journal_path();
+    append_to(&journal_path(), entry)
+}
+
+fn append_to(p: &Path, entry: &Map<String, Value>) -> Result<()> {
     if let Some(parent) = p.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -277,7 +280,7 @@ fn append(entry: &Map<String, Value>) -> Result<()> {
         use std::os::unix::fs::OpenOptionsExt;
         opts.mode(0o600);
     }
-    let mut f = opts.open(&p)?;
+    let mut f = opts.open(p)?;
     let line = fsv_py::Dumps::default()
         .ensure_ascii(false)
         .dump(&Value::Object(entry.clone()))
@@ -362,22 +365,154 @@ pub struct PlanEvent<'a> {
     pub error: bool,
 }
 
+thread_local! {
+    static REFUSED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Port of `journal.note_refusal`: mark that a replay guard refused this
+/// command (nothing was sent). The shared command exit maps such a stop to 2.
+pub fn note_refusal<T>(message: T) -> T {
+    REFUSED.with(|r| r.set(true));
+    message
+}
+
+/// Port of `journal.refusal_noted`.
+pub fn refusal_noted() -> bool {
+    REFUSED.with(std::cell::Cell::get)
+}
+
+/// Port of `journal.clear_refusal`.
+pub fn clear_refusal() {
+    REFUSED.with(|r| r.set(false));
+}
+
 /// Port of `journal.replay_refusal`: why a journaled plan must not be sent
 /// again; `None` when it may be sent. A lone `started` keeps the caller's
 /// `unknown` text; `done` names the time the exact plan was already sent.
 pub fn replay_refusal(events: &[Value], unknown: &str) -> Option<String> {
     let last = events.last()?;
     match last.get("event").and_then(Value::as_str) {
-        Some("started") => Some(unknown.to_string()),
+        Some("started") => Some(note_refusal(unknown.to_string())),
         Some("done") => {
             let when = last
                 .get("ts")
                 .filter(|v| truthy(v))
                 .map_or_else(|| "an earlier run".to_string(), fsv_py::py_str);
-            Some(format!(
+            Some(note_refusal(format!(
                 "this exact plan was already sent at {when} and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
-            ))
+            )))
         }
+        _ => None,
+    }
+}
+
+fn verified_path() -> PathBuf {
+    journal_path().with_file_name("verified.jsonl")
+}
+
+/// Port of `journal.record_verified`: note that an answered plan was also
+/// verified by independent readback, in `verified.jsonl` next to the journal.
+/// Never fails.
+pub fn record_verified(plan: &str, action: &str, target: Option<&Value>) {
+    let mut entry = Map::new();
+    entry.insert("ts".into(), json!(timestamp()));
+    entry.insert("kind".into(), json!(format!("verified:{action}")));
+    entry.insert("plan".into(), json!(plan));
+    entry.insert("target".into(), safe_target(target));
+    let _ = append_to(&verified_path(), &entry);
+}
+
+fn verified_rows() -> Vec<Value> {
+    let Ok(bytes) = std::fs::read(verified_path()) else {
+        return Vec::new();
+    };
+    String::from_utf8_lossy(&bytes)
+        .lines()
+        .filter_map(|l| serde_json::from_str::<Value>(l).ok())
+        .filter(Value::is_object)
+        .collect()
+}
+
+/// Port of `journal.verified_sends`: how many plans of `actions` on `target`
+/// were sent, answered and verified by readback. Monotonic; an unverified or
+/// unresolved send does not count.
+pub fn verified_sends(actions: &[&str], target: &Value) -> i64 {
+    sends_in(&verified_rows(), actions, target)
+}
+
+/// [`verified_sends`] over already-read `verified.jsonl` rows.
+pub fn sends_in(rows: &[Value], actions: &[&str], target: &Value) -> i64 {
+    let kinds: Vec<String> = actions.iter().map(|a| format!("verified:{a}")).collect();
+    let want = fsv_py::py_str(&safe_target(Some(target)));
+    rows.iter()
+        .filter(|r| {
+            r.get("kind")
+                .and_then(Value::as_str)
+                .is_some_and(|k| kinds.iter().any(|x| x == k))
+                && fsv_py::py_str(r.get("target").unwrap_or(&Value::Null)) == want
+        })
+        .count() as i64
+}
+
+/// Port of `journal.repeat_token`: `{"sends": n}` plus, when the write reads
+/// a record (`row` given), `"server_version"`: the raw server `updated_at`.
+pub fn repeat_token(actions: &[&str], target: &Value, row: Option<&Value>) -> Map<String, Value> {
+    token_from(verified_sends(actions, target), row)
+}
+
+/// The token for a given send count.
+pub fn token_from(sends: i64, row: Option<&Value>) -> Map<String, Value> {
+    let mut token = Map::new();
+    token.insert("sends".into(), json!(sends));
+    if let Some(row) = row {
+        let version = match row {
+            Value::Object(m) => m.get("updated_at").cloned().unwrap_or(Value::Null),
+            _ => Value::Null,
+        };
+        token.insert("server_version".into(), version);
+    }
+    token
+}
+
+/// Port of `journal.stale_plan_refusal`: why a reviewed hash that no longer
+/// matches the rebuilt plan must not be sent, when the journal shows that
+/// exact plan was already sent (or may have been); `None` otherwise.
+pub fn stale_plan_refusal(expected: Option<&str>, actions: &[&str]) -> Option<String> {
+    stale_plan_refusal_in(&read(None), expected, actions)
+}
+
+/// [`stale_plan_refusal`] over already-read journal rows.
+pub fn stale_plan_refusal_in(
+    rows: &[Value],
+    expected: Option<&str>,
+    actions: &[&str],
+) -> Option<String> {
+    let expected = expected.filter(|e| !e.is_empty())?;
+    let kinds: Vec<String> = actions.iter().map(|a| format!("plan:{a}")).collect();
+    let lowered = crate::pystr::strip(expected).to_lowercase();
+    let want = lowered.strip_prefix("sha256:").unwrap_or(&lowered);
+    if want.chars().count() < 12 {
+        return None;
+    }
+    let last = rows.iter().rfind(|e| {
+        e.get("kind")
+            .and_then(Value::as_str)
+            .is_some_and(|k| kinds.iter().any(|x| x == k))
+            && e.get("plan")
+                .and_then(Value::as_str)
+                .is_some_and(|p| p.starts_with(want))
+    });
+    let when = last
+        .and_then(|l| l.get("ts"))
+        .filter(|v| truthy(v))
+        .map_or_else(|| "an earlier run".to_string(), fsv_py::py_str);
+    match last.and_then(|l| l.get("event")).and_then(Value::as_str) {
+        Some("started") => Some(note_refusal(format!(
+            "plan {expected} was started at {when} with no recorded outcome; nothing was sent now. Inspect the record and `fsv journal tail` before any retry; do not replay it"
+        ))),
+        Some("done") => Some(note_refusal(format!(
+            "plan {expected} was already sent at {when} and the server answered; nothing was sent now. Plans are single-use; to send the same values again, review again with --dry-run (the new plan hash differs because the record or the journal moved on)"
+        ))),
         _ => None,
     }
 }

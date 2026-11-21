@@ -649,7 +649,7 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N" -- "$cur") )
             return 0 ;;
         "changes add-note")
-            COMPREPLY=( $(compgen -W "--verbose -v --public --dry-run --yes -y --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --public --dry-run --yes -y --no-input --expect-plan" -- "$cur") )
             return 0 ;;
         "changes relationships")
             COMPREPLY=( $(compgen -W "list write --verbose -v" -- "$cur") )
@@ -1095,7 +1095,7 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N" -- "$cur") )
             return 0 ;;
         "problems add-note")
-            COMPREPLY=( $(compgen -W "--verbose -v --public --dry-run --yes -y --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --public --dry-run --yes -y --expect-plan --no-input --json" -- "$cur") )
             return 0 ;;
         "problems assets")
             COMPREPLY=( $(compgen -W "ls list candidates add remove --verbose -v" -- "$cur") )

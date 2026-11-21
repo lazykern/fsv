@@ -543,7 +543,7 @@ _fsv() {
             esac
             compadd -- --verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N; return 0 ;;
         "changes add-note")
-            compadd -- --verbose -v --public --dry-run --yes -y --no-input; return 0 ;;
+            compadd -- --verbose -v --public --dry-run --yes -y --no-input --expect-plan; return 0 ;;
         "changes relationships")
             compadd -- list write --verbose -v; return 0 ;;
         "changes time")
@@ -940,7 +940,7 @@ _fsv() {
             esac
             compadd -- --verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N; return 0 ;;
         "problems add-note")
-            compadd -- --verbose -v --public --dry-run --yes -y --no-input; return 0 ;;
+            compadd -- --verbose -v --public --dry-run --yes -y --expect-plan --no-input --json; return 0 ;;
         "problems assets")
             compadd -- ls list candidates add remove --verbose -v; return 0 ;;
         "problems columns")

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "31a910336ac8b936d6d5891cb74c21632dd232f9",
+  "commit": "01a88d41e82448c1585f0e9f68e9e03e9b471834",
   "dirty": false
  },
  "path": "fsv",
@@ -7240,7 +7240,7 @@
     {
      "path": "fsv changes add-note",
      "help": "Add change note.",
-     "epilog": "[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  [bold]Examples:[/bold]  fsv changes add-note CHN-1234 'Checked deployment evidence'  |  fsv changes add-note CHN-1234 'Visible update' --public",
+     "epilog": "[bold]Note:[/bold] --dry-run shows a plan_hash; pass it with --expect-plan to refuse a changed body, visibility or tenant (ticket and problem notes have a separate reviewed flow, docs/ticket-notes.md).  [bold]Examples:[/bold]  fsv changes add-note CHN-1234 'Checked deployment evidence'  |  fsv changes add-note CHN-1234 'Visible update' --public",
      "hidden": false,
      "group": false,
      "params": [
@@ -7356,6 +7356,25 @@
        "default": false,
        "hidden": false,
        "help": "fail instead of prompting",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full plan_hash from the --dry-run review; a mismatch sends nothing",
        "metavar": null,
        "envvar": null
       }
@@ -16019,7 +16038,7 @@
     {
      "path": "fsv tickets reply",
      "help": "Add a ticket reply.",
-     "epilog": "[bold]Note:[/bold] Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md).  [bold]Examples:[/bold]  fsv tickets reply INC-1234 'Working on this'",
+     "epilog": "[bold]Note:[/bold] Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md). --dry-run prints the plan_hash (exact body, recipients, tenant); --expect-plan HASH refuses anything else; the result reports verified from the conversation readback.  [bold]Examples:[/bold]  fsv tickets reply INC-1234 'Working on this'",
      "hidden": false,
      "group": false,
      "params": [
@@ -25162,8 +25181,8 @@
     },
     {
      "path": "fsv problems add-note",
-     "help": "Add problem note.",
-     "epilog": "[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  [bold]Examples:[/bold]  fsv problems add-note PRB-1234 'Checked deployment evidence'  (problem notes have no visibility key: the tenant default applies)",
+     "help": "Review and add a problem note (reviewed write: plan hash, journal, independent readback by listing notes).",
+     "epilog": "[bold]Examples:[/bold]  fsv problems add-note PRB-1234 'Root cause evidence' --dry-run  |  fsv problems add-note PRB-1234 'Root cause evidence' --yes --expect-plan HASH --json  (problem notes have no visibility key: the tenant default applies)",
      "hidden": false,
      "group": false,
      "params": [
@@ -25183,7 +25202,7 @@
        "default": null,
        "hidden": false,
        "help": null,
-       "metavar": null,
+       "metavar": "ID",
        "envvar": null
       },
       {
@@ -25201,7 +25220,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "HTML or plain text",
+       "help": "HTML or plain text (sent verbatim)",
        "metavar": null,
        "envvar": null
       },
@@ -25220,7 +25239,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "changes only: public note (problem notes have no visibility key)",
+       "help": "refused: problem notes have no visibility key",
        "metavar": null,
        "envvar": null
       },
@@ -25239,7 +25258,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "print the note without adding it",
+       "help": "review: print the exact payload and plan_hash; nothing is sent",
        "metavar": null,
        "envvar": null
       },
@@ -25259,7 +25278,26 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "confirm a public note",
+       "help": "send the exact plan reviewed with --dry-run (needs --expect-plan)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "full plan_hash from the --dry-run review",
        "metavar": null,
        "envvar": null
       },
@@ -25279,6 +25317,25 @@
        "default": false,
        "hidden": false,
        "help": "fail instead of prompting",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "emit the structured result (verified, readback)",
        "metavar": null,
        "envvar": null
       }

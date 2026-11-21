@@ -413,6 +413,7 @@ A	fsv changes add-note	--public	changes only: public note (problem notes have no
 A	fsv changes add-note	--dry-run	print the note without adding it
 A	fsv changes add-note	--yes	confirm a public note
 A	fsv changes add-note	--no-input	fail instead of prompting
+A	fsv changes add-note	--expect-plan	full plan_hash from the --dry-run review; a mismatch sends nothing
 C	fsv changes relationships	Captured change relationships; project add creates a new project.
 C	fsv changes relationships list	
 A	fsv changes relationships list	<target>	
@@ -1399,13 +1400,15 @@ A	fsv problems notes	--output	output format
 A	fsv problems notes	--json	alias for --output json
 A	fsv problems notes	--all	fetch all pages (auto-paginate)
 A	fsv problems notes	--npages	fetch exactly N pages
-C	fsv problems add-note	Add problem note.
+C	fsv problems add-note	Review and add a problem note (reviewed write: plan hash, journal, independent readback by listing notes).
 A	fsv problems add-note	<id_>	
-A	fsv problems add-note	<body>	HTML or plain text
-A	fsv problems add-note	--public	changes only: public note (problem notes have no visibility key)
-A	fsv problems add-note	--dry-run	print the note without adding it
-A	fsv problems add-note	--yes	confirm a public note
+A	fsv problems add-note	<body>	HTML or plain text (sent verbatim)
+A	fsv problems add-note	--public	refused: problem notes have no visibility key
+A	fsv problems add-note	--dry-run	review: print the exact payload and plan_hash; nothing is sent
+A	fsv problems add-note	--yes	send the exact plan reviewed with --dry-run (needs --expect-plan)
+A	fsv problems add-note	--expect-plan	full plan_hash from the --dry-run review
 A	fsv problems add-note	--no-input	fail instead of prompting
+A	fsv problems add-note	--json	emit the structured result (verified, readback)
 C	fsv problems assets	Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.
 C	fsv problems assets ls	
 A	fsv problems assets ls	<target>	
