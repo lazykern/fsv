@@ -891,3 +891,376 @@ fn problem_update_dry_run_state() {
     );
     assert_eq!(r.err, r#""#);
 }
+#[test]
+fn ticket_reply_plain_dry_run() {
+    let r = run_fixture(
+        "ticket_reply_plain",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "reply",
+  "id": "INC-123",
+  "body": {
+    "body": "Acme is working on it"
+  },
+  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "record_state": {
+    "sends": 0
+  },
+  "requires_confirmation": [
+    "ticket reply: sent to the requester by email"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ticket_reply_plain_send_json() {
+    let r = run_fixture(
+        "ticket_reply_plain",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+            "--expect-plan",
+            "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 123,
+  "conversation_id": 501,
+  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "verified": true,
+  "readback": {
+    "id": 501,
+    "body": "<div>Acme is working on it</div>",
+    "private": false
+  },
+  "fields": {
+    "body": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_send_human() {
+    let r = run_fixture(
+        "ticket_reply_plain",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"added reply 501; verified: true
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_wrong_hash() {
+    let r = run_fixture(
+        "ticket_reply_plain",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: reply on INC-123 does not match the reviewed plan (body or tenant changed, or a partial hash); review again with --dry-run. Nothing was sent
+"#
+    );
+}
+
+#[test]
+fn ticket_reply_plain_other_body() {
+    let r = run_fixture(
+        "ticket_reply_plain",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Globex text",
+            "--yes",
+            "--expect-plan",
+            "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: reply on INC-123 does not match the reviewed plan (body or tenant changed, or a partial hash); review again with --dry-run. Nothing was sent
+"#
+    );
+}
+
+#[test]
+fn ticket_reply_plain_empty() {
+    let r = run_fixture(
+        "ticket_reply_plain",
+        &["tickets", "reply", "INC-123", "  ", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: reply body must be nonempty text without NUL characters
+"#
+    );
+}
+
+#[test]
+fn ticket_reply_plain_unverified() {
+    let r = run_fixture(
+        "ticket_reply_plain_mismatch",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 123,
+  "conversation_id": 501,
+  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "verified": false,
+  "readback": {
+    "id": 501,
+    "body": "<div>Globex</div>"
+  },
+  "fields": {
+    "body": "mismatched"
+  },
+  "warning": "Reply sent but conversation read-back did not verify it; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_unverified_human() {
+    let r = run_fixture(
+        "ticket_reply_plain_mismatch",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"added reply 501; verified: false
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"Reply sent but conversation read-back did not verify it; do not resend.
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_rejected() {
+    let r = run_fixture(
+        "ticket_reply_plain_rejected",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: reply rejected (HTTP 400): Validation failed; no retry
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_rejected_json() {
+    let r = run_fixture(
+        "ticket_reply_plain_rejected",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "error",
+  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "verified": false,
+  "error": "reply rejected (HTTP 400): Validation failed; no retry"
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"error: reply rejected (HTTP 400): Validation failed; no retry
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_unknown() {
+    let r = run_fixture(
+        "ticket_reply_plain_500",
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: reply outcome unknown; inspect the ticket conversations and journal before any retry; do not resend (HTTP 500)
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/123/reply"]);
+}
+
+#[test]
+fn ticket_reply_plain_unknown_not_resent() {
+    let r = run_steps(
+        "ticket_reply_plain_500",
+        &[&[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+        ]],
+        &[
+            "tickets",
+            "reply",
+            "INC-123",
+            "Acme is working on it",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: reply outcome unknown; inspect the ticket conversations and journal before any retry; do not resend
+"#
+    );
+}
+
+const REPLY_HASH: &str = "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e";
+const REPLY_BODY: &str = "Acme is working on it";
+
+#[test]
+fn ticket_reply_plain_replay_names_the_earlier_send() {
+    let send = [
+        "tickets",
+        "reply",
+        "INC-123",
+        REPLY_BODY,
+        "--yes",
+        "--expect-plan",
+        REPLY_HASH,
+    ];
+    let r = run_steps("ticket_reply_plain", &[&send[..]], &send, None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(
+        r.err
+            .contains(&format!("plan {REPLY_HASH} was already sent at "))
+            && r.err.contains("nothing was sent now"),
+        "{}",
+        r.err
+    );
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
+fn ticket_reply_plain_repeat_plans_a_fresh_hash() {
+    let send = ["tickets", "reply", "INC-123", REPLY_BODY, "--yes"];
+    let review = ["tickets", "reply", "INC-123", REPLY_BODY, "--dry-run"];
+    let r = run_steps("ticket_reply_plain", &[&send[..]], &review, None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    let doc = r.json();
+    assert_eq!(doc["record_state"], serde_json::json!({"sends": 1}));
+    assert_ne!(doc["plan_hash"], REPLY_HASH);
+}

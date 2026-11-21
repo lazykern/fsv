@@ -1,0 +1,34 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/123/reply",
+  "status": 201,
+  "json": {
+   "conversation": {
+    "id": 501,
+    "body": "Acme is working on it"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 501,
+     "body": "<div>Acme is working on it</div>",
+     "private": false
+    }
+   ],
+   "meta": {
+    "count": 1
+   }
+  }
+ }
+]

@@ -493,14 +493,20 @@ fn reply(a: TicketsReplyArgs) -> CmdResult {
     if !a.attach.is_empty() {
         return reply_attached(&a).map_err(crate::cmd::reviewed::refusal);
     }
-    if a.cc.is_empty()
-        && a.bcc.is_empty()
-        && a.sender.is_none()
-        && a.set_status.is_none()
-        && a.expect_plan.is_none()
-        && !a.ack
+    if a.cc.is_empty() && a.bcc.is_empty() && a.sender.is_none() && a.set_status.is_none() && !a.ack
     {
-        return resource::reply(&TICKETS, &a.id_, &a.body, a.dry_run, a.yes, a.no_input);
+        return resource::reply(
+            &TICKETS,
+            resource::PlainReplyArgs {
+                id_: &a.id_,
+                body: &a.body,
+                dry_run: a.dry_run,
+                yes: a.yes,
+                no_input: a.no_input,
+                expect_plan: a.expect_plan.as_deref(),
+                json_out: a.json_out,
+            },
+        );
     }
     let c = client()?;
     reply_reviewed(&a, &c).map_err(note_error)

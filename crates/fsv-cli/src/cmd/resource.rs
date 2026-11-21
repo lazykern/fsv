@@ -12,8 +12,8 @@ use fsv_core::{Error, Result, config, pystr};
 use crate::generated::*;
 use crate::types::{OutputFormat, effective};
 use crate::util::{
-    CmdResult, cid, client, confirm_writes, emit_dry_run, emit_fmt, fail_exc, first_str,
-    format_cid, head, obj, plain_fail, uncaught, usage,
+    CmdResult, cid, client, confirm_writes, emit_fmt, fail_exc, first_str, format_cid, head, obj,
+    plain_fail, uncaught, usage,
 };
 use crate::{filters, lookup, schema};
 
@@ -1386,31 +1386,93 @@ pub fn add_note(res: &'static Resource, a: ResAddNoteArgs) -> CmdResult {
     Ok(())
 }
 
-/// `reply_resource` (tickets).
-pub fn reply(
-    res: &'static Resource,
-    id_: &str,
-    body: &str,
-    dry_run: bool,
-    yes: bool,
-    no_input: bool,
-) -> CmdResult {
-    let id = cid(id_, res)?;
+/// `reply_resource` (tickets): a plain reply on the reviewed-write contract:
+/// plan hash, optional `--expect-plan`, journal, conversation readback.
+pub struct PlainReplyArgs<'a> {
+    pub id_: &'a str,
+    pub body: &'a str,
+    pub dry_run: bool,
+    pub yes: bool,
+    pub no_input: bool,
+    pub expect_plan: Option<&'a str>,
+    pub json_out: bool,
+}
+
+pub fn reply(res: &'static Resource, a: PlainReplyArgs<'_>) -> CmdResult {
+    use fsv_api::service::{DiskJournal, Journal};
+    use fsv_api::ticket_plain_reply as plain;
+    let id = cid(a.id_, res)?;
     let risks = safety::reply_risks();
-    if dry_run {
-        emit_dry_run(res, id, json!({"body": body}), "reply", &risks);
+    let journal = DiskJournal;
+    let plan = plain::build_plan(&journal, &config::domain(), id, a.body).map_err(|e| match e {
+        Error::Exit { code: 2, message } => usage(&message),
+        other => other,
+    })?;
+    let hash = plan.hash();
+    if a.dry_run {
+        crate::util::emit_dry_run_stated(
+            res,
+            id,
+            plan.payload(),
+            "reply",
+            &risks,
+            None,
+            &[],
+            Some(&hash),
+            Some(json!({"sends": plan.sends})),
+        );
         return Ok(());
+    }
+    if let Some(expected) = a.expect_plan
+        && pystr::strip(expected).to_lowercase() != hash
+    {
+        return Err(usage(
+            &journal
+                .stale_plan_refusal(Some(expected), &[plain::ACTION])
+                .unwrap_or_else(|| {
+                    format!(
+                        "reply on {} does not match the reviewed plan (body or tenant changed, or a partial hash); review again with --dry-run. Nothing was sent",
+                        format_cid(id, res)
+                    )
+                }),
+        ));
     }
     confirm_writes(
         &risks,
         &format!("reply on {}", format_cid(id, res)),
-        yes,
-        no_input,
+        a.yes,
+        a.no_input,
     )?;
     let c = client()?;
-    let r = service::add_reply(c.as_ref(), res, id, body).map_err(fail_exc)?;
-    let rid = r.get("id").map(fsv_py::py_str).unwrap_or_default();
-    out().print(&format!("[green]added[/] reply {rid}"));
+    let result = match plain::send(&plan, c.as_ref(), &journal) {
+        Ok(r) => r,
+        Err(Error::Exit { code: 2, message }) => {
+            if a.json_out {
+                fsv_core::output::emit_json(&json!({
+                    "status": "error", "plan_hash": hash, "verified": false, "error": message,
+                }));
+            }
+            return Err(usage(&message));
+        }
+        Err(e) => return Err(e),
+    };
+    if a.json_out {
+        fsv_core::output::emit_json(&result);
+    } else {
+        let cid_text = result
+            .get("conversation_id")
+            .map_or("None".to_string(), fsv_py::py_str);
+        let verified = result.get("verified").is_some_and(fsv_py::truthy);
+        out().print(&format!(
+            "[green]added[/] reply {cid_text}; verified: {verified}"
+        ));
+        if let Some(w) = result.get("warning").filter(|w| fsv_py::truthy(w)) {
+            err().print(&fsv_py::py_str(w));
+        }
+    }
+    if !result.get("verified").is_some_and(fsv_py::truthy) {
+        return Err(Error::exit(4, ""));
+    }
     Ok(())
 }
 
