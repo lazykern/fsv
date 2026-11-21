@@ -195,8 +195,37 @@ pub fn private_views_write(module: &str, a: PrivateViewWrite) -> CmdResult {
     let k = private_views::kind(module);
     let run = || -> Result<()> {
         let c = client()?;
-        let plan =
-            private_views::build_plan(c.as_ref(), &json!(a.id_), &a.action, a.name.as_deref(), k)?;
+        let plan = match private_views::build_plan(
+            c.as_ref(),
+            &json!(a.id_),
+            &a.action,
+            a.name.as_deref(),
+            k,
+        ) {
+            Ok(plan) => plan,
+            Err(e) if private_views::is_nothing_to_change(&e) => {
+                if let Some(expect) = &a.expect_plan {
+                    let action = format!("{}edit", k.prefix);
+                    return Err(Error::exit(
+                        2,
+                        DiskJournal
+                            .stale_plan_refusal(Some(expect), &[action.as_str()])
+                            .unwrap_or_else(|| {
+                                "nothing to change; the reviewed plan does not exist. Nothing was sent"
+                                    .into()
+                            }),
+                    ));
+                }
+                println!(
+                    "{}",
+                    dumps(&json!({
+                        "status": "nothing_to_change", "view_id": a.id_, "message": e.to_string(),
+                    }))
+                );
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        };
         if a.dry_run {
             print_dry_run(plan.review());
             return Ok(());

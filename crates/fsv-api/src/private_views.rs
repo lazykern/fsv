@@ -78,6 +78,12 @@ fn is_changes(k: &ViewKind) -> bool {
     std::ptr::eq(k, &CHANGES)
 }
 
+/// `except NothingToChange`: a rename to the view's current name.
+pub fn is_nothing_to_change(e: &Error) -> bool {
+    matches!(e, Error::Value(m)
+        if m.starts_with("the view is already named ") && m.ends_with("; nothing to change"))
+}
+
 /// `except ReviewedWriteError`.
 fn is_refusal(e: &Error) -> bool {
     matches!(e, Error::Exit { code: 2, .. })
