@@ -187,12 +187,42 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
             err().print(&escape(&format!("note: {} {}", x.field, x.value)));
         }
     }
-    let view = pick_view(
-        &c,
-        res,
-        a.filter_name.as_deref(),
-        where_.is_empty() && raw.is_none(),
-    )?;
+    let unfiltered = a.filter_name.as_deref().is_none_or(str::is_empty) && where_.is_empty() && raw.is_none();
+    let view = if a.no_defaults && unfiltered {
+        // The list endpoint applies the server's default view (for example
+        // "New & My Open") when no filter is sent, so dropping fsv's config
+        // defaults alone still lists a filtered subset: use the system "All"
+        // view instead, or say which view still filters.
+        let saved = saved_views(&c, res).map_err(fail_exc)?;
+        match fsv_api::site::all_records_view(&saved, res.name) {
+            Some(v) => {
+                err().print_soft(&escape(&format!(
+                    "view: {} ({}): --no-defaults lists every record the server's system 'All' view returns, not the default view",
+                    v.name, v.id
+                )));
+                Some(v.clone())
+            }
+            None => {
+                let view = default_view(&saved).cloned();
+                let label = view.as_ref().map_or_else(
+                    || "the server's default".to_string(),
+                    |v| format!("{} ({})", v.name, v.id),
+                );
+                err().print_soft(&escape(&format!(
+                    "note: --no-defaults: no system 'All' view found for {}; the default view {label} still filters this list (use --view or --where)",
+                    res.name
+                )));
+                view
+            }
+        }
+    } else {
+        pick_view(
+            &c,
+            res,
+            a.filter_name.as_deref(),
+            where_.is_empty() && raw.is_none(),
+        )?
+    };
     let mut ot = a.order_type.as_str().to_string();
     let mut ob = a.order_by.clone().filter(|s| !s.is_empty());
     if let Some(v) = &view

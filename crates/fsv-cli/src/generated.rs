@@ -497,7 +497,7 @@ pub struct ResLsArgs {
     #[arg(long = "no-pager", overrides_with = "pager")]
     pub no_pager: bool,
     #[arg(
-        help = "ignore default --where filters from config",
+        help = "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
         long = "no-defaults"
     )]
     pub no_defaults: bool,

@@ -25,6 +25,12 @@ fsv tickets ls --view "new & my"
 * Column labels come from your form (another language shows in that
   language).
 * `-o json` prints the raw rows; `-o csv|tsv` the same columns as the table.
+* The list endpoint applies the server's default view whenever no filter is
+  sent, so a bare `ls` is never "everything". `ls --no-defaults` (no
+  `--view`/`--where`/`--query-hash`) drops your config defaults **and** lists
+  the module's system "All" view (`all_tickets`, `all` for changes and
+  problems), naming it on stderr; when a tenant has no such view, stderr names
+  the default view that still filters the list.
 
 ### Filters by label
 

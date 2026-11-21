@@ -1994,7 +1994,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "ignore default --where filters from config",
+       "help": "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
        "metavar": null,
        "envvar": null
       }
@@ -11128,7 +11128,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "ignore default --where filters from config",
+       "help": "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
        "metavar": null,
        "envvar": null
       }
@@ -21259,7 +21259,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "ignore default --where filters from config",
+       "help": "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
        "metavar": null,
        "envvar": null
       }

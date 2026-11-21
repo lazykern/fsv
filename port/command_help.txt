@@ -123,7 +123,7 @@ A	fsv changes ls	--npages	fetch exactly N pages
 A	fsv changes ls	--output	output format
 A	fsv changes ls	--json	alias for --output json
 A	fsv changes ls	--pager	page long table output when stdout is a TTY
-A	fsv changes ls	--no-defaults	ignore default --where filters from config
+A	fsv changes ls	--no-defaults	ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view
 C	fsv changes get	Show one change.
 A	fsv changes get	<id_>	
 A	fsv changes get	--tab	show one tab of the page: notes|tasks|approvals|assets|impacted|associations|activity|risk|devops (only tabs the server shows)
@@ -624,7 +624,7 @@ A	fsv tickets ls	--npages	fetch exactly N pages
 A	fsv tickets ls	--output	output format
 A	fsv tickets ls	--json	alias for --output json
 A	fsv tickets ls	--pager	page long table output when stdout is a TTY
-A	fsv tickets ls	--no-defaults	ignore default --where filters from config
+A	fsv tickets ls	--no-defaults	ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view
 C	fsv tickets get	Show one ticket.
 A	fsv tickets get	<id_>	
 A	fsv tickets get	--tab	show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)
@@ -1186,7 +1186,7 @@ A	fsv problems ls	--npages	fetch exactly N pages
 A	fsv problems ls	--output	output format
 A	fsv problems ls	--json	alias for --output json
 A	fsv problems ls	--pager	page long table output when stdout is a TTY
-A	fsv problems ls	--no-defaults	ignore default --where filters from config
+A	fsv problems ls	--no-defaults	ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view
 C	fsv problems get	Show one problem.
 A	fsv problems get	<id_>	
 A	fsv problems get	--tab	show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)
