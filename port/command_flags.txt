@@ -5,7 +5,7 @@ fsv	--install-completion,--no-input,--show-completion,--verbose,--version	0
 fsv assets		0
 fsv assets search	--json,--kind,--page,--per-page	1
 fsv attachments		0
-fsv attachments delete	--child,--dry-run,--expect-plan,--json,--owner,--section,--yes	1
+fsv attachments delete	--child,--confirm-destructive,--dry-run,--expect-plan,--json,--owner,--section,--yes	1
 fsv auth		0
 fsv auth login	--browser,--domain,--force,--header,--no-input,--store	0
 fsv auth logout	--no-input,--yes	0

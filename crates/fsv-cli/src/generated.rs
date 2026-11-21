@@ -4808,6 +4808,11 @@ pub struct AttachmentsDeleteArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "required with --yes: the delete is permanent (no restore wire)",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
     #[arg(long = "json")]
     pub json_out: bool,
 }

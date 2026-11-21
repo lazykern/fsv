@@ -13260,7 +13260,8 @@ fn attachments_delete_dry_run() {
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "owner": "tickets/5",
   "child": null,
-  "section": null
+  "section": null,
+  "requires": "--confirm-destructive"
 }
 "#
     );
@@ -13280,6 +13281,7 @@ fn attachments_delete_send() {
             "--yes",
             "--expect-plan",
             "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
+            "--confirm-destructive",
         ],
         None,
     );
@@ -13299,6 +13301,29 @@ fn attachments_delete_send() {
 }
 
 #[test]
+fn attachments_delete_yes_without_confirm_destructive_sends_nothing() {
+    let r = run_fixture(
+        "attachments",
+        &[
+            "attachments",
+            "delete",
+            "62",
+            "--owner",
+            "tickets/6",
+            "--yes",
+            "--expect-plan",
+            "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
+    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
 fn attachments_delete_send_unverified() {
     let r = run_fixture(
         "attachments",
@@ -13311,6 +13336,7 @@ fn attachments_delete_send_unverified() {
             "--yes",
             "--expect-plan",
             "b543497e0ec2e43bcdcf810686166714f25a5accfd7f8ee13a4badbdeaa831d4",
+            "--confirm-destructive",
         ],
         None,
     );
@@ -13348,7 +13374,7 @@ fn attachments_delete_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+        r#"review with --dry-run, then --yes --expect-plan FULL_HASH --confirm-destructive
 "#
     );
 }
@@ -13453,7 +13479,8 @@ fn attachments_delete_child_conversation() {
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "owner": "tickets/5",
   "child": 950,
-  "section": null
+  "section": null,
+  "requires": "--confirm-destructive"
 }
 "#
     );
