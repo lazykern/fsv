@@ -3768,11 +3768,18 @@ per-commit delta of the Python dumps (`git archive <sha>~1` against `<sha>`),
 not regenerated from `main`, so it holds only these commits' changes.
 Plan hashes were checked against Python with `tenant.bind_plan` neutralised in
 the export (the tenant binding of `5eefaaf`..`230b348` belongs to the auth
-branch and changes every plan hash).
+branch and changes every plan hash). Verified equal to Python (dry-run
+`plan_hash`, a record with a real `updated_at`): `tickets update --reviewed`,
+`tickets bulk-priority`, `problems update --priority --set` (`problem_update`)
+and `changes update --due-by` (`change_due_by`). Not compared: ticket
+assign/pick-up (their own `9cc8b99` token is not here) and bulk status set.
+`tests/fixtures/diff_cases.json` (opt-in differential test against Python
+`31a9103`) holds the new Rust hashes for four `update --expect-plan` cases and is
+stale against that base.
 
 | commit | status | where, and what is left |
 |---|---|---|
-| `abfffc7` schema cache freshness | ported | `fsv-core` `cache.rs` (`schema`/`form_rules` TTL 900, `WRITE_MAX_AGE`, `forced`, `--refresh` via `runtime::set_force_refresh`); `fsv-api` `schema.rs` (`revalidate_for_write`, `validate_with_refetch`, thread-local retry scope; `fsv-cli` `util::fail` withholds a refusal inside the scope); write sites: `update_resource`, problem reviewed update, `changes clone`, `changes update --attach`, `changes windows create`. `changes create` / `--edit` / `--set` go through the form engine (metadata fetched fresh), not `schema::load`. |
+| `abfffc7` schema cache freshness | ported | `fsv-core` `cache.rs` (`schema`/`form_rules` TTL 900, `WRITE_MAX_AGE`, `forced`, `--refresh` via `runtime::set_force_refresh`); `fsv-api` `schema.rs` (`revalidate_for_write`, `validate_with_refetch`, thread-local retry scope; `fsv-cli` `util::fail` withholds a refusal inside the scope); write sites: `update_resource`, problem reviewed update, `changes clone`, `changes update --attach`, `changes windows create`. `changes create` / `--edit` / `--set` go through the form engine (metadata fetched fresh), not `schema::load`. `schema.load(for_write=True)` is not ported: nothing in Python calls it and `revalidate_for_write` covers it (TTL equals `WRITE_MAX_AGE`). |
 | `01a88d4` (cache clear/status part) | ported | `cache clear schema\|forms\|views\|groups\|all` (`forms` removes `CACHE_DIR/forms`), `choose schema\|forms\|views\|groups\|all`, completer entry, status rows `forms/<name>` labelled "form fields"/"form rules", `_age_text`, caption. The private-view rename and planning-text `--clear` no-op exits of the same commit are not in this branch. `term::Table` gained a `caption`. |
 | `8a3d2c6` tickets update reviewed by default | ported, token wiring partial | `--reviewed/--no-review` (`reviewed` is a no-op; effective flag is `!no_review`), `--no-review` stderr notice, "drop --no-review" refusals, `--ack` without `--reviewed`, exit 4 on an unverified readback, `stale_plan_refusal` on a mismatched `--expect-plan`, record-state token in the ticket property plan (`PropertyPlan.state_json`, `prior_hash`, `record_state` in the review, verified-send journaling, `prior_hash` guard in `send_with`). `build_plan_in` takes the `Journal` the token is read from (`DiskJournal` by default). Journal primitives come from `port/up-b` `73c84eb` verbatim. Existing goldens whose plan hash includes a ticket property plan (`bulk-priority`, ticket assign/pick-up, bulk status set) were refreshed from Rust; `bulk-priority` and `update --reviewed` were compared with Python. The assign/pick-up hashes will change again when the `9cc8b99` token of those writes lands. |
 | `b04e117` problems update form fields reviewed | ported | `problem_properties::build_update_plan`/`send_update`/`update_fields` (action `problem_update`, `UpdateError::NothingToChange`), CLI `problem_reviewed_update`; `--no-review` moved ahead of the problem planning branch for every resource. Planning (`problem_planning`) still builds its plan without a record-state token (`PlanningPlan.state_json` is empty there): binding it is part of `55d3e87` on the reviewed-write branch. |

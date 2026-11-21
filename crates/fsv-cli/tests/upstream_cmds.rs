@@ -2568,7 +2568,7 @@ fn update_reviewed_set_without_equals() {
 }
 
 #[test]
-fn update_reviewed_on_problems_takes_the_plain_update_path() {
+fn update_reviewed_flag_on_problems_reviews_the_form_update_and_needs_the_form_route() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
