@@ -6062,6 +6062,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "--attach and --planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "dry_run",
        "kind": "option",
        "opts": [

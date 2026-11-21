@@ -1476,12 +1476,6 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
         return Ok(());
     }
     if let Some(planning) = &a.planning {
-        let c = client()?;
-        let sch = crate::schema::load(&CHANGES, &c, false).map_err(fail_exc)?;
-        let fields = crate::schema::fields(&sch);
-        let def =
-            fsv_api::create::resolve_planning_definition(planning, &fields).map_err(fail_exc)?;
-        let planning_id = fsv_api::create::planning_server_key(&def);
         let desc = if a.description.as_deref() == Some("-") {
             let mut buf = String::new();
             std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
@@ -1489,59 +1483,24 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
         } else {
             a.description.clone()
         };
-        if a.dry_run {
-            emit_dry_run(
-                &CHANGES,
-                id,
-                json!({"planning_field": planning_id, "description": desc, "files": a.files, "duplicate": a.duplicate}),
-                "update_planning_field",
-                &[],
-            );
-            return Ok(());
-        }
-        let label = def
-            .get("label")
-            .filter(|v| fsv_py::truthy(v))
-            .map(fsv_py::py_str)
-            .unwrap_or_else(|| planning.clone());
-        let updated = fsv_api::create::update_planning_field(
-            c.as_ref(),
+        return crate::cmd::upload_update::planning(
+            "changes",
             id,
-            &planning_id,
+            planning,
             desc.as_deref(),
             &a.files,
-            &dup,
-            Some(&label),
-            &StdinPrompter,
+            &a.duplicate,
+            a.backup_replaced,
+            a.max_bytes,
+            &crate::cmd::upload_update::Flags {
+                dry_run: a.dry_run,
+                yes: a.yes,
+                expect_plan: a.expect_plan.as_deref(),
+                json_out: a.json_out,
+                no_input: a.no_input,
+            },
         )
-        .map_err(fail_exc)?;
-        let key = fsv_py::py_repr_str(&planning_id);
-        if a.json_out {
-            emit_json(&updated);
-        } else if updated.get("_fsv_noop").is_some_and(fsv_py::truthy) {
-            let skipped = joined(updated.get("skipped"));
-            let tail = if skipped.is_empty() {
-                String::new()
-            } else {
-                format!(" ({skipped} already attached)")
-            };
-            out().print(&format!("[yellow]no changes[/] planning field {key}{tail}"));
-        } else {
-            let mut suffix = Vec::new();
-            if desc.is_some() {
-                suffix.push("description".to_string());
-            }
-            if !a.files.is_empty() {
-                suffix.push(format!("{} file(s)", a.files.len()));
-            }
-            let tail = if suffix.is_empty() {
-                String::new()
-            } else {
-                format!(" ({})", suffix.join(", "))
-            };
-            out().print(&format!("[green]updated[/] planning field {key}{tail}"));
-        }
-        return Ok(());
+        .map_err(fail_exc);
     }
     if quick {
         // Field flags and --set take the form path above; only --attach lands here.

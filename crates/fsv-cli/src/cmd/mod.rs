@@ -23,6 +23,7 @@ pub mod sr;
 pub mod ticket_links;
 pub mod ticket_trash;
 pub mod tickets;
+pub mod upload_update;
 pub mod windows;
 
 use clap::{ArgMatches, FromArgMatches};

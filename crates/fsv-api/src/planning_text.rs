@@ -82,7 +82,7 @@ pub fn inventory(c: &dyn Api, module: &str, target: i64) -> Result<Vec<Value>> {
 }
 
 /// `urllib.parse.quote(text, safe="")`.
-fn quote(text: &str) -> String {
+pub(crate) fn quote(text: &str) -> String {
     let mut out = String::new();
     for b in text.bytes() {
         if b.is_ascii_alphanumeric() || b"_.-~".contains(&b) {

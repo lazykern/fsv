@@ -72,7 +72,7 @@ fsv changes time		0
 fsv changes time list	--json,--output	1
 fsv changes time update	--dry-run,--expect-plan,--json,--note,--spent,--yes	2
 fsv changes time write	--billable,--dry-run,--entry,--executed-at,--expect-plan,--json,--no-billable,--non-billable,--note,--output,--spent,--yes	2
-fsv changes update	--ack,--agent,--agent-id,--attach,--backup-name,--backup-replaced,--desc,--description,--dry-run,--due-by,--duplicate,--edit,--expect-plan,--file,--from,--group,--group-id,--json,--no-backup-replaced,--no-input,--planning,--preset,--priority,--set,--status,--yes	1
+fsv changes update	--ack,--agent,--agent-id,--attach,--backup-name,--backup-replaced,--desc,--description,--dry-run,--due-by,--duplicate,--edit,--expect-plan,--file,--from,--group,--group-id,--json,--max-bytes,--no-backup-replaced,--no-input,--planning,--preset,--priority,--set,--status,--yes	1
 fsv changes url		1
 fsv changes views	--json,--output	0
 fsv changes watchers		0

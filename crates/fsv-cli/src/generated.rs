@@ -1497,6 +1497,13 @@ pub struct ChangesUpdateArgs {
         value_name = "TEXT"
     )]
     pub due_by: Option<String>,
+    #[arg(
+        help = "--attach and --planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
     #[arg(help = "print resolved payload without updating", long = "dry-run")]
     pub dry_run: bool,
     #[arg(

@@ -35,6 +35,7 @@ pub mod legacy_approvals;
 pub mod list_preferences;
 pub mod module_time;
 pub mod notes;
+pub mod planning_files;
 pub mod planning_text;
 pub mod private_views;
 pub mod problem_incidents;

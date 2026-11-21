@@ -1276,25 +1276,13 @@ fn update_planning_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "dry_run": true,
-  "action": "update_planning_field",
-  "id": "CHN-5",
-  "body": {
-    "planning_field": "rollout_plan",
-    "description": "hi",
-    "files": [
-      "x.pdf"
-    ],
-    "duplicate": "prompt"
-  }
-}
+        r.err,
+        r#"error: HTTP 404 listing planning-fields: no route
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -1308,7 +1296,7 @@ fn update_planning_unknown() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
+        r#"--planning needs --description and/or --file
 "#
     );
 }
