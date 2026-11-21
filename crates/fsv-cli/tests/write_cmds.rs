@@ -1318,30 +1318,20 @@ fn update_attach_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "dry_run": true,
-  "action": "update",
-  "id": "CHN-5",
-  "body": {
-    "attachments": {
-      "preserve_existing": true,
-      "upload_files": [
-        "a.txt"
-      ],
-      "duplicate": "skip"
-    }
-  }
-}
+        r.err,
+        r#"attachments must be unique regular local files
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
 fn update_attach_prompt_no_input() {
+    // `--duplicate prompt` under `--no-input` refuses only on a real
+    // same-name attachment (change 5 has none); the missing file refuses.
     let r = run_fixture(
         "change_helpers",
         &["changes", "update", "5", "--attach", "a.txt", "--no-input"],
@@ -1351,7 +1341,7 @@ fn update_attach_prompt_no_input() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: --duplicate prompt disabled by --no-input; use --duplicate skip|replace|append
+        r#"attachments must be unique regular local files
 "#
     );
 }

@@ -15,6 +15,7 @@ pub mod attachments;
 pub mod bulk_priority;
 pub mod canned;
 pub mod catalog;
+pub mod change_attach;
 pub mod change_delete;
 pub mod change_lifecycle;
 pub mod change_relationships;

@@ -6,6 +6,7 @@
 
 use serde_json::{Map, Value, json};
 
+use fsv_api::change_attach::{self, ChangeAttachPlan};
 use fsv_api::planning_files::{self, Failure, PlanningUpdatePlan};
 use fsv_api::service::{DiskJournal, Journal};
 use fsv_core::Error;
@@ -34,6 +35,21 @@ impl UploadPlan for PlanningUpdatePlan {
     }
     fn review(&self) -> Map<String, Value> {
         PlanningUpdatePlan::review(self)
+    }
+}
+
+impl UploadPlan for ChangeAttachPlan {
+    fn noop(&self) -> bool {
+        ChangeAttachPlan::noop(self)
+    }
+    fn action(&self) -> &'static str {
+        change_attach::ACTION
+    }
+    fn hash(&self) -> String {
+        ChangeAttachPlan::hash(self)
+    }
+    fn review(&self) -> Map<String, Value> {
+        ChangeAttachPlan::review(self)
     }
 }
 
@@ -231,6 +247,62 @@ pub fn planning(
         &Texts {
             changed: &changed,
             confirm: "Upload these files and save this planning section?",
+        },
+    )
+}
+
+/// `_change_attach_update`: `changes update ID --attach FILE` (attach-only).
+#[allow(clippy::too_many_arguments)]
+pub fn attach(
+    cid: i64,
+    files: &[String],
+    duplicate: &str,
+    backup_replaced: bool,
+    max_bytes: Option<i64>,
+    flags: &Flags,
+) -> CmdResult {
+    let c = crate::util::client()?;
+    let opts = change_attach::AttachOpts {
+        duplicate,
+        backup_replaced,
+        max_bytes,
+        no_input: no_input(flags.no_input),
+    };
+    let build = || {
+        change_attach::build_plan(
+            c.as_ref(),
+            &DiskJournal,
+            &fsv_api::create::StdinPrompter,
+            cid,
+            files,
+            &opts,
+        )
+    };
+    let send = |plan: &ChangeAttachPlan| {
+        change_attach::send(plan, c.as_ref(), &DiskJournal, Some(&plan.hash()), &build)
+    };
+    let noop = |plan: &ChangeAttachPlan| {
+        let skipped = plan.skipped.join(", ");
+        (
+            json!({"status": "nothing_to_change", "target": cid, "skipped_files": plan.skipped}),
+            format!(
+                "nothing to change on change {cid}{}",
+                if skipped.is_empty() {
+                    String::new()
+                } else {
+                    format!(" ({skipped} already attached)")
+                }
+            ),
+        )
+    };
+    run(
+        &build,
+        &send,
+        &noop,
+        flags,
+        &Texts {
+            changed: "the change's attachments or files changed since review",
+            confirm: "Upload these files and attach them to the change?",
         },
     )
 }
