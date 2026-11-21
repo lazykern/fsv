@@ -8,9 +8,15 @@ use common::{run_fixture, run_steps};
 
 #[test]
 fn closed_dry_run_shows_missing_solution_up_front() {
-    let r = run_fixture("problem_status_closure", &["problems", "status", "12", "--to", "Closed", "--dry-run"], None);
+    let r = run_fixture(
+        "problem_status_closure",
+        &["problems", "status", "12", "--to", "Closed", "--dry-run"],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.out, r#"{
+    assert_eq!(
+        r.out,
+        r#"{
   "status": "dry_run",
   "action": "problem_status",
   "method": "PUT",
@@ -45,15 +51,22 @@ fn closed_dry_run_shows_missing_solution_up_front() {
     "no linked workaround / solution: some tenants reject closure without one (check_workaround_or_solution_added); not blocked because this tenant has not proven that rule (observed on one tenant: only 2 of 62 closed problems had a linked workaround / solution, so this closure rule is tenant configuration, not a platform rule); the server decides"
   ]
 }
-"#);
+"#
+    );
     assert_eq!(r.err, r#""#);
 }
 
 #[test]
 fn closed_dry_run_shows_linked_solution_up_front() {
-    let r = run_fixture("problem_status_closure", &["problems", "status", "13", "--to", "Closed", "--dry-run"], None);
+    let r = run_fixture(
+        "problem_status_closure",
+        &["problems", "status", "13", "--to", "Closed", "--dry-run"],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.out, r#"{
+    assert_eq!(
+        r.out,
+        r#"{
   "status": "dry_run",
   "action": "problem_status",
   "method": "PUT",
@@ -85,15 +98,29 @@ fn closed_dry_run_shows_linked_solution_up_front() {
     "linked_solution": "linked (1)"
   }
 }
-"#);
+"#
+    );
     assert_eq!(r.err, r#""#);
 }
 
 #[test]
 fn non_closure_dry_run_has_no_closure_check() {
-    let r = run_fixture("problem_status_closure", &["problems", "status", "12", "--to", "Change Requested", "--dry-run"], None);
+    let r = run_fixture(
+        "problem_status_closure",
+        &[
+            "problems",
+            "status",
+            "12",
+            "--to",
+            "Change Requested",
+            "--dry-run",
+        ],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.out, r#"{
+    assert_eq!(
+        r.out,
+        r#"{
   "status": "dry_run",
   "action": "problem_status",
   "method": "PUT",
@@ -121,17 +148,34 @@ fn non_closure_dry_run_has_no_closure_check() {
     "server_version": null
   }
 }
-"#);
+"#
+    );
     assert_eq!(r.err, r#""#);
 }
 
 #[test]
 fn closed_rejection_remembers_solution_rule() {
-    let r = run_fixture("problem_status_closure", &["problems", "status", "12", "--to", "Closed", "--yes", "--expect-plan", "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5"], None);
+    let r = run_fixture(
+        "problem_status_closure",
+        &[
+            "problems",
+            "status",
+            "12",
+            "--to",
+            "Closed",
+            "--yes",
+            "--expect-plan",
+            "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5",
+        ],
+        None,
+    );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
-    assert_eq!(r.err, r#"violated_closure_rules: a workaround / solution must be linked
-"#);
+    assert_eq!(
+        r.err,
+        r#"violated_closure_rules: a workaround / solution must be linked
+"#
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/12"]);
 }
 

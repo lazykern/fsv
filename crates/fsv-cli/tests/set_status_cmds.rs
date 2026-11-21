@@ -104,9 +104,25 @@ fn reply_set_status_label_is_stripped() {
 
 #[test]
 fn note_set_status_closed_label_is_stripped() {
-    let r = run_fixture("ticket_lifecycle_ack", &["tickets", "add-note", "124", "--body", "Private", "--set-status", " Closed", "--ack", "--dry-run"], None);
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &[
+            "tickets",
+            "add-note",
+            "124",
+            "--body",
+            "Private",
+            "--set-status",
+            " Closed",
+            "--ack",
+            "--dry-run",
+        ],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.out, r#"{
+    assert_eq!(
+        r.out,
+        r#"{
   "status": "dry_run",
   "action": "ticket_note",
   "method": "POST",
@@ -133,7 +149,7 @@ fn note_set_status_closed_label_is_stripped() {
     "Only the requester closes Acme tickets"
   ]
 }
-"#);
+"#
+    );
     assert_eq!(r.err, r#""#);
 }
-

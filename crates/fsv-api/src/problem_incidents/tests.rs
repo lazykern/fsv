@@ -207,5 +207,10 @@ fn record_state_token_separates_a_repeat_and_guards_the_prior_hash() {
         .unwrap_err()
         .to_string();
     assert!(e.contains("outcome unknown"), "{e}");
-    assert!(state.lock().unwrap()["requests"].as_array().unwrap().is_empty());
+    assert!(
+        state.lock().unwrap()["requests"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
 }

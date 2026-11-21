@@ -8757,7 +8757,7 @@
      "clear": true,
      "race": "removed",
      "rows": [],
-     "error": "planning section is already empty; no write attempted",
+     "error": "planning section is already empty; nothing to change, no write attempted",
      "type": "ReviewedWriteError",
      "writes": []
     },
@@ -8857,7 +8857,7 @@
      "clear": true,
      "race": "removed",
      "rows": [],
-     "error": "planning section is already empty; no write attempted",
+     "error": "planning section is already empty; nothing to change, no write attempted",
      "type": "ReviewedWriteError",
      "writes": []
     }
@@ -9427,7 +9427,7 @@
      "rows": [],
      "description": null,
      "clear": true,
-     "error": "planning section is already empty; no write attempted",
+     "error": "planning section is already empty; nothing to change, no write attempted",
      "type": "ReviewedWriteError",
      "writes": []
     },
@@ -9441,7 +9441,7 @@
      ],
      "description": null,
      "clear": true,
-     "error": "planning section is already empty; no write attempted",
+     "error": "planning section is already empty; nothing to change, no write attempted",
      "type": "ReviewedWriteError",
      "writes": []
     },

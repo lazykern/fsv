@@ -301,7 +301,11 @@ pub fn build_plan(
     // (Open -> In Progress -> Open), so target, payload and stable snapshot
     // repeat: bind the server updated_at and the verified status sends on
     // this problem so a legitimate repeated transition plans a fresh hash.
-    let token = c.repeat_token(&[ACTION], &json!(target), Some(&Value::Object(before.clone())));
+    let token = c.repeat_token(
+        &[ACTION],
+        &json!(target),
+        Some(&Value::Object(before.clone())),
+    );
     let mut bound = obj(context.clone());
     bound.insert("state".into(), Value::Object(token.clone()));
     let bound_hash = snapshot_hash(&Value::Object(bound))?;
@@ -693,10 +697,11 @@ pub fn send(
             // also back to the status the problem already had: accept the
             // readback only when the activity shows this write's transition
             // followed by a workflow setting exactly the readback status.
-            let labels: Map<String, Value> = serde_json::from_str::<Value>(&plan.status_labels_json)
-                .ok()
-                .and_then(|v| v.as_object().cloned())
-                .unwrap_or_default();
+            let labels: Map<String, Value> =
+                serde_json::from_str::<Value>(&plan.status_labels_json)
+                    .ok()
+                    .and_then(|v| v.as_object().cloned())
+                    .unwrap_or_default();
             (note, conflict) =
                 read_workflow_rewrite(c, plan.write.target, since, &labels, want, &after);
             verified = note.is_some();

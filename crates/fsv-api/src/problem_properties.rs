@@ -190,7 +190,11 @@ pub fn build_plan(
     // updated_at and the verified planning sends on this problem.
     let state = stateful_context(
         &context,
-        &c.repeat_token(&[ACTION], &json!(target), Some(&Value::Object(before_row.clone()))),
+        &c.repeat_token(
+            &[ACTION],
+            &json!(target),
+            Some(&Value::Object(before_row.clone())),
+        ),
     )?;
     Ok(PlanningPlan {
         write: StatefulWritePlan::new(

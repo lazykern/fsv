@@ -1385,7 +1385,9 @@ pub fn build_update_plan_with_lifecycle(
         let record_json = Json::Object(record.clone());
         plan.state_token = Some(match opts.journal {
             Some(j) => j.repeat_token(&UPDATE_ACTIONS, &target_json, Some(&record_json)),
-            None => fsv_core::journal::repeat_token(&UPDATE_ACTIONS, &target_json, Some(&record_json)),
+            None => {
+                fsv_core::journal::repeat_token(&UPDATE_ACTIONS, &target_json, Some(&record_json))
+            }
         });
         plan.prior_hash = fsv_core::journal::plan_hash(Some(&json!({
             "legacy": plan.legacy_hash,

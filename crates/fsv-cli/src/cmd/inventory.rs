@@ -65,7 +65,10 @@ pub(crate) fn finish(
     expected: Option<&str>,
     read_only: bool,
 ) -> Result<()> {
-    let action = review.get("action").and_then(Value::as_str).map(str::to_string);
+    let action = review
+        .get("action")
+        .and_then(Value::as_str)
+        .map(str::to_string);
     if dry_run {
         print_dry_run(review);
         return Ok(());

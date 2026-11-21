@@ -478,7 +478,8 @@ pub fn send(
     let target = plan.write.target;
     let task_id = plan.task_id;
     let payload = plan.write.payload();
-    let rebuild = || build_plan(c, &json!(target), &json!(task_id), &inputs).map(|p| p.write.hash());
+    let rebuild =
+        || build_plan(c, &json!(target), &json!(task_id), &inputs).map(|p| p.write.hash());
     let verify = |_: &Value| verify_readback(c, target, task_id, &payload);
     // Python guards with the context before the token whenever one is stored,
     // even when it equals the bound context.

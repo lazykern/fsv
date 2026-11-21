@@ -291,7 +291,12 @@ fn at(text: &str) -> jiff::Timestamp {
 }
 
 /// `test_problem_write_fixes._native_activity`.
-fn native_activity(write_at: &str, workflow_at: &str, requested: &str, rewritten: &str) -> Vec<Value> {
+fn native_activity(
+    write_at: &str,
+    workflow_at: &str,
+    requested: &str,
+    rewritten: &str,
+) -> Vec<Value> {
     vec![
         json!({"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": false},
                "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
@@ -308,7 +313,12 @@ fn native_activity(write_at: &str, workflow_at: &str, requested: &str, rewritten
 #[test]
 fn workflow_rewrite_uses_native_activity_rows() {
     let since = at("2030-01-01T00:00:00Z");
-    let rows = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    let rows = native_activity(
+        "2030-01-01T00:01:00Z",
+        "2030-01-01T00:01:01Z",
+        "Resolve",
+        "Monitor",
+    );
     let l = labels(&[]);
     let (note, conflict) = workflow_rewrite(&rows, since, &l, &json!(8), &json!(7));
     let note = note.unwrap();
@@ -319,20 +329,47 @@ fn workflow_rewrite_uses_native_activity_rows() {
             && conflict.is_none()
     );
     // No entry for this write (requested Closed): the readback stays unverified.
-    assert_eq!(workflow_rewrite(&rows, since, &l, &json!(9), &json!(7)), (None, None));
+    assert_eq!(
+        workflow_rewrite(&rows, since, &l, &json!(9), &json!(7)),
+        (None, None)
+    );
     // The workflow set another status than the readback: a conflict.
     let (note, conflict) = workflow_rewrite(&rows, since, &l, &json!(8), &json!(1));
     assert!(note.is_none() && conflict.unwrap().contains("readback status is Open"));
     // Workflow entry older than the write is not evidence.
-    let stale = native_activity("2030-01-01T00:02:00Z", "2030-01-01T00:01:00Z", "Resolve", "Monitor");
-    assert_eq!(workflow_rewrite(&stale, since, &l, &json!(8), &json!(7)), (None, None));
+    let stale = native_activity(
+        "2030-01-01T00:02:00Z",
+        "2030-01-01T00:01:00Z",
+        "Resolve",
+        "Monitor",
+    );
+    assert_eq!(
+        workflow_rewrite(&stale, since, &l, &json!(8), &json!(7)),
+        (None, None)
+    );
     // Entries before the write window do not count.
-    let old = native_activity("2029-12-31T00:01:00Z", "2029-12-31T00:01:01Z", "Resolve", "Monitor");
-    assert_eq!(workflow_rewrite(&old, since, &l, &json!(8), &json!(7)), (None, None));
+    let old = native_activity(
+        "2029-12-31T00:01:00Z",
+        "2029-12-31T00:01:01Z",
+        "Resolve",
+        "Monitor",
+    );
+    assert_eq!(
+        workflow_rewrite(&old, since, &l, &json!(8), &json!(7)),
+        (None, None)
+    );
     // A workflow row that did not set a status is not a rewrite.
-    let mut noset = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    let mut noset = native_activity(
+        "2030-01-01T00:01:00Z",
+        "2030-01-01T00:01:01Z",
+        "Resolve",
+        "Monitor",
+    );
     noset[0]["sub_contents"] = json!(["send email to <b>requester</b>", "<b>Workflow Ends</b>"]);
-    assert_eq!(workflow_rewrite(&noset, since, &l, &json!(8), &json!(7)), (None, None));
+    assert_eq!(
+        workflow_rewrite(&noset, since, &l, &json!(8), &json!(7)),
+        (None, None)
+    );
 }
 
 /// `test_workflow_row_is_detected_structurally_not_by_wording` (Python d90affa).
@@ -340,15 +377,46 @@ fn workflow_rewrite_uses_native_activity_rows() {
 fn workflow_row_is_detected_structurally() {
     let since = at("2030-01-01T00:00:00Z");
     let l = labels(&[]);
-    let mut rows = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    let mut rows = native_activity(
+        "2030-01-01T00:01:00Z",
+        "2030-01-01T00:01:01Z",
+        "Resolve",
+        "Monitor",
+    );
     rows[0]["actor"] = json!({"id": 9000002, "name": "Acme Agent Two", "is_agent": true});
-    assert_eq!(workflow_rewrite(&rows, since, &l, &json!(8), &json!(7)), (None, None));
-    let mut rows = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    assert_eq!(
+        workflow_rewrite(&rows, since, &l, &json!(8), &json!(7)),
+        (None, None)
+    );
+    let mut rows = native_activity(
+        "2030-01-01T00:01:00Z",
+        "2030-01-01T00:01:01Z",
+        "Resolve",
+        "Monitor",
+    );
     rows[0]["content"] = json!("ran automation");
-    assert!(workflow_rewrite(&rows, since, &l, &json!(8), &json!(7)).0.is_some());
+    assert!(
+        workflow_rewrite(&rows, since, &l, &json!(8), &json!(7))
+            .0
+            .is_some()
+    );
     let short = labels(&[]).into_iter().filter(|(k, _)| k == "8").collect();
-    assert!(workflow_rewrite(&rows, since, &short, &json!(8), &json!(7)).0.is_none());
-    assert!(workflow_rewrite(&rows, since, &labels(&[("10", "Monitor")]), &json!(8), &json!(7)).0.is_none());
+    assert!(
+        workflow_rewrite(&rows, since, &short, &json!(8), &json!(7))
+            .0
+            .is_none()
+    );
+    assert!(
+        workflow_rewrite(
+            &rows,
+            since,
+            &labels(&[("10", "Monitor")]),
+            &json!(8),
+            &json!(7)
+        )
+        .0
+        .is_none()
+    );
 }
 
 /// `test_problem_status_readback`: only the requested status verifies.
@@ -394,7 +462,9 @@ fn workflow_rewrite_is_verified_once_activity_is_logged() {
             Some(Arc::new(ClientResolver::new(c.clone())))
         };
         let plan = build_plan(&*c, &store, "123", label, resolver()).unwrap();
-        let now = jiff::Timestamp::now().strftime("%Y-%m-%dT%H:%M:%SZ").to_string();
+        let now = jiff::Timestamp::now()
+            .strftime("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
         {
             let mut s = state.lock().unwrap();
             s["mismatch"] = json!(true);
@@ -415,7 +485,10 @@ fn workflow_rewrite_is_verified_once_activity_is_logged() {
             },
             || send(&plan, &*c, &store, &journal, Some(&plan.hash()), resolver()).unwrap(),
         );
-        assert_eq!(state.lock().unwrap()["requests"].as_array().unwrap().len(), 1);
+        assert_eq!(
+            state.lock().unwrap()["requests"].as_array().unwrap().len(),
+            1
+        );
         assert_eq!(result["readback"]["status"], json!(n + 4));
         assert_eq!((result["verified"].clone(), reads.get()), (json!(true), 1));
         assert_eq!(result["final_status"], "Monitor 1 month");
@@ -440,9 +513,8 @@ fn rewrite_without_readable_activity_stays_unverified() {
     state.lock().unwrap()["row"]["status"] = json!(n + 4);
     let c = Arc::new(api(state.clone()));
     let store = MemStore::default();
-    let resolver = || -> Option<Arc<dyn LookupResolver>> {
-        Some(Arc::new(ClientResolver::new(c.clone())))
-    };
+    let resolver =
+        || -> Option<Arc<dyn LookupResolver>> { Some(Arc::new(ClientResolver::new(c.clone()))) };
     let plan = build_plan(&*c, &store, "123", "Open", resolver()).unwrap();
     {
         let mut s = state.lock().unwrap();
@@ -453,7 +525,12 @@ fn rewrite_without_readable_activity_stays_unverified() {
     let result = send(&plan, &*c, &store, &journal, Some(&plan.hash()), resolver()).unwrap();
     assert_eq!(result["verified"], false);
     assert!(result.get("verified_with_note").is_none());
-    assert!(result["warning"].as_str().unwrap().contains("do not resend"));
+    assert!(
+        result["warning"]
+            .as_str()
+            .unwrap()
+            .contains("do not resend")
+    );
     assert_eq!(
         state.lock().unwrap()["activity_reads"],
         json!(ACTIVITY_ATTEMPTS)

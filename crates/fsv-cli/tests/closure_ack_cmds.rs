@@ -33,9 +33,25 @@ fn note_closed_refused() {
 
 #[test]
 fn note_closed_ack_review() {
-    let r = run_fixture("ticket_lifecycle_ack", &["tickets", "add-note", "124", "--body", "Acme", "--set-status", "Closed", "--ack", "--dry-run"], None);
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &[
+            "tickets",
+            "add-note",
+            "124",
+            "--body",
+            "Acme",
+            "--set-status",
+            "Closed",
+            "--ack",
+            "--dry-run",
+        ],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.out, r#"{
+    assert_eq!(
+        r.out,
+        r#"{
   "status": "dry_run",
   "action": "ticket_note",
   "method": "POST",
@@ -62,7 +78,8 @@ fn note_closed_ack_review() {
     "Only the requester closes Acme tickets"
   ]
 }
-"#);
+"#
+    );
     assert_eq!(r.err, r#""#);
 }
 
@@ -92,9 +109,24 @@ fn reply_closed_refused() {
 
 #[test]
 fn reply_closed_ack_review() {
-    let r = run_fixture("ticket_lifecycle_ack", &["tickets", "reply", "124", "Acme", "--set-status", "Closed", "--ack", "--dry-run"], None);
+    let r = run_fixture(
+        "ticket_lifecycle_ack",
+        &[
+            "tickets",
+            "reply",
+            "124",
+            "Acme",
+            "--set-status",
+            "Closed",
+            "--ack",
+            "--dry-run",
+        ],
+        None,
+    );
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.out, r#"{
+    assert_eq!(
+        r.out,
+        r#"{
   "status": "dry_run",
   "action": "ticket_reply",
   "method": "POST",
@@ -123,7 +155,8 @@ fn reply_closed_ack_review() {
     "Only the requester closes Acme tickets"
   ]
 }
-"#);
+"#
+    );
     assert_eq!(r.err, r#""#);
 }
 

@@ -108,7 +108,10 @@ impl StatefulWritePlan {
 
 /// Port of `reviewed_write.stateful_context`: (context hash with the token,
 /// token JSON, context hash without it).
-pub fn stateful_context(context: &Value, token: &Map<String, Value>) -> Result<(String, String, String)> {
+pub fn stateful_context(
+    context: &Value,
+    token: &Map<String, Value>,
+) -> Result<(String, String, String)> {
     let with = crate::service::snapshot_hash(&json!({"context": context, "state": token}))?;
     let state = fsv_py::Dumps::default()
         .sort_keys(true)
