@@ -630,3 +630,70 @@ Python's.
   modules added since 31a9103 are listed, their 59 name matches stay
   `matched` (not reviewed line by line; `UNREVIEWED_CEILING` is 59).
   Existing entries keep their old line numbers.
+
+## Independent parity review (Python 84ffb0f)
+
+Differential coverage (`cargo test -p fsv-cli --test differential -- --ignored`,
+see the file's header) now compares Python and Rust on exit code, stdout,
+stderr, request method/URL/body, and request headers (except `host`,
+`user-agent`, `accept-encoding`, `connection`, `content-length`, which httpx
+adds below the transport), plus the journal after a send. Three case sources:
+
+- `fixtures/diff_cases.json`: every literal `run_fixture`/`run_files` call, plus
+  the `"tag": "hand"` rows written by `golden/gen_hand_cases.py`. A `hash_from`
+  review run makes Python print the plan hash; `@HASH@` in the args is replaced
+  by that hash on both sides, so a Rust hash that differs fails the send.
+- `fixtures/diff_env_cases.json`: every `Env::run` of the integration tests
+  that builds its own routes (`golden/collect_env_cases.py` re-collects them
+  with `FSV_CASE_DUMP`; routes, seed files and earlier steps travel with the
+  case).
+- Hand families: downloads `--max-bytes`, `assets search|candidates
+  --per-page`, `attachments delete --confirm-destructive`, tickets/changes
+  `private-views write` (create/edit/delete, no-op rename), `problems|changes
+  add-note`, plain `tickets reply`, default-reviewed `tickets|problems update`
+  with the schema cache (inside the TTL, refetch on refusal, replay), `changes
+  update --due-by`, problems `--planned-*`, planning-text clear/edit, `cache
+  clear|status` with forms and schema caches, `journal ls|tail` after sends.
+
+Masked on both sides: journal timestamps and epochs, `was already sent at`
+stamps, multipart boundaries. Known differences stay as documented above
+(`cache clear views`/`all` directory, completion scripts' boolean-pair flags
+and interpreter path, shell detection).
+
+Fixed in Rust by this review:
+
+- `private-views write ID edit --name CURRENT` (no-op rename) printed an error
+  and exited 2; Python prints `{"status": "nothing_to_change", "view_id", "message"}`
+  and exits 0, or refuses with exit 2 under `--expect-plan` (journal explanation
+  first, else "nothing to change; the reviewed plan does not exist. Nothing was sent").
+- `--yes` with a hash that names no earlier send prints Python's literal `None`
+  (see Up-B); the eight upstream goldens that accepted a different Rust text
+  assert `None`.
+- `changes|tickets approvals --groups` on a legacy flat tenant exited 1; Python
+  exits 5 (`LegacyChainsError` raised `from None` inside `except APIError`
+  keeps the API error as `__context__`, which `exit_code_for` follows). The
+  refusal is now raised from the API error.
+- `downloads --max-bytes` buffered the whole body before checking
+  `Content-Length`; the transport now takes a body limit: no body read when
+  the declared length is over it, otherwise at most `limit + 1` bytes of a
+  successful response (error bodies are never cut). Memory is bounded as in
+  Python's streamed read.
+- The mock transport (`FSV_TEST_ROUTES`) now sends `Content-Length` like httpx,
+  so download size refusals report `declared size` as Python's do.
+
+Not verified / known differences left:
+
+- `downloads --max-bytes` (fixed, see above) reads headers first and stops one
+  byte past the limit on a real connection, but the refused row's `size` for a
+  body without `Content-Length` is `limit + 1` in Rust and the bytes read up to
+  the chunk that crossed the limit in Python (chunk-size dependent). Mock
+  responses carry `Content-Length`, so the differential cannot see that case;
+  `fsv-core` has local-socket tests for the reader.
+- The unit oracles (`fsv-api/src/testdata/*_oracle.json`, `fsv-flows` goldens)
+  were not regenerated: `port/golden/gen_*.py` is not in the tree. The
+  composed ones re-blessed from Rust output (`ticket_assignment`,
+  `ticket_bulk_set`) are exercised at CLI level by the differential
+  (`tickets assign|pick-up`, `tickets bulk` sends with Python-checked hashes).
+- Interactive TUI/form UI, `setup`/`login` flows beyond the tty-scripted cases,
+  and real-network behavior (redirects, timeouts, retries) are not in the
+  differential; the canned-route harness answers every request at once.
