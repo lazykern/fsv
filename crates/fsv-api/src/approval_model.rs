@@ -44,6 +44,17 @@ pub fn groups_unavailable(status: u16) -> Error {
     ))
 }
 
+/// [`groups_unavailable`] raised from the API error it answers: Python's
+/// `raise LegacyChainsError(...) from None` inside `except APIError` still
+/// exits through `__context__`, so the exit code is the API error's (5).
+pub fn groups_unavailable_from(err: Error) -> Error {
+    let status = err.status().unwrap_or_default();
+    err.context(format!(
+        "approval groups unavailable: {}; {NOT_SUPPORTED} (list the flat records without --groups)",
+        describe(Some(status))
+    ))
+}
+
 /// The status inside [`groups_unavailable`], when `err` is that refusal.
 pub fn groups_status(err: &Error) -> Option<u16> {
     let marker = "approval groups unavailable: this tenant uses legacy flat approvals (approval-chains answered HTTP ";

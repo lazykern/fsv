@@ -423,8 +423,7 @@ pub fn approval_groups(c: &dyn Api, change_id: &Value, module: &str) -> Result<V
         ) {
             Ok(data) => data,
             Err(e) if page == 1 && crate::approval_model::is_absent(&e) => {
-                let status = e.status().unwrap_or_default();
-                return Err(crate::approval_model::groups_unavailable(status));
+                return Err(crate::approval_model::groups_unavailable_from(e));
             }
             Err(e) => return Err(e),
         };
