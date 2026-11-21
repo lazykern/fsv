@@ -805,3 +805,14 @@ fn default_dir_without_env_override_falls_back_to_the_legacy_item() {
     assert_eq!(fake.keychain.accounts(), vec![scratch]);
     assert_ne!(legacy, "");
 }
+
+#[test]
+fn echoed_prompt_reads_a_stdin_line_without_the_newline() {
+    let mut input = std::io::Cursor::new(b"pw one\nrest\n".to_vec());
+    assert_eq!(echoed_prompt("Passphrase: ", &mut input).unwrap(), "pw one");
+    assert_eq!(echoed_prompt("Passphrase: ", &mut input).unwrap(), "rest");
+    assert!(matches!(
+        echoed_prompt("Passphrase: ", &mut input),
+        Err(Error::Aborted)
+    ));
+}

@@ -437,7 +437,31 @@ fn b64d(s: &str) -> std::result::Result<Vec<u8>, String> {
 type SecretPrompt<'a> = &'a mut dyn FnMut(&str) -> Result<String>;
 
 fn tty_prompt(prompt: &str) -> Result<String> {
-    rpassword::prompt_password(prompt).map_err(|_| Error::Aborted)
+    match rpassword::prompt_password(prompt) {
+        Ok(secret) => Ok(secret),
+        Err(_) => echoed_prompt(prompt, &mut std::io::stdin().lock()),
+    }
+}
+
+/// `getpass.fallback_getpass`: with no terminal to control, warn and read a
+/// line from stdin.
+fn echoed_prompt(prompt: &str, input: &mut dyn std::io::BufRead) -> Result<String> {
+    use std::io::Write;
+    let mut err = std::io::stderr();
+    let _ = write!(err, "Warning: Password input may be echoed.\n{prompt}");
+    let _ = err.flush();
+    let mut line = String::new();
+    let read = input.read_line(&mut line);
+    let _ = writeln!(err);
+    match read {
+        Ok(0) | Err(_) => Err(Error::Aborted),
+        Ok(_) => {
+            if line.ends_with('\n') {
+                line.pop();
+            }
+            Ok(line)
+        }
+    }
 }
 
 /// Port of fsv.session._passphrase.

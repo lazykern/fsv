@@ -120,7 +120,6 @@ pub fn choose_store() -> Result<Backend> {
 /// Print the identity after a successful save (shared with `setup`).
 fn report_login() {
     let domain = config::domain();
-    session::clear_cache();
     fsv_core::client::reset_client();
     let checked = crate::util::shared_client().and_then(|c| c.check_session());
     match checked {
