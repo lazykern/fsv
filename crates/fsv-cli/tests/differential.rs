@@ -759,7 +759,13 @@ fn mask_boundary(text: &str) -> String {
 /// `user-agent`, `accept-encoding`, `connection` and `content-length` below
 /// the transport; the Rust mock sees the request before reqwest does.
 fn wire_headers(headers: &Value) -> String {
-    const SKIP: [&str; 5] = ["host", "user-agent", "accept-encoding", "connection", "content-length"];
+    const SKIP: [&str; 5] = [
+        "host",
+        "user-agent",
+        "accept-encoding",
+        "connection",
+        "content-length",
+    ];
     let Some(map) = headers.as_object() else {
         return String::new();
     };
