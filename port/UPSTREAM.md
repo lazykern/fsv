@@ -3781,3 +3781,8 @@ in `PARITY.md`. `port/UPSTREAM_BASE` stays `31a9103`; the cli_tree and
 completion fixtures carry only this batch's nodes and flags
 (whoami, config show, `--quiet`, `--tenant`, the `ls --no-defaults`, `forward
 --sender` and `auth logout` help) on top of the `31a9103` dump.
+
+`crates/fsv-cli/tests/differential.rs` (opt-in) now sends `FSV_QUIET` and
+`FSV_ALLOW_TENANT` to both sides, so run it against a Python tree that includes
+`5eefaaf`; against the pinned `31a9103` every `--expect-plan` case differs by
+design (tenant-bound hashes). `FSV_DIFF_VERBOSE=1` prints both stdouts.

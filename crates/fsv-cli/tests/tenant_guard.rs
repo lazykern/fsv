@@ -25,6 +25,43 @@ fn leaves(cmd: &Command, prefix: &str, out: &mut Vec<(String, Vec<String>)>) {
     }
 }
 
+/// `app::tenant_info` reads `--yes` / `--dry-run` as booleans and
+/// `--expect-plan` as a string; a leaf that declares them differently would
+/// silently skip the guard.
+#[test]
+fn write_flags_have_the_types_the_guard_reads() {
+    fn walk(cmd: &Command, path: &str, bad: &mut Vec<String>) {
+        for arg in cmd.get_arguments() {
+            match arg.get_long() {
+                Some("yes" | "dry-run") => {
+                    if !matches!(arg.get_action(), clap::ArgAction::SetTrue)
+                        || arg.get_value_parser().type_id()
+                            != clap::builder::ValueParser::bool().type_id()
+                    {
+                        bad.push(format!("{path} --{}", arg.get_long().unwrap_or_default()));
+                    }
+                }
+                Some("expect-plan") => {
+                    if arg.get_value_parser().type_id()
+                        != clap::builder::ValueParser::string().type_id()
+                    {
+                        bad.push(format!("{path} --expect-plan"));
+                    }
+                }
+                _ => {}
+            }
+        }
+        for sub in cmd.get_subcommands() {
+            walk(sub, &format!("{path} {}", sub.get_name()), bad);
+        }
+    }
+    let mut bad = Vec::new();
+    let mut root = fsv_cli::command();
+    root.build();
+    walk(&root, "fsv", &mut bad);
+    assert!(bad.is_empty(), "{bad:#?}");
+}
+
 #[test]
 fn every_yes_command_is_refused_on_an_unconfirmed_tenant() {
     let dir = tempfile::tempdir().unwrap();
