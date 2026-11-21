@@ -14,8 +14,10 @@ use fsv_py::py_str;
 use crate::formmeta::MetaStore;
 use crate::properties::{PropertyArgs, build_plan_with, record};
 use crate::readback::submitted_value_matches;
-use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, obj, snapshot_hash};
+use crate::reviewed_write::{
+    StatefulWritePlan, WritePlan, execute_guarded, refused, stateful_context,
+};
+use crate::service::{Api, Journal, obj};
 
 const WARNING: &str = "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.";
 
@@ -84,7 +86,7 @@ fn member(agent: &Map<String, Value>, group: &Map<String, Value>) -> Result<()> 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AssignmentPlan {
-    pub write: WritePlan,
+    pub write: StatefulWritePlan,
     pub intent_json: String,
     pub before_json: String,
 }
@@ -176,6 +178,7 @@ pub fn build_plan(
     let row_id = |m: &Map<String, Value>| json!(positive(m.get("id").unwrap_or(&Value::Null)));
     let mut before = Vec::new();
     let mut plans = Vec::new();
+    let mut versions: Vec<Value> = Vec::new();
     for cid in &cids {
         let row = record(c, *cid)?;
         let (Some(group_id), Some(responder_id)) = (row.get("group_id"), row.get("responder_id"))
@@ -213,6 +216,7 @@ pub fn build_plan(
             resolver.clone(),
         )?;
         before.push(json!({"ticket_id": cid, "group_id": group_id, "responder_id": responder_id}));
+        versions.push(row.get("updated_at").cloned().unwrap_or(Value::Null));
         plans.push(prop);
     }
     let (path, body, action) = if pickup {
@@ -233,18 +237,34 @@ pub fn build_plan(
         _ => Value::Null,
     };
     let hashes: Vec<String> = plans.iter().map(|p| p.hash()).collect();
-    let context = snapshot_hash(
+    // Assign A -> B -> A reads the same routing again, so bind each ticket's
+    // server updated_at and the verified sends of this action
+    // (journal.repeat_token): a legitimate re-assignment plans a fresh hash.
+    let mut token = c.repeat_token(&[action], &json!(cids[0]), None);
+    token.insert(
+        "server_version".into(),
+        if versions.len() > 1 {
+            json!(versions)
+        } else {
+            versions[0].clone()
+        },
+    );
+    let state = stateful_context(
         &json!({"properties": hashes, "bootstrap": boot, "pickup_agent": pickup_agent}),
+        &token,
     )?;
-    let write = WritePlan {
-        action: action.into(),
-        target: cids[0],
-        tenant: c.domain(),
-        method: "PUT".into(),
-        path,
-        payload_json: dumps(&body),
-        context_hash: context,
-    };
+    let write = StatefulWritePlan::new(
+        WritePlan {
+            action: action.into(),
+            target: cids[0],
+            tenant: c.domain(),
+            method: "PUT".into(),
+            path,
+            payload_json: dumps(&body),
+            context_hash: state.0.clone(),
+        },
+        state,
+    );
     let expected: Vec<Value> = plans
         .iter()
         .map(|p| {
@@ -277,7 +297,7 @@ pub fn send(
         .as_array()
         .map(|a| a.iter().map(py_str).collect())
         .unwrap_or_default();
-    let rebuild = || -> Result<WritePlan> {
+    let rebuild = || -> Result<String> {
         let args = AssignmentArgs {
             agent: intent["agent"].as_str(),
             group: intent["group"].as_str(),
@@ -288,7 +308,7 @@ pub fn send(
         if fresh.intent_json != plan.intent_json {
             return Err(refused("assignment intent changed; review again"));
         }
-        Ok(fresh.write)
+        Ok(fresh.write.hash())
     };
     let verify = |_: &Value| -> Result<Map<String, Value>> {
         let mut results = Map::new();
@@ -325,7 +345,17 @@ pub fn send(
         Ok(obj(json!({"tickets": results, "verified": verified})))
     };
     let bounded = |r: &Value| Ok(crate::readback::bounded_readback(|| verify(r)));
-    execute(&plan.write, c, journal, reviewed_hash, &rebuild, &bounded)
+    execute_guarded(
+        &plan.write,
+        &plan.write.hash(),
+        c,
+        journal,
+        reviewed_hash,
+        &rebuild,
+        &bounded,
+        None,
+        &plan.write.prior_guards(),
+    )
 }
 
 #[cfg(test)]

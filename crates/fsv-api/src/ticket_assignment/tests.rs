@@ -280,3 +280,30 @@ fn helpers_match_python() {
         }
     }
 }
+
+/// Python 9cc8b99 `test_reassignment_back_plans_fresh_hash_and_replay_refused`:
+/// the verified sends of the action bind into the plan hash and the review.
+#[test]
+fn reassignment_back_plans_a_fresh_hash() {
+    let state = Arc::new(Mutex::new(new_state()));
+    let arc = api(state);
+    let resolver: Arc<dyn LookupResolver> = Arc::new(ClientResolver::new(arc.clone()));
+    let store = MemStore {
+        workspace: json!(1),
+        ..MemStore::default()
+    };
+    let args = AssignmentArgs {
+        group: Some("Globex Desk"),
+        ..AssignmentArgs::default()
+    };
+    let ids = vec!["123".to_string()];
+    let first = build_plan(&*arc, &store, &ids, &args, Some(resolver.clone())).unwrap();
+    assert_eq!(first.review()["record_state"]["sends"], 0);
+    arc.verified.lock().unwrap().push(json!({
+        "kind": "verified:ticket_assign", "plan": first.hash(), "target": 123
+    }));
+    let second = build_plan(&*arc, &store, &ids, &args, Some(resolver)).unwrap();
+    assert_ne!(second.hash(), first.hash());
+    assert_eq!(second.review()["record_state"]["sends"], 1);
+    assert_eq!(second.write.prior_guards().len(), 1);
+}

@@ -1548,9 +1548,18 @@ fn problem_planning_update(a: &ResUpdateArgs) -> CmdResult {
         }
         let hash = plan.write.hash();
         if !a.yes || a.expect_plan.as_deref() != Some(hash.as_str()) {
-            return Err(Error::value(
-                "review with --dry-run, then --yes --expect-plan FULL_HASH",
-            ));
+            let stale = if a.yes {
+                fsv_api::service::Journal::stale_plan_refusal(
+                    &fsv_api::service::DiskJournal,
+                    a.expect_plan.as_deref(),
+                    &[plan.write.action.as_str()],
+                )
+            } else {
+                None
+            };
+            return Err(Error::value(stale.unwrap_or_else(|| {
+                "review with --dry-run, then --yes --expect-plan FULL_HASH".into()
+            })));
         }
         let result = fsv_api::problem_properties::send(
             &plan,

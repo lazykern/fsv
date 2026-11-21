@@ -55,7 +55,8 @@ pub fn canned_reply(a: TicketsCannedReplyArgs) -> CmdResult {
             &json!(a.response),
             &a.content_pointer,
             &a.sender,
-        )?;
+        )?
+        .stated(&DiskJournal);
         if a.dry_run {
             let mut review = plan.review();
             review.insert(

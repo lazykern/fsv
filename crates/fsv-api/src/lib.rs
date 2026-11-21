@@ -80,8 +80,8 @@ pub mod views;
 pub mod watchers;
 
 pub use schema::{
-    CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, STATIC_LABELS, choice_label, display_label, doc_fields,
-    field, humanize_key, humanize_value, merge_v2_choices, unwrap_schema,
+    CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, STATIC_LABELS, choice_label, display_label,
+    doc_fields, field, humanize_key, humanize_value, merge_v2_choices, unwrap_schema,
 };
 
 pub use query::{
@@ -179,12 +179,12 @@ pub fn is_session_error(e: &fsv_core::Error) -> bool {
 }
 
 #[cfg(test)]
-mod private_views_native_tests;
-#[cfg(test)]
 mod provenance_tests;
-#[cfg(test)]
-mod runtime_labels_tests;
 #[cfg(test)]
 mod shifted_status_tests;
 #[cfg(test)]
 mod workflows_tests;
+#[cfg(test)]
+mod private_views_native_tests;
+#[cfg(test)]
+mod runtime_labels_tests;

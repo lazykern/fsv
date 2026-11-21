@@ -20,6 +20,21 @@ use crate::site::Missing;
 
 /// The client operations the ported modules use (`fsv.client.Client`).
 pub trait Api: Sync {
+    /// `journal.verified_sends(actions, target)` of this profile and tenant:
+    /// plans built here bind it into their record-state token. Test doubles
+    /// override it.
+    fn verified_sends(&self, actions: &[&str], target: &Value) -> i64 {
+        fsv_core::journal::verified_sends(actions, target)
+    }
+    /// `journal.repeat_token(actions, target, row)`.
+    fn repeat_token(
+        &self,
+        actions: &[&str],
+        target: &Value,
+        row: Option<&Value>,
+    ) -> Map<String, Value> {
+        fsv_core::journal::token_from(self.verified_sends(actions, target), row)
+    }
     fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value>;
     fn int_post(&self, path: &str, body: &Value) -> Result<Value>;
     fn int_put(&self, path: &str, body: &Value) -> Result<Value>;
@@ -1313,6 +1328,8 @@ pub(crate) mod testing {
         routes: Mutex<Vec<(String, VecDeque<Reply>)>>,
         pub calls: Mutex<Vec<Call>>,
         pub cookies: Vec<String>,
+        /// `verified.jsonl` rows `verified_sends` counts.
+        pub verified: Mutex<Vec<Value>>,
     }
 
     impl FakeApi {
@@ -1393,6 +1410,9 @@ pub(crate) mod testing {
     }
 
     impl Api for FakeApi {
+        fn verified_sends(&self, actions: &[&str], target: &Value) -> i64 {
+            fsv_core::journal::sends_in(&self.verified.lock().unwrap(), actions, target)
+        }
         fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
             self.call("GET", path, params, None, None)
         }
@@ -1510,6 +1530,8 @@ pub(crate) mod testing {
         #[allow(clippy::type_complexity)]
         fetcher: Mutex<Option<Box<dyn FnMut(&str) -> Result<Response> + Send>>>,
         pub domain: String,
+        /// `verified.jsonl` rows `verified_sends` counts.
+        pub verified: Mutex<Vec<Value>>,
     }
 
     impl FnApi {
@@ -1520,6 +1542,7 @@ pub(crate) mod testing {
                 handler: Mutex::new(Box::new(handler)),
                 fetcher: Mutex::new(None),
                 domain: "acme.freshservice.com".into(),
+                verified: Mutex::new(Vec::new()),
             }
         }
 
@@ -1564,6 +1587,9 @@ pub(crate) mod testing {
     }
 
     impl Api for FnApi {
+        fn verified_sends(&self, actions: &[&str], target: &Value) -> i64 {
+            fsv_core::journal::sends_in(&self.verified.lock().unwrap(), actions, target)
+        }
         fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
             self.call("GET", path, params, None, None)
         }

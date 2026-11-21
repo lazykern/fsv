@@ -177,6 +177,28 @@ pub struct Plan {
     pub legacy_hash: String,
     /// Tenant the update hash binds. Empty on create plans.
     pub tenant: String,
+    /// Record-state token (`journal.repeat_token`): server updated_at plus the
+    /// answered sends on this change, so an A/B/A/B alternation plans fresh
+    /// hashes.
+    pub state_token: Option<Map<String, Json>>,
+    /// The same plan without the token (pre-token journals).
+    pub prior_hash: String,
+}
+
+/// Journal kinds of answered change updates.
+pub const UPDATE_ACTIONS: [&str; 2] = ["change_form_update", "update"];
+
+/// `update_hash`: the full change update plan hash: payload hash, record
+/// snapshot, form metadata, tenant and the record-state token.
+pub fn update_hash(plan: &Plan) -> String {
+    fsv_core::journal::plan_hash(Some(&json!({
+        "legacy": plan.legacy_hash,
+        "record": plan.record_hash,
+        "metadata": plan.meta.fingerprint().hash,
+        "tenant": plan.tenant,
+        "state": plan.state_token,
+    })))
+    .unwrap_or_default()
 }
 
 fn is_file(p: &str) -> bool {
@@ -205,7 +227,7 @@ impl Plan {
                 json!({"label": p.label, "field": p.field_id, "description_html": p.description_html, "files": files})
             })
             .collect();
-        json!({
+        let mut out = json!({
             "plan_hash": if self.hash.is_empty() { Json::Null } else { json!(self.hash) },
             "action": self.action,
             "target": self.target,
@@ -216,7 +238,11 @@ impl Plan {
             "risks": self.risks,
             "requires_confirmation": !self.risks.is_empty(),
             "errors": self.errors,
-        })
+        });
+        if let (Some(token), Json::Object(m)) = (&self.state_token, &mut out) {
+            m.insert("record_state".into(), Json::Object(token.clone()));
+        }
+        out
     }
 }
 
@@ -1047,6 +1073,8 @@ pub fn build_create_plan(
         record_hash: String::new(),
         legacy_hash: String::new(),
         tenant: String::new(),
+        state_token: None,
+        prior_hash: String::new(),
     };
     if let Some(p) = &plan.payload
         && plan.errors.is_empty()
@@ -1129,6 +1157,9 @@ pub struct UpdateOptions<'a> {
     /// Status value -> label (default: the status field's choice label).
     pub status_label: Option<&'a dyn Fn(&Json) -> String>,
     pub hints_path: Option<PathBuf>,
+    /// The journal the record-state token counts verified sends in (the
+    /// on-disk one when absent).
+    pub journal: Option<&'a dyn Journal>,
 }
 
 pub fn build_update_plan(
@@ -1335,6 +1366,8 @@ pub fn build_update_plan_with_lifecycle(
         record_hash: String::new(),
         legacy_hash: String::new(),
         tenant: String::new(),
+        state_token: None,
+        prior_hash: String::new(),
     };
     let body = plan.payload.clone().unwrap_or_default();
     if plan.errors.is_empty() && (!body.is_empty() || any_files || !plan.planning.is_empty()) {
@@ -1348,13 +1381,20 @@ pub fn build_update_plan_with_lifecycle(
             .map_err(Error::value)?
             .unwrap_or_default();
         plan.tenant = fsv_core::config::domain();
-        plan.hash = fsv_core::journal::plan_hash(Some(&json!({
+        let target_json = json!(target);
+        let record_json = Json::Object(record.clone());
+        plan.state_token = Some(match opts.journal {
+            Some(j) => j.repeat_token(&UPDATE_ACTIONS, &target_json, Some(&record_json)),
+            None => fsv_core::journal::repeat_token(&UPDATE_ACTIONS, &target_json, Some(&record_json)),
+        });
+        plan.prior_hash = fsv_core::journal::plan_hash(Some(&json!({
             "legacy": plan.legacy_hash,
             "record": plan.record_hash,
             "metadata": meta.fingerprint().hash,
             "tenant": plan.tenant,
         })))
         .unwrap_or_default();
+        plan.hash = update_hash(&plan);
         plan.review.plan_hash = plan.hash.clone();
     }
     Ok(plan)
@@ -1395,10 +1435,10 @@ pub fn check_duplicate(plan: &Plan, allow_duplicate: bool, journal: &dyn Journal
         format!("was started at {ts} with no recorded outcome (it may have been created)")
     };
     Err(flow_exit(
-        4,
-        format!(
+        2,
+        fsv_core::journal::note_refusal(format!(
             "this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again."
-        ),
+        )),
     ))
 }
 
@@ -1525,6 +1565,20 @@ fn journal_refusal(journal: &dyn Journal, kind: &str, hash: &str, unknown: &str)
     fsv_core::journal::replay_refusal(&events, unknown)
 }
 
+fn journal_last_event(journal: &dyn Journal, kind: &str, hash: &str) -> Option<String> {
+    journal
+        .read()
+        .iter()
+        .rev()
+        .find(|row| {
+            row.get("kind").and_then(Json::as_str) == Some(kind)
+                && row.get("plan").and_then(Json::as_str) == Some(hash)
+        })
+        .and_then(|row| row.get("event"))
+        .and_then(Json::as_str)
+        .map(str::to_string)
+}
+
 fn form_journal_hit(journal: &dyn Journal, hash: &str) -> Option<String> {
     journal
         .read()
@@ -1577,13 +1631,13 @@ fn send_form_update(
         &source.planning,
         source.target,
     )?;
-    let expected = fsv_core::journal::plan_hash(Some(&json!({
-        "legacy": legacy,
-        "record": source.record_hash,
-        "metadata": source.meta.fingerprint().hash,
-        "tenant": source.tenant,
-    })))
-    .unwrap_or_default();
+    if source.legacy_hash != legacy || source.state_token.is_none() {
+        return Err(flow_exit(
+            2,
+            "Change tenant or exact reviewed payload changed; review again",
+        ));
+    }
+    let expected = update_hash(source);
     let domain = fsv_core::config::domain();
     if source.tenant.is_empty() || source.tenant != domain || source.hash != expected {
         return Err(flow_exit(
@@ -1597,14 +1651,28 @@ fn send_form_update(
     let target = source
         .target
         .ok_or_else(|| flow_exit(2, "Complete hash-bound property plan required"))?;
-    for value in [source.hash.as_str(), source.legacy_hash.as_str()] {
-        if let Some(refusal) = journal_refusal(
-            journal,
-            "plan:update",
-            value,
-            "Change update was sent or outcome unknown; do not replay",
-        ) {
-            return Err(flow_exit(2, &refusal));
+    if let Some(refusal) = journal_refusal(
+        journal,
+        "plan:update",
+        &source.hash,
+        "Change update was sent or outcome unknown; do not replay",
+    ) {
+        return Err(flow_exit(2, &refusal));
+    }
+    // Older journal formats (payload-only hash; hash without the record-state
+    // token): an unresolved submission still refuses. An answered one does
+    // not: the token now tells a legitimate repeat from a replay.
+    for (kind, value) in [
+        ("plan:update", &source.legacy_hash),
+        ("plan:change_form_update", &source.prior_hash),
+    ] {
+        if journal_last_event(journal, kind, value).as_deref() == Some("started") {
+            return Err(flow_exit(
+                2,
+                fsv_core::journal::note_refusal(
+                    "Change update was sent or outcome unknown; do not replay",
+                ),
+            ));
         }
     }
     if let Some(refusal) = journal_refusal(
@@ -1699,6 +1767,9 @@ fn send_form_update(
         fields.insert(key.clone(), json!(status));
     }
     let verified = fields.values().all(|v| v == "matched");
+    if verified {
+        journal.record_verified(&source.hash, "change_form_update", Some(&target_json));
+    }
     let mut result = json!({
         "status": "submitted", "plan_hash": source.hash, "verified": verified,
         "fields": fields, "readback": row, "id": target, "uploaded": [],
@@ -2169,6 +2240,12 @@ pub fn expect(plan: &Plan, expected: Option<&str>) -> Result<()> {
         ));
     }
     if !plan_matches(expected, &plan.hash) {
+        if plan.action == "update"
+            && let Some(sent) =
+                fsv_core::journal::stale_plan_refusal(Some(expected), &UPDATE_ACTIONS)
+        {
+            return Err(flow_exit(2, format!("{sent} (current plan {})", plan.hash)));
+        }
         return Err(flow_exit(
             4,
             format!(

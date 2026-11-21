@@ -1264,3 +1264,303 @@ fn ticket_reply_plain_repeat_plans_a_fresh_hash() {
     assert_eq!(doc["record_state"], serde_json::json!({"sends": 1}));
     assert_ne!(doc["plan_hash"], REPLY_HASH);
 }
+#[test]
+fn planning_text_clear_empty_is_nothing_to_change() {
+    let r = run_fixture(
+        "planning_clear_empty",
+        &[
+            "changes",
+            "planning-text",
+            "126",
+            "--section",
+            "Rollout Plan",
+            "--clear",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "nothing_to_change",
+  "message": "planning section is already empty; nothing to change, no write attempted"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn planning_text_clear_empty_yes_is_nothing_to_change() {
+    let r = run_fixture(
+        "planning_clear_empty",
+        &[
+            "changes",
+            "planning-text",
+            "126",
+            "--section",
+            "Rollout Plan",
+            "--clear",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "nothing_to_change",
+  "message": "planning section is already empty; nothing to change, no write attempted"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn planning_text_clear_empty_with_expect_plan_exits_2() {
+    let r = run_fixture(
+        "planning_clear_empty",
+        &[
+            "changes",
+            "planning-text",
+            "126",
+            "--section",
+            "Rollout Plan",
+            "--clear",
+            "--yes",
+            "--expect-plan",
+            "abc",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"nothing to change; the reviewed plan does not exist. Nothing was sent
+"#
+    );
+}
+
+#[test]
+fn problem_planning_text_clear_empty_is_nothing_to_change() {
+    let r = run_fixture(
+        "planning_clear_empty",
+        &[
+            "problems",
+            "planning-text",
+            "126",
+            "--section",
+            "Root Cause",
+            "--clear",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "nothing_to_change",
+  "message": "planning section is already empty; nothing to change, no write attempted"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+#[test]
+fn change_update_noop_dry_run_json() {
+    let r = run_fixture(
+        "change_update_clean",
+        &[
+            "changes",
+            "update",
+            "12",
+            "--priority",
+            "Low",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "action": "update",
+  "target": 12,
+  "changed": false,
+  "message": "nothing to change: CHN-12 already has these values",
+  "warnings": []
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn change_update_noop_dry_run_text() {
+    let r = run_fixture(
+        "change_update_clean",
+        &["changes", "update", "12", "--priority", "Low", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"nothing to change CHN-12: it already has these values
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn change_update_noop_dry_run_expect_plan() {
+    let r = run_fixture(
+        "change_update_clean",
+        &[
+            "changes",
+            "update",
+            "12",
+            "--priority",
+            "Low",
+            "--dry-run",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"nothing to change CHN-12: it already has these values
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"error: nothing to change; the reviewed plan does not exist
+"#
+    );
+}
+
+#[test]
+fn change_update_noop_yes_expect_plan() {
+    let r = run_fixture(
+        "change_update_clean",
+        &[
+            "changes",
+            "update",
+            "12",
+            "--priority",
+            "Low",
+            "--yes",
+            "--expect-plan",
+            "abc",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: nothing to change; the reviewed plan does not exist
+"#
+    );
+}
+
+#[test]
+fn change_update_noop_yes_plain() {
+    let r = run_fixture(
+        "change_update_clean",
+        &["changes", "update", "12", "--priority", "Low", "--yes"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"no changes CHN-12
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn change_update_send_hash() {
+    let r = run_fixture(
+        "change_update_clean",
+        &[
+            "changes",
+            "update",
+            "12",
+            "--priority",
+            "High",
+            "--yes",
+            "--expect-plan",
+            "52299dab32322caf5ab36adbcf7eb91122b23ae272111e75017cb675f2644457",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: Change update readback unverified; do not resend
+"#
+    );
+    assert_eq!(r.write_paths(), ["PUT /api/_/changes/12"]);
+}
+
+#[test]
+fn change_update_stale_hash() {
+    let r = run_fixture(
+        "change_update_clean",
+        &[
+            "changes",
+            "update",
+            "12",
+            "--priority",
+            "High",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: plan changed: expected 0000000000000000000000000000000000000000000000000000000000000000, computed 52299dab32322caf5ab36adbcf7eb91122b23ae272111e75017cb675f2644457. Review again with --dry-run.
+"#
+    );
+}
+
+#[test]
+fn change_update_dry_run_binds_the_record_state_token() {
+    let r = run_fixture(
+        "change_update_clean",
+        &[
+            "changes",
+            "update",
+            "12",
+            "--priority",
+            "High",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    let doc = r.json();
+    assert_eq!(
+        doc["plan_hash"],
+        "52299dab32322caf5ab36adbcf7eb91122b23ae272111e75017cb675f2644457"
+    );
+    assert_eq!(doc["payload"], serde_json::json!({"priority": 3}));
+    assert_eq!(
+        doc["record_state"],
+        serde_json::json!({"sends": 0, "server_version": "2030-01-01T00:00:00Z"})
+    );
+}

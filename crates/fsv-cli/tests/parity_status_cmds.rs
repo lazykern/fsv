@@ -63,7 +63,7 @@ fn lifecycle_partial_report_reason_only_for_reviewed_errors() {
         "Acme fix <safe>",
         "--yes",
         "--expect-plan",
-        "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
+        "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
     ]);
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, "");
@@ -226,7 +226,7 @@ fn closure_rule_cache_uses_python_separators() {
         "closed",
         "--yes",
         "--expect-plan",
-        "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
+        "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
     ]);
     assert_eq!(r.code, 2, "{}", r.err);
     let forms = env.cache_dir().join("forms");

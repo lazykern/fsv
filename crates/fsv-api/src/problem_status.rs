@@ -18,7 +18,7 @@ use crate::formmeta::{MetaStore, existing_from_record, rules_gate, rules_unavail
 use crate::planning_text::{self, PROBLEM_SECTIONS};
 use crate::problem_workflows::{inventory, record};
 use crate::readback::submitted_value_matches;
-use crate::reviewed_write::{WritePlan, execute_rejecting, refused};
+use crate::reviewed_write::{StatefulWritePlan, WritePlan, execute_guarded, refused};
 use crate::service::{Api, Journal, obj, snapshot_hash};
 use crate::task_status;
 use crate::watchers::positive_id;
@@ -31,7 +31,7 @@ const SIDE_EFFECTS: &str = "Server may auto-fill empty planned_start_date and pl
 /// label and the prior record. The hash is the write's.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StatusPlan {
-    pub write: WritePlan,
+    pub write: StatefulWritePlan,
     pub label: String,
     pub before_json: String,
     /// Review warnings that are not part of the write hash. `"[]"` when none.
@@ -51,13 +51,19 @@ impl StatusPlan {
 
     /// Port of problem_status.StatusPlan.review.
     pub fn review(&self) -> Map<String, Value> {
-        let mut out = self.write.review();
+        let mut out = self.write.plan.review();
         out.insert("to".into(), json!(self.label));
         out.insert(
             "before".into(),
             serde_json::from_str(&self.before_json).unwrap_or(Value::Null),
         );
         out.insert("side_effects".into(), json!(SIDE_EFFECTS));
+        if !self.write.state_json.is_empty() {
+            out.insert(
+                "record_state".into(),
+                serde_json::from_str(&self.write.state_json).unwrap_or(Value::Null),
+            );
+        }
         let closure_check: Value =
             serde_json::from_str(&self.closure_check_json).unwrap_or(Value::Null);
         if closure_check.as_object().is_some_and(|m| !m.is_empty()) {
@@ -291,16 +297,34 @@ pub fn build_plan(
     }
     let context = json!({"before": before, "fields": meta.form_fields, "rules": meta.rules,
                          "closure": closure});
+    // A problem workflow may put the record back to the status it had before
+    // (Open -> In Progress -> Open), so target, payload and stable snapshot
+    // repeat: bind the server updated_at and the verified status sends on
+    // this problem so a legitimate repeated transition plans a fresh hash.
+    let token = c.repeat_token(&[ACTION], &json!(target), Some(&Value::Object(before.clone())));
+    let mut bound = obj(context.clone());
+    bound.insert("state".into(), Value::Object(token.clone()));
+    let bound_hash = snapshot_hash(&Value::Object(bound))?;
+    let state = (
+        bound_hash.clone(),
+        fsv_py::Dumps::default()
+            .sort_keys(true)
+            .dump(&Value::Object(token)),
+        snapshot_hash(&context)?,
+    );
     Ok(StatusPlan {
-        write: WritePlan {
-            action: ACTION.into(),
-            target,
-            tenant: c.domain(),
-            method: "PUT".into(),
-            path: format!("problems/{target}"),
-            payload_json: fsv_py::Dumps::default().dump(&json!({"status": status_id})),
-            context_hash: snapshot_hash(&context)?,
-        },
+        write: StatefulWritePlan::new(
+            WritePlan {
+                action: ACTION.into(),
+                target,
+                tenant: c.domain(),
+                method: "PUT".into(),
+                path: format!("problems/{target}"),
+                payload_json: fsv_py::Dumps::default().dump(&json!({"status": status_id})),
+                context_hash: bound_hash,
+            },
+            state,
+        ),
         label,
         before_json: fsv_py::Dumps::default()
             .sort_keys(true)
@@ -403,37 +427,54 @@ pub fn rejection(e: &ApiError) -> String {
     format!("write rejected (HTTP {}); no retry", e.status)
 }
 
-/// `(verified, note)`. A status that is neither the sent value nor the
-/// pre-write value was rewritten by a workflow.
-fn status_readback(before: &Value, after: &Value, sent: &Value) -> (bool, Option<String>) {
+/// `(verified, note)` from the record alone: only the requested status
+/// verifies. Any other readback status (a workflow rewrite, or one back to
+/// the pre-write status) needs activity evidence ([`workflow_rewrite`]).
+fn status_readback(_before: &Value, after: &Value, sent: &Value) -> (bool, Option<String>) {
     if after.is_null() || after.is_boolean() {
         return (false, None);
     }
     if submitted_value_matches(after, sent) {
         return (true, None);
     }
-    if !before.is_null() && fsv_py::py_str(after) != fsv_py::py_str(before) {
-        return (
-            true,
-            Some(format!(
-                "status rewritten server-side to {} after the write (workflow)",
-                fsv_py::py_str(after)
-            )),
-        );
-    }
     (false, None)
 }
 
-/// `(created_at, content text, sub_contents text, actor name)` of the
-/// activity rows with an aware `created_at`.
-fn activity_rows(rows: &[Value]) -> Vec<(jiff::Timestamp, String, String, String)> {
-    let html = |v: &Value| {
-        let raw = match v {
-            Value::String(s) => s.clone(),
-            other => py_str(other),
-        };
-        fsv_core::output::strip_html(Some(&raw))
-    };
+/// Status segments of a native activity row: `set status as <b>LABEL</b>`
+/// (agent rows in `content`, workflow rows in `sub_contents`). Native rows
+/// carry no field/old/new ids, so the bolded value is mapped to a runtime
+/// status id through the plan's status choices and every comparison is by id.
+fn status_segment() -> &'static regex::Regex {
+    static SEGMENT: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(r"(?is)set\s+status\s+as\s*<b>(.*?)</b>").expect("regex")
+    });
+    &SEGMENT
+}
+
+/// Workflow rows are logged asynchronously after the save: read the activity
+/// again a few times before calling a rewrite unproven.
+pub const ACTIVITY_ATTEMPTS: usize = 4;
+/// Seconds between activity reads (`readback._sleep`).
+pub const ACTIVITY_DELAY: f64 = 1.5;
+
+/// A workflow triggered by the write can be stamped a moment before the
+/// write's own activity row (a closure also fills planned dates in the same
+/// save). Rows older than this before the write's entry are not its evidence.
+const WORKFLOW_SKEW: jiff::SignedDuration = jiff::SignedDuration::from_secs(5);
+
+/// `problem_status._Row`.
+#[derive(Debug, Clone)]
+struct ActivityRow {
+    at: jiff::Timestamp,
+    /// Structural: system actor (id 0, not an agent) with `sub_contents`.
+    workflow: bool,
+    actor: String,
+    /// Status labels this row set.
+    statuses: Vec<String>,
+}
+
+/// `problem_status._activity_rows`.
+fn activity_rows(rows: &[Value]) -> Vec<ActivityRow> {
     let mut out = Vec::new();
     for row in rows {
         let Some(row) = row.as_object() else {
@@ -448,112 +489,179 @@ fn activity_rows(rows: &[Value]) -> Vec<(jiff::Timestamp, String, String, String
         let Ok(at) = off.to_timestamp(dt) else {
             continue;
         };
-        let sub = match row.get("sub_contents") {
-            Some(Value::Array(subs)) => subs
-                .iter()
-                .filter(|s| s.is_string())
-                .map(html)
-                .collect::<Vec<_>>()
-                .join(" , "),
-            _ => String::new(),
-        };
-        let content = row
-            .get("content")
-            .filter(|v| truthy(v))
-            .map_or(String::new(), html);
+        let empty = Map::new();
         let actor = row
             .get("actor")
             .and_then(Value::as_object)
-            .and_then(|a| a.get("name"))
+            .unwrap_or(&empty);
+        let subs = row.get("sub_contents");
+        let workflow = matches!(actor.get("id"), Some(Value::Number(n)) if n.as_i64() == Some(0))
+            && actor.get("is_agent") != Some(&Value::Bool(true))
+            && matches!(subs, Some(Value::Array(_)));
+        let fragments: Vec<&Value> = match (workflow, subs) {
+            (true, Some(Value::Array(subs))) => subs.iter().filter(|s| s.is_string()).collect(),
+            _ => row.get("content").into_iter().collect(),
+        };
+        let statuses = fragments
+            .into_iter()
+            .filter_map(Value::as_str)
+            .flat_map(|f| {
+                status_segment()
+                    .captures_iter(f)
+                    .map(|m| {
+                        let text = fsv_core::output::strip_html(Some(&m[1]));
+                        text.split_whitespace().collect::<Vec<_>>().join(" ")
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        let name = actor
+            .get("name")
             .filter(|v| truthy(v))
             .map_or(String::new(), py_str);
-        out.push((at, content, sub, actor));
+        out.push(ActivityRow {
+            at,
+            workflow,
+            actor: name,
+            statuses,
+        });
     }
     out
 }
 
-/// The label after `set status as` in whitespace-normalized text.
-fn set_status(text: &str) -> Option<String> {
-    static SET_STATUS: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
-        regex::Regex::new(r"set status as\s*(.+?)\s*(?:,|$)").expect("regex")
-    });
-    let joined = text.split_whitespace().collect::<Vec<_>>().join(" ");
-    SET_STATUS
-        .captures(&joined)
-        .map(|m| m[1].trim().to_string())
-}
-
-/// A workflow triggered by the write can be stamped a moment before the
-/// write's own activity row (a closure also fills planned dates in the same
-/// save). Rows older than this before the write's entry are not its evidence.
-const WORKFLOW_SKEW: jiff::SignedDuration = jiff::SignedDuration::from_secs(5);
-
-/// Port of problem_status.workflow_activity: `(note, label)` when the
-/// activity rows show a workflow that set the status after the write (for
-/// example back to the pre-write status). With `requested`, the rows must
-/// also show this write's own `set status as <requested>` entry (a closure
-/// adds `, set planned end/start date as ...` to the same row), and the
-/// workflow entry must not be older than it (beyond [`WORKFLOW_SKEW`]).
-fn workflow_note(
-    rows: &[Value],
-    since: jiff::Timestamp,
-    requested: Option<&str>,
-) -> Option<(String, String)> {
-    let rows: Vec<_> = activity_rows(rows)
-        .into_iter()
-        .filter(|r| r.0 >= since)
-        .collect();
-    let mut written = None;
-    if let Some(requested) = requested {
-        let want = casefold(&requested.split_whitespace().collect::<Vec<_>>().join(" "));
-        written = rows
-            .iter()
-            .filter(|(_, text, _, _)| {
-                !casefold(text).contains("workflow")
-                    && casefold(&set_status(text).unwrap_or_default()) == want
-            })
-            .map(|r| r.0)
-            .max();
-        written?;
-    }
-    for (at, text, sub, actor) in &rows {
-        let too_old = written.is_some_and(|w: jiff::Timestamp| {
-            w.checked_sub(WORKFLOW_SKEW).is_ok_and(|limit| *at < limit)
-        });
-        if !casefold(text).contains("workflow") || too_old {
+/// `problem_status._label_ids`: casefolded runtime label -> status id (`None`
+/// when two ids share a label).
+fn label_ids(labels: &Map<String, Value>) -> Vec<(String, Option<i64>)> {
+    let mut out: Vec<(String, Option<i64>)> = Vec::new();
+    for (key, name) in labels {
+        let Some(name) = name.as_str() else {
+            continue;
+        };
+        if key.is_empty() || !key.chars().all(|c| c.is_ascii_digit()) {
             continue;
         }
-        let Some(label) = set_status(sub).or_else(|| set_status(text)) else {
-            continue;
-        };
-        let Some(requested) = requested else {
-            return Some((
-                "status rewritten server-side after the write (activity shows a workflow set it)"
-                    .into(),
-                label,
-            ));
-        };
-        let actor = if actor.is_empty() { "workflow" } else { actor };
-        return Some((
-            format!(
-                "status set to {requested} by this write, then rewritten server-side to {label} by a workflow ({actor}) per the activity log"
-            ),
-            label,
-        ));
+        let folded = casefold(&name.split_whitespace().collect::<Vec<_>>().join(" "));
+        match out.iter_mut().find(|(k, _)| *k == folded) {
+            Some(slot) => slot.1 = None,
+            None => out.push((folded, key.parse().ok())),
+        }
     }
-    None
+    out
 }
 
-/// [`workflow_note`] over the first problem activity page; a failed read
-/// is no evidence.
-fn workflow_activity_note(
+/// `int(value)` of a status id: a number, or a digit string.
+fn status_int(v: &Value) -> Option<i64> {
+    match v {
+        Value::Number(n) => n.as_i64(),
+        Value::String(s) => fsv_core::pystr::parse_decimal(s),
+        _ => None,
+    }
+}
+
+/// Port of problem_status.workflow_rewrite: `(note, conflict)` from one
+/// activity page.
+///
+/// Verified (note) only when the activity shows this write's own entry (an
+/// agent row setting the requested status id) and a workflow row, not older
+/// than it beyond [`WORKFLOW_SKEW`], setting the readback status id. A
+/// workflow row that set a different status is a conflict; anything else (no
+/// own entry, no workflow row, unmapped labels) is `(None, None)`.
+fn workflow_rewrite(
+    rows: &[Value],
+    since: jiff::Timestamp,
+    labels: &Map<String, Value>,
+    requested_id: &Value,
+    final_id: &Value,
+) -> (Option<String>, Option<String>) {
+    let ids = label_ids(labels);
+    let lookup = |label: &str| {
+        let folded = casefold(label);
+        ids.iter()
+            .find(|(k, _)| *k == folded)
+            .and_then(|(_, id)| *id)
+    };
+    let (Some(requested), Some(final_)) = (status_int(requested_id), status_int(final_id)) else {
+        return (None, None);
+    };
+    let parsed: Vec<ActivityRow> = activity_rows(rows)
+        .into_iter()
+        .filter(|r| r.at >= since)
+        .collect();
+    let written = parsed
+        .iter()
+        .filter(|r| !r.workflow && r.statuses.iter().any(|s| lookup(s) == Some(requested)))
+        .map(|r| r.at)
+        .max();
+    let Some(written) = written else {
+        return (None, None);
+    };
+    let name_of = |id: i64| {
+        labels
+            .get(&id.to_string())
+            .map_or_else(|| id.to_string(), py_str)
+    };
+    let mut conflict = None;
+    for row in &parsed {
+        let too_old = written
+            .checked_sub(WORKFLOW_SKEW)
+            .is_ok_and(|limit| row.at < limit);
+        if !row.workflow || too_old || row.statuses.is_empty() {
+            continue;
+        }
+        let label = &row.statuses[row.statuses.len() - 1];
+        if lookup(label) == Some(final_) {
+            let name = labels
+                .get(&final_.to_string())
+                .map_or_else(|| label.clone(), py_str);
+            let actor = if row.actor.is_empty() {
+                "workflow"
+            } else {
+                &row.actor
+            };
+            return (
+                Some(format!(
+                    "status set to {} by this write, then rewritten server-side to {name} (status {final_}) by a workflow ({actor}) per the activity log",
+                    name_of(requested)
+                )),
+                None,
+            );
+        }
+        conflict = conflict.or_else(|| {
+            Some(format!(
+                "activity shows a workflow setting {label}, but the readback status is {}; not verified",
+                name_of(final_)
+            ))
+        });
+    }
+    (None, conflict)
+}
+
+/// Port of problem_status.read_workflow_rewrite: [`workflow_rewrite`] over
+/// the first activity page, read again (up to [`ACTIVITY_ATTEMPTS`]) while
+/// the evidence has not been logged yet. An unreadable activity log is
+/// `(None, None)`: the readback stays unverified.
+fn read_workflow_rewrite(
     c: &dyn Api,
     target: i64,
     since: jiff::Timestamp,
-    requested: Option<&str>,
-) -> Option<(String, String)> {
-    let rows = crate::service::get_activities(c, &PROBLEMS, target, 1).ok()?;
-    workflow_note(&rows, since, requested)
+    labels: &Map<String, Value>,
+    requested_id: &Value,
+    final_id: &Value,
+) -> (Option<String>, Option<String>) {
+    let mut result = (None, None);
+    for attempt in 0..ACTIVITY_ATTEMPTS {
+        if attempt > 0 {
+            crate::readback::readback_sleep(ACTIVITY_DELAY);
+        }
+        let Ok(rows) = crate::service::get_activities(c, &PROBLEMS, target, 1) else {
+            continue;
+        };
+        result = workflow_rewrite(&rows, since, labels, requested_id, final_id);
+        if result.0.is_some() {
+            return result;
+        }
+    }
+    result
 }
 
 /// Port of problem_status.send: one PUT, then an independent record read.
@@ -580,24 +688,18 @@ pub fn send(
         let after = row.get("status").cloned().unwrap_or(Value::Null);
         let (mut verified, mut note) = status_readback(&before_status, &after, want);
         let mut conflict = None;
-        if !verified && !after.is_null() {
-            let found = workflow_activity_note(c, plan.write.target, since, Some(&plan.label));
-            note = found.as_ref().map(|f| f.0.clone());
+        if !verified && !after.is_null() && !after.is_boolean() {
+            // A tenant workflow may rewrite the status right after the save,
+            // also back to the status the problem already had: accept the
+            // readback only when the activity shows this write's transition
+            // followed by a workflow setting exactly the readback status.
+            let labels: Map<String, Value> = serde_json::from_str::<Value>(&plan.status_labels_json)
+                .ok()
+                .and_then(|v| v.as_object().cloned())
+                .unwrap_or_default();
+            (note, conflict) =
+                read_workflow_rewrite(c, plan.write.target, since, &labels, want, &after);
             verified = note.is_some();
-            // The workflow's status must be the server's resulting status
-            // (compared by runtime label when the plan carries the labels).
-            let labels: Value =
-                serde_json::from_str(&plan.status_labels_json).unwrap_or(Value::Null);
-            let observed = labels.get(py_str(&after)).and_then(Value::as_str);
-            if let (Some((_, wf_label)), Some(observed)) = (&found, observed)
-                && casefold(observed) != casefold(wf_label)
-            {
-                verified = false;
-                note = None;
-                conflict = Some(format!(
-                    "activity shows a workflow setting {wf_label}, but the readback status is {observed}; not verified"
-                ));
-            }
         }
         let mut readback = Map::new();
         for k in ["status", "planned_start_date", "planned_end_date"] {
@@ -615,13 +717,22 @@ pub fn send(
         }));
         if let Some(note) = note {
             out.insert("verified_with_note".into(), json!(note));
+            let labels: Value =
+                serde_json::from_str(&plan.status_labels_json).unwrap_or(Value::Null);
+            out.insert(
+                "final_status".into(),
+                labels
+                    .get(py_str(&after))
+                    .cloned()
+                    .unwrap_or_else(|| after.clone()),
+            );
         }
         if let Some(conflict) = conflict {
             out.insert("readback_conflict".into(), json!(conflict));
         }
         Ok(out)
     };
-    execute_rejecting(
+    execute_guarded(
         &plan.write,
         &plan.hash(),
         c,
@@ -630,6 +741,7 @@ pub fn send(
         &rebuild,
         &verify,
         Some(&rejection),
+        &plan.write.prior_guards(),
     )
 }
 

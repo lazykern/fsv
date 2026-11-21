@@ -1791,7 +1791,10 @@ fn reply_bcc_dry_run() {
   },
   "status_label": null,
   "plan_hash": "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -1853,7 +1856,10 @@ fn reply_bcc_send() {
   },
   "status_label": null,
   "plan_hash": "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -1998,7 +2004,10 @@ fn forward_dry_run() {
   },
   "status_label": null,
   "plan_hash": "5c24fced7a7b4c77e468569a8fa7cbaa16dbda8cb34d184b3fe5daa0188a8263",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -2138,7 +2147,10 @@ fn forward_conversation_dry_run() {
   },
   "status_label": null,
   "plan_hash": "ea141a6dc6a011baf0ef52b8cdd432752efab0829be7418249e20d3303194278",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -3605,6 +3617,9 @@ fn canned_reply_dry_run() {
   "status_label": null,
   "plan_hash": "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  },
   "source": {
     "id": 701,
     "hash": "f136a71f4682d335d1cff7e3510f7e17a3a3c0be74155646755b18ebedfe2573"
@@ -7980,7 +7995,11 @@ fn tickets_resolve_dry_run() {
       }
     }
   ],
-  "plan_hash": "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
+  "plan_hash": "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8034,7 +8053,11 @@ fn tickets_resolve_with_answer_dry_run() {
       }
     }
   ],
-  "plan_hash": "74bdeb161f96bcbd59e1c2c5b69065328ba9fd3606e7f014ddb8d527ef580c04",
+  "plan_hash": "cf0d3ec4b0bcbf1299ca579e0f25bef7b9873b4efbb34007bc7368f06105bc3d",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8102,7 +8125,7 @@ fn tickets_resolve_send() {
             "Acme fix <safe>",
             "--yes",
             "--expect-plan",
-            "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
+            "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
         ],
         None,
     );
@@ -8113,7 +8136,7 @@ fn tickets_resolve_send() {
   "status": "submitted",
   "ticket_id": 123,
   "status_label": "Resolved",
-  "plan_hash": "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
+  "plan_hash": "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
   "verified": true
 }
 "#
@@ -8151,7 +8174,11 @@ fn tickets_close_dry_run() {
       }
     }
   ],
-  "plan_hash": "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
+  "plan_hash": "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8169,7 +8196,7 @@ fn tickets_close_send() {
             "124",
             "--yes",
             "--expect-plan",
-            "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
+            "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
         ],
         None,
     );
@@ -8180,7 +8207,7 @@ fn tickets_close_send() {
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
+  "plan_hash": "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
   "verified": true
 }
 "#
@@ -8199,7 +8226,7 @@ fn tickets_close_verified_with_note() {
             "124",
             "--yes",
             "--expect-plan",
-            "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
+            "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
         ],
         None,
     );
@@ -8210,7 +8237,7 @@ fn tickets_close_verified_with_note() {
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "dab6c138ecd69e61a4637e236ed11be11a46a51a3a894d38d076f0b1b90c5fca",
+  "plan_hash": "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
   "verified": true,
   "verified_with_note": [
     "status rewritten server-side to 13 after the write (workflow)"
@@ -8290,7 +8317,11 @@ fn tickets_close_required_field_answered() {
       }
     }
   ],
-  "plan_hash": "613ad9a8cd979c2e315aa469915686c8ece55697b38ae672e3660abac95ea1ce",
+  "plan_hash": "501d1e2b34a7ea6b5d5fbe5cf254b81f8ff06eafa2ec24800cf899fcd1ca8b6e",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8324,7 +8355,11 @@ fn tickets_reopen_dry_run() {
       }
     }
   ],
-  "plan_hash": "8d1fba594dcb9f022b979cb2bb0cbb570948bbcd1e29434e7b05656b70a9363f",
+  "plan_hash": "fd432d91c7061b5b39151b045e4111ca47f481653f854e510e628ebce9a8bff2",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8342,7 +8377,7 @@ fn tickets_reopen_send() {
             "127",
             "--yes",
             "--expect-plan",
-            "8d1fba594dcb9f022b979cb2bb0cbb570948bbcd1e29434e7b05656b70a9363f",
+            "fd432d91c7061b5b39151b045e4111ca47f481653f854e510e628ebce9a8bff2",
         ],
         None,
     );
@@ -8353,7 +8388,7 @@ fn tickets_reopen_send() {
   "status": "submitted",
   "ticket_id": 127,
   "status_label": "Open",
-  "plan_hash": "8d1fba594dcb9f022b979cb2bb0cbb570948bbcd1e29434e7b05656b70a9363f",
+  "plan_hash": "fd432d91c7061b5b39151b045e4111ca47f481653f854e510e628ebce9a8bff2",
   "verified": true
 }
 "#
@@ -8399,7 +8434,11 @@ fn tickets_status_pending_dry_run() {
       }
     }
   ],
-  "plan_hash": "7a87f54d59ee99615051ce53ff0206df0f8c23aef698f66d07827f3b25ea168e",
+  "plan_hash": "0e681d0bbdb7b9d27267e640beef30de44fbde8ee132b20cbe9c4fe574a8a9d8",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
 }
 "#
@@ -8523,7 +8562,7 @@ fn tickets_close_readback_mismatch() {
             "128",
             "--yes",
             "--expect-plan",
-            "21a18e4ba538507ef1667a16c48e73b59085b7a26ac4fc2923d66a122b2bc796",
+            "5a90a76e7ba296f7c85d04c77e052f466cce8fed48627171b5855e314e8a8780",
         ],
         None,
     );
@@ -8996,8 +9035,12 @@ fn tickets_assign_unassign_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": null
   },
-  "plan_hash": "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+  "plan_hash": "9322c42dea1528d7d2db337fbe7963102c7a48af03e9ba0f92bb21995efed8e4",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "before": [
     {
       "group_id": 81,
@@ -9062,7 +9105,7 @@ fn tickets_assign_unassign_send() {
             "--unassign",
             "--yes",
             "--expect-plan",
-            "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+            "9322c42dea1528d7d2db337fbe7963102c7a48af03e9ba0f92bb21995efed8e4",
         ],
         None,
     );
@@ -9071,7 +9114,7 @@ fn tickets_assign_unassign_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+  "plan_hash": "9322c42dea1528d7d2db337fbe7963102c7a48af03e9ba0f92bb21995efed8e4",
   "verified": true,
   "tickets": {
     "123": {
@@ -9112,8 +9155,12 @@ fn tickets_assign_agent_in_group_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": 71
   },
-  "plan_hash": "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+  "plan_hash": "a75b2c331f7963e3710aa65c4a6c36f4fb424a388783153c4b25613adefef89c",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "before": [
     {
       "group_id": 81,
@@ -9139,7 +9186,7 @@ fn tickets_assign_agent_send() {
             "agent@example.com",
             "--yes",
             "--expect-plan",
-            "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+            "a75b2c331f7963e3710aa65c4a6c36f4fb424a388783153c4b25613adefef89c",
         ],
         None,
     );
@@ -9148,7 +9195,7 @@ fn tickets_assign_agent_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+  "plan_hash": "a75b2c331f7963e3710aa65c4a6c36f4fb424a388783153c4b25613adefef89c",
   "verified": true,
   "tickets": {
     "124": {
@@ -9192,8 +9239,12 @@ fn tickets_assign_group_and_agent_dry_run() {
     "group_id": 81,
     "responder_id": 71
   },
-  "plan_hash": "71a03c4d518b01765c2b0bd514c68a98847059282ac9e77c191d01b0796f2472",
+  "plan_hash": "103f33ebbbdf293c48ff9bb57f96d06e60b1732464fe7698ad7a6a571f963fad",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "before": [
     {
       "group_id": 81,
@@ -9234,8 +9285,12 @@ fn tickets_assign_group_only_clears_agent_dry_run() {
     "group_id": 82,
     "responder_id": null
   },
-  "plan_hash": "97c00714dc0acfb737760f7eb5720c989b3f8562a68c1fbb3a326a7cacf1a69f",
+  "plan_hash": "548e2ff41e4e200beeb27486c34e6ea55067ef635dad39ab09e19c70ace96538",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "before": [
     {
       "group_id": 81,
@@ -9340,7 +9395,7 @@ fn tickets_assign_readback_unverified() {
             "71",
             "--yes",
             "--expect-plan",
-            "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007",
+            "ded9f80f01b8e046dabcc62002418f3f53ffdc77d2ab874f89dfc16802dd5f0c",
         ],
         None,
     );
@@ -9349,7 +9404,7 @@ fn tickets_assign_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007",
+  "plan_hash": "ded9f80f01b8e046dabcc62002418f3f53ffdc77d2ab874f89dfc16802dd5f0c",
   "verified": false,
   "tickets": {
     "126": {
@@ -9386,8 +9441,15 @@ fn tickets_pick_up_dry_run() {
       125
     ]
   },
-  "plan_hash": "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+  "plan_hash": "c07b4af1aece0777958f74cedc3bfd3aea803bb4f349b713acc57a2d870daad7",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "record_state": {
+    "sends": 0,
+    "server_version": [
+      null,
+      null
+    ]
+  },
   "before": [
     {
       "group_id": 81,
@@ -9417,7 +9479,7 @@ fn tickets_pick_up_send() {
             "INC-125",
             "--yes",
             "--expect-plan",
-            "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+            "c07b4af1aece0777958f74cedc3bfd3aea803bb4f349b713acc57a2d870daad7",
         ],
         None,
     );
@@ -9426,7 +9488,7 @@ fn tickets_pick_up_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+  "plan_hash": "c07b4af1aece0777958f74cedc3bfd3aea803bb4f349b713acc57a2d870daad7",
   "verified": true,
   "tickets": {
     "124": {
@@ -9522,8 +9584,11 @@ fn reply_set_status_closed_dry_run() {
     "translate_reply": false
   },
   "status_label": "Closed",
-  "plan_hash": "28676ff3f72c48cfe11567ca70f84b1d8c1fd87ae077e5fdab1560542a75eb1a",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "plan_hash": "3008ffd57140d8da5e9c140c6f9204a49ec7d7cf566b79af8f8a501e30a974e1",
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -9640,8 +9705,11 @@ fn note_set_status_closed_dry_run() {
     "private": true
   },
   "status_label": "Closed",
-  "plan_hash": "31dbd0637f54c0d8c8d21fca472296c4729253650e8742dcdae342c3ab7542e9",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "plan_hash": "31bc0b9f81e6c102bdaa423c201ac49cd921958f5b8c64133d4d2008f8f0f701",
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -9761,6 +9829,9 @@ fn tickets_add_note_send_verified() {
   },
   "body_text": "Acme fix",
   "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "record_state": {
+    "sends": 0
+  },
   "risks": [],
   "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
 }
@@ -9808,6 +9879,9 @@ fn tickets_add_note_send_fields_unverified() {
   },
   "body_text": "Acme fix",
   "plan_hash": "cb78404c474288d741d0285b54c6e2425be0feb24cc0c206737f533d5f6f376d",
+  "record_state": {
+    "sends": 0
+  },
   "risks": [],
   "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
 }
@@ -9890,6 +9964,9 @@ fn tickets_add_note_send_json() {
   },
   "body_text": "Acme fix",
   "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "record_state": {
+    "sends": 0
+  },
   "risks": [],
   "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
 }
@@ -10216,8 +10293,12 @@ fn problems_link_incident_dry_run() {
       123
     ]
   },
-  "plan_hash": "1313ae1a94c98a148989cf0be31123d248a904eb1d92b8d60c2a47eb34543ea9",
+  "plan_hash": "9fe862ba89258dc07e7513a3605bcf6f87db934a7bd98a0d6fa86655f3a11a98",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "problem_id": 7,
   "incident_id": "INC-123"
 }
@@ -10253,7 +10334,7 @@ fn problems_link_incident_send() {
             "INC-123",
             "--yes",
             "--expect-plan",
-            "1313ae1a94c98a148989cf0be31123d248a904eb1d92b8d60c2a47eb34543ea9",
+            "9fe862ba89258dc07e7513a3605bcf6f87db934a7bd98a0d6fa86655f3a11a98",
         ],
         None,
     );
@@ -10262,7 +10343,7 @@ fn problems_link_incident_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1313ae1a94c98a148989cf0be31123d248a904eb1d92b8d60c2a47eb34543ea9",
+  "plan_hash": "9fe862ba89258dc07e7513a3605bcf6f87db934a7bd98a0d6fa86655f3a11a98",
   "verified": true,
   "problem_id": 7,
   "incident_id": 123,
@@ -10285,7 +10366,7 @@ fn problems_link_incident_readback_unverified() {
             "123",
             "--yes",
             "--expect-plan",
-            "47f71f08a282d72b8d62300d8d4b802d5ef4eab942e4e873419ae6b5bef9a7e5",
+            "60d0f9f686830e282c2e709667bc19752a6b4e1a8c33231491075af9ee4433bd",
         ],
         None,
     );
@@ -10294,7 +10375,7 @@ fn problems_link_incident_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "47f71f08a282d72b8d62300d8d4b802d5ef4eab942e4e873419ae6b5bef9a7e5",
+  "plan_hash": "60d0f9f686830e282c2e709667bc19752a6b4e1a8c33231491075af9ee4433bd",
   "verified": false,
   "problem_id": 9,
   "incident_id": 123,
@@ -10332,8 +10413,12 @@ fn problems_unlink_incident_dry_run() {
   "payload": {
     "type": "unlink"
   },
-  "plan_hash": "63220f128cd7d0c5dc67c3a9ccb42a8c8e2f22fc40530dc7d2c0911996ed4c5d",
+  "plan_hash": "d182267f72473cf4e6a6406b361321a877f1901f05afb441f93d9714538b9761",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "problem_id": 8,
   "incident_id": "INC-124"
 }
@@ -10353,7 +10438,7 @@ fn problems_unlink_incident_send() {
             "INC-124",
             "--yes",
             "--expect-plan",
-            "63220f128cd7d0c5dc67c3a9ccb42a8c8e2f22fc40530dc7d2c0911996ed4c5d",
+            "d182267f72473cf4e6a6406b361321a877f1901f05afb441f93d9714538b9761",
         ],
         None,
     );
@@ -10362,7 +10447,7 @@ fn problems_unlink_incident_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "63220f128cd7d0c5dc67c3a9ccb42a8c8e2f22fc40530dc7d2c0911996ed4c5d",
+  "plan_hash": "d182267f72473cf4e6a6406b361321a877f1901f05afb441f93d9714538b9761",
   "verified": true,
   "problem_id": 8,
   "incident_id": 124,
@@ -10479,7 +10564,7 @@ fn problems_status_dry_run() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
+  "plan_hash": "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -10493,7 +10578,11 @@ fn problems_status_dry_run() {
     "status": 1,
     "subject": "Acme problem 7"
   },
-  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -10535,7 +10624,7 @@ fn problems_status_send_reports_planned_dates() {
             "Change Requested",
             "--yes",
             "--expect-plan",
-            "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
+            "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
         ],
         None,
     );
@@ -10544,7 +10633,7 @@ fn problems_status_send_reports_planned_dates() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
+  "plan_hash": "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
   "verified": true,
   "problem_id": 7,
   "readback": {
@@ -10572,18 +10661,17 @@ fn problems_status_verified_with_note() {
             "Change Requested",
             "--yes",
             "--expect-plan",
-            "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
+            "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.err, "");
+    assert_eq!(r.code, 4, "{}", r.err);
     assert_eq!(
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
-  "verified": true,
+  "plan_hash": "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
+  "verified": false,
   "problem_id": 7,
   "readback": {
     "status": 9,
@@ -10591,10 +10679,11 @@ fn problems_status_verified_with_note() {
     "planned_end_date": "2030-01-03T00:00:00Z"
   },
   "unavailable": [],
-  "verified_with_note": "status rewritten server-side to 9 after the write (workflow)"
+  "warning": "Readback was not fully verified; do not resend."
 }
 "#
     );
+    assert_eq!(r.err, r#""#);
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
 }
 
@@ -10616,7 +10705,7 @@ fn problems_status_close_dry_run() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
+  "plan_hash": "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -10631,6 +10720,10 @@ fn problems_status_close_dry_run() {
     "subject": "Acme problem 8"
   },
   "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "closure_check": {
     "analysis": "Root Cause, Impact and Symptoms are filled",
     "linked_solution": "linked (1)"
@@ -10653,7 +10746,7 @@ fn problems_status_close_send() {
             "closed",
             "--yes",
             "--expect-plan",
-            "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
+            "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
         ],
         None,
     );
@@ -10662,7 +10755,7 @@ fn problems_status_close_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
+  "plan_hash": "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
   "verified": true,
   "problem_id": 8,
   "readback": {
@@ -10690,7 +10783,7 @@ fn problems_status_close_rejected_by_server() {
             "closed",
             "--yes",
             "--expect-plan",
-            "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
+            "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
         ],
         None,
     );
@@ -10764,7 +10857,7 @@ fn problems_status_readback_unverified() {
             "Change Requested",
             "--yes",
             "--expect-plan",
-            "47d0d3046b2d2965292733d0b0bc8e030b2dc88af977c7144d202b6297c5e587",
+            "cc9b53f1d6a3e4ad30eef8df9a946788dc5fdddf2723f76d7403732c58385051",
         ],
         None,
     );
@@ -10773,7 +10866,7 @@ fn problems_status_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "47d0d3046b2d2965292733d0b0bc8e030b2dc88af977c7144d202b6297c5e587",
+  "plan_hash": "cc9b53f1d6a3e4ad30eef8df9a946788dc5fdddf2723f76d7403732c58385051",
   "verified": false,
   "problem_id": 11,
   "readback": {
@@ -10821,7 +10914,7 @@ fn problems_update_planned_dry_run() {
     "planned_end_date": "2030-01-03T17:00:00+00:00",
     "planned_start_date": "2030-01-02T09:00:00+00:00"
   },
-  "plan_hash": "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4",
+  "plan_hash": "71915ed44711b5be6fd38f1a94cf20c1102409ff668048a27b3ba9599c5f4128",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "before": {
     "planned_effort": null,
@@ -10833,7 +10926,11 @@ fn problems_update_planned_dry_run() {
     "planned_end_date": "2030-01-03T17:00:00+00:00",
     "planned_start_date": "2030-01-02T09:00:00+00:00"
   },
-  "side_effects": "Tenant workflows may react to planning changes."
+  "side_effects": "Tenant workflows may react to planning changes.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -10856,7 +10953,7 @@ fn problems_update_planned_send() {
             "01:30",
             "--yes",
             "--expect-plan",
-            "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4",
+            "71915ed44711b5be6fd38f1a94cf20c1102409ff668048a27b3ba9599c5f4128",
         ],
         None,
     );
@@ -10865,7 +10962,7 @@ fn problems_update_planned_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4",
+  "plan_hash": "71915ed44711b5be6fd38f1a94cf20c1102409ff668048a27b3ba9599c5f4128",
   "verified": true,
   "problem_id": 71,
   "fields": {
@@ -10892,7 +10989,7 @@ fn problems_update_planned_send_unverified() {
             "2h",
             "--yes",
             "--expect-plan",
-            "b0017b921cd5cae4f4c4a882d384729fa20177b302c1529e9aadc4b00134626f",
+            "c7b277aa26e37ecb052a74b3b6ba7cde2a4e120fc2149e3dbbbf12fd5cdafff3",
         ],
         None,
     );
@@ -10901,7 +10998,7 @@ fn problems_update_planned_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "b0017b921cd5cae4f4c4a882d384729fa20177b302c1529e9aadc4b00134626f",
+  "plan_hash": "c7b277aa26e37ecb052a74b3b6ba7cde2a4e120fc2149e3dbbbf12fd5cdafff3",
   "verified": false,
   "problem_id": 76,
   "fields": {
@@ -11036,7 +11133,7 @@ fn problems_update_planned_rules_unavailable() {
   "payload": {
     "planned_effort": "2h 0m"
   },
-  "plan_hash": "850aebf59aca79bb9cdf94424c45f6c431c86e4b720dc2edecca4b6295c7b292",
+  "plan_hash": "7db53549292f1142b2447d58f09b6382dd8c957dd24fb5e4dbce7585d3cf51a6",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "before": {
     "planned_effort": null
@@ -11045,6 +11142,10 @@ fn problems_update_planned_rules_unavailable() {
     "planned_effort": "2h 0m"
   },
   "side_effects": "Tenant workflows may react to planning changes.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warnings": [
     "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
   ]
@@ -11329,7 +11430,7 @@ fn problems_status_dry_run_rules_unavailable() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "70a9d47607069930b1f910c99fd2f99bc4dd047f09fc26615c60431456d44e60",
+  "plan_hash": "7ef01c5d8e561a91c0d64b9ef42e5dca889343e86e3c8552b5442ce9cfb80224",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -11344,6 +11445,10 @@ fn problems_status_dry_run_rules_unavailable() {
     "subject": "Acme problem 7"
   },
   "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warnings": [
     "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
   ]
@@ -18284,8 +18389,12 @@ fn changes_tasks_update_dry_run() {
     "owner_id": 133,
     "title": "Acme patch v2"
   },
-  "plan_hash": "672af9e5da98ac2788eae3a8849fe2aed9562537842f4af6c43895787aae8688",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "aaca5586d1955c9cb814c6deb6d9d2708ff4b75ed372c32b4f1a86fdada733cb",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -18309,7 +18418,7 @@ fn changes_tasks_update_send() {
             "DBA",
             "--yes",
             "--expect-plan",
-            "672af9e5da98ac2788eae3a8849fe2aed9562537842f4af6c43895787aae8688",
+            "aaca5586d1955c9cb814c6deb6d9d2708ff4b75ed372c32b4f1a86fdada733cb",
         ],
         None,
     );
@@ -18318,7 +18427,7 @@ fn changes_tasks_update_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "672af9e5da98ac2788eae3a8849fe2aed9562537842f4af6c43895787aae8688",
+  "plan_hash": "aaca5586d1955c9cb814c6deb6d9d2708ff4b75ed372c32b4f1a86fdada733cb",
   "verified": true,
   "fields_verified": true,
   "fields": {
@@ -18406,7 +18515,7 @@ fn changes_tasks_update_complete_send_unverified() {
             "Completed",
             "--yes",
             "--expect-plan",
-            "c8fec8833e1055af4ca3d6c6df1da389d65f636693f5d6fc4af396beb5526adf",
+            "72aabc0e984629fdfbcf55183896689150b9a52b1b0d48b9a7603d4f1f5579fe",
         ],
         None,
     );
@@ -18415,7 +18524,7 @@ fn changes_tasks_update_complete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "c8fec8833e1055af4ca3d6c6df1da389d65f636693f5d6fc4af396beb5526adf",
+  "plan_hash": "72aabc0e984629fdfbcf55183896689150b9a52b1b0d48b9a7603d4f1f5579fe",
   "verified": false,
   "fields_verified": false,
   "fields": {
@@ -18469,8 +18578,12 @@ fn changes_tasks_update_reminder_dry_run() {
   "payload": {
     "notify_before": 900
   },
-  "plan_hash": "2dfb5e2a95f62c9ee3f974d3f5098489105f6e068a9e1622d3d193651789f43a",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "b5d7d5420b5b53c70bddb66c153b91250cbf5f5a00aaab31ec1539d1e9804e26",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -18505,8 +18618,12 @@ fn changes_tasks_update_system_dry_run() {
       "system": 10
     }
   },
-  "plan_hash": "6b17d664cd2c7c1a1e01f6625ee4e9d78e8519c57df945940e17d2572a7337b9",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "7c990d026ccb63a78cf4f8e1cacd1ef2d7a3ebcc6e804ccd2710ad95d311469a",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -20585,7 +20702,11 @@ fn tickets_close_ack_dry_run() {
       }
     }
   ],
-  "plan_hash": "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
+  "plan_hash": "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
@@ -20638,7 +20759,11 @@ fn tickets_status_ack_dry_run() {
       }
     }
   ],
-  "plan_hash": "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
+  "plan_hash": "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
@@ -20660,7 +20785,7 @@ fn tickets_close_ack_send() {
             "--ack",
             "--yes",
             "--expect-plan",
-            "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
+            "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
         ],
         None,
     );
@@ -20671,7 +20796,7 @@ fn tickets_close_ack_send() {
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
+  "plan_hash": "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
   "verified": true
 }
 "#

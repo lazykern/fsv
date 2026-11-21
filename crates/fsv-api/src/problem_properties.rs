@@ -13,15 +13,19 @@ use fsv_py::Dumps;
 use crate::formmeta::{MetaStore, existing_from_record, rules_gate, rules_unavailable_warning};
 use crate::problem_workflows::record;
 use crate::readback::same_instant;
-use crate::reviewed_write::{WritePlan, execute_as, refused};
-use crate::service::{Api, Journal, obj, snapshot_hash};
+use crate::reviewed_write::{
+    StatefulWritePlan, WritePlan, execute_guarded, refused, stateful_context,
+};
+use crate::service::{Api, Journal, obj};
 use crate::tasks::{date, effort, same_effort};
 use crate::watchers::positive_id;
+
+pub const ACTION: &str = "problem_planning";
 
 /// Port of problem_properties.PlanningPlan.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlanningPlan {
-    pub write: WritePlan,
+    pub write: StatefulWritePlan,
     pub before_json: String,
     pub warnings_json: String,
 }
@@ -32,7 +36,7 @@ impl PlanningPlan {
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        let mut out = self.write.review();
+        let mut out = self.write.plan.review();
         out.insert(
             "before".into(),
             serde_json::from_str(&self.before_json).unwrap_or(Value::Null),
@@ -42,6 +46,12 @@ impl PlanningPlan {
             "side_effects".into(),
             json!("Tenant workflows may react to planning changes."),
         );
+        if !self.write.state_json.is_empty() {
+            out.insert(
+                "record_state".into(),
+                serde_json::from_str(&self.write.state_json).unwrap_or(Value::Null),
+            );
+        }
         let warnings: Value = serde_json::from_str(&self.warnings_json).unwrap_or(json!([]));
         if warnings.as_array().is_some_and(|a| !a.is_empty()) {
             out.insert("warnings".into(), warnings);
@@ -176,18 +186,27 @@ pub fn build_plan(
         .map(|k| (k.clone(), before_row.get(k).cloned().unwrap_or(Value::Null)))
         .collect();
     let context = json!({"before": before, "fields": meta.form_fields, "rules": meta.rules});
+    // Planned dates A -> B -> A read the same values again: bind the server
+    // updated_at and the verified planning sends on this problem.
+    let state = stateful_context(
+        &context,
+        &c.repeat_token(&[ACTION], &json!(target), Some(&Value::Object(before_row.clone()))),
+    )?;
     Ok(PlanningPlan {
-        write: WritePlan {
-            action: "problem_planning".into(),
-            target,
-            tenant: c.domain(),
-            method: "PUT".into(),
-            path: format!("problems/{target}"),
-            payload_json: Dumps::default()
-                .sort_keys(true)
-                .dump(&Value::Object(payload)),
-            context_hash: snapshot_hash(&context)?,
-        },
+        write: StatefulWritePlan::new(
+            WritePlan {
+                action: ACTION.into(),
+                target,
+                tenant: c.domain(),
+                method: "PUT".into(),
+                path: format!("problems/{target}"),
+                payload_json: Dumps::default()
+                    .sort_keys(true)
+                    .dump(&Value::Object(payload)),
+                context_hash: state.0.clone(),
+            },
+            state,
+        ),
         before_json: Dumps::default()
             .sort_keys(true)
             .dump(&Value::Object(before)),
@@ -250,7 +269,7 @@ pub fn send(
         )
         .map(|p| p.hash())
     };
-    execute_as(
+    execute_guarded(
         &plan.write,
         &plan.hash(),
         c,
@@ -258,6 +277,8 @@ pub fn send(
         reviewed_hash,
         &rebuild,
         &verify,
+        None,
+        &plan.write.prior_guards(),
     )
 }
 

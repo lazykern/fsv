@@ -1006,6 +1006,7 @@ fn change_update(
             ack_all,
             status_label: None,
             hints_path: None,
+            journal: None,
         };
         let lifecycle: Option<&dyn Fn() -> Result<Value, Error>> = record
             .get("state_flow_id")
@@ -1044,7 +1045,31 @@ fn change_update(
         Reviewed::Flow(Box::new(build(&draft, a.ack, None)?))
     };
 
+    let expected = a.expect_plan.as_deref().filter(|e| !e.is_empty());
     if a.dry_run {
+        if plan.ok() && plan.hash().is_empty() {
+            // A no-op update (every value equals the current one) has no plan:
+            // say so instead of printing an empty payload and a null hash.
+            if a.json_out {
+                let target = plan.to_json("update")["target"].clone();
+                println!(
+                    "{}",
+                    formflow::pretty(&json!({
+                        "action": "update", "target": target, "changed": false,
+                        "message": format!("nothing to change: {subject} already has these values"),
+                        "warnings": plan.review().warnings,
+                    }))
+                );
+            } else {
+                out().print(&format!(
+                    "[yellow]nothing to change[/] {subject}: it already has these values"
+                ));
+            }
+            if let Some(e) = expected {
+                return Err(flow_exit(2, noop_expect(e)));
+            }
+            return Ok(());
+        }
         print_change_plan(&plan, a.json_out, "update", Some(id));
         if !plan.ok() {
             return Err(flow_exit(2, ""));
@@ -1053,6 +1078,10 @@ fn change_update(
     }
     let no_changes = || out().print(&format!("[yellow]no changes[/] {subject}"));
     if plan.ok() && plan.hash().is_empty() {
+        if let Some(e) = expected {
+            // A supplied reviewed hash cannot match: a no-op has no plan.
+            return Err(flow_exit(2, noop_expect(e)));
+        }
         no_changes();
         return Ok(());
     }
@@ -1202,6 +1231,17 @@ fn print_change_plan(plan: &Reviewed, as_json: bool, action: &str, target: Optio
             &h[..h.len().min(16)]
         ));
     }
+}
+
+/// `NOOP_EXPECT`: `--expect-plan` on an update that changes nothing.
+const NOOP_EXPECT: &str = "nothing to change; the reviewed plan does not exist";
+
+/// `change_cli._noop_expect`: why `--expect-plan` fails on a no-op update: the
+/// earlier send of that exact plan (the record already has its values) or no
+/// plan at all.
+fn noop_expect(expected: &str) -> String {
+    fsv_core::journal::stale_plan_refusal(Some(expected), &fsv_flows::change::UPDATE_ACTIONS)
+        .unwrap_or_else(|| NOOP_EXPECT.to_string())
 }
 
 /// `change_cli._menu`.

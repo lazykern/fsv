@@ -97,7 +97,7 @@ fn cases_match_python() {
             .unwrap_or("acme.example.com");
         let c = api(state.clone(), domain);
         let journal = MemJournal::default();
-        let mut plan: Option<WritePlan> = None;
+        let mut plan: Option<crate::reviewed_write::StatefulWritePlan> = None;
         let ops = case["ops"].as_array().unwrap();
         for (i, (op, want)) in ops
             .iter()
@@ -181,4 +181,31 @@ fn cases_match_python() {
             .collect();
         assert_eq!(json!(events), case["events"], "{name} events");
     }
+}
+
+/// Python 9cc8b99 `test_problem_incidents`: link -> unlink -> link plans a
+/// fresh hash from the verified sends, and an unresolved pre-token send of
+/// the same plan still refuses.
+#[test]
+fn record_state_token_separates_a_repeat_and_guards_the_prior_hash() {
+    let state = Arc::new(Mutex::new(new_state()));
+    let c = api(state.clone(), "acme.example.com");
+    let journal = MemJournal::default();
+    let first = build_plan(&c, "PRB-7", "INC-123", false).unwrap();
+    assert_eq!(first.review()["record_state"]["sends"], 0);
+    assert_eq!(first.prior_guards().len(), 1);
+    c.verified.lock().unwrap().push(json!({
+        "kind": format!("verified:{LINK}"), "plan": first.hash(), "target": 7
+    }));
+    let second = build_plan(&c, "PRB-7", "INC-123", false).unwrap();
+    assert_ne!(second.hash(), first.hash());
+    assert_eq!(second.review()["record_state"]["sends"], 1);
+    let prior = second.prior_guards();
+    assert_eq!(prior.len(), 1);
+    journal.record_plan("started", &prior[0], LINK, Some(&json!(7)), None);
+    let e = send(&second, &c, &journal, "INC-123", Some(&second.hash()))
+        .unwrap_err()
+        .to_string();
+    assert!(e.contains("outcome unknown"), "{e}");
+    assert!(state.lock().unwrap()["requests"].as_array().unwrap().is_empty());
 }

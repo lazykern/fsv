@@ -288,7 +288,10 @@ impl BulkPlan {
 
     /// `review`.
     pub fn review(&self) -> Map<String, Value> {
-        let mut out = self.write.review();
+        let mut out = match &self.pickup {
+            Some(delegate) => delegate.write.review(),
+            None => self.write.review(),
+        };
         out.insert("plan_hash".into(), json!(self.hash()));
         out.insert("ticket_ids".into(), json!(self.ids));
         out.insert(
@@ -539,7 +542,7 @@ pub fn build_plan_scenario(
         let expected = serde_json::from_str::<Value>(&delegate.intent_json).unwrap_or(Value::Null)
             ["expected"]
             .clone();
-        (delegate.write.clone(), expected, Some(delegate))
+        (delegate.write.plan.clone(), expected, Some(delegate))
     } else if args.action == "scenario" {
         let definition = resolve_scenario(c, scenario.unwrap_or(""))?;
         let mut baselines = Vec::with_capacity(cids.len());

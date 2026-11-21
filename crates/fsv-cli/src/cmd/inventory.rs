@@ -65,6 +65,7 @@ pub(crate) fn finish(
     expected: Option<&str>,
     read_only: bool,
 ) -> Result<()> {
+    let action = review.get("action").and_then(Value::as_str).map(str::to_string);
     if dry_run {
         print_dry_run(review);
         return Ok(());
@@ -73,9 +74,13 @@ pub(crate) fn finish(
         return Err(Error::value("read-only mode; no write attempted"));
     }
     if !yes || expected != Some(hash) {
-        return Err(Error::value(
-            "review with --dry-run, then --yes --expect-plan FULL_HASH",
-        ));
+        let stale = match (&action, yes) {
+            (Some(action), true) => fsv_core::journal::stale_plan_refusal(expected, &[action]),
+            _ => None,
+        };
+        return Err(Error::value(stale.unwrap_or_else(|| {
+            "review with --dry-run, then --yes --expect-plan FULL_HASH".into()
+        })));
     }
     println!("{}", dumps(&send()?));
     Ok(())

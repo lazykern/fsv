@@ -1,0 +1,121 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change_form_fields",
+  "json": {
+   "change_fields": [
+    {
+     "id": 7101,
+     "name": "subject",
+     "label": "Subject",
+     "description": "",
+     "field_type": "default_subject",
+     "required": true,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 7102,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": false,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Planning"
+      },
+      {
+       "id": 5,
+       "value": "Closed"
+      }
+     ],
+     "nested_fields": [],
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 7103,
+     "name": "priority",
+     "label": "Priority",
+     "description": "",
+     "field_type": "default_priority",
+     "required": false,
+     "required_for_closure": false,
+     "position": 3,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      },
+      {
+       "id": 3,
+       "value": "High"
+      }
+     ],
+     "nested_fields": [],
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/12",
+  "json": {
+   "change": {
+    "id": 12,
+    "display_id": 12,
+    "human_display_id": "CHN-12",
+    "subject": "Patch",
+    "status": 1,
+    "priority": 1,
+    "updated_at": "2030-01-01T00:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/12",
+  "json": {
+   "change": {
+    "id": 12,
+    "display_id": 12,
+    "subject": "Patch",
+    "status": 1,
+    "priority": 3
+   }
+  }
+ }
+]

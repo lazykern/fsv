@@ -92,7 +92,10 @@ fn reply_set_status_label_is_stripped() {
   },
   "status_label": " pending ",
   "plan_hash": "8d8438a497fcf985476b9501a8f1a06671e7935adc1072b9307e600ffb25c216",
-  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "record_state": {
+    "sends": 0
+  }
 }
 "#
     );
@@ -101,25 +104,9 @@ fn reply_set_status_label_is_stripped() {
 
 #[test]
 fn note_set_status_closed_label_is_stripped() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &[
-            "tickets",
-            "add-note",
-            "124",
-            "--body",
-            "Private",
-            "--set-status",
-            " Closed",
-            "--ack",
-            "--dry-run",
-        ],
-        None,
-    );
+    let r = run_fixture("ticket_lifecycle_ack", &["tickets", "add-note", "124", "--body", "Private", "--set-status", " Closed", "--ack", "--dry-run"], None);
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
+    assert_eq!(r.out, r#"{
   "status": "dry_run",
   "action": "ticket_note",
   "method": "POST",
@@ -137,13 +124,16 @@ fn note_set_status_closed_label_is_stripped() {
     "private": true
   },
   "status_label": " Closed",
-  "plan_hash": "7777a785df2ac04d65ca8fd2037dcf0bbd254cf954dd053cac50915e32ac75ae",
+  "plan_hash": "421b1152ace8bb910dd7a881b49781c285334ebbc191e6a09b8bc6e715baf67d",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
+  "record_state": {
+    "sends": 0
+  },
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
   ]
 }
-"#
-    );
+"#);
     assert_eq!(r.err, r#""#);
 }
+

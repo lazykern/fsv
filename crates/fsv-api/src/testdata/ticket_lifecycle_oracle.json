@@ -31,11 +31,11 @@
       "status": "Resolved",
       "answers_json": "{\"summary\": \"Globex fix\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>Acme fix &lt;safe&gt;</div>",
       "rule_warnings": []
      },
-     "hash": "186762cf0bbcb9df7609a3fda08d59cfbfad91be21ca4793f04fb1111b5301b0",
+     "hash": "999fca30500110a218511fb7483dc8e5dbffdb7cc8ccc07a3fbcf356d2423211",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -62,7 +62,11 @@
         }
        }
       ],
-      "plan_hash": "186762cf0bbcb9df7609a3fda08d59cfbfad91be21ca4793f04fb1111b5301b0",
+      "plan_hash": "999fca30500110a218511fb7483dc8e5dbffdb7cc8ccc07a3fbcf356d2423211",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -72,7 +76,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Resolved",
-      "plan_hash": "186762cf0bbcb9df7609a3fda08d59cfbfad91be21ca4793f04fb1111b5301b0",
+      "plan_hash": "999fca30500110a218511fb7483dc8e5dbffdb7cc8ccc07a3fbcf356d2423211",
       "verified": true
      },
      "writes": 2
@@ -156,11 +160,11 @@
       "status": "Resolved",
       "answers_json": "{\"summary\": \"Globex fix\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>Acme fix &lt;safe&gt;</div>",
       "rule_warnings": []
      },
-     "hash": "33a4db2be3579c02c6edd616138c7b23b5b755252b83c94d40fcf112d9ab335e",
+     "hash": "267435e73ae59e13fe90a72d76b1feaab761eb90abf3c68070e4a605c7765d0c",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -187,7 +191,11 @@
         }
        }
       ],
-      "plan_hash": "33a4db2be3579c02c6edd616138c7b23b5b755252b83c94d40fcf112d9ab335e",
+      "plan_hash": "267435e73ae59e13fe90a72d76b1feaab761eb90abf3c68070e4a605c7765d0c",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -197,7 +205,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Resolved",
-      "plan_hash": "33a4db2be3579c02c6edd616138c7b23b5b755252b83c94d40fcf112d9ab335e",
+      "plan_hash": "267435e73ae59e13fe90a72d76b1feaab761eb90abf3c68070e4a605c7765d0c",
       "verified": true
      },
      "writes": 2
@@ -278,11 +286,11 @@
       "status": "Closed",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"99616c886416be47841557ba21ea1e141825348d51e73ae660d6dda09ca76175\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"99616c886416be47841557ba21ea1e141825348d51e73ae660d6dda09ca76175\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "167d4a2a8172cf0ccd5b07427f9c3132c0bda150b0dc57ad2c96cb076f060125",
+     "hash": "19bf938acd462c56212b927590876326e632f328c6f5496a66b11b2dcc23c83f",
      "review": {
       "action": "ticket_transition",
       "status_label": "Closed",
@@ -298,7 +306,11 @@
         }
        }
       ],
-      "plan_hash": "167d4a2a8172cf0ccd5b07427f9c3132c0bda150b0dc57ad2c96cb076f060125",
+      "plan_hash": "19bf938acd462c56212b927590876326e632f328c6f5496a66b11b2dcc23c83f",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -308,7 +320,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Closed",
-      "plan_hash": "167d4a2a8172cf0ccd5b07427f9c3132c0bda150b0dc57ad2c96cb076f060125",
+      "plan_hash": "19bf938acd462c56212b927590876326e632f328c6f5496a66b11b2dcc23c83f",
       "verified": true
      },
      "writes": 1
@@ -368,11 +380,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"99616c886416be47841557ba21ea1e141825348d51e73ae660d6dda09ca76175\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"99616c886416be47841557ba21ea1e141825348d51e73ae660d6dda09ca76175\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "6f979cb62d8e9d4205ddb9edc21eaa525752fee47938b625b49e4a5792d99b68",
+     "hash": "e1ae5f1298cabb0fce4b90a0a10ac6957040f56227fbfa271234bd9b8e865c38",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -388,7 +400,11 @@
         }
        }
       ],
-      "plan_hash": "6f979cb62d8e9d4205ddb9edc21eaa525752fee47938b625b49e4a5792d99b68",
+      "plan_hash": "e1ae5f1298cabb0fce4b90a0a10ac6957040f56227fbfa271234bd9b8e865c38",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -398,7 +414,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Open",
-      "plan_hash": "6f979cb62d8e9d4205ddb9edc21eaa525752fee47938b625b49e4a5792d99b68",
+      "plan_hash": "e1ae5f1298cabb0fce4b90a0a10ac6957040f56227fbfa271234bd9b8e865c38",
       "verified": true
      },
      "writes": 1
@@ -460,11 +476,11 @@
       "status": "Pending",
       "answers_json": "{\"reason\": \"Waiting for self\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"99616c886416be47841557ba21ea1e141825348d51e73ae660d6dda09ca76175\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"99616c886416be47841557ba21ea1e141825348d51e73ae660d6dda09ca76175\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "006a65decdcb938f1241c8767147978e017ce0ce5682ef5776e922257ba0372d",
+     "hash": "ba0f6be9f9738d21a782c9f0110444231d0a9dfb04c29cbdef0709b7c1779a96",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -483,7 +499,11 @@
         }
        }
       ],
-      "plan_hash": "006a65decdcb938f1241c8767147978e017ce0ce5682ef5776e922257ba0372d",
+      "plan_hash": "ba0f6be9f9738d21a782c9f0110444231d0a9dfb04c29cbdef0709b7c1779a96",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -493,7 +513,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Pending",
-      "plan_hash": "006a65decdcb938f1241c8767147978e017ce0ce5682ef5776e922257ba0372d",
+      "plan_hash": "ba0f6be9f9738d21a782c9f0110444231d0a9dfb04c29cbdef0709b7c1779a96",
       "verified": true
      },
      "writes": 1
@@ -815,11 +835,11 @@
       "status": "Closed",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"3b560fb81c3153f973cac2835f7b2f03fce41724dfc6bb050fb64ed6aac7d624\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"3b560fb81c3153f973cac2835f7b2f03fce41724dfc6bb050fb64ed6aac7d624\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "bee112d054543fc75c1215cf1d5611876a27709e454a74b349e5398a7058b839",
+     "hash": "64b29c66d9684bde228bc727d1f6f00c6aa1102569bc09e6339e277f600f1e61",
      "review": {
       "action": "ticket_transition",
       "status_label": "Closed",
@@ -835,7 +855,11 @@
         }
        }
       ],
-      "plan_hash": "bee112d054543fc75c1215cf1d5611876a27709e454a74b349e5398a7058b839",
+      "plan_hash": "64b29c66d9684bde228bc727d1f6f00c6aa1102569bc09e6339e277f600f1e61",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -845,7 +869,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Closed",
-      "plan_hash": "bee112d054543fc75c1215cf1d5611876a27709e454a74b349e5398a7058b839",
+      "plan_hash": "64b29c66d9684bde228bc727d1f6f00c6aa1102569bc09e6339e277f600f1e61",
       "verified": true
      },
      "writes": 1
@@ -905,11 +929,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+     "hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -933,7 +957,11 @@
         }
        }
       ],
-      "plan_hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+      "plan_hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1009,11 +1037,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+     "hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -1037,7 +1065,11 @@
         }
        }
       ],
-      "plan_hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+      "plan_hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1113,11 +1145,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+     "hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -1141,7 +1173,11 @@
         }
        }
       ],
-      "plan_hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+      "plan_hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1226,11 +1262,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+     "hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -1254,7 +1290,11 @@
         }
        }
       ],
-      "plan_hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+      "plan_hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1324,11 +1364,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+     "hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -1352,7 +1392,11 @@
         }
        }
       ],
-      "plan_hash": "a971029f466cfa3a6932b7e37950a81d6d7b51ac881e9f22b8e974ede92bb68d",
+      "plan_hash": "c716db3f7f536e30a761f7dfd29474f0b3a261217d47053b09ebffc80bac7ce7",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1467,11 +1511,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -1487,7 +1531,11 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1582,11 +1630,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -1602,7 +1650,11 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1673,11 +1725,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -1693,7 +1745,11 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1764,11 +1820,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -1784,7 +1840,11 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1855,11 +1915,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -1875,7 +1935,11 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -1952,11 +2016,11 @@
       "status": "Pending",
       "answers_json": "{\"reason\": \"Waiting\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
-      "context_hash": "{\"metadata\": \"3226cc1fa87840a8e411a5518328c11b0eccac3fea1e62f5723eaaa786228db1\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"3226cc1fa87840a8e411a5518328c11b0eccac3fea1e62f5723eaaa786228db1\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "5c7b5f89d68980647a75b61ea2dd70ebd57df839cff002c74513ef51bfafbbe3",
+     "hash": "376dc95ccf37289af7a20d57cd63d3a6aee53ea5478fdbcf6737b109dcb9d57e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -1975,7 +2039,11 @@
         }
        }
       ],
-      "plan_hash": "5c7b5f89d68980647a75b61ea2dd70ebd57df839cff002c74513ef51bfafbbe3",
+      "plan_hash": "376dc95ccf37289af7a20d57cd63d3a6aee53ea5478fdbcf6737b109dcb9d57e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -2024,11 +2092,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcInN1bW1hcnlfOTAwMDAwNzc3XCJdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"4974d3d137e96b46937f6f41a21bdaf40c934991d2356848c503c19bc62d0f3c\", \"record\": \"6f74203046c79fc1a8a0cb603c7d3ee7aed9873dbb4d34f369e8bc3a758c3504\"}",
+      "context_hash": "{\"metadata\": \"4974d3d137e96b46937f6f41a21bdaf40c934991d2356848c503c19bc62d0f3c\", \"record\": \"6f74203046c79fc1a8a0cb603c7d3ee7aed9873dbb4d34f369e8bc3a758c3504\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "16e8f6c643ef94d226d3b859db72a058b71210cb415454dd32272cef43bf87af",
+     "hash": "bea1d48ad4b1dd59cd2fadab6e197772a93336e5e125408eb9dd758c5ab93d60",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -2052,7 +2120,11 @@
         }
        }
       ],
-      "plan_hash": "16e8f6c643ef94d226d3b859db72a058b71210cb415454dd32272cef43bf87af",
+      "plan_hash": "bea1d48ad4b1dd59cd2fadab6e197772a93336e5e125408eb9dd758c5ab93d60",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -2105,11 +2177,11 @@
       "status": "Resolved",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}",
-      "context_hash": "{\"metadata\": \"5bd1239d640b5da504a39643f4843a7d985e2ee33aca9cc7ff12acb2d2e28ddd\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"5bd1239d640b5da504a39643f4843a7d985e2ee33aca9cc7ff12acb2d2e28ddd\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": "<div>fix</div>",
       "rule_warnings": []
      },
-     "hash": "6c254742f65f309305106a3f5a4b03d4d13776121ce70cee44a1f32e024fd0fb",
+     "hash": "19286a001561759a893462c5919592ca234120ac827e742960690a1535c82153",
      "review": {
       "action": "ticket_transition",
       "status_label": "Resolved",
@@ -2133,7 +2205,11 @@
         }
        }
       ],
-      "plan_hash": "6c254742f65f309305106a3f5a4b03d4d13776121ce70cee44a1f32e024fd0fb",
+      "plan_hash": "19286a001561759a893462c5919592ca234120ac827e742960690a1535c82153",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -2236,11 +2312,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -2256,7 +2332,11 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "0efb696b726034cf394f2565b6481144e6cd567074142351f9c2c17b257d6f0e",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -2351,11 +2431,11 @@
       "status": "Open",
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"10f82cb3a1b21b8df86ef36ed3da53ae177a58a843e325676c79f0f093856ce7\"}",
+      "context_hash": "{\"metadata\": \"661cd35dcffdf487ca096fcc0cf28c7667aee05ab4bed774a658a5d1968853c3\", \"record\": \"10f82cb3a1b21b8df86ef36ed3da53ae177a58a843e325676c79f0f093856ce7\", \"state\": {\"sends\": 0, \"server_version\": \"2030-01-01T00:00:00Z\"}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "9a39941ee1d141c2ff861a7a3450ce85a8edc03e00a8abb613208085d89e3997",
+     "hash": "5552cb0988cd818b2669f1cee56ecf9cadfe8e26e51a2b474d1fe2c88b4d6b64",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -2371,7 +2451,11 @@
         }
        }
       ],
-      "plan_hash": "9a39941ee1d141c2ff861a7a3450ce85a8edc03e00a8abb613208085d89e3997",
+      "plan_hash": "5552cb0988cd818b2669f1cee56ecf9cadfe8e26e51a2b474d1fe2c88b4d6b64",
+      "record_state": {
+       "sends": 0,
+       "server_version": "2030-01-01T00:00:00Z"
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -2380,27 +2464,14 @@
      "writes": 0
     },
     {
-     "result": {
-      "status": "submitted",
-      "ticket_id": 123,
-      "status_label": "Open",
-      "plan_hash": "9a39941ee1d141c2ff861a7a3450ce85a8edc03e00a8abb613208085d89e3997",
-      "verified": true
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "ticket or metadata changed; review again"
      },
-     "writes": 1
+     "writes": 0
     }
    ],
-   "puts": [
-    {
-     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 2}",
-     "body": {
-      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
-      "group_id": null,
-      "responder_id": 9000001234,
-      "status": 2
-     }
-    }
-   ],
+   "puts": [],
    "final_row": {
     "id": 123,
     "status": 2,
@@ -2424,10 +2495,7 @@
     ],
     "description": "<a href=\"https://files.example.com/b?v=1&amp;X-Amz-Signature=s2\">b</a>"
    },
-   "events": [
-    "started",
-    "done"
-   ]
+   "events": []
   },
   "string_status_ids": {
    "meta": "string_ids",
@@ -2451,11 +2519,11 @@
       "status": "Pending",
       "answers_json": "{\"reason\": \"Waiting for self\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 3}",
-      "context_hash": "{\"metadata\": \"6dad4181f57fb1fc7e486650116f563a8e579710e3ab38fa4c97f7aee397695d\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\"}",
+      "context_hash": "{\"metadata\": \"6dad4181f57fb1fc7e486650116f563a8e579710e3ab38fa4c97f7aee397695d\", \"record\": \"cbb079b5cd3583663319c91ecca82a3478f88cbf9ae25308f76ffe00ad4bbec9\", \"state\": {\"sends\": 0, \"server_version\": null}}",
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "d34b4480934ff17420e0e1c6a68387ff6227a854c07a72f85c5a2c6cf62ab8c6",
+     "hash": "be2a51417d6018860aede93287cdceaeeabe8310b5b19f7e7d19d91fd86a4c92",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -2474,7 +2542,11 @@
         }
        }
       ],
-      "plan_hash": "d34b4480934ff17420e0e1c6a68387ff6227a854c07a72f85c5a2c6cf62ab8c6",
+      "plan_hash": "be2a51417d6018860aede93287cdceaeeabe8310b5b19f7e7d19d91fd86a4c92",
+      "record_state": {
+       "sends": 0,
+       "server_version": null
+      },
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -2484,7 +2556,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Pending",
-      "plan_hash": "d34b4480934ff17420e0e1c6a68387ff6227a854c07a72f85c5a2c6cf62ab8c6",
+      "plan_hash": "be2a51417d6018860aede93287cdceaeeabe8310b5b19f7e7d19d91fd86a4c92",
       "verified": true
      },
      "writes": 1

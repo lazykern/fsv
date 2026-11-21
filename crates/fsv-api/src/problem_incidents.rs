@@ -8,8 +8,10 @@ use fsv_core::resource::{PROBLEMS, TICKETS, parse_id};
 use fsv_py::py_str;
 
 use crate::associations::read_page;
-use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
+use crate::reviewed_write::{
+    StatefulWritePlan, WritePlan, execute_guarded, refused, stateful_context,
+};
+use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj};
 
 pub const LINK: &str = "problem_link_incident";
 pub const UNLINK: &str = "problem_unlink_incident";
@@ -59,7 +61,12 @@ fn unwrap(raw: Value, key: &str) -> Option<Map<String, Value>> {
 /// Port of problem_incidents.build_plan: a PUT `associate` (link) or a
 /// DELETE of the exact ticket (unlink), bound to both records and the
 /// complete inventory.
-pub fn build_plan(c: &dyn Api, problem: &str, incident: &str, unlink: bool) -> Result<WritePlan> {
+pub fn build_plan(
+    c: &dyn Api,
+    problem: &str,
+    incident: &str,
+    unlink: bool,
+) -> Result<StatefulWritePlan> {
     if incident.to_uppercase().starts_with("SR-") {
         return Err(Error::value("incident ID must use the INC prefix, not SR"));
     }
@@ -103,21 +110,31 @@ pub fn build_plan(c: &dyn Api, problem: &str, incident: &str, unlink: bool) -> R
             json!({"item_ids": [tid]}),
         )
     };
-    let context = snapshot_hash(&json!({"problem": pr, "ticket": ticket, "inventory": rows}))?;
-    Ok(WritePlan {
-        action: if unlink { UNLINK } else { LINK }.into(),
-        target: pid,
-        tenant: c.domain(),
-        method: if unlink { "DELETE" } else { "PUT" }.into(),
-        path,
-        payload_json: fsv_py::Dumps::default().sort_keys(true).dump(&payload),
-        context_hash: context,
-    })
+    // Link -> unlink -> link reads the same problem, ticket and inventory, so
+    // bind the server updated_at and the verified sends of this action on the
+    // problem (journal.repeat_token): a later re-link plans a fresh hash.
+    let action = if unlink { UNLINK } else { LINK };
+    let state = stateful_context(
+        &json!({"problem": pr, "ticket": ticket, "inventory": rows}),
+        &c.repeat_token(&[action], &json!(pid), Some(&Value::Object(pr.clone()))),
+    )?;
+    Ok(StatefulWritePlan::new(
+        WritePlan {
+            action: action.into(),
+            target: pid,
+            tenant: c.domain(),
+            method: if unlink { "DELETE" } else { "PUT" }.into(),
+            path,
+            payload_json: fsv_py::Dumps::default().sort_keys(true).dump(&payload),
+            context_hash: state.0.clone(),
+        },
+        state,
+    ))
 }
 
 /// Port of problem_incidents.send: one write, then the inventory read-back.
 pub fn send(
-    plan: &WritePlan,
+    plan: &StatefulWritePlan,
     c: &dyn Api,
     journal: &dyn Journal,
     incident: &str,
@@ -125,7 +142,9 @@ pub fn send(
 ) -> Result<Value> {
     let tid = parse_id(incident, &TICKETS)?;
     let unlink = plan.action == UNLINK;
-    let rebuild = || build_plan(c, &plan.target.to_string(), &tid.to_string(), unlink);
+    let rebuild = || -> Result<String> {
+        build_plan(c, &plan.target.to_string(), &tid.to_string(), unlink).map(|p| p.hash())
+    };
     let verify = |_: &Value| -> Result<Map<String, Value>> {
         let linked = present(&inventory(c, plan.target)?, tid);
         Ok(obj(json!({
@@ -133,7 +152,17 @@ pub fn send(
             "verified": linked != unlink,
         })))
     };
-    execute(plan, c, journal, reviewed_hash, &rebuild, &verify)
+    execute_guarded(
+        plan,
+        &plan.hash(),
+        c,
+        journal,
+        reviewed_hash,
+        &rebuild,
+        &verify,
+        None,
+        &plan.prior_guards(),
+    )
 }
 
 #[cfg(test)]

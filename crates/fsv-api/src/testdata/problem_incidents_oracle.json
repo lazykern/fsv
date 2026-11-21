@@ -26,9 +26,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -38,15 +38,19 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
      "verified": true,
      "problem_id": 7,
      "incident_id": 123,
@@ -113,9 +117,9 @@
      "method": "DELETE",
      "path": "problems/7/tickets/123",
      "payload_json": "{\"type\": \"unlink\"}",
-     "context_hash": "3962c546c838adb3cbd6cc0c265e3a11938bbeb937ac0d1debfe6aec030344d6"
+     "context_hash": "c3ec2f1d14c394a089f71d5f565b9a60c04e61f45df2219dbb6d23ea7cacb054"
     },
-    "hash": "c7248bf5c538365e83d4cdf199dd4775224962495f4d96253ee605c69edc23e3",
+    "hash": "c5cdc01ed15680fc3576e8fbc8de39b0b6b688ca319e0e5b78f1a78729f90e82",
     "review": {
      "action": "problem_unlink_incident",
      "method": "DELETE",
@@ -123,15 +127,19 @@
      "payload": {
       "type": "unlink"
      },
-     "plan_hash": "c7248bf5c538365e83d4cdf199dd4775224962495f4d96253ee605c69edc23e3",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "c5cdc01ed15680fc3576e8fbc8de39b0b6b688ca319e0e5b78f1a78729f90e82",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "c7248bf5c538365e83d4cdf199dd4775224962495f4d96253ee605c69edc23e3",
+     "plan_hash": "c5cdc01ed15680fc3576e8fbc8de39b0b6b688ca319e0e5b78f1a78729f90e82",
      "verified": true,
      "problem_id": 7,
      "incident_id": 123,
@@ -195,9 +203,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -207,8 +215,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -274,9 +286,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -286,8 +298,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -353,9 +369,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -365,8 +381,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -432,9 +452,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -444,8 +464,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -511,9 +535,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -523,8 +547,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -605,9 +633,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -617,8 +645,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -628,7 +660,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
      "verified": false,
      "warning": "Independent readback failed; do not resend."
     },
@@ -685,9 +717,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -697,8 +729,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -708,7 +744,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
      "verified": false,
      "problem_id": 7,
      "incident_id": 123,
@@ -779,9 +815,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -791,8 +827,12 @@
        123
       ]
      },
-     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "527c475d11b8ce99692768b7916f832e89e36b8320c74d8b641ab748a8f9f329",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -857,9 +897,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -869,15 +909,19 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
      "verified": true,
      "problem_id": 7,
      "incident_id": 123,
@@ -944,9 +988,9 @@
      "method": "DELETE",
      "path": "problems/7/tickets/123",
      "payload_json": "{\"type\": \"unlink\"}",
-     "context_hash": "3962c546c838adb3cbd6cc0c265e3a11938bbeb937ac0d1debfe6aec030344d6"
+     "context_hash": "c3ec2f1d14c394a089f71d5f565b9a60c04e61f45df2219dbb6d23ea7cacb054"
     },
-    "hash": "18fec0a4b9325159aa39874bbd5c801374254bd78915ce78aef174754b9ea912",
+    "hash": "e384710535f6514436cccc33afaf678107e7a5d99addda424415671bfe3d6d3b",
     "review": {
      "action": "problem_unlink_incident",
      "method": "DELETE",
@@ -954,15 +998,19 @@
      "payload": {
       "type": "unlink"
      },
-     "plan_hash": "18fec0a4b9325159aa39874bbd5c801374254bd78915ce78aef174754b9ea912",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "e384710535f6514436cccc33afaf678107e7a5d99addda424415671bfe3d6d3b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "18fec0a4b9325159aa39874bbd5c801374254bd78915ce78aef174754b9ea912",
+     "plan_hash": "e384710535f6514436cccc33afaf678107e7a5d99addda424415671bfe3d6d3b",
      "verified": true,
      "problem_id": 7,
      "incident_id": 123,
@@ -1026,9 +1074,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1038,8 +1086,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1105,9 +1157,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1117,8 +1169,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1184,9 +1240,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1196,8 +1252,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1263,9 +1323,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1275,8 +1335,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1342,9 +1406,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1354,8 +1418,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1436,9 +1504,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1448,8 +1516,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1459,7 +1531,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
      "verified": false,
      "warning": "Independent readback failed; do not resend."
     },
@@ -1516,9 +1588,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1528,8 +1600,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1539,7 +1615,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
      "verified": false,
      "problem_id": 7,
      "incident_id": 123,
@@ -1610,9 +1686,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+     "context_hash": "60e39e725e10ed54f255bda2b320ddf09fa1510f4bfb338c586c75b3c3de7cfa"
     },
-    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1622,8 +1698,12 @@
        123
       ]
      },
-     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f7655d1507f917fcc13dbae2d595d8d609d237886fa064ec8e642c93d2148f1c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1850,9 +1930,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "203fe691fd62b4b5f53ad7fff5431f3d8ac92e610954f84aa53a61c5315f8a9e"
+     "context_hash": "d4a52e7a5a93d2f7cd9a3e4a7e83d9cd39ef455228e4d46b28eb2601e3b065f5"
     },
-    "hash": "d382ab065585f5f600ca54e82eebc0163b4a8489781b0ce12e5c41297a19b35e",
+    "hash": "5c9186564a05cb680935a59f1806b934b393e58c266d7497574d5758a5244117",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1862,8 +1942,12 @@
        123
       ]
      },
-     "plan_hash": "d382ab065585f5f600ca54e82eebc0163b4a8489781b0ce12e5c41297a19b35e",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "5c9186564a05cb680935a59f1806b934b393e58c266d7497574d5758a5244117",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1908,9 +1992,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "c2d1ad096a11682f4c5fe1ab90455900be54ccfeabd962e7c1986abd745e043a"
+     "context_hash": "642a9908ba02ce935675a7fb7275815896b58af6520224711534b6951006fbad"
     },
-    "hash": "a60368a49c27c6f77b530675b1b376912fa65e4b6748852dd8855d14217d5d1d",
+    "hash": "f3fc919e1d864d44258be96b0c1bd358c708460e946d24452d10d8861e6eb5c6",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1920,8 +2004,12 @@
        123
       ]
      },
-     "plan_hash": "a60368a49c27c6f77b530675b1b376912fa65e4b6748852dd8855d14217d5d1d",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "f3fc919e1d864d44258be96b0c1bd358c708460e946d24452d10d8861e6eb5c6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },
@@ -1956,9 +2044,9 @@
      "method": "PUT",
      "path": "problems/7/tickets/associate",
      "payload_json": "{\"item_ids\": [123]}",
-     "context_hash": "293aa82ed4f7707d43040c2cfb0c0c549b91989d36461611c15daa55ee6f590b"
+     "context_hash": "ef92ad943bd5f4203f9d0e8c69f0fe10ec3d54ac911eb24dad3e33663ff67daf"
     },
-    "hash": "0ec2294c5ff3b2c40bf755931427a7e8638bafe4cb5651c624e26d7a13d4cb32",
+    "hash": "d756732abf92628e8af55bf42bbbe470dc8f655cde1748ec43f249bfb9cc5732",
     "review": {
      "action": "problem_link_incident",
      "method": "PUT",
@@ -1968,8 +2056,12 @@
        123
       ]
      },
-     "plan_hash": "0ec2294c5ff3b2c40bf755931427a7e8638bafe4cb5651c624e26d7a13d4cb32",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "plan_hash": "d756732abf92628e8af55bf42bbbe470dc8f655cde1748ec43f249bfb9cc5732",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "record_state": {
+      "sends": 0,
+      "server_version": null
+     }
     },
     "writes": 0
    },

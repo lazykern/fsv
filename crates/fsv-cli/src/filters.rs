@@ -648,7 +648,8 @@ mod tests {
     #[test]
     fn load_query_hash_always_unquotes() {
         assert_eq!(
-            load_query_hash(r#"[{"condition":"v","operator":"is","value":"50%25 off"}]"#).unwrap(),
+            load_query_hash(r#"[{"condition":"v","operator":"is","value":"50%25 off"}]"#)
+                .unwrap(),
             vec![json!({"condition": "v", "operator": "is", "value": "50% off"})]
         );
     }

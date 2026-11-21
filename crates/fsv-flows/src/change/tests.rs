@@ -542,7 +542,7 @@ fn check_duplicate_reports_done_and_started() {
     assert!(e.contains("with no recorded outcome"), "{e}");
     j.record_plan("done", &p.hash, "create", None, Some(&json!(502)));
     let e = check_duplicate(&p, false, &j).unwrap_err();
-    assert_eq!(e.exit_code(), 4);
+    assert_eq!(e.exit_code(), 2);
     assert!(
         e.to_string()
             .contains("was already sent at 2030-01-01T00:00:00 (created 502)")
@@ -1000,7 +1000,7 @@ fn execute_unknown_outcome_leaves_started() {
         assert_eq!(e.as_api().unwrap().status, status);
         assert_eq!(events(&j), [json!("started")], "{status} create");
         let again = check_duplicate(&create, false, &j).unwrap_err();
-        assert_eq!(again.exit_code(), 4);
+        assert_eq!(again.exit_code(), 2);
         assert!(again.to_string().contains("no recorded outcome"));
 
         let writer = RejectWriter::new(status);

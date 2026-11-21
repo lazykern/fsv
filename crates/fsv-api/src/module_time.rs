@@ -551,10 +551,7 @@ pub(crate) mod tests {
                 json!({"time_spent": "00:30", "note": "Acme edited"})
             )
         );
-        assert_eq!(
-            send(&q, &c, &journal, Some(&q.hash())).unwrap()["verified"],
-            true
-        );
+        assert_eq!(send(&q, &c, &journal, Some(&q.hash())).unwrap()["verified"], true);
         assert_eq!(state.lock().unwrap().entries[0]["time_spent"], "00:30");
     }
 

@@ -486,6 +486,9 @@ fn approval_request_no_input() {
   "message_text": "hi",
   "plan_hash": "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
   "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
+  "record_state": {
+    "sends": 0
+  },
   "recipient_sources": [],
   "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
   "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."
@@ -544,6 +547,9 @@ fn approval_request_send_unverified() {
   "message_text": "hi",
   "plan_hash": "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
   "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
+  "record_state": {
+    "sends": 0
+  },
   "recipient_sources": [],
   "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
   "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."

@@ -135,9 +135,19 @@ pub struct ApprovalPlan {
     /// JSON list of `{kind, id, members}` from group/CAB expansion. Empty
     /// when the request has only explicit approvers.
     pub recipient_context_json: String,
+    /// Answered approval requests on this change (`journal.repeat_token`):
+    /// the same group requested again (e.g. after a cancel) plans a fresh
+    /// hash. `None` is pre-token (see [`ApprovalPlan::stated`]).
+    pub sends: Option<i64>,
 }
 
 impl ApprovalPlan {
+    /// `build_plan`'s `journal.verified_sends((_ACTION,), cid)`.
+    pub fn stated(mut self, journal: &dyn Journal) -> ApprovalPlan {
+        self.sends = Some(journal.verified_sends(&[ACTION], &json!(self.change_id)));
+        self
+    }
+
     pub fn path(&self) -> String {
         format!("changes/{}/approval-groups", self.change_id)
     }
@@ -160,6 +170,9 @@ impl ApprovalPlan {
             context["recipient_sources"] =
                 serde_json::from_str(&self.recipient_context_json).unwrap_or(Value::Null);
         }
+        if self.sends.is_some_and(|n| n != 0) {
+            context["state"] = json!({"sends": self.sends});
+        }
         plan_hash(&context)
     }
 
@@ -169,15 +182,21 @@ impl ApprovalPlan {
         } else {
             serde_json::from_str(&self.recipient_context_json).unwrap_or(json!([]))
         };
-        obj(json!({
+        let mut out = obj(json!({
             "action": ACTION, "tenant": self.tenant, "change_id": self.change_id,
             "method": "POST", "path": format!("/api/_/{}", self.path()), "payload": self.payload(),
             "recipients": self.approver_ids, "approval_rule": rule(&self.rule).map_or("", |r| r.2),
             "message_text": self.message, "plan_hash": self.hash(), "warning": WARNING,
+        }));
+        if let Some(n) = self.sends {
+            out.insert("record_state".into(), json!({"sends": n}));
+        }
+        out.extend(obj(json!({
             "recipient_sources": sources,
             "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
             "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted.",
-        }))
+        })));
+        out
     }
 }
 
@@ -248,6 +267,7 @@ pub fn build_plan_with(
         tenant: tenant.into(),
         rule: rule_name.into(),
         recipient_context_json: recipient_context_json.into(),
+        sends: None,
     })
 }
 
@@ -613,7 +633,14 @@ pub fn send(
         &c.domain(),
         &plan.recipient_context_json,
     );
-    if rebuilt.ok().as_ref() != Some(plan) {
+    let current = journal.verified_sends(&[ACTION], &json!(plan.change_id));
+    let same = rebuilt.as_ref().ok().is_some_and(|r| {
+        ApprovalPlan {
+            sends: plan.sends,
+            ..r.clone()
+        } == *plan
+    });
+    if !same {
         return Err(refused(
             "approval plan or tenant changed; review a new plan",
         ));
@@ -638,13 +665,26 @@ pub fn send(
     if plan.tenant.is_empty() {
         return Err(refused("configure a tenant before requesting approval"));
     }
+    const SENT: &str = "this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit";
     if matches!(
         last_event(journal, ACTION, &hash).as_deref(),
         Some("started" | "done")
     ) {
-        return Err(refused(
-            "this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit",
-        ));
+        return Err(refused(fsv_core::journal::note_refusal(SENT)));
+    }
+    if plan.sends.is_some() {
+        let older = ApprovalPlan {
+            sends: None,
+            ..plan.clone()
+        };
+        if last_event(journal, ACTION, &older.hash()).as_deref() == Some("started") {
+            return Err(refused(fsv_core::journal::note_refusal(SENT)));
+        }
+        if current != plan.sends.unwrap_or_default() {
+            return Err(refused(
+                "another approval request on this change was answered since the review; review a new plan",
+            ));
+        }
     }
     let prepared = (|| -> Result<_> {
         crate::approval_recipients::validate(c, plan.change_id, &plan.recipient_context_json)?;
@@ -751,6 +791,9 @@ pub fn send(
         }
     }
     journal.record_plan("done", &hash, ACTION, Some(&target), None);
+    if result.get("verified") == Some(&Value::Bool(true)) {
+        journal.record_verified(&hash, ACTION, Some(&target));
+    }
     Ok(Value::Object(result))
 }
 
@@ -1069,9 +1112,9 @@ pub fn send_action(
         last_event(journal, action, &hash).as_deref(),
         Some("started" | "done")
     ) {
-        return Err(refused(
+        return Err(refused(fsv_core::journal::note_refusal(
             "this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit",
-        ));
+        )));
     }
     if !plan.cancel() {
         let command = match plan.operation.as_str() {

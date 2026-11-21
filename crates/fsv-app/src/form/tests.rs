@@ -10,7 +10,7 @@ use fsv_core::client::Response;
 const BR: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
 const SR_BR: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyIxMSI6eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn19";
 const NEW_HASH: &str = "a28516d9594757efde10c3259d1f7e4499474bd3af6cb68b26f06ad66726ca24";
-const EDIT_HASH: &str = "8d76c552c5418de3d8f03d66a6c0f1c660a6468e0673d7bf2bcd8a9dfaff4b88";
+const EDIT_HASH: &str = "8148ca4e02f34d78c54a29eec4f87bf5e6afc1cf9be2f513c8bfc28f7438a508";
 const TICKET_HASH: &str = "0f2785c0cb49ffd3b55b9a38696dc271157e7225aeb601050bd5bd65afa02d9a";
 const SR_HASH: &str = "51d1b1aaf494f9d0c061f3f62387b65e14b266a9d2b15cccff5e633d713c50b0";
 
@@ -190,7 +190,7 @@ fn new_change_plans_and_sends_like_the_python_session() {
         ]
     );
     let (code, msg) = exit_of(&s.send(&plan, false).unwrap_err());
-    assert_eq!(code, 4);
+    assert_eq!(code, 2);
     assert!(
         msg.starts_with("this exact plan was already sent at "),
         "{msg}"

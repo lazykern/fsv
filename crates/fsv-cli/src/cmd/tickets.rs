@@ -8,7 +8,7 @@ use fsv_api::attachments::{self, ConversationAttach};
 use fsv_api::conversations::{self, ConversationArgs};
 use fsv_api::formmeta::DiskStore;
 use fsv_api::notes::{self, BodyFormat};
-use fsv_api::service::DiskJournal;
+use fsv_api::service::{DiskJournal, Journal};
 use fsv_core::resource::{CHANGES, PROBLEMS, TICKETS};
 use fsv_core::term::{Column, Table, err, escape, out};
 use fsv_core::{Error, Result, config, term};
@@ -330,7 +330,8 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
             ack: a.ack,
             ..Default::default()
         };
-        let plan = conversations::build_plan(c.as_ref(), &store, &a.id_, &a.body, &args)?;
+        let plan = conversations::build_plan(c.as_ref(), &store, &a.id_, &a.body, &args)?
+            .stated(&DiskJournal);
         let review = plan.review();
         if a.dry_run {
             let mut out = serde_json::Map::new();
@@ -401,7 +402,8 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         &notify,
         format,
         &config::domain(),
-    )?;
+    )?
+    .stated(&DiskJournal);
     let mut review = Value::Object(plan.review());
     if a.dry_run {
         let mut out = serde_json::Map::new();
@@ -420,7 +422,11 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
     if a.expected.as_deref().is_some_and(|e| e != hash) {
         return Err(Error::exit(
             2,
-            "note review hash does not match; review the exact body again",
+            DiskJournal
+                .stale_plan_refusal(a.expected.as_deref(), &["ticket_note"])
+                .unwrap_or_else(|| {
+                    "note review hash does not match; review the exact body again".into()
+                }),
         ));
     }
     if a.yes {
@@ -560,7 +566,8 @@ fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
         bcc: &a.bcc,
         sender: a.sender.as_deref(),
     };
-    let plan = conversations::build_plan_mail(c, &store, &a.id_, &a.body, &args, &mail)?;
+    let plan = conversations::build_plan_mail(c, &store, &a.id_, &a.body, &args, &mail)?
+        .stated(&DiskJournal);
     let review = plan.review();
     if a.dry_run {
         let mut out = serde_json::Map::new();
@@ -625,7 +632,8 @@ fn forward(a: TicketsForwardArgs) -> CmdResult {
             None => {
                 conversations::build_plan_mail(c.as_ref(), &store, &a.id_, &a.body, &args, &mail)?
             }
-        };
+        }
+        .stated(&DiskJournal);
         if a.dry_run {
             print_dry_run(plan.review());
             return Ok(());

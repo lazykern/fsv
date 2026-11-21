@@ -256,6 +256,8 @@ pub fn build_create_plan(
         record_hash: String::new(),
         legacy_hash: String::new(),
         tenant: String::new(),
+        state_token: None,
+        prior_hash: String::new(),
     };
     if let Some(p) = &plan.payload
         && plan.errors.is_empty()
@@ -284,14 +286,18 @@ pub fn check_duplicate(plan: &Plan, allow_duplicate: bool, journal: &dyn Journal
         == Some("started")
     {
         return Err(flow_exit(
-            4,
-            "previous incident create outcome is unknown; check the server before any retry",
+            2,
+            fsv_core::journal::note_refusal(
+                "previous incident create outcome is unknown; check the server before any retry",
+            ),
         ));
     }
     if !allow_duplicate && journal.recent_plan(&plan.hash, ACTION, 24.0).is_some() {
         return Err(flow_exit(
-            4,
-            "this incident plan was already sent; check the server before --allow-duplicate",
+            2,
+            fsv_core::journal::note_refusal(
+                "this incident plan was already sent; check the server before --allow-duplicate",
+            ),
         ));
     }
     Ok(())
@@ -542,7 +548,7 @@ mod tests {
         );
         assert_eq!(w[0].2["csrf"], json!("synthetic-token"));
         assert_eq!(w[0].2["body"], json!(p.payload));
-        assert_eq!(execute(&p, &c, &j, false).unwrap_err().exit_code(), 4);
+        assert_eq!(execute(&p, &c, &j, false).unwrap_err().exit_code(), 2);
         execute(&p, &c, &j, true).unwrap();
         assert_eq!(c.writes().len(), 2);
         let (q, _) = golden_plan("cc");

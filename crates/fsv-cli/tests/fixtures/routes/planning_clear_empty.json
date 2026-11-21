@@ -1,0 +1,56 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/change_form_fields",
+  "json": {
+   "change_fields": [
+    {
+     "id": 501,
+     "name": "acme_plan",
+     "label": "Rollout Plan",
+     "field_type": "planning_field",
+     "default_field": false
+    },
+    {
+     "id": 502,
+     "name": "backout_plan",
+     "label": "Backout Plan",
+     "field_type": "default_backout_plan",
+     "default_field": true
+    },
+    {
+     "id": 503,
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/126/planning-fields",
+  "json": {
+   "change_planning_fields": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/126/planning-fields",
+  "json": {
+   "problem_planning_fields": []
+  }
+ }
+]

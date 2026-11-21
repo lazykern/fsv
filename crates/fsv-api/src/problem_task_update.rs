@@ -17,7 +17,7 @@ use crate::change_task_update::{
 };
 use crate::readback::{same_instant, same_text, submitted_value_matches};
 use crate::reviewed_inventory::{Family, complete_inventory};
-use crate::reviewed_write::{WritePlan, execute, refused};
+use crate::reviewed_write::{StatefulWritePlan, WritePlan, execute, refused};
 use crate::service::{Api, Journal, obj, snapshot_hash, stable_snapshot};
 use crate::task_status;
 use crate::tasks;
@@ -196,16 +196,20 @@ pub fn build_plan(
         )));
     }
     Ok(TaskUpdatePlan {
-        write: WritePlan {
-            action: "problem_task_update".into(),
-            target,
-            tenant: c.domain(),
-            method: "PUT".into(),
-            path: format!("problems/{target}/tasks/{task}"),
-            payload_json: dumps(&Value::Object(payload)),
-            context_hash: snapshot_hash(
-                &json!({"task": before, "parent": Value::Object(parent), "fields": fields}),
-            )?,
+        write: StatefulWritePlan {
+            plan: WritePlan {
+                action: "problem_task_update".into(),
+                target,
+                tenant: c.domain(),
+                method: "PUT".into(),
+                path: format!("problems/{target}/tasks/{task}"),
+                payload_json: dumps(&Value::Object(payload)),
+                context_hash: snapshot_hash(
+                    &json!({"task": before, "parent": Value::Object(parent), "fields": fields}),
+                )?,
+            },
+            state_json: String::new(),
+            prior_context: String::new(),
         },
         task_id: task,
         inputs_json: dumps(&Value::Object(inputs.clone())),
@@ -267,7 +271,7 @@ pub fn send(
     let target = plan.write.target;
     let task_id = plan.task_id;
     let payload = plan.write.payload();
-    let rebuild = || build_plan(c, &json!(target), &json!(task_id), &inputs).map(|p| p.write);
+    let rebuild = || build_plan(c, &json!(target), &json!(task_id), &inputs).map(|p| p.write.plan);
     let verify = |_: &Value| verify_readback(c, target, task_id, &payload);
     execute(&plan.write, c, journal, reviewed_hash, &rebuild, &verify)
 }

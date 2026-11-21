@@ -50,6 +50,27 @@ pub(crate) fn require_review(yes: bool, expect: Option<&str>, hash: &str) -> Res
     Ok(())
 }
 
+/// [`require_review`] / [`require_full_hash`] for a command whose plan journals
+/// under `actions`: with `--yes`, a hash that names an earlier send of the
+/// journal gets that explanation instead of the generic `default` text.
+pub(crate) fn require_review_stale(
+    yes: bool,
+    expect: Option<&str>,
+    hash: &str,
+    actions: &[&str],
+    default: &str,
+) -> Result<()> {
+    if !yes || expect != Some(hash) {
+        let stale = if yes {
+            DiskJournal.stale_plan_refusal(expect, actions)
+        } else {
+            None
+        };
+        return Err(Error::exit(2, stale.unwrap_or_else(|| default.into())));
+    }
+    Ok(())
+}
+
 /// `except (ValueError, ReviewedWriteError) as exc`: the message on stderr,
 /// exit 2. Anything else is left uncaught.
 pub(crate) fn refusal(e: Error) -> Error {
@@ -167,7 +188,7 @@ pub fn planning_text(res: &'static Resource, a: PlanningTextArgs) -> CmdResult {
     let schema = &planning_text::live_change_schema;
     let run = || -> Result<()> {
         let c = client()?;
-        let plan = planning_text::build_plan_for(
+        let plan = match planning_text::build_plan_for(
             c.as_ref(),
             res.name,
             &a.id_,
@@ -175,7 +196,23 @@ pub fn planning_text(res: &'static Resource, a: PlanningTextArgs) -> CmdResult {
             a.description.as_deref(),
             a.clear,
             schema,
-        )?;
+        ) {
+            Ok(plan) => plan,
+            Err(e) if planning_text::is_nothing_to_change(&e) => {
+                if a.expect_plan.is_some() {
+                    return Err(Error::exit(
+                        2,
+                        "nothing to change; the reviewed plan does not exist. Nothing was sent",
+                    ));
+                }
+                println!(
+                    "{}",
+                    dumps(&json!({"status": "nothing_to_change", "message": e.to_string()}))
+                );
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        };
         if a.dry_run {
             print_dry_run(plan.review());
             return Ok(());
@@ -386,7 +423,13 @@ fn lifecycle(
             return Ok(());
         }
         let hash = plan.hash();
-        require_review(yes, expect_plan, &hash)?;
+        require_review_stale(
+            yes,
+            expect_plan,
+            &hash,
+            &[ticket_lifecycle::ACTION],
+            "review with --dry-run, then pass --yes and the full --expect-plan hash",
+        )?;
         let result = ticket_lifecycle::send(
             &plan,
             c.as_ref(),
@@ -509,7 +552,13 @@ fn assignment(
             return Ok(());
         }
         let hash = plan.hash();
-        require_review(yes, expect_plan, &hash)?;
+        require_review_stale(
+            yes,
+            expect_plan,
+            &hash,
+            &[plan.write.action.as_str()],
+            "review with --dry-run, then pass --yes and the full --expect-plan hash",
+        )?;
         let result = ticket_assignment::send(
             &plan,
             c.as_ref(),
@@ -647,7 +696,13 @@ fn incident_action(
             return Ok(());
         }
         let hash = plan.hash();
-        require_review(yes, expect_plan, &hash)?;
+        require_review_stale(
+            yes,
+            expect_plan,
+            &hash,
+            &[plan.action.as_str()],
+            "review with --dry-run, then pass --yes and the full --expect-plan hash",
+        )?;
         let result =
             problem_incidents::send(&plan, c.as_ref(), &DiskJournal, incident, Some(&hash))?;
         println!("{}", dumps(&result));
@@ -690,7 +745,13 @@ pub fn problem_status(a: ProblemsStatusArgs) -> CmdResult {
             return Ok(());
         }
         let hash = plan.hash();
-        require_full_hash(a.yes, a.expect_plan.as_deref(), &hash)?;
+        require_review_stale(
+            a.yes,
+            a.expect_plan.as_deref(),
+            &hash,
+            &[problem_status::ACTION],
+            "review with --dry-run, then --yes --expect-plan FULL_HASH",
+        )?;
         let result = problem_status::send(
             &plan,
             c.as_ref(),
@@ -1165,7 +1226,7 @@ pub fn problem_task_write(a: ProblemsTaskWriteArgs) -> CmdResult {
             )
         } else {
             let plan = problem_task_update::build_plan(c.as_ref(), &target, &task, &inputs)?;
-            (plan.write.clone(), Some(plan))
+            (plan.write.plan.clone(), Some(plan))
         };
         if a.dry_run {
             let extra = Map::from_iter([("side_effects".to_string(), json!(TASK_SIDE_EFFECTS))]);

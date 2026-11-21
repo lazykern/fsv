@@ -234,6 +234,7 @@ pub fn run(argv: Vec<String>) -> i32 {
         return 0;
     }
     fsv_core::runtime::set_command_path(Some(&format!("{prog} {}", path.join(" "))));
+    fsv_core::journal::clear_refusal();
     let run = || cmd::dispatch(&path.join(" "), m, &prog);
     // Canned routes answer instantly, so an unverified bulk, assignment,
     // merge or priority send must not sleep through the bounded readback

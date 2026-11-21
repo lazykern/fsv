@@ -33,25 +33,9 @@ fn note_closed_refused() {
 
 #[test]
 fn note_closed_ack_review() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &[
-            "tickets",
-            "add-note",
-            "124",
-            "--body",
-            "Acme",
-            "--set-status",
-            "Closed",
-            "--ack",
-            "--dry-run",
-        ],
-        None,
-    );
+    let r = run_fixture("ticket_lifecycle_ack", &["tickets", "add-note", "124", "--body", "Acme", "--set-status", "Closed", "--ack", "--dry-run"], None);
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
+    assert_eq!(r.out, r#"{
   "status": "dry_run",
   "action": "ticket_note",
   "method": "POST",
@@ -69,14 +53,16 @@ fn note_closed_ack_review() {
     "private": true
   },
   "status_label": "Closed",
-  "plan_hash": "9ea6c0f621941396d071ee589de2c49bf27ef6fcbccb2a5f3c7d4d57f423138b",
+  "plan_hash": "eb159f31e96657963e2201988cf49c0b257e94a2bdcfb0d57ecfb958c064d7e6",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
+  "record_state": {
+    "sends": 0
+  },
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
   ]
 }
-"#
-    );
+"#);
     assert_eq!(r.err, r#""#);
 }
 
@@ -106,24 +92,9 @@ fn reply_closed_refused() {
 
 #[test]
 fn reply_closed_ack_review() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &[
-            "tickets",
-            "reply",
-            "124",
-            "Acme",
-            "--set-status",
-            "Closed",
-            "--ack",
-            "--dry-run",
-        ],
-        None,
-    );
+    let r = run_fixture("ticket_lifecycle_ack", &["tickets", "reply", "124", "Acme", "--set-status", "Closed", "--ack", "--dry-run"], None);
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
+    assert_eq!(r.out, r#"{
   "status": "dry_run",
   "action": "ticket_reply",
   "method": "POST",
@@ -143,14 +114,16 @@ fn reply_closed_ack_review() {
     "translate_reply": false
   },
   "status_label": "Closed",
-  "plan_hash": "d08f33615ff89817a8544323b8744b52d33e69349f7684a015dfc0ee03105d3c",
+  "plan_hash": "6eb726d803230dd0da119f1f1ce6adb42d1bdc9623335d7c81351c4887534d44",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
+  "record_state": {
+    "sends": 0
+  },
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
   ]
 }
-"#
-    );
+"#);
     assert_eq!(r.err, r#""#);
 }
 

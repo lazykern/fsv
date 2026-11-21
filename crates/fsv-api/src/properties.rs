@@ -580,9 +580,9 @@ pub fn send_with(
         last_event(journal, ACTION, &hash).as_deref(),
         Some("started" | "done")
     ) {
-        return Err(refused(
+        return Err(refused(fsv_core::journal::note_refusal(
             "update was sent or its outcome is unknown; inspect the ticket and journal before retry",
-        ));
+        )));
     }
     let payload = plan.payload();
     let tags = strings(payload.get("tags"));

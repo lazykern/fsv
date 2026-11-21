@@ -245,6 +245,33 @@ those stay identical.
 - Record IDs are `i64`: a numeric ID beyond it is refused locally as
   `invalid id: …` (exit 2) before any request. Python's `int` sends the GET
   and fails on the server's answer (a 404 in tests).
+- Up-B batch (Python `5d8e9af`..`01a88d4` subset; see UPSTREAM.md):
+  - `problems status`, `problems update --planned-*`, `problems
+    link-incident`/`unlink-incident`, `tickets status`/`resolve`/`close`/
+    `reopen` and `tickets assign`/`pick-up` with `--yes` and a hash that
+    names no earlier send: Python's `raise ReviewedWriteError(stale if yes
+    else None or "review with ...")` parses as `(stale if yes) else
+    ("review with ...")`, so the message is the string `None` (exit 2). Rust
+    prints the generic review hint (exit 2).
+  - The refusal flag behind "every journal replay refusal exits 2" is a
+    thread-local in `fsv_core::journal` (Python: a module global). Only the
+    shared command exit (`util::report`) reads it, and only for `Exit` codes
+    1 and 4, like Python's `typer.Exit`/`SystemExit` handler.
+  - Record-state tokens count verified sends through `Api::verified_sends`
+    (the on-disk `verified.jsonl` for the real client, a settable list in the
+    test doubles) instead of a process-global journal call, so unit tests
+    stay hermetic. The file name, rows and counting are Python's.
+  - Output of the new reviewed commands is not tenant-annotated: the tenant
+    agent's `tenant_json`/`bind_plan` work is on its own branch and wraps
+    these outputs and hashes when it merges.
+  - Golden oracles (`fsv-api/src/testdata/{problem_status,problem_incidents,
+    ticket_assignment,ticket_lifecycle,ticket_lifecycle_ack,
+    closure_conversation,change_task_update}_oracle.json`,
+    `fsv-flows/tests/golden/flows.json` update sections) were re-blessed
+    from the Rust output after checking that only hashes and the new
+    `record_state` changed; their generator scripts no longer exist. The
+    CLI-level cases in `up_b_cmds.rs` and `upstream_cmds.rs` come from a
+    Python oracle (31a9103 plus the up-b commits) through `cmp.py`.
 
 ## fsv-app
 

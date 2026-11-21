@@ -230,6 +230,16 @@ impl PlanningTextPlan {
     }
 }
 
+/// `NothingToChange`: clearing a section that is already empty has no plan
+/// (the CLI exits 0 unless `--expect-plan` was given).
+pub const NOTHING_TO_CHANGE: &str =
+    "planning section is already empty; nothing to change, no write attempted";
+
+/// Whether `e` is the [`NOTHING_TO_CHANGE`] refusal.
+pub fn is_nothing_to_change(e: &Error) -> bool {
+    matches!(e, Error::Exit { code: 2, message } if message == NOTHING_TO_CHANGE)
+}
+
 /// `build_plan(client, module, target, section, description)`: a create or
 /// edit of the section text.
 pub fn build_plan(
@@ -309,9 +319,7 @@ pub fn build_plan_for(
         ));
     }
     if clear && before.is_empty() {
-        return Err(refused(
-            "planning section is already empty; no write attempted",
-        ));
+        return Err(refused(NOTHING_TO_CHANGE));
     }
     let method = if clear {
         "DELETE"

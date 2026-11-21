@@ -3758,3 +3758,36 @@ Divergences are in `port/PARITY.md`. Provenance debt left as is:
   `terminal_status_ids`, the label-based `status_closes`) are removed from
   `fsv-core/src/safety.rs`; `safety.status_closes` maps to
   `fsv_api::status_semantics::status_closes`.
+
+## Ledger: up-b (port/up-b; subset of `31a9103..main`)
+
+Reviewed-write contracts. `UPSTREAM_BASE` and "Last triaged" stay at
+`31a9103` (the sibling up-* branches move them at merge). The CLI fixtures
+(`cli_tree.json`, `completion_tree.json`, `completion.*`) and the `cmp.py`
+goldens of this batch come from a hybrid Python oracle: `31a9103` plus these
+commits cherry-picked (stamped `01a88d4`; `tree.rs` `STAMP_DEBT` names it).
+The tenant hook (`tenant_json`, `bind_plan`) is not in that oracle: when the
+tenant branch merges, the new outputs and hashes below pick it up.
+
+| commit | subject | status | Rust |
+|---|---|---|---|
+| `5d8e9af` | problems add-note: reviewed write | ported | fsv-api `problem_notes.rs`; fsv-cli `reviewed.rs` `problem_add_note`; `up_b_cmds.rs` |
+| `253f012` | legacy tickets update: dry-run plan_hash, `--expect-plan` | ported | fsv-cli `resource.rs` `update_resource`, `problem_update_hash` |
+| `7ca1277` | changes add-note: plan hash, `--expect-plan` | ported | fsv-cli `resource.rs` `note_plan_hash`, `add_note` |
+| `29d99c2` | note registration test expects `--expect-plan` | ported | `cli_tree.json`, `tree.rs`, `module_map.rs` fixtures |
+| `30e5444` | tickets reply on the reviewed-write contract | ported | fsv-api `ticket_plain_reply.rs`; fsv-cli `resource.rs` `reply` |
+| `57dac32` | tests: reset process-global state per test | n/a | the reset covers the tenant branch's globals; Rust tests build a `Ctx` and run commands in subprocesses |
+| `55d3e87` | record-state token in repeatable plans | ported | fsv-core `journal.rs` (`record_verified`, `verified_sends`, `repeat_token`, `stale_plan_refusal`); fsv-api `Api::verified_sends`, `Journal::{record_verified,verified_sends,stale_plan_refusal}`, `reviewed_write.rs` (`execute_guarded`), `notes.rs`, `conversations.rs`, `approvals.rs`, `change_task_update.rs`, `problem_notes.rs`, `ticket_plain_reply.rs`; fsv-flows `change.rs` (`update_hash`, `state_token`, `prior_hash`, `expect`); fsv-cli `resource.rs` `update_state_token`, `inventory.rs` `finish` |
+| `d90affa` | problems status readback acceptance | ported | fsv-api `problem_status.rs` (`workflow_rewrite`, `read_workflow_rewrite`, `status_readback`) |
+| `9cc8b99` | record-state token for problems status / planning / link-unlink, tickets status / resolve / close / reopen / assign / pick-up | ported | fsv-api `reviewed_write.rs` (`StatefulWritePlan`, `stateful_context`, `prior_guards`), `problem_status.rs`, `problem_properties.rs`, `problem_incidents.rs`, `ticket_assignment.rs`, `ticket_lifecycle.rs`, `ticket_bulk.rs` (pickup review); fsv-cli `reviewed.rs` `require_review_stale` |
+| `bc9b942` | replay refusals exit 2 | ported | fsv-core `journal.rs` (`note_refusal`), fsv-cli `util.rs` `replay_exit`, `app.rs`; fsv-api `catalog.rs`, `tasks.rs`, `properties.rs`, `approvals.rs`; fsv-flows `change.rs`, `ticket.rs` |
+| `08ea767` | changes update no-op dry-run | ported | fsv-cli `changes.rs` |
+| `0eea23f` | changes update no-op with `--expect-plan` | ported | fsv-cli `changes.rs` `noop_expect` |
+| `01a88d4` | no-op exits consistent | partial | planning-text `--clear` of an empty section (fsv-api `planning_text.rs`, fsv-cli `reviewed.rs`). Not ported (their base is in other branches): the private-view rename no-op (`6c4d270`), `planning_files.save_path` sharing (`9056d44`), `cache clear forms` and the cache status labels (`abfffc7`) |
+
+Oracle debt: the `fsv-api` oracles for problem status, incidents, assignment,
+lifecycle, closure conversations and change task update, and the update
+sections of `fsv-flows` `flows.json`, were re-blessed from the Rust output
+after confirming that only hashes and the new `record_state` changed (their
+generator scripts are gone). The `cmp.py`-emitted CLI cases are independent
+Python output.

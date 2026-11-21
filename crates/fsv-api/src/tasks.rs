@@ -775,9 +775,9 @@ pub fn send(
             Some("started" | "done")
         )
     }) {
-        return Err(refused(
+        return Err(refused(fsv_core::journal::note_refusal(
             "this task was sent or its outcome is unknown; inspect the change and journal; do not resubmit",
-        ));
+        )));
     }
     let prepared = (|| -> Result<_> {
         if !plan.fields_json.is_empty() {

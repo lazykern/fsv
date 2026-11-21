@@ -14,7 +14,7 @@ use fsv_forms::pydt::datetime_fromisoformat;
 use fsv_py::{py_str, truthy};
 
 use crate::readback::{same_instant, same_text, submitted_value_matches};
-use crate::reviewed_write::{WritePlan, execute, refused};
+use crate::reviewed_write::{StatefulWritePlan, WritePlan, execute_guarded, refused};
 use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
 use crate::task_status;
 use crate::tasks;
@@ -25,7 +25,7 @@ use crate::watchers::positive_id;
 /// `task_id` and `inputs_json` are not bound.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TaskUpdatePlan {
-    pub write: WritePlan,
+    pub write: StatefulWritePlan,
     pub task_id: i64,
     pub inputs_json: String,
 }
@@ -382,16 +382,25 @@ pub fn build_plan(
             missing.join(", ")
         )));
     }
+    let snapshot = snapshot_hash(&json!({"task": before, "fields": fields}))?;
+    // Record-state token: the task's raw updated_at and answered task updates
+    // on this change, so an A/B/A/B alternation plans fresh hashes.
+    let token = c.repeat_token(&["change_task_update"], &json!(target), Some(&before));
+    let context = snapshot_hash(&json!({"snapshot": snapshot, "state": token}))?;
+    let state = (context.clone(), dumps(&Value::Object(token)), snapshot);
     Ok(TaskUpdatePlan {
-        write: WritePlan {
-            action: "change_task_update".into(),
-            target,
-            tenant: c.domain(),
-            method: "PUT".into(),
-            path: format!("changes/{target}/tasks/{task}"),
-            payload_json: dumps(&Value::Object(payload)),
-            context_hash: snapshot_hash(&json!({"task": before, "fields": fields}))?,
-        },
+        write: StatefulWritePlan::new(
+            WritePlan {
+                action: "change_task_update".into(),
+                target,
+                tenant: c.domain(),
+                method: "PUT".into(),
+                path: format!("changes/{target}/tasks/{task}"),
+                payload_json: dumps(&Value::Object(payload)),
+                context_hash: context,
+            },
+            state,
+        ),
         task_id: task,
         inputs_json: dumps(&Value::Object(inputs.clone())),
     })
@@ -469,9 +478,28 @@ pub fn send(
     let target = plan.write.target;
     let task_id = plan.task_id;
     let payload = plan.write.payload();
-    let rebuild = || build_plan(c, &json!(target), &json!(task_id), &inputs).map(|p| p.write);
+    let rebuild = || build_plan(c, &json!(target), &json!(task_id), &inputs).map(|p| p.write.hash());
     let verify = |_: &Value| verify_readback(c, target, task_id, &payload);
-    execute(&plan.write, c, journal, reviewed_hash, &rebuild, &verify)
+    // Python guards with the context before the token whenever one is stored,
+    // even when it equals the bound context.
+    let guards: Vec<String> = if plan.write.prior_context.is_empty() {
+        Vec::new()
+    } else {
+        let mut older = plan.write.plan.clone();
+        older.context_hash = plan.write.prior_context.clone();
+        vec![older.hash()]
+    };
+    execute_guarded(
+        &plan.write,
+        &plan.hash(),
+        c,
+        journal,
+        reviewed_hash,
+        &rebuild,
+        &verify,
+        None,
+        &guards,
+    )
 }
 
 #[cfg(test)]

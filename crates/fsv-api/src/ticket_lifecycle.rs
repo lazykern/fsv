@@ -354,9 +354,15 @@ pub fn context_ack<'a>(
     if !custom.is_empty() {
         payload.insert("custom_fields".into(), Value::Object(custom));
     }
+    // Pending -> Open -> Pending -> Open reads the same stable record again, so
+    // bind the server updated_at and the verified transitions of this ticket
+    // (journal.repeat_token): a legitimate repeated transition plans a fresh
+    // hash while a replay or an unverified send still hashes the same.
+    let token = c.repeat_token(&[ACTION], &json!(cid), Some(&Value::Object(row.clone())));
     let mut bound = json!({
         "record": snapshot_hash(&Value::Object(row))?,
         "metadata": meta.fingerprint().hash,
+        "state": token,
     });
     if !acknowledged.is_empty() {
         bound["acknowledged"] = json!(acknowledged);
@@ -410,7 +416,7 @@ impl LifecyclePlan {
         steps.push(json!({"method": "PUT", "path": path, "payload": payload}));
         let mut out = obj(
             json!({"action": ACTION, "status_label": self.status, "steps": steps,
-                   "plan_hash": self.hash(), "warning": WARNING}),
+                   "plan_hash": self.hash(), "record_state": self.record_state(), "warning": WARNING}),
         );
         if !self.rule_warnings.is_empty() {
             out.insert("rule_warnings".into(), json!(self.rule_warnings));
@@ -421,6 +427,28 @@ impl LifecyclePlan {
             out.insert("warning".into(), json!(format!("{WARNING}{ACK_WARNING}")));
         }
         out
+    }
+
+    /// The record-state token bound in `context_hash` (`null` before tokens).
+    fn record_state(&self) -> Value {
+        serde_json::from_str::<Value>(&self.context_hash)
+            .ok()
+            .and_then(|v| v.get("state").cloned())
+            .unwrap_or(Value::Null)
+    }
+
+    /// Hash of this plan without the record-state token (journals written
+    /// before the token was bound).
+    pub fn prior_hash(&self) -> String {
+        let mut bound: Value = serde_json::from_str(&self.context_hash).unwrap_or(json!({}));
+        if let Some(m) = bound.as_object_mut() {
+            m.shift_remove("state");
+        }
+        LifecyclePlan {
+            context_hash: dumps(&bound),
+            ..self.clone()
+        }
+        .hash()
     }
 
     /// Acknowledged blocking rule message texts bound in `context_hash`.
@@ -608,13 +636,13 @@ pub fn send(
     if plan.tenant.is_empty() || c.domain() != plan.tenant || reviewed != hash {
         return Err(refused("tenant or full review hash changed; review again"));
     }
-    if let Some(refusal) = replay_refusal(
-        journal,
-        ACTION,
-        &hash,
-        "transition was sent or outcome unknown; inspect ticket and journal before retry",
-    ) {
+    const UNKNOWN: &str =
+        "transition was sent or outcome unknown; inspect ticket and journal before retry";
+    if let Some(refusal) = replay_refusal(journal, ACTION, &hash, UNKNOWN) {
         return Err(refused(refusal));
+    }
+    if last_event(journal, ACTION, &plan.prior_hash()).as_deref() == Some("started") {
+        return Err(refused(fsv_core::journal::note_refusal(UNKNOWN)));
     }
     let answers = plan.answers();
     let before = record(c, plan.target)?;
@@ -749,6 +777,7 @@ pub fn send(
         Ok((true, notes, _)) => notes,
     };
     journal.record_plan("done", &hash, ACTION, Some(&target), None);
+    journal.record_verified(&hash, ACTION, Some(&target));
     let mut out = json!({"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,
               "plan_hash": hash, "verified": true});
     if !notes.is_empty() {

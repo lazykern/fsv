@@ -212,9 +212,10 @@ fn approval_request_inner(a: ChangesApprovalRequestArgs) -> CmdResult {
         ids.extend(approvals::resolve_approvers(&c, &a.approver)?);
     }
     let ids: Vec<i64> = ids.into_iter().collect();
-    let plan =
-        approvals::build_plan_with(&a.id_, &name, &message, &ids, &a.rule, &tenant, &context)?;
     let journal = DiskJournal;
+    let plan =
+        approvals::build_plan_with(&a.id_, &name, &message, &ids, &a.rule, &tenant, &context)?
+            .stated(&journal);
     if a.dry_run {
         let opts = SendOpts {
             dry_run: true,

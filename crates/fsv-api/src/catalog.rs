@@ -2078,8 +2078,10 @@ pub fn duplicate_check(plan: &SRPlan, allow_duplicate: bool, journal: &dyn Journ
         crate::service::last_event(journal, "create", hash).as_deref() == Some("started")
     }) {
         return Err(flow_exit(
-            4,
-            "previous request outcome is unknown; inspect the server and journal before retry",
+            2,
+            fsv_core::journal::note_refusal(
+                "previous request outcome is unknown; inspect the server and journal before retry",
+            ),
         ));
     }
     if plan.action != "create" || allow_duplicate {
@@ -2098,10 +2100,10 @@ pub fn duplicate_check(plan: &SRPlan, allow_duplicate: bool, journal: &dyn Journ
         format!("was started at {ts} with no recorded outcome (it may have been created)")
     };
     Err(flow_exit(
-        4,
-        format!(
+        2,
+        fsv_core::journal::note_refusal(format!(
             "this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again."
-        ),
+        )),
     ))
 }
 

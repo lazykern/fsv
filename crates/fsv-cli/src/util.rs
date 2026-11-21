@@ -71,6 +71,17 @@ pub fn uncaught(e: Error) -> Error {
     }
 }
 
+/// `cli._replay_exit`: one exit code (2) for every journal replay refusal;
+/// commands map their own errors to 1 or 4, and 4 must keep meaning "sent,
+/// unverified".
+fn replay_exit(code: i32) -> i32 {
+    if matches!(code, 1 | 4) && fsv_core::journal::refusal_noted() {
+        2
+    } else {
+        code
+    }
+}
+
 /// Final exit code for a command result, printing what is still unprinted.
 /// Port of fsv.cli._flow_exit (the `Error::Exit` arm).
 pub fn report(result: CmdResult) -> i32 {
@@ -84,10 +95,10 @@ pub fn report(result: CmdResult) -> i32 {
                     err().print(&escape(&message));
                 }
             }
-            code
+            replay_exit(code)
         }
         Err(e) => match fail_exc(e) {
-            Error::Exit { code, .. } => code,
+            Error::Exit { code, .. } => replay_exit(code),
             _ => 1,
         },
     }
@@ -397,6 +408,22 @@ mod tests {
                 "{case}"
             );
         }
+    }
+
+    /// Python bc9b942 `test_replay_exit_code`: a stop after a journal replay
+    /// refusal exits 2 (never 4 or 1); other exits keep their code.
+    #[test]
+    fn replay_refusal_maps_exits_one_and_four_to_two() {
+        fsv_core::journal::clear_refusal();
+        for code in [0, 1, 2, 3, 4, 5] {
+            assert_eq!(report(Err(Error::exit(code, ""))), code);
+        }
+        fsv_core::journal::note_refusal(());
+        for (code, want) in [(0, 0), (1, 2), (2, 2), (3, 3), (4, 2), (5, 5)] {
+            assert_eq!(report(Err(Error::exit(code, ""))), want, "{code}");
+        }
+        fsv_core::journal::clear_refusal();
+        assert_eq!(report(Err(Error::exit(4, ""))), 4);
     }
 
     /// `units.json` `interactive`: `_interactive()` under `NO_INPUT` and a

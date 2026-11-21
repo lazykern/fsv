@@ -565,6 +565,7 @@ impl LiveForm {
                         .as_ref()
                         .map(|_| &label_fn as &dyn Fn(&Json) -> String),
                     hints_path: None,
+                    journal: None,
                 };
                 change::build_update_plan(&meta, &draft, &record, target, &opts)?
             }

@@ -8,15 +8,9 @@ use common::{run_fixture, run_steps};
 
 #[test]
 fn closed_dry_run_shows_missing_solution_up_front() {
-    let r = run_fixture(
-        "problem_status_closure",
-        &["problems", "status", "12", "--to", "Closed", "--dry-run"],
-        None,
-    );
+    let r = run_fixture("problem_status_closure", &["problems", "status", "12", "--to", "Closed", "--dry-run"], None);
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
+    assert_eq!(r.out, r#"{
   "status": "dry_run",
   "action": "problem_status",
   "method": "PUT",
@@ -24,7 +18,7 @@ fn closed_dry_run_shows_missing_solution_up_front() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "357407033c3cc309cd384902b09fcf69c059e86016f5090140564aa181ac4035",
+  "plan_hash": "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -39,6 +33,10 @@ fn closed_dry_run_shows_missing_solution_up_front() {
     "subject": "Acme problem 12"
   },
   "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "closure_check": {
     "analysis": "Root Cause, Impact and Symptoms are filled",
     "linked_solution": "missing: this tenant may require a linked workaround / solution for closure (not proven here; the server decides and fsv remembers a rejection for later dry-runs)"
@@ -47,22 +45,15 @@ fn closed_dry_run_shows_missing_solution_up_front() {
     "no linked workaround / solution: some tenants reject closure without one (check_workaround_or_solution_added); not blocked because this tenant has not proven that rule (observed on one tenant: only 2 of 62 closed problems had a linked workaround / solution, so this closure rule is tenant configuration, not a platform rule); the server decides"
   ]
 }
-"#
-    );
+"#);
     assert_eq!(r.err, r#""#);
 }
 
 #[test]
 fn closed_dry_run_shows_linked_solution_up_front() {
-    let r = run_fixture(
-        "problem_status_closure",
-        &["problems", "status", "13", "--to", "Closed", "--dry-run"],
-        None,
-    );
+    let r = run_fixture("problem_status_closure", &["problems", "status", "13", "--to", "Closed", "--dry-run"], None);
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
+    assert_eq!(r.out, r#"{
   "status": "dry_run",
   "action": "problem_status",
   "method": "PUT",
@@ -70,7 +61,7 @@ fn closed_dry_run_shows_linked_solution_up_front() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "d27eb5790b6979966b63a9a00798de05ae4918ee221d5bd4f61f221cac1c12bb",
+  "plan_hash": "f76a98c4f2f579cf32713c82e7ce33039c9f7ced35bc7a428cd408d606b175ad",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -85,34 +76,24 @@ fn closed_dry_run_shows_linked_solution_up_front() {
     "subject": "Acme problem 13"
   },
   "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "closure_check": {
     "analysis": "Root Cause, Impact and Symptoms are filled",
     "linked_solution": "linked (1)"
   }
 }
-"#
-    );
+"#);
     assert_eq!(r.err, r#""#);
 }
 
 #[test]
 fn non_closure_dry_run_has_no_closure_check() {
-    let r = run_fixture(
-        "problem_status_closure",
-        &[
-            "problems",
-            "status",
-            "12",
-            "--to",
-            "Change Requested",
-            "--dry-run",
-        ],
-        None,
-    );
+    let r = run_fixture("problem_status_closure", &["problems", "status", "12", "--to", "Change Requested", "--dry-run"], None);
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
+    assert_eq!(r.out, r#"{
   "status": "dry_run",
   "action": "problem_status",
   "method": "PUT",
@@ -120,7 +101,7 @@ fn non_closure_dry_run_has_no_closure_check() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "359584202f3ae3f9ccd2bd8e005f7db7f4e48432dc25f5770a617dbcda94b68c",
+  "plan_hash": "5dc6829baa5e2f39a39f0f8ea4090daf5a6ffe770c1e48dc36273ca857ddf1b3",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -134,36 +115,23 @@ fn non_closure_dry_run_has_no_closure_check() {
     "status": 2,
     "subject": "Acme problem 12"
   },
-  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
-"#
-    );
+"#);
     assert_eq!(r.err, r#""#);
 }
 
 #[test]
 fn closed_rejection_remembers_solution_rule() {
-    let r = run_fixture(
-        "problem_status_closure",
-        &[
-            "problems",
-            "status",
-            "12",
-            "--to",
-            "Closed",
-            "--yes",
-            "--expect-plan",
-            "357407033c3cc309cd384902b09fcf69c059e86016f5090140564aa181ac4035",
-        ],
-        None,
-    );
+    let r = run_fixture("problem_status_closure", &["problems", "status", "12", "--to", "Closed", "--yes", "--expect-plan", "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5"], None);
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"violated_closure_rules: a workaround / solution must be linked
-"#
-    );
+    assert_eq!(r.err, r#"violated_closure_rules: a workaround / solution must be linked
+"#);
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/12"]);
 }
 
@@ -179,7 +147,7 @@ fn remembered_solution_rule_blocks_the_dry_run_up_front() {
             "Closed",
             "--yes",
             "--expect-plan",
-            "357407033c3cc309cd384902b09fcf69c059e86016f5090140564aa181ac4035",
+            "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5",
         ]],
         &["problems", "status", "12", "--to", "Closed", "--dry-run"],
         None,

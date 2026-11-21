@@ -337,9 +337,21 @@ pub struct ConversationPlan {
     pub canned_hash: Option<String>,
     /// `--ack` with a closing `--set-status` (bound in `record_hash`).
     pub ack: bool,
+    /// Verified sends of this kind on this ticket (`journal.repeat_token`):
+    /// the same reply/note/forward sent again later plans a fresh hash, while
+    /// an answered or unresolved plan is still never replayed. `None` is
+    /// pre-token (see [`ConversationPlan::stated`]).
+    pub sends: Option<i64>,
 }
 
 impl ConversationPlan {
+    /// `build_plan`'s `journal.verified_sends((f"ticket_{kind}_reviewed",), tid)`.
+    pub fn stated(mut self, journal: &dyn Journal) -> ConversationPlan {
+        let action = format!("ticket_{}_reviewed", self.kind);
+        self.sends = Some(journal.verified_sends(&[&action], &json!(self.ticket_id)));
+        self
+    }
+
     /// Blocking rule messages acknowledged with --ack (bound in `record_hash`).
     pub fn acknowledged(&self) -> Vec<Value> {
         let Some(bound) = self.record_hash.as_deref().filter(|_| self.ack) else {
@@ -376,6 +388,9 @@ impl ConversationPlan {
             identity["canned"] =
                 json!({"id": id, "pointer": self.canned_pointer, "hash": self.canned_hash});
         }
+        if self.sends.is_some_and(|n| n != 0) {
+            identity["state"] = json!({"sends": self.sends});
+        }
         plan_hash(&identity)
     }
 
@@ -385,6 +400,9 @@ impl ConversationPlan {
                    "payload": self.payload(), "status_label": self.status_label, "plan_hash": self.hash(),
                    "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}),
         );
+        if let Some(n) = self.sends {
+            out.insert("record_state".into(), json!({"sends": n}));
+        }
         let acknowledged = self.acknowledged();
         if !acknowledged.is_empty() {
             out.insert("acknowledged_rule_messages".into(), json!(acknowledged));
@@ -607,6 +625,7 @@ pub fn build_plan_mail(
         canned_pointer: None,
         canned_hash: None,
         ack: args.ack && args.set_status.is_some(),
+        sends: None,
     })
 }
 
@@ -624,8 +643,13 @@ pub fn send(
         return Ok(json!({"status": "cancelled"}));
     };
     let hash = plan.hash();
+    let action = format!("ticket_{}_reviewed", plan.kind);
     if hash != reviewed || plan.tenant.is_empty() || plan.tenant != c.domain() {
-        return Err(refused("tenant or review hash changed; review again"));
+        return Err(refused(
+            journal
+                .stale_plan_refusal(Some(reviewed), &[&action])
+                .unwrap_or_else(|| "tenant or review hash changed; review again".into()),
+        ));
     }
     let payload = plan.payload();
     let private = payload.get("private").is_none_or(truthy);
@@ -634,14 +658,19 @@ pub fn send(
             "public conversation requires explicit confirmation",
         ));
     }
-    let action = format!("ticket_{}_reviewed", plan.kind);
-    if let Some(refusal) = replay_refusal(
-        journal,
-        &action,
-        &hash,
-        "conversation was sent or outcome unknown; inspect ticket and journal before retry",
-    ) {
+    const SENT: &str =
+        "conversation was sent or outcome unknown; inspect ticket and journal before retry";
+    if let Some(refusal) = replay_refusal(journal, &action, &hash, SENT) {
         return Err(refused(refusal));
+    }
+    if plan.sends.is_some() {
+        let prior = ConversationPlan {
+            sends: None,
+            ..plan.clone()
+        };
+        if last_event(journal, &action, &prior.hash()).as_deref() == Some("started") {
+            return Err(refused(fsv_core::journal::note_refusal(SENT)));
+        }
     }
     if plan.kind == "forward" && payload.get("conversation_id").is_some() {
         let id = crate::watchers::positive_id(&payload["conversation_id"])?;
@@ -818,6 +847,9 @@ pub fn send(
             json!("delivery fields; source link is not exposed by independent readback"),
         );
     }
+    if result["verified"] == Value::Bool(true) {
+        journal.record_verified(&hash, &action, Some(&target));
+    }
     if result["verified"] != Value::Bool(true) {
         result.insert(
             "warning".into(),
@@ -860,6 +892,7 @@ mod tests {
             canned_pointer: None,
             canned_hash: None,
             ack: false,
+            sends: None,
         };
         assert_eq!(plan.payload(), oracle["misc"]["conversation_payload"]);
     }

@@ -487,7 +487,7 @@ fn unchanged_metadata_sends_through_the_cli_path() {
     assert!(text.is_empty() && asked.is_empty());
     let (r, _, _) = cli(&s, &SendOptions::default(), true);
     let (code, msg) = exit_of(&r.unwrap_err());
-    assert_eq!(code, 4);
+    assert_eq!(code, 2);
     assert!(
         msg.starts_with("this exact plan was already sent at "),
         "{msg}"
@@ -599,3 +599,4 @@ fn sr_cli_upload_failure_places_nothing() {
     assert_eq!(text, "");
     assert_eq!(f.write_paths(), [UPLOAD]);
 }
+

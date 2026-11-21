@@ -57,6 +57,75 @@ impl WritePlan {
     }
 }
 
+/// Port of fsv.reviewed_write.StatefulWritePlan: a write that may
+/// legitimately repeat the same payload. `context_hash` binds a record-state
+/// token (`journal.repeat_token`), shown in the review; `prior_context` is the
+/// context without it (pre-token journals).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StatefulWritePlan {
+    pub plan: WritePlan,
+    pub state_json: String,
+    pub prior_context: String,
+}
+
+impl std::ops::Deref for StatefulWritePlan {
+    type Target = WritePlan;
+    fn deref(&self) -> &WritePlan {
+        &self.plan
+    }
+}
+
+impl StatefulWritePlan {
+    /// A stateful write from [`stateful_context`]'s parts.
+    pub fn new(plan: WritePlan, state: (String, String, String)) -> StatefulWritePlan {
+        let (_, state_json, prior_context) = state;
+        StatefulWritePlan {
+            plan,
+            state_json,
+            prior_context,
+        }
+    }
+
+    /// Port of StatefulWritePlan.review.
+    pub fn review(&self) -> Map<String, Value> {
+        let mut out = self.plan.review();
+        if !self.state_json.is_empty() {
+            out.insert(
+                "record_state".into(),
+                serde_json::from_str(&self.state_json).unwrap_or(Value::Null),
+            );
+        }
+        out
+    }
+
+    /// Port of `prior_guards`: the hash of this plan without its record-state
+    /// token, so an unresolved send journaled before the token was bound
+    /// still refuses.
+    pub fn prior_guards(&self) -> Vec<String> {
+        prior_guards(&self.plan, &self.prior_context)
+    }
+}
+
+/// Port of `reviewed_write.stateful_context`: (context hash with the token,
+/// token JSON, context hash without it).
+pub fn stateful_context(context: &Value, token: &Map<String, Value>) -> Result<(String, String, String)> {
+    let with = crate::service::snapshot_hash(&json!({"context": context, "state": token}))?;
+    let state = fsv_py::Dumps::default()
+        .sort_keys(true)
+        .dump(&Value::Object(token.clone()));
+    Ok((with, state, crate::service::snapshot_hash(context)?))
+}
+
+/// Port of `reviewed_write.prior_guards` for a plan and its `prior_context`.
+pub fn prior_guards(plan: &WritePlan, prior_context: &str) -> Vec<String> {
+    if prior_context.is_empty() || prior_context == plan.context_hash {
+        return Vec::new();
+    }
+    let mut older = plan.clone();
+    older.context_hash = prior_context.to_string();
+    vec![older.hash()]
+}
+
 const UNKNOWN: &str = "write outcome unknown; inspect target and journal before retry";
 
 /// Port of fsv.reviewed_write.execute: guards, one request, then `verify` on

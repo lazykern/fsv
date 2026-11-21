@@ -240,7 +240,7 @@ fn unacknowledged_plans_keep_their_context_identity() {
         .keys()
         .cloned()
         .collect();
-    assert_eq!(keys, ["metadata", "record"]);
+    assert_eq!(keys, ["metadata", "record", "state"]);
 }
 
 fn replay(cases: &Map<String, Value>) {

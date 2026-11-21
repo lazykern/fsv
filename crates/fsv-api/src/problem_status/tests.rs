@@ -127,6 +127,11 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
             return Ok(json!({"problem": s["row"]}));
         }
         if path == "problems/123/activities" {
+            let reads = s.get("activity_reads").and_then(Value::as_i64).unwrap_or(0);
+            s["activity_reads"] = json!(reads + 1);
+            if s.get("activities_fail") == Some(&json!(true)) {
+                return Err(Error::other("activity unavailable"));
+            }
             return Ok(json!({"activities": s.get("activities").cloned().unwrap_or(json!([]))}));
         }
         Err(ApiError::new(404, json!({"error": "unexpected"})).into())
@@ -265,33 +270,194 @@ fn cases_match_python() {
     }
 }
 
-/// `test_workflow_activity_confirms_rewrite_back_to_prior_status` and
+const MAP: &[(&str, &str)] = &[
+    ("1", "Open"),
+    ("5", "In Progress"),
+    ("7", "Monitor"),
+    ("8", "Resolve"),
+    ("9", "Closed"),
+];
+
+fn labels(extra: &[(&str, &str)]) -> Map<String, Value> {
+    MAP.iter()
+        .chain(extra)
+        .map(|(k, v)| (k.to_string(), json!(v)))
+        .collect()
+}
+
+fn at(text: &str) -> jiff::Timestamp {
+    let (dt, off) = fsv_forms::pydt::datetime_fromisoformat(&text.replace('Z', "+00:00")).unwrap();
+    off.unwrap().to_timestamp(dt).unwrap()
+}
+
+/// `test_problem_write_fixes._native_activity`.
+fn native_activity(write_at: &str, workflow_at: &str, requested: &str, rewritten: &str) -> Vec<Value> {
+    vec![
+        json!({"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": false},
+               "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+               "sub_contents": [format!("set status as <b>{rewritten}</b>"), "<b>Workflow Ends</b>"],
+               "created_at": workflow_at}),
+        json!({"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": true},
+               "content": format!("set status as  <b>{requested}</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>"),
+               "sub_contents": null, "created_at": write_at}),
+    ]
+}
+
 /// `test_workflow_rewrite_back_to_prior_status_uses_native_activity_rows`
-/// (Python ce84f9b).
+/// (Python d90affa).
 #[test]
-fn workflow_activity_note_matches_python() {
-    let oracle: Value = serde_json::from_str(include_str!(
-        "../testdata/problem_status_activity_oracle.json"
-    ))
-    .unwrap();
-    let cases = oracle["cases"].as_array().unwrap();
-    assert_eq!(cases.len(), 12);
-    for case in cases {
-        let (dt, off) =
-            fsv_forms::pydt::datetime_fromisoformat(case["since"].as_str().unwrap()).unwrap();
-        let since = off.unwrap().to_timestamp(dt).unwrap();
-        let got = workflow_note(
-            case["rows"].as_array().unwrap(),
-            since,
-            case["requested"].as_str(),
+fn workflow_rewrite_uses_native_activity_rows() {
+    let since = at("2030-01-01T00:00:00Z");
+    let rows = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    let l = labels(&[]);
+    let (note, conflict) = workflow_rewrite(&rows, since, &l, &json!(8), &json!(7));
+    let note = note.unwrap();
+    assert!(
+        note.contains("Resolve")
+            && note.contains("Monitor (status 7)")
+            && note.contains("Problem Workflow")
+            && conflict.is_none()
+    );
+    // No entry for this write (requested Closed): the readback stays unverified.
+    assert_eq!(workflow_rewrite(&rows, since, &l, &json!(9), &json!(7)), (None, None));
+    // The workflow set another status than the readback: a conflict.
+    let (note, conflict) = workflow_rewrite(&rows, since, &l, &json!(8), &json!(1));
+    assert!(note.is_none() && conflict.unwrap().contains("readback status is Open"));
+    // Workflow entry older than the write is not evidence.
+    let stale = native_activity("2030-01-01T00:02:00Z", "2030-01-01T00:01:00Z", "Resolve", "Monitor");
+    assert_eq!(workflow_rewrite(&stale, since, &l, &json!(8), &json!(7)), (None, None));
+    // Entries before the write window do not count.
+    let old = native_activity("2029-12-31T00:01:00Z", "2029-12-31T00:01:01Z", "Resolve", "Monitor");
+    assert_eq!(workflow_rewrite(&old, since, &l, &json!(8), &json!(7)), (None, None));
+    // A workflow row that did not set a status is not a rewrite.
+    let mut noset = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    noset[0]["sub_contents"] = json!(["send email to <b>requester</b>", "<b>Workflow Ends</b>"]);
+    assert_eq!(workflow_rewrite(&noset, since, &l, &json!(8), &json!(7)), (None, None));
+}
+
+/// `test_workflow_row_is_detected_structurally_not_by_wording` (Python d90affa).
+#[test]
+fn workflow_row_is_detected_structurally() {
+    let since = at("2030-01-01T00:00:00Z");
+    let l = labels(&[]);
+    let mut rows = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    rows[0]["actor"] = json!({"id": 9000002, "name": "Acme Agent Two", "is_agent": true});
+    assert_eq!(workflow_rewrite(&rows, since, &l, &json!(8), &json!(7)), (None, None));
+    let mut rows = native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z", "Resolve", "Monitor");
+    rows[0]["content"] = json!("ran automation");
+    assert!(workflow_rewrite(&rows, since, &l, &json!(8), &json!(7)).0.is_some());
+    let short = labels(&[]).into_iter().filter(|(k, _)| k == "8").collect();
+    assert!(workflow_rewrite(&rows, since, &short, &json!(8), &json!(7)).0.is_none());
+    assert!(workflow_rewrite(&rows, since, &labels(&[("10", "Monitor")]), &json!(8), &json!(7)).0.is_none());
+}
+
+/// `test_problem_status_readback`: only the requested status verifies.
+#[test]
+fn status_readback_verifies_only_the_requested_status() {
+    for (before, after, sent, verified) in [
+        (json!(1), json!(5), json!(5), true),
+        (json!(1), json!(7), json!(4), false),
+        (json!(4), json!(4), json!(5), false),
+        (json!(1), Value::Null, json!(5), false),
+    ] {
+        let (ok, note) = status_readback(&before, &after, &sent);
+        assert_eq!((ok, note), (verified, None));
+    }
+}
+
+fn agent_row(label: &str, stamp: &str) -> Value {
+    json!({"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": true},
+           "content": format!("set status as  <b>{label}</b>"), "sub_contents": null, "created_at": stamp})
+}
+
+fn workflow_row(label: &str, stamp: &str) -> Value {
+    json!({"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": false},
+           "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed</b>  event",
+           "sub_contents": [format!("set status as <b>{label}</b>"), "<b>Workflow Ends</b>"],
+           "created_at": stamp})
+}
+
+/// `test_workflow_rewrite_back_to_the_prior_status_is_verified_once_activity_is_logged`.
+#[test]
+fn workflow_rewrite_is_verified_once_activity_is_logged() {
+    for label in ["Open", "Resolve"] {
+        let n = 41;
+        let state = Arc::new(Mutex::new(new_state(n)));
+        state.lock().unwrap()["fields"][1]["choices"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"id": n + 4, "value": "Monitor 1 month"}));
+        state.lock().unwrap()["row"]["status"] = json!(n + 4);
+        let c = Arc::new(api(state.clone()));
+        let store = MemStore::default();
+        let resolver = || -> Option<Arc<dyn LookupResolver>> {
+            Some(Arc::new(ClientResolver::new(c.clone())))
+        };
+        let plan = build_plan(&*c, &store, "123", label, resolver()).unwrap();
+        let now = jiff::Timestamp::now().strftime("%Y-%m-%dT%H:%M:%SZ").to_string();
+        {
+            let mut s = state.lock().unwrap();
+            s["mismatch"] = json!(true);
+            s["activities"] = json!([agent_row(label, &now)]);
+        }
+        let reads = std::rc::Rc::new(std::cell::Cell::new(0));
+        let hook_state = state.clone();
+        let hook_reads = reads.clone();
+        let stamp = now.clone();
+        let journal = MemJournal::default();
+        let result = crate::readback::with_readback_sleep(
+            move |_| {
+                hook_reads.set(hook_reads.get() + 1);
+                hook_state.lock().unwrap()["activities"]
+                    .as_array_mut()
+                    .unwrap()
+                    .insert(0, workflow_row("Monitor 1 month", &stamp));
+            },
+            || send(&plan, &*c, &store, &journal, Some(&plan.hash()), resolver()).unwrap(),
         );
-        assert_eq!(
-            json!(got.map(|g| g.0)),
-            case["expected"],
-            "{}",
-            case["name"]
+        assert_eq!(state.lock().unwrap()["requests"].as_array().unwrap().len(), 1);
+        assert_eq!(result["readback"]["status"], json!(n + 4));
+        assert_eq!((result["verified"].clone(), reads.get()), (json!(true), 1));
+        assert_eq!(result["final_status"], "Monitor 1 month");
+        assert!(
+            result["verified_with_note"].as_str().unwrap().contains(&format!(
+                "set to {label} by this write, then rewritten server-side to Monitor 1 month (status {})",
+                n + 4
+            ))
         );
     }
+}
+
+/// `test_rewrite_without_activity_stays_unverified`.
+#[test]
+fn rewrite_without_readable_activity_stays_unverified() {
+    let n = 41;
+    let state = Arc::new(Mutex::new(new_state(n)));
+    state.lock().unwrap()["fields"][1]["choices"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"id": n + 4, "value": "Monitor 1 month"}));
+    state.lock().unwrap()["row"]["status"] = json!(n + 4);
+    let c = Arc::new(api(state.clone()));
+    let store = MemStore::default();
+    let resolver = || -> Option<Arc<dyn LookupResolver>> {
+        Some(Arc::new(ClientResolver::new(c.clone())))
+    };
+    let plan = build_plan(&*c, &store, "123", "Open", resolver()).unwrap();
+    {
+        let mut s = state.lock().unwrap();
+        s["mismatch"] = json!(true);
+        s["activities_fail"] = json!(true);
+    }
+    let journal = MemJournal::default();
+    let result = send(&plan, &*c, &store, &journal, Some(&plan.hash()), resolver()).unwrap();
+    assert_eq!(result["verified"], false);
+    assert!(result.get("verified_with_note").is_none());
+    assert!(result["warning"].as_str().unwrap().contains("do not resend"));
+    assert_eq!(
+        state.lock().unwrap()["activity_reads"],
+        json!(ACTIVITY_ATTEMPTS)
+    );
 }
 
 /// `test_closed_rewritten_by_workflow_is_verified_with_note` (Python 92b7a55):

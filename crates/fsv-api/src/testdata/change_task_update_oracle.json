@@ -45,8 +45,8 @@
        "status": 7,
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "c6f6c44765e4a8fcf4e2ab2204c23a471a1ab03b4d0b1bbf5cc92cf849d19476",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -62,8 +62,12 @@
         "status": 7,
         "title": "Acme revised"
        },
-       "plan_hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "c6f6c44765e4a8fcf4e2ab2204c23a471a1ab03b4d0b1bbf5cc92cf849d19476",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -83,7 +87,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
+      "plan_hash": "c6f6c44765e4a8fcf4e2ab2204c23a471a1ab03b4d0b1bbf5cc92cf849d19476",
       "verified": true,
       "fields_verified": true,
       "fields": {
@@ -100,13 +104,13 @@
       "readback": {
        "id": 17,
        "title": "Acme revised",
+       "planned_effort": "1h 30m",
        "group_id": 92,
        "status": 7,
        "planned_start_date": "2026-12-01T10:15:00Z",
        "planned_end_date": "2026-12-01T06:15:00-05:00",
        "description": "<div style='font:inherit'><div>Review evidence</div></div>",
        "notify_before": 900,
-       "planned_effort": "1h 30m",
        "agent_id": 82
       }
      },
@@ -144,8 +148,8 @@
       "payload": {
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "69e143b39335d38d08c311a09a4c3653247e139183bc7c8dc55310ff576ea89d",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -153,8 +157,12 @@
        "payload": {
         "title": "Acme revised"
        },
-       "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "69e143b39335d38d08c311a09a4c3653247e139183bc7c8dc55310ff576ea89d",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -169,7 +177,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+      "plan_hash": "69e143b39335d38d08c311a09a4c3653247e139183bc7c8dc55310ff576ea89d",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -250,8 +258,8 @@
       "payload": {
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "69e143b39335d38d08c311a09a4c3653247e139183bc7c8dc55310ff576ea89d",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -259,8 +267,12 @@
        "payload": {
         "title": "Acme revised"
        },
-       "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "69e143b39335d38d08c311a09a4c3653247e139183bc7c8dc55310ff576ea89d",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -306,8 +318,8 @@
        "group_id": null,
        "owner_id": null
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "1c60b4ed53623d7340099a4ed1ded54fe25bf4170fb9a4cba6bd869fb959a438",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -316,8 +328,12 @@
         "group_id": null,
         "owner_id": null
        },
-       "plan_hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "1c60b4ed53623d7340099a4ed1ded54fe25bf4170fb9a4cba6bd869fb959a438",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -330,7 +346,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
+      "plan_hash": "1c60b4ed53623d7340099a4ed1ded54fe25bf4170fb9a4cba6bd869fb959a438",
       "verified": true,
       "fields_verified": true,
       "fields": {
@@ -340,10 +356,10 @@
       "readback": {
        "id": 17,
        "title": "Acme task",
+       "planned_end_date": "2026-12-01T11:00:00Z",
        "group_id": null,
        "status": 1,
        "planned_start_date": "2026-12-01T10:00:00Z",
-       "planned_end_date": "2026-12-01T11:00:00Z",
        "agent_id": null
       }
      },
@@ -419,8 +435,8 @@
         "system": "SAP"
        }
       },
-      "context_hash": "e3dad8ab62d4c93a39718ebda6ce192d1f30d063bf0ba8b405ac78f82125283b",
-      "hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
+      "context_hash": "95e9215702b4c28ff65f92002389ba7e1b19f260a338d6c2fd59cfb64931a3f4",
+      "hash": "d3e03d4eec58ea4fd88b51d983a9e4ba3e05a895165eae97997af74a7a37795e",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -430,8 +446,12 @@
          "system": "SAP"
         }
        },
-       "plan_hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "d3e03d4eec58ea4fd88b51d983a9e4ba3e05a895165eae97997af74a7a37795e",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -445,7 +465,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
+      "plan_hash": "d3e03d4eec58ea4fd88b51d983a9e4ba3e05a895165eae97997af74a7a37795e",
       "verified": true,
       "fields_verified": true,
       "fields": {
@@ -536,8 +556,8 @@
        },
        "status": 3
       },
-      "context_hash": "221215bc2f32ab906cf609b09f9de4b80ab8ad9b12c3339e21e0a83e122ac5d3",
-      "hash": "f819a8a0b599c804ad55344db52f2eb96b1804830b82359ce875e26f318fda5f",
+      "context_hash": "9817e5dae80719b66e78b75181f2041843d22824e29df28b30922e24b1472e8d",
+      "hash": "4d40a40a53773a6d7b78043809d55e118a3067ed687a2aac8542e70b1eb5eb4a",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -548,8 +568,12 @@
         },
         "status": 3
        },
-       "plan_hash": "f819a8a0b599c804ad55344db52f2eb96b1804830b82359ce875e26f318fda5f",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "4d40a40a53773a6d7b78043809d55e118a3067ed687a2aac8542e70b1eb5eb4a",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -685,8 +709,8 @@
        "planned_effort": "1h 0m",
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -696,8 +720,12 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -711,7 +739,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "verified": true,
       "fields_verified": false,
       "fields": {
@@ -769,8 +797,8 @@
        "planned_effort": "1h 0m",
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -780,8 +808,12 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -795,7 +827,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -853,8 +885,8 @@
        "planned_effort": "1h 0m",
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -864,8 +896,12 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -879,7 +915,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -938,8 +974,8 @@
        "planned_effort": "1h 0m",
        "title": "Acme revised"
       },
-      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
-      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
+      "hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -949,8 +985,12 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+       "record_state": {
+        "sends": 0,
+        "server_version": null
+       }
       },
       "task_id": 17,
       "inputs": {
@@ -964,7 +1004,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "plan_hash": "38731fa8866a03e1ffd522ddc44aa4b9bf9c792ce86fab07f40b8a40775e27a5",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -974,12 +1014,12 @@
       },
       "readback": {
        "id": 17,
+       "planned_effort": "1h",
        "owner_id": 81,
        "group_id": 91,
        "status": 1,
        "planned_start_date": "2026-12-01T10:00:00Z",
-       "planned_end_date": "2026-12-01T11:00:00Z",
-       "planned_effort": "1h"
+       "planned_end_date": "2026-12-01T11:00:00Z"
       },
       "warning": "Reminder absent from GET remains unverified; do not resend."
      },

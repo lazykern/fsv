@@ -13507,7 +13507,7 @@
    "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
    "rust_item": "status_readback",
-   "note": "same verified rewrite when the new status is neither the sent nor the prior value"
+   "note": "Python d90affa: only the requested status verifies; any other readback status needs activity evidence."
   },
   {
    "module": "problem_status.py",
@@ -13524,8 +13524,8 @@
    "line": 204,
    "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "set_status",
-   "note": "same set-status-as label from collapsed activity text"
+   "rust_item": "status_segment",
+   "note": "Python d90affa replaced the label regex by `_STATUS_SEGMENT` (set status as <b>LABEL</b>); Rust `status_segment` is the same pattern."
   },
   {
    "module": "problem_status.py",
@@ -13533,8 +13533,8 @@
    "line": 215,
    "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "workflow_activity_note",
-   "note": "Rust returns the (note, label) pair from the first activity page with a failed read as None; callers take the note as Python does."
+   "rust_item": "read_workflow_rewrite",
+   "note": "Python d90affa: replaced by `read_workflow_rewrite` (activity page re-read up to ACTIVITY_ATTEMPTS times, ids by plan labels)."
   },
   {
    "module": "problem_status.py",
@@ -13542,8 +13542,8 @@
    "line": 220,
    "status": "reviewed",
    "rust": "crates/fsv-api/src/problem_status.rs",
-   "rust_item": "workflow_note",
-   "note": "Compared the since filter, this write's own set-status row, the 5 s WORKFLOW_SKEW, sub_contents before content, and both note texts with the label; the page read is workflow_activity_note."
+   "rust_item": "workflow_rewrite",
+   "note": "Python d90affa: replaced by `workflow_rewrite` (structural workflow rows, ids through the plan status labels, conflict text)."
   },
   {
    "module": "problem_status.py",

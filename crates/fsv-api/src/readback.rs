@@ -67,7 +67,7 @@ pub fn with_readback_sleep<R>(sleep: impl Fn(f64) + 'static, body: impl FnOnce()
     body()
 }
 
-fn readback_sleep(seconds: f64) {
+pub(crate) fn readback_sleep(seconds: f64) {
     let hooked = READBACK_SLEEP.with(|s| s.borrow().as_ref().map(|f| f(seconds)).is_some());
     if !hooked && !cfg!(test) {
         std::thread::sleep(std::time::Duration::from_secs_f64(seconds));

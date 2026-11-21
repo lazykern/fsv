@@ -35,9 +35,19 @@ pub struct NotePlan {
     pub public: bool,
     pub notify_emails: Vec<String>,
     pub tenant: String,
+    /// Verified sends of this action on this ticket (`journal.repeat_token`):
+    /// an identical note added again later plans a fresh hash; `None` is
+    /// pre-token (see [`NotePlan::stated`]).
+    pub sends: Option<i64>,
 }
 
 impl NotePlan {
+    /// `build_plan`'s `journal.verified_sends((_ACTION,), cid)`.
+    pub fn stated(mut self, journal: &dyn Journal) -> NotePlan {
+        self.sends = Some(journal.verified_sends(&[ACTION], &json!(self.ticket_id)));
+        self
+    }
+
     pub fn path(&self) -> String {
         format!("tickets/{}/notes", self.ticket_id)
     }
@@ -48,18 +58,29 @@ impl NotePlan {
     }
 
     pub fn hash(&self) -> String {
-        plan_hash(&json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload()}))
+        let mut identity =
+            obj(json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload()}));
+        if self.sends.is_some_and(|n| n != 0) {
+            identity.insert("state".into(), json!({"sends": self.sends}));
+        }
+        plan_hash(&Value::Object(identity))
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        obj(json!({
+        let mut out = obj(json!({
             "action": "ticket_note", "tenant": self.tenant, "ticket_id": self.ticket_id,
             "visibility": if self.public { "public note (visible to customer)" } else { "private note" },
             "path": format!("/api/_/{}", self.path()), "method": "POST", "payload": self.payload(),
             "body_text": fsv_core::output::strip_html(Some(&self.body_html)), "plan_hash": self.hash(),
+        }));
+        if let Some(n) = self.sends {
+            out.insert("record_state".into(), json!({"sends": n}));
+        }
+        out.extend(obj(json!({
             "risks": fsv_core::safety::note_risks(self.public),
             "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications.",
-        }))
+        })));
+        out
     }
 }
 
@@ -112,6 +133,7 @@ pub fn build_plan(
         public,
         notify_emails: notify_emails.to_vec(),
         tenant: tenant.to_string(),
+        sends: None,
     })
 }
 
@@ -124,7 +146,11 @@ pub(crate) fn check_plan(plan: &NotePlan, tenant: &str) -> Result<()> {
         BodyFormat::Html,
         tenant,
     )?;
-    if new != *plan {
+    if (NotePlan {
+        sends: plan.sends,
+        ..new
+    }) != *plan
+    {
         return Err(refused(
             "note plan or tenant changed; review a new plan before sending",
         ));
@@ -132,14 +158,32 @@ pub(crate) fn check_plan(plan: &NotePlan, tenant: &str) -> Result<()> {
     Ok(())
 }
 
-/// `_duplicate`: refuse a plan whose journal shows it started or finished.
+/// `_duplicate`: refuse a plan whose journal shows it started or finished,
+/// an unresolved pre-token hash of the same note, or another answered note
+/// since the review.
 pub(crate) fn duplicate(journal: &dyn Journal, plan: &NotePlan) -> Result<()> {
+    const SENT: &str = "this note was sent or its outcome is unknown; check the exact ticket and journal before any retry";
     if matches!(
         last_event(journal, ACTION, &plan.hash()).as_deref(),
         Some("started" | "done")
     ) {
+        return Err(refused(fsv_core::journal::note_refusal(SENT)));
+    }
+    let prior = NotePlan {
+        sends: None,
+        ..plan.clone()
+    };
+    if plan.sends.is_some()
+        && last_event(journal, ACTION, &prior.hash()).as_deref() == Some("started")
+    {
+        return Err(refused(fsv_core::journal::note_refusal(SENT)));
+    }
+    if plan
+        .sends
+        .is_some_and(|n| journal.verified_sends(&[ACTION], &json!(plan.ticket_id)) != n)
+    {
         return Err(refused(
-            "this note was sent or its outcome is unknown; check the exact ticket and journal before any retry",
+            "another note on this ticket was answered since the review; review a new plan before sending",
         ));
     }
     Ok(())
@@ -308,6 +352,9 @@ pub fn send(
                 json!("Note returned an ID but conversation read-back failed; do not resend."),
             );
         }
+    }
+    if result.get("verified") == Some(&Value::Bool(true)) {
+        journal.record_verified(&hash, ACTION, Some(&target));
     }
     Ok(Value::Object(result))
 }
@@ -557,6 +604,47 @@ mod tests {
         );
         j.record_plan("failed", &good.hash(), ACTION, None, None);
         assert!(duplicate(&j, &good).is_ok());
+    }
+
+    /// `test_repeat_token.test_ticket_note_identical_repeat_and_replay`.
+    #[test]
+    fn record_state_token_separates_a_repeat_from_a_replay() {
+        let j = MemJournal::default();
+        let bare = build_plan("123", "Acme check", false, &[], BodyFormat::Plain, T).unwrap();
+        let first = bare.clone().stated(&j);
+        assert_eq!(first.sends, Some(0));
+        assert_eq!(first.hash(), bare.hash());
+        assert_eq!(first.review()["record_state"], json!({"sends": 0}));
+        assert!(bare.review().get("record_state").is_none());
+        assert!(check_plan(&first, T).is_ok());
+        j.record_plan("done", &first.hash(), ACTION, None, None);
+        assert!(duplicate(&j, &first).is_err());
+        j.record_verified(&first.hash(), ACTION, Some(&json!(123)));
+        let second = bare.clone().stated(&j);
+        assert_eq!(second.sends, Some(1));
+        assert_ne!(second.hash(), first.hash());
+        assert!(duplicate(&j, &second).is_ok());
+        assert!(check_plan(&second, T).is_ok());
+        j.record_verified("x", ACTION, Some(&json!(123)));
+        assert_eq!(
+            duplicate(&j, &second).unwrap_err().to_string(),
+            "another note on this ticket was answered since the review; review a new plan before sending"
+        );
+    }
+
+    #[test]
+    fn unresolved_pre_token_hash_still_refuses() {
+        let j = MemJournal::default();
+        let bare = build_plan("123", "Acme check", false, &[], BodyFormat::Plain, T).unwrap();
+        j.record_verified("x", ACTION, Some(&json!(123)));
+        let second = bare.clone().stated(&j);
+        j.record_plan("started", &bare.hash(), ACTION, None, None);
+        assert!(
+            duplicate(&j, &second)
+                .unwrap_err()
+                .to_string()
+                .contains("outcome is unknown")
+        );
     }
 
     #[test]
