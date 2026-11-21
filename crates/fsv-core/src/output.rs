@@ -212,7 +212,7 @@ pub fn emit_json(obj: &Value) {
 
 /// The text [`emit_json`] prints.
 pub fn json_text(obj: &Value) -> String {
-    fsv_py::pretty(&strip_internal(obj)) + "\n"
+    fsv_py::pretty(&crate::tenant::annotate(&strip_internal(obj))) + "\n"
 }
 
 fn csv_field(v: Option<&Value>) -> String {

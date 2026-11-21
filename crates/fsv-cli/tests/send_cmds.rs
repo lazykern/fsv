@@ -39,7 +39,7 @@ fn change_create_metadata_changed_yes_exits_4() {
         r.err,
         r#"form metadata changed since the review; the plan is now different:
   payload priority changed
-error: plan changed to 17d0e4495751b6753ecd06c7691ad2c1ba94912caaebf49ac680003ba018c698; review it again with --dry-run
+error: plan changed to 7e9863acb831c199e7aa1be9e6295dba4d88de87923c37a1da4a7c464e62b96f; review it again with --dry-run
 "#
     );
 }
@@ -90,7 +90,7 @@ Warnings
   --no-validate: sending without the client-side required check: Team is required; Group is required; Agent is required; Services is required; Cloud Only is required; Stage is required; Description is
 required; Planned Start Date is required; Planned End Date is required; Downtime is required; Sign-off Date is required
 form metadata as of unknown (fetched NOW, server, fingerprint 9f57a1ae09548281)
-plan 10df27a1e78a8382e879aa47ee0592d8e855fe2ac2cfb41591e477cb13263692
+plan 049343094fbc1701badb6ccd82b78474ba75a634303c8058ff4f7d9fbcc55a75
 form metadata changed since the review; the plan is now different:
   payload priority changed
 ──────── Review: New Change: Hello ────────
@@ -113,7 +113,7 @@ Warnings
 required; Planned Start Date is required; Planned End Date is required; Downtime is required; Sign-off Date is required; blocked by rule (acknowledge to continue): Urgent changes need the duty 
 manager's approval
 form metadata as of unknown (fetched NOW, server, fingerprint bde07ae3a7a94782)
-plan 17d0e4495751b6753ecd06c7691ad2c1ba94912caaebf49ac680003ba018c698
+plan 7e9863acb831c199e7aa1be9e6295dba4d88de87923c37a1da4a7c464e62b96f
 error: cancelled; nothing was sent
 "#
     );
@@ -166,7 +166,7 @@ Warnings
   --no-validate: sending without the client-side required check: Team is required; Group is required; Agent is required; Services is required; Cloud Only is required; Stage is required; Description is
 required; Planned Start Date is required; Planned End Date is required; Downtime is required; Sign-off Date is required
 form metadata as of unknown (fetched NOW, server, fingerprint 9f57a1ae09548281)
-plan 10df27a1e78a8382e879aa47ee0592d8e855fe2ac2cfb41591e477cb13263692
+plan 049343094fbc1701badb6ccd82b78474ba75a634303c8058ff4f7d9fbcc55a75
 form metadata changed since the review; the plan is now different:
   payload priority changed
 ──────── Review: New Change: Hello ────────
@@ -189,7 +189,7 @@ Warnings
 required; Planned Start Date is required; Planned End Date is required; Downtime is required; Sign-off Date is required; blocked by rule (acknowledge to continue): Urgent changes need the duty 
 manager's approval
 form metadata as of unknown (fetched NOW, server, fingerprint bde07ae3a7a94782)
-plan 17d0e4495751b6753ecd06c7691ad2c1ba94912caaebf49ac680003ba018c698
+plan 7e9863acb831c199e7aa1be9e6295dba4d88de87923c37a1da4a7c464e62b96f
 "#
     );
     assert_eq!(r.write_paths(), ["POST /api/_/changes"]);
@@ -214,7 +214,7 @@ fn change_create_partial_failure() {
             ),
             "--yes",
             "--expect-plan",
-            "2ecbfa2b72bbbb86",
+            "27047da30761ea5e",
         ],
         None,
     );

@@ -32,7 +32,7 @@ fn value(msg: &str) -> Error {
 }
 
 fn indent2(v: &Value) -> String {
-    fsv_py::Dumps::default().indent(2).dump(v)
+    fsv_py::Dumps::default().indent(2).dump(&fsv_core::tenant::annotate(v))
 }
 
 fn confirm(text: &str) -> Result<bool, Error> {

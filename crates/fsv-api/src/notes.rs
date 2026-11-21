@@ -491,7 +491,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             p.hash(),
-            "9d9e097c80db19d0b3df42b6805108b75e3909f53d1437262e4539930b418e4d"
+            "77493af284f9154a8dec2ecb1a96af1cbc432b0652e6051ebd1467f4c373aaa3"
         );
         assert_eq!(p.path(), "tickets/5/notes");
         let h = build_plan(
@@ -508,7 +508,7 @@ mod tests {
             json!({"action": "ticket_note", "tenant": T, "ticket_id": 5, "visibility": "public note (visible to customer)",
                    "path": "/api/_/tickets/5/notes", "method": "POST",
                    "payload": {"body": "<p>x</p>", "conversation_from_summary": false, "private": false, "notify_emails": ["b@y.co"]},
-                   "body_text": "x", "plan_hash": "45f1cf2e653ffd77e490218f577da59c65af9ea215f5c1a32cef61386d9df9bd",
+                   "body_text": "x", "plan_hash": "921a3c54ab9e924dd48aa9f0a75fb2c7e2c703168e1a37f116c8e431d2f3d229",
                    "risks": ["public note: visible to the requester and may send notifications"],
                    "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."})
         );
@@ -617,7 +617,7 @@ mod tests {
         let h = p.hash();
         assert_eq!(
             h,
-            "6a1cb720ba3db32fb4b46fc60d96a34dd122fce1e3692e10f5182cc18ad61962"
+            "b82b79cae213c2bdc01e8df07952e8410adc302c8ba93d77c74640c9c4007326"
         );
         let opts = SendOpts {
             reviewed_hash: Some(&h),

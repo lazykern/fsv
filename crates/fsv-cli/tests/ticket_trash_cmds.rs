@@ -128,8 +128,10 @@ fn tickets_restore_dry_run() {
   "method": "PUT",
   "path": "/api/_/tickets/34/restore",
   "payload": null,
-  "plan_hash": "337dbce8936ce3d667663f690adeb1788cadcfd8c7ed3dcb4da15f8b6c37a881",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "31711c5e31b1223d538fab448b8bbece0c69350961b4c61b60a08ebb8f8e7c80",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -222,7 +224,7 @@ fn tickets_restore_send() {
             "34",
             "--yes",
             "--expect-plan",
-            "337dbce8936ce3d667663f690adeb1788cadcfd8c7ed3dcb4da15f8b6c37a881",
+            "31711c5e31b1223d538fab448b8bbece0c69350961b4c61b60a08ebb8f8e7c80",
         ],
         None,
     );
@@ -231,10 +233,12 @@ fn tickets_restore_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "337dbce8936ce3d667663f690adeb1788cadcfd8c7ed3dcb4da15f8b6c37a881",
+  "plan_hash": "31711c5e31b1223d538fab448b8bbece0c69350961b4c61b60a08ebb8f8e7c80",
   "verified": true,
   "ticket_id": 34,
-  "deleted": false
+  "deleted": false,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -252,7 +256,7 @@ fn tickets_restore_send_unverified() {
             "35",
             "--yes",
             "--expect-plan",
-            "e2e9f9fe96e0959b48b2b8cda70a4d4c0511f89b563d31cc6a38e1435ee16dfc",
+            "7cfea1f784892d361ec51446b7eb5cb8190eb469a85cfffb61ce56f06a4a1c74",
         ],
         None,
     );
@@ -261,11 +265,13 @@ fn tickets_restore_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "e2e9f9fe96e0959b48b2b8cda70a4d4c0511f89b563d31cc6a38e1435ee16dfc",
+  "plan_hash": "7cfea1f784892d361ec51446b7eb5cb8190eb469a85cfffb61ce56f06a4a1c74",
   "verified": false,
   "ticket_id": 35,
   "deleted": true,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -424,8 +430,10 @@ fn tickets_delete_forever_dry_run() {
       "subject": "Acme 32"
     }
   ],
-  "plan_hash": "a9874b072223c505bbcb73505e97260404b392627cc3cccea4e8b8fdde2a95e7",
-  "warning": "PERMANENT: the tickets cannot be restored. One request per ticket, in order; stops at the first failed or unverified ticket. Never replay an uncertain outcome."
+  "plan_hash": "76d51a60b28a767f92cf342b4f7923d99a68232f07f0f9412d2f4c02682d2002",
+  "warning": "PERMANENT: the tickets cannot be restored. One request per ticket, in order; stops at the first failed or unverified ticket. Never replay an uncertain outcome.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -451,7 +459,7 @@ fn tickets_delete_forever_needs_confirm() {
             "2",
             "--yes",
             "--expect-plan",
-            "a9874b072223c505bbcb73505e97260404b392627cc3cccea4e8b8fdde2a95e7",
+            "76d51a60b28a767f92cf342b4f7923d99a68232f07f0f9412d2f4c02682d2002",
         ],
         None,
     );
@@ -480,7 +488,7 @@ fn tickets_delete_forever_send() {
             "2",
             "--yes",
             "--expect-plan",
-            "a9874b072223c505bbcb73505e97260404b392627cc3cccea4e8b8fdde2a95e7",
+            "76d51a60b28a767f92cf342b4f7923d99a68232f07f0f9412d2f4c02682d2002",
             "--confirm-destructive",
         ],
         None,
@@ -491,7 +499,7 @@ fn tickets_delete_forever_send() {
         r#"{
   "status": "submitted",
   "verified": true,
-  "plan_hash": "a9874b072223c505bbcb73505e97260404b392627cc3cccea4e8b8fdde2a95e7",
+  "plan_hash": "76d51a60b28a767f92cf342b4f7923d99a68232f07f0f9412d2f4c02682d2002",
   "ticket_ids": [
     31,
     32
@@ -503,7 +511,9 @@ fn tickets_delete_forever_send() {
     "32": {
       "verified": true
     }
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -536,7 +546,7 @@ fn tickets_delete_forever_stops_at_failure() {
             "2",
             "--yes",
             "--expect-plan",
-            "102950c1f91289607384f7587ddf4f91453e46f51e394a2010c99983322273af",
+            "a6ba474ccb86af7638554791095f8083f4a7371f2dc45f1ee2989f7b2513a786",
             "--confirm-destructive",
         ],
         None,
@@ -547,7 +557,7 @@ fn tickets_delete_forever_stops_at_failure() {
         r#"{
   "status": "failed",
   "verified": false,
-  "plan_hash": "102950c1f91289607384f7587ddf4f91453e46f51e394a2010c99983322273af",
+  "plan_hash": "a6ba474ccb86af7638554791095f8083f4a7371f2dc45f1ee2989f7b2513a786",
   "ticket_ids": [
     36,
     37
@@ -562,7 +572,9 @@ fn tickets_delete_forever_stops_at_failure() {
   "not_attempted": [
     37
   ],
-  "warning": "Stopped at the first failed or unverified ticket; inspect it and the journal; never replay."
+  "warning": "Stopped at the first failed or unverified ticket; inspect it and the journal; never replay.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

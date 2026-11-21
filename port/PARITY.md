@@ -259,6 +259,30 @@ those stay identical.
   travel in a per-thread record (`fsv_core::error::reviewed_write_error` /
   `write_answer`) instead of attributes on the error, so every
   `Error::Exit { code: 2 }` match keeps working.
+- Tenant binding (`5eefaaf`): `fsv_core::tenant` holds the bound-hash maps,
+  the per-command write flag and the plan-tenant registry in process state
+  (Python module globals). fsv-forms stays tenant-free and independent of
+  fsv-core, so form plan hashes bind through `fsv_api::form_hash::plan_hash`
+  (unbind the payload, hash, bind). Rust tests reset the state with
+  `tenant::reset`; library tests that hash with a domain-dependent global
+  config take `fsv_flows::testing::config_guard` / `fsv_api::service::testing::hermetic`.
+- `--tenant DOMAIN` and `--quiet` are root options like `-v`: `app::rewrite`
+  hoists them from anywhere on the command line, and `finish()` adds help-only
+  copies to every command's "Global options" panel (clap needs distinct ids).
+- The banner and the tenant refusals print with plain `eprintln!` (Python
+  `print(..., file=sys.stderr)`), so Rich wrapping and markup never touch them.
+- Golden provenance after `5eefaaf`: the Python-stamped hash goldens in
+  `fsv-api/src/testdata/*.json`, `fsv-flows/tests/golden/flows.json`, the
+  hash literals in `fsv-cli/tests/*.rs`, `golden/ticket_links_cli.json` and the
+  composite hashes were not regenerated from Python. Pure binds are
+  `sha256("fsv-plan-tenant\0<domain>\0<old hash>")` of the old value; hashes
+  whose context hashes a nested plan hash through `snapshot_hash` (not
+  unbound, as in Python) took the value the Rust port computes, checked
+  against Python at `5eefaaf` with `tests/differential.rs` (1100 canned-route
+  cases, only the later commits' messages differ). Stdout and stderr goldens
+  of write commands mask the temp config dir as `<CONFIG_DIR>`.
+- `changes associations add` prints its review on stderr with Rich's
+  `print_json` in Python, which does not carry `config_dir`; Rust matches.
 
 ## fsv-app
 

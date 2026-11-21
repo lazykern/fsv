@@ -24,7 +24,7 @@ fn closed_dry_run_shows_missing_solution_up_front() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "357407033c3cc309cd384902b09fcf69c059e86016f5090140564aa181ac4035",
+  "plan_hash": "d5a5e94f28086a1c32c2f8fc3776d50714b012f53920d716f7bd5db66f879127",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -45,7 +45,9 @@ fn closed_dry_run_shows_missing_solution_up_front() {
   },
   "warnings": [
     "no linked workaround / solution: some tenants reject closure without one (check_workaround_or_solution_added); not blocked because this tenant has not proven that rule (observed on one tenant: only 2 of 62 closed problems had a linked workaround / solution, so this closure rule is tenant configuration, not a platform rule); the server decides"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -70,7 +72,7 @@ fn closed_dry_run_shows_linked_solution_up_front() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "d27eb5790b6979966b63a9a00798de05ae4918ee221d5bd4f61f221cac1c12bb",
+  "plan_hash": "779dafe500c0480fed1826a7e022e56dd0acaa7e0bb622ee9d098e0f09a861c4",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -88,7 +90,9 @@ fn closed_dry_run_shows_linked_solution_up_front() {
   "closure_check": {
     "analysis": "Root Cause, Impact and Symptoms are filled",
     "linked_solution": "linked (1)"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -120,7 +124,7 @@ fn non_closure_dry_run_has_no_closure_check() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "359584202f3ae3f9ccd2bd8e005f7db7f4e48432dc25f5770a617dbcda94b68c",
+  "plan_hash": "94f0f81a076d0a3a4c8c602ea298a54722af03e44ce79a3b4e6e4a4c8825b3ce",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -134,7 +138,9 @@ fn non_closure_dry_run_has_no_closure_check() {
     "status": 2,
     "subject": "Acme problem 12"
   },
-  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -153,7 +159,7 @@ fn closed_rejection_remembers_solution_rule() {
             "Closed",
             "--yes",
             "--expect-plan",
-            "357407033c3cc309cd384902b09fcf69c059e86016f5090140564aa181ac4035",
+            "d5a5e94f28086a1c32c2f8fc3776d50714b012f53920d716f7bd5db66f879127",
         ],
         None,
     );
@@ -179,7 +185,7 @@ fn remembered_solution_rule_blocks_the_dry_run_up_front() {
             "Closed",
             "--yes",
             "--expect-plan",
-            "357407033c3cc309cd384902b09fcf69c059e86016f5090140564aa181ac4035",
+            "d5a5e94f28086a1c32c2f8fc3776d50714b012f53920d716f7bd5db66f879127",
         ]],
         &["problems", "status", "12", "--to", "Closed", "--dry-run"],
         None,

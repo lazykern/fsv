@@ -26,8 +26,9 @@ use fsv_forms::plan::PlanFiles;
 use fsv_forms::rules::ChoiceRestriction;
 use fsv_forms::{
     Choice, Conflict, EvaluatedForm, Field, FormError, FormSpec, FormState, Kind, LookupValue,
-    ModuleOptions, Value, build_change_payload, plan_hash, plan_matches,
+    ModuleOptions, Value, build_change_payload, plan_matches,
 };
+use fsv_api::form_hash::plan_hash;
 use fsv_py::truthy;
 
 use crate::drafts::{

@@ -3758,3 +3758,26 @@ Divergences are in `port/PARITY.md`. Provenance debt left as is:
   `terminal_status_ids`, the label-based `status_closes`) are removed from
   `fsv-core/src/safety.rs`; `safety.status_closes` maps to
   `fsv_api::status_semantics::status_closes`.
+
+## Ledger: `31a9103..main`, batch `port/up-a` (tenant visibility, keychain, error text)
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `ff7b40c` | 11-13 23:16 | update failures name the server's HTTP status and sanitized message; `changes update --json` prints an error object | ported | fsv-core `error.rs` (`http_detail`, `exception_name`, `reviewed_write_error`, `write_answer`); fsv-api `reviewed_write.rs`, `properties.rs`; fsv-flows `change.rs` (`put_change_raw`, `rw_error`); fsv-cli `cmd/changes.rs` (`update_write_failure`); `tests/update_error_cmds.rs`, `status_cmds.rs` |
+| `29e5d01` | 11-13 23:16 | `ls --no-defaults` lists the module's system All view | ported | fsv-api `site/list.rs` (`all_records_view`); fsv-cli `cmd/resource.rs`; `tests/list_no_defaults_cmds.rs` |
+| `5eefaaf` | 11-14 19:01 | tenant banner on stderr, `--quiet` / `FSV_QUIET`, `--tenant DOMAIN`, tenant-bound plan hashes, `tenant`/`config_dir` in write JSON | ported | fsv-core `tenant.rs`, `journal.rs`; fsv-api `form_hash.rs`, `service.rs`; fsv-cli `app.rs`, `cmd/*` print helpers; `tests/tenant_cmds.rs`, `tests/tenant_guard.rs` |
+| `230b348` | 11-14 19:02 | `--yes` refuses an unconfirmed tenant (`tenant.confirmed`, `FSV_ALLOW_TENANT`) | ported | fsv-core `tenant.rs`; fsv-cli `cmd/config.rs`, `app.rs` |
+| `d37d526` | 11-14 19:09 | `fsv whoami`, `fsv config show`, `auth status` names tenant and config dir | ported | fsv-cli `cmd/auth.rs`, `cmd/config.rs`; fixtures `cli_tree.json`, `completion_tree.json`, `completion.*` |
+| `83f9220` | 11-15 19:36 | Keychain item scoped to the config dir (`fsv-session-<sha256(config dir)[:12]>`) | ported | fsv-core `session/mod.rs` (`KeychainStore`, `keychain_account`); fsv-cli `cmd/auth.rs` |
+| `b2bbbc9` | 11-15 22:39 | keychain tests across two config dirs | partial | session-level tests with a fake `KeychainStore` (`session/tests.rs`); no CLI-level fake Keychain (the binary has no test hook for it) |
+| `9b7cfe9` | 11-15 19:36 | forward/reply rejected send names the server answer | ported | fsv-api `conversations.rs` (`rejection_message`); `--sender` help |
+| `02b611f` | 11-15 17:48 | `--where` fail-closed messages | ported | fsv-api `query.rs`, `filter_proof.rs`; fsv-cli `filters.rs` |
+| `ae1f597` | 11-15 17:48 | raw `--query-hash` shapes pass through | ported | behavior already present; `tests/query_hash_raw_cmds.rs` |
+| `0ef949e` | 11-15 17:56 | pyproject description | ported | `crates/fsv-cli/Cargo.toml` description |
+| `bad3046` | 11-15 17:48 | README help-pointer tests | n/a | Python test of Python README wording |
+
+Provenance debt (`5eefaaf`): see the "Golden provenance after `5eefaaf`" item
+in `PARITY.md`. `port/UPSTREAM_BASE` stays `31a9103`; the cli_tree and
+completion fixtures carry only this batch's nodes and flags
+(whoami, config show, `--quiet`, `--tenant`, the `ls --no-defaults`, `forward
+--sender` and `auth logout` help) on top of the `31a9103` dump.

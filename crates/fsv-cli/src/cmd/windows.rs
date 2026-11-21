@@ -18,7 +18,7 @@ fn dumps(v: &Value) -> String {
     fsv_py::Dumps::default()
         .indent(2)
         .ensure_ascii(false)
-        .dump(v)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 fn text(v: Option<&Value>) -> String {

@@ -353,7 +353,7 @@ mod tests {
             json!({"status": "submitted", "verified": true, "action": "change_ticket_association", "tenant": T, "change_id": 7,
                    "ticket_ids": [3], "method": "PUT", "path": "/api/_/changes/7/tickets/associate",
                    "payload": {"item_ids": [3], "module_type": "ticket"}, "params": null,
-                   "plan_hash": "d4805e9f32883845348f95bc2a05e7e2ad8c4fb320537c52cebc22364aaab084",
+                   "plan_hash": "d606542223e1cef512ae91acc9b5e9e739c216ffd9fdd8caeed3b0a1b5bc029d",
                    "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."})
         );
         assert_eq!(j.events(), ["started", "done"]);
@@ -479,13 +479,13 @@ mod tests {
         let p = build_plan("CHN-7", &[json!(9), json!("3"), json!(9)], false, T).unwrap();
         assert_eq!(
             p.hash(),
-            "f62cb2272f5be747218b44872a3176c80f9d080e743b911d5dd54e1b374a8358"
+            "a1561406caf8e98aa7bd40085c6d93b7176c7552d11fbf09b488499d084c204d"
         );
         assert_eq!(
             Value::Object(p.review()),
             json!({"action": "change_ticket_association", "tenant": T, "change_id": 7, "ticket_ids": [3, 9], "method": "PUT",
                    "path": "/api/_/changes/7/tickets/associate", "payload": {"item_ids": [3, 9], "module_type": "ticket"}, "params": null,
-                   "plan_hash": "f62cb2272f5be747218b44872a3176c80f9d080e743b911d5dd54e1b374a8358",
+                   "plan_hash": "a1561406caf8e98aa7bd40085c6d93b7176c7552d11fbf09b488499d084c204d",
                    "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."})
         );
         let u = build_plan("7", &[json!(4)], true, T).unwrap();
@@ -498,7 +498,7 @@ mod tests {
         );
         assert_eq!(
             u.hash(),
-            "43251246e10da108513e85530b50ef12d659d053fb054b6bae4224ed399df5f7"
+            "877b3057958e6acbb5bb7cc7781f57177b8d8d6cdb4f61ca292e9617fb92b508"
         );
         assert_eq!(
             build_plan("7", &[json!(true)], false, T)
@@ -525,7 +525,7 @@ mod tests {
         let p = build_plan("7", &[json!(3)], false, T).unwrap();
         assert_eq!(
             p.hash(),
-            "d4805e9f32883845348f95bc2a05e7e2ad8c4fb320537c52cebc22364aaab084"
+            "d606542223e1cef512ae91acc9b5e9e739c216ffd9fdd8caeed3b0a1b5bc029d"
         );
         assert_eq!(
             send(

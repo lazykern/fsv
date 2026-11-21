@@ -10,11 +10,11 @@ use crate::testkit::{Call, MemJournal, Tenant, ok, status, tenant};
 use fsv_api::formmeta::MemStore;
 use fsv_core::client::Response;
 
-const NEW_HASH: &str = "a28516d9594757efde10c3259d1f7e4499474bd3af6cb68b26f06ad66726ca24";
-const PROMOTED_HASH: &str = "e998a65c2b2b4827bf66e8932050bf4eb3bc5e4ec3daf89d51c4c7a6a462a830";
-const ATTACH_HASH: &str = "cee237dd4ee2092a8a533de7767f0786d6001014037eaafd9ac4cd0851834dd8";
-const SR_HASH: &str = "51d1b1aaf494f9d0c061f3f62387b65e14b266a9d2b15cccff5e633d713c50b0";
-const SR_NEW_HASH: &str = "e7e6c32b84d83a84db147ebe17280d47e87ded7ad13d982359a9695d5da90cb4";
+const NEW_HASH: &str = "a71d02d5b8d3cde7197dbbb13c51c32125ab3cee4887a5440398190253aee7f4";
+const PROMOTED_HASH: &str = "2e664dd96f30a84cd95ea116bc957c34e33f550d53eed8b7d0cd6480ff9b33b9";
+const ATTACH_HASH: &str = "cfceefb0ff1796b10e8bc6d57a3234c2ba3e3ff9d20957f2207a87b9b4c642e7";
+const SR_HASH: &str = "a460ca5ee8b34d13381f77706988728bf030f9e8a8a3ac90760ee61bf84ad7f6";
+const SR_NEW_HASH: &str = "fad6ff014dccc841c93a2e11fc4d5ff44fcf904f98ca21f1d15c23f4a55440a1";
 const BR: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
 const SR_NEW_BR: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyIxMSI6eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcInVyZ2VuY3lfMVwiXSJ9fQ==";
 
@@ -302,7 +302,7 @@ fn cli_without_a_terminal_prints_the_diff_and_exits_4() {
         SendOptions::default(),
         SendOptions { yes: true, ..tty() },
         SendOptions {
-            expect: Some("a28516d95947"),
+            expect: Some("a71d02d5b8d3"),
             ..tty()
         },
     ] {
@@ -515,7 +515,7 @@ fn dry_run_and_foreign_plans_send_nothing() {
     assert!(f.writes().is_empty());
 }
 
-const SR_FILES_HASH: &str = "91d529fae5ca8385206aac0703e70ece7457a0138eb9acaf4055a817250ce4a3";
+const SR_FILES_HASH: &str = "9924eb91b3eed4dce3d9e46af97418f8a3fbdb8b1446b1cc5a967cefdbfcdc94";
 const UNKNOWN_OUTCOME: &str =
     "the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying";
 

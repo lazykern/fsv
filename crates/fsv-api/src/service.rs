@@ -383,12 +383,18 @@ pub(crate) fn replay_refusal(
 
 /// `journal.plan_hash(body) or ""`.
 pub(crate) fn plan_hash(body: &Value) -> String {
+    #[cfg(test)]
+    testing::hermetic();
     fsv_core::journal::plan_hash(Some(body)).unwrap_or_default()
 }
 
 /// `journal.snapshot_hash(body) or ""`; a link `urlsplit` rejects is its `ValueError`.
 pub(crate) fn snapshot_hash(body: &Value) -> Result<String> {
-    Ok(plan_hash(&stable_snapshot(body)?))
+    #[cfg(test)]
+    testing::hermetic();
+    Ok(fsv_core::journal::snapshot_hash(Some(body))
+        .map_err(Error::Value)?
+        .unwrap_or_default())
 }
 
 /// `reviewed_snapshot.stable_snapshot(value)`.

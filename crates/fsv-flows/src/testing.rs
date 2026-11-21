@@ -407,3 +407,36 @@ impl ChangeWriter for FakeWriter {
         Ok(())
     }
 }
+
+/// Update-plan hashes bind `config.DOMAIN`. Goldens are stamped with an empty
+/// domain; sends need a non-empty one. One lock so those tests do not race.
+static CONFIG_LOCK: std::sync::Mutex<()> = Mutex::new(());
+
+pub(crate) struct CfgGuard {
+    _dir: tempfile::TempDir,
+    _lock: std::sync::MutexGuard<'static, ()>,
+}
+
+impl Drop for CfgGuard {
+    fn drop(&mut self) {
+        crate::testing::hermetic_reset();
+    }
+}
+
+/// The process config under a temp dir with `domain` (never the user's
+/// real config, also not on restore).
+pub(crate) fn config_guard(domain: Option<&str>) -> CfgGuard {
+    let lock = CONFIG_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let dir = tempfile::tempdir().unwrap();
+    let paths = fsv_core::Paths::under(dir.path());
+    std::fs::create_dir_all(&paths.config_dir).unwrap();
+    if let Some(domain) = domain {
+        std::fs::write(&paths.config_file, format!("{{\"domain\": \"{domain}\"}}")).unwrap();
+    }
+    fsv_core::config::use_for_tests(paths, domain.unwrap_or(""));
+    CfgGuard {
+        _dir: dir,
+        _lock: lock,
+    }
+}
+

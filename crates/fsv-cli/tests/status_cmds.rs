@@ -38,7 +38,7 @@ fn problem_update_routes(subject: &str) -> Vec<Value> {
 
 /// Python `_problem_update_hash(PROBLEMS, 7, {"priority": 3}, row)` on
 /// acme.freshservice.com for subject "Acme outage" (0208fdb).
-const PLAN: &str = "19e0acf527f1540c258c405a57bde7fc9878063fea0f014e6ea7af833cb8ded0";
+const PLAN: &str = "a54004ba2f729237b85147779a14254d33e17c3b10af063d0bbf1899abe823b2";
 
 /// Python tests/test_problem_write_fixes.py::test_problem_update_dry_run_prints_a_plan_hash_bound_on_send
 #[test]
@@ -53,7 +53,7 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     assert_eq!(
         r.out,
         format!(
-            "{{\n  \"dry_run\": true,\n  \"action\": \"update\",\n  \"id\": \"PRB-7\",\n  \"body\": {{\n    \"priority\": 3\n  }},\n  \"plan_hash\": \"{PLAN}\"\n}}\n"
+            "{{\n  \"dry_run\": true,\n  \"action\": \"update\",\n  \"id\": \"PRB-7\",\n  \"body\": {{\n    \"priority\": 3\n  }},\n  \"plan_hash\": \"{PLAN}\",\n  \"tenant\": \"acme.freshservice.com\",\n  \"config_dir\": \"<CONFIG_DIR>\"\n}}\n"
         )
     );
     assert!(r.writes().is_empty());

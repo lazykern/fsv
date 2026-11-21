@@ -23,13 +23,15 @@ fn problems_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/problems/12",
   "payload": null,
-  "plan_hash": "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7",
+  "plan_hash": "76bcdb1ab4a60e93b3fe861af9ffb1b96c095f05c25cc269646d091ab122b23e",
   "warning": "Single attempt; an unknown outcome must be inspected, never automatically resent.",
   "problem_id": 12,
   "title": "Acme outage",
   "deleted": false,
   "effect": "Moves the problem to the trash; `fsv problems restore` brings it back.",
-  "requires": null
+  "requires": null,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -91,7 +93,7 @@ fn problems_delete_send() {
             "PRB-12",
             "--yes",
             "--expect-plan",
-            "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7",
+            "76bcdb1ab4a60e93b3fe861af9ffb1b96c095f05c25cc269646d091ab122b23e",
         ],
         None,
     );
@@ -100,13 +102,15 @@ fn problems_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "b0b0445c2ca57d8823e1605ff749f01bea52fdd25d064e35b0fb144df22e3dc7",
+  "plan_hash": "76bcdb1ab4a60e93b3fe861af9ffb1b96c095f05c25cc269646d091ab122b23e",
   "verified": true,
   "problem_id": 12,
   "fields": {
     "deleted": "matched"
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -124,7 +128,7 @@ fn problems_delete_send_unverified() {
             "13",
             "--yes",
             "--expect-plan",
-            "6f4287db72535dcce74266ff9c2069a42182651caf2f6e0fd5c8552e4bb8f21f",
+            "535724d489851cd839422d4dc6f2a00893084e50464aa3598025a9d3dd8d6b0e",
         ],
         None,
     );
@@ -133,14 +137,16 @@ fn problems_delete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "6f4287db72535dcce74266ff9c2069a42182651caf2f6e0fd5c8552e4bb8f21f",
+  "plan_hash": "535724d489851cd839422d4dc6f2a00893084e50464aa3598025a9d3dd8d6b0e",
   "verified": false,
   "problem_id": 13,
   "fields": {
     "deleted": "mismatched"
   },
   "readback_attempts": 4,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -158,7 +164,7 @@ fn problems_delete_rejected() {
             "14",
             "--yes",
             "--expect-plan",
-            "b5788dfefb91346f3a3da0a217e7c4c13cd9e55e20f2b655179246c3246138fc",
+            "5963dd3f2d8fec2793cf865fa4f07929e3533ff288e6761bfeae8fe1c14a174b",
         ],
         None,
     );
@@ -284,13 +290,15 @@ fn problems_restore_dry_run() {
   "method": "PUT",
   "path": "/api/_/problems/21/restore",
   "payload": null,
-  "plan_hash": "1537ce883730be63be6d87f6d8473559236687cdcee085619f8a76e47ad970b9",
+  "plan_hash": "c6093524a0c6eab64071eca46c91a00dfcc7d00a0b068e8f68497cc5c12f206c",
   "warning": "Single attempt; an unknown outcome must be inspected, never automatically resent.",
   "problem_id": 21,
   "title": "Acme trashed",
   "deleted": true,
   "effect": "Restores the problem from the trash.",
-  "requires": null
+  "requires": null,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -323,7 +331,7 @@ fn problems_restore_send() {
             "21",
             "--yes",
             "--expect-plan",
-            "1537ce883730be63be6d87f6d8473559236687cdcee085619f8a76e47ad970b9",
+            "c6093524a0c6eab64071eca46c91a00dfcc7d00a0b068e8f68497cc5c12f206c",
         ],
         None,
     );
@@ -332,13 +340,15 @@ fn problems_restore_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1537ce883730be63be6d87f6d8473559236687cdcee085619f8a76e47ad970b9",
+  "plan_hash": "c6093524a0c6eab64071eca46c91a00dfcc7d00a0b068e8f68497cc5c12f206c",
   "verified": true,
   "problem_id": 21,
   "fields": {
     "deleted": "matched"
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -375,8 +385,10 @@ fn problems_delete_forever_dry_run() {
   "max_records": null,
   "effect": "PERMANENT: removes the listed problem(s); they cannot be restored.",
   "requires": "--confirm-destructive",
-  "plan_hash": "b26f1ecfbfeff4f0aa100b5db561f3b46fe10a1776fb20ebe161e56633a0c1d7",
-  "warning": "One request per problem, in order; stops at the first failed or unverified one. Never replay an uncertain outcome."
+  "plan_hash": "d8dc14b71b6ba88028d0400d256c10d8db401856753dc191091940020f3194ba",
+  "warning": "One request per problem, in order; stops at the first failed or unverified one. Never replay an uncertain outcome.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -414,7 +426,7 @@ fn problems_delete_forever_needs_confirm() {
             "22",
             "--yes",
             "--expect-plan",
-            "b26f1ecfbfeff4f0aa100b5db561f3b46fe10a1776fb20ebe161e56633a0c1d7",
+            "d8dc14b71b6ba88028d0400d256c10d8db401856753dc191091940020f3194ba",
         ],
         None,
     );
@@ -439,7 +451,7 @@ fn problems_delete_forever_send() {
             "22",
             "--yes",
             "--expect-plan",
-            "b26f1ecfbfeff4f0aa100b5db561f3b46fe10a1776fb20ebe161e56633a0c1d7",
+            "d8dc14b71b6ba88028d0400d256c10d8db401856753dc191091940020f3194ba",
             "--confirm-destructive",
         ],
         None,
@@ -450,7 +462,7 @@ fn problems_delete_forever_send() {
         r#"{
   "status": "submitted",
   "verified": true,
-  "plan_hash": "b26f1ecfbfeff4f0aa100b5db561f3b46fe10a1776fb20ebe161e56633a0c1d7",
+  "plan_hash": "d8dc14b71b6ba88028d0400d256c10d8db401856753dc191091940020f3194ba",
   "problem_ids": [
     22
   ],
@@ -458,7 +470,9 @@ fn problems_delete_forever_send() {
     "22": {
       "verified": true
     }
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -487,13 +501,15 @@ fn solutions_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/solutions/articles/31",
   "payload": null,
-  "plan_hash": "a34904ffd5f518780ed8b9d6f05fb8b7857069182519d359ac948643afffb6ca",
+  "plan_hash": "2db6ffffa9bd5576f9a0a1baffcc24a0c7bc549fe6776f33b45185338d128050",
   "warning": "Single attempt; an unknown outcome must be inspected, never automatically resent.",
   "article_id": 31,
   "title": "Globex workaround",
   "deleted": false,
   "effect": "Moves the article to the solutions trash; fsv has no captured article restore.",
-  "requires": "--confirm-destructive"
+  "requires": "--confirm-destructive",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -510,7 +526,7 @@ fn solutions_delete_needs_confirm() {
             "31",
             "--yes",
             "--expect-plan",
-            "a34904ffd5f518780ed8b9d6f05fb8b7857069182519d359ac948643afffb6ca",
+            "2db6ffffa9bd5576f9a0a1baffcc24a0c7bc549fe6776f33b45185338d128050",
         ],
         None,
     );
@@ -533,7 +549,7 @@ fn solutions_delete_send() {
             "31",
             "--yes",
             "--expect-plan",
-            "a34904ffd5f518780ed8b9d6f05fb8b7857069182519d359ac948643afffb6ca",
+            "2db6ffffa9bd5576f9a0a1baffcc24a0c7bc549fe6776f33b45185338d128050",
             "--confirm-destructive",
         ],
         None,
@@ -543,13 +559,15 @@ fn solutions_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "a34904ffd5f518780ed8b9d6f05fb8b7857069182519d359ac948643afffb6ca",
+  "plan_hash": "2db6ffffa9bd5576f9a0a1baffcc24a0c7bc549fe6776f33b45185338d128050",
   "verified": true,
   "article_id": 31,
   "fields": {
     "deleted": "matched"
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -634,8 +652,10 @@ fn solutions_delete_forever_dry_run() {
   "max_records": null,
   "effect": "PERMANENT: removes the listed article(s); they cannot be restored.",
   "requires": "--confirm-destructive",
-  "plan_hash": "3dd892b5b7094e9d9caff1fb55b0cd9b865c7e7a54bfbf52f2142f1157a148d8",
-  "warning": "One request per article, in order; stops at the first failed or unverified one. Never replay an uncertain outcome."
+  "plan_hash": "fe2885f9283123c821477b2f64a1ed1fa0d783f316a2569f23bfb2f99e6bdc58",
+  "warning": "One request per article, in order; stops at the first failed or unverified one. Never replay an uncertain outcome.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -657,7 +677,7 @@ fn solutions_delete_forever_needs_confirm() {
             "33",
             "--yes",
             "--expect-plan",
-            "db3a4c5cd66ce72654ebe980e001f614919e66e1af495865810ea0631e7b86ff",
+            "66a2ac182f9b26f859fd943e45740a68a39349d1fee98a6833be7a7fc0c58eb5",
         ],
         None,
     );
@@ -682,7 +702,7 @@ fn solutions_delete_forever_send() {
             "33",
             "--yes",
             "--expect-plan",
-            "db3a4c5cd66ce72654ebe980e001f614919e66e1af495865810ea0631e7b86ff",
+            "66a2ac182f9b26f859fd943e45740a68a39349d1fee98a6833be7a7fc0c58eb5",
             "--confirm-destructive",
         ],
         None,
@@ -693,7 +713,7 @@ fn solutions_delete_forever_send() {
         r#"{
   "status": "submitted",
   "verified": true,
-  "plan_hash": "db3a4c5cd66ce72654ebe980e001f614919e66e1af495865810ea0631e7b86ff",
+  "plan_hash": "66a2ac182f9b26f859fd943e45740a68a39349d1fee98a6833be7a7fc0c58eb5",
   "article_ids": [
     33
   ],
@@ -701,7 +721,9 @@ fn solutions_delete_forever_send() {
     "33": {
       "verified": true
     }
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -870,8 +892,10 @@ fn problems_forever_many_dry_run() {
   "max_records": 3,
   "effect": "PERMANENT: removes the listed problem(s); they cannot be restored.",
   "requires": "--confirm-destructive",
-  "plan_hash": "4aa2d696811a7dc31878b28e70da549b17d9984b996aafe604d9e27e16b8d0d3",
-  "warning": "One request per problem, in order; stops at the first failed or unverified one. Never replay an uncertain outcome."
+  "plan_hash": "4dc9247d990882d1f5bb30f19bef138aa881adf590a87267e695ac04c9704d26",
+  "warning": "One request per problem, in order; stops at the first failed or unverified one. Never replay an uncertain outcome.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -899,7 +923,7 @@ fn problems_forever_many_needs_confirm() {
             "3",
             "--yes",
             "--expect-plan",
-            "4aa2d696811a7dc31878b28e70da549b17d9984b996aafe604d9e27e16b8d0d3",
+            "4dc9247d990882d1f5bb30f19bef138aa881adf590a87267e695ac04c9704d26",
         ],
         None,
     );
@@ -930,7 +954,7 @@ fn problems_forever_many_send() {
             "3",
             "--yes",
             "--expect-plan",
-            "4aa2d696811a7dc31878b28e70da549b17d9984b996aafe604d9e27e16b8d0d3",
+            "4dc9247d990882d1f5bb30f19bef138aa881adf590a87267e695ac04c9704d26",
             "--confirm-destructive",
         ],
         None,
@@ -941,7 +965,7 @@ fn problems_forever_many_send() {
         r#"{
   "status": "submitted",
   "verified": true,
-  "plan_hash": "4aa2d696811a7dc31878b28e70da549b17d9984b996aafe604d9e27e16b8d0d3",
+  "plan_hash": "4dc9247d990882d1f5bb30f19bef138aa881adf590a87267e695ac04c9704d26",
   "problem_ids": [
     41,
     42,
@@ -957,7 +981,9 @@ fn problems_forever_many_send() {
     "43": {
       "verified": true
     }
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -993,7 +1019,7 @@ fn problems_forever_stops_at_first_failure() {
             "3",
             "--yes",
             "--expect-plan",
-            "8a733a45e79b5519d774f303ffbc4a1e9eeda40bca5dc5991df062d5aefa0519",
+            "8290b90fa056ba62088c2506866a73c1daa62369b3377f51ca7b45d72b45c349",
             "--confirm-destructive",
         ],
         None,
@@ -1004,7 +1030,7 @@ fn problems_forever_stops_at_first_failure() {
         r#"{
   "status": "partial",
   "verified": false,
-  "plan_hash": "8a733a45e79b5519d774f303ffbc4a1e9eeda40bca5dc5991df062d5aefa0519",
+  "plan_hash": "8290b90fa056ba62088c2506866a73c1daa62369b3377f51ca7b45d72b45c349",
   "problem_ids": [
     44,
     45,
@@ -1023,7 +1049,9 @@ fn problems_forever_stops_at_first_failure() {
   "not_attempted": [
     46
   ],
-  "warning": "Stopped at the first failed or unverified problem; inspect it and the journal; never replay."
+  "warning": "Stopped at the first failed or unverified problem; inspect it and the journal; never replay.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1057,7 +1085,7 @@ fn solutions_forever_many_send() {
             "2",
             "--yes",
             "--expect-plan",
-            "ad94fba1abd7cd746a3d099a52e8bb42d74959a04715d6aa4e470736b79dd695",
+            "ba3f512bfd6d533c219e1757d3009f3a4546cc5b43738849568ddb6d2c3c01c8",
             "--confirm-destructive",
         ],
         None,
@@ -1068,7 +1096,7 @@ fn solutions_forever_many_send() {
         r#"{
   "status": "submitted",
   "verified": true,
-  "plan_hash": "ad94fba1abd7cd746a3d099a52e8bb42d74959a04715d6aa4e470736b79dd695",
+  "plan_hash": "ba3f512bfd6d533c219e1757d3009f3a4546cc5b43738849568ddb6d2c3c01c8",
   "article_ids": [
     51,
     52
@@ -1080,7 +1108,9 @@ fn solutions_forever_many_send() {
     "52": {
       "verified": true
     }
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

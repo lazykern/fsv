@@ -18,7 +18,9 @@ fn sent_query_hashes(r: &Run, module: &str) -> Vec<Value> {
         .filter_map(|q| {
             let url = q["url"].as_str()?;
             let query = url.split_once('?')?.1;
-            let encoded = query.split('&').find_map(|p| p.strip_prefix("query_hash="))?;
+            let encoded = query
+                .split('&')
+                .find_map(|p| p.strip_prefix("query_hash="))?;
             let decoded = url_decode(encoded);
             serde_json::from_str(&decoded).ok()
         })
@@ -67,7 +69,11 @@ fn panel_shapes_pass_through_unchanged() {
             let r = env.run(&[module, "ls", "--json", "--query-hash", &shape.to_string()]);
             assert_eq!(r.code, 0, "{} {}", r.err, shape);
             assert!(!r.err.contains("Traceback"));
-            assert_eq!(sent_query_hashes(&r, module).last(), Some(&shape), "{module}");
+            assert_eq!(
+                sent_query_hashes(&r, module).last(),
+                Some(&shape),
+                "{module}"
+            );
             assert!(r.writes().is_empty());
         }
     }
@@ -82,8 +88,14 @@ fn scalar_value_with_list_operator_is_a_clean_refusal() {
             let r = env.run(&[module, "ls", "--json", "--query-hash", &raw.to_string()]);
             assert_eq!(r.code, 2, "{} {}", r.out, r.err);
             let text = format!("{}{}", r.out, r.err);
-            assert!(text.contains("takes a JSON list value") && text.contains("nothing was sent"), "{text}");
-            assert!(!text.contains("Traceback") && !text.contains("TypeError"), "{text}");
+            assert!(
+                text.contains("takes a JSON list value") && text.contains("nothing was sent"),
+                "{text}"
+            );
+            assert!(
+                !text.contains("Traceback") && !text.contains("TypeError"),
+                "{text}"
+            );
             assert!(sent_query_hashes(&r, module).is_empty());
             assert!(r.writes().is_empty());
         }
@@ -102,7 +114,9 @@ fn repeated_condition_merges_lists_and_keeps_scalars() {
     assert_eq!(r.code, 0, "{}", r.err);
     let sent = sent_query_hashes(&r, "tickets").pop().unwrap();
     let sent = sent.as_array().unwrap();
-    assert!(sent.contains(&json!({"condition": "known_error", "operator": "is", "type": "default", "value": "1"})));
+    assert!(sent.contains(
+        &json!({"condition": "known_error", "operator": "is", "type": "default", "value": "1"})
+    ));
     let status: Vec<&Value> = sent.iter().filter(|i| i["condition"] == "status").collect();
     assert_eq!(status.len(), 1);
     let mut values: Vec<i64> = status[0]["value"]

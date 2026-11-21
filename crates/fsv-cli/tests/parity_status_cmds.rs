@@ -63,7 +63,7 @@ fn lifecycle_partial_report_reason_only_for_reviewed_errors() {
         "Acme fix <safe>",
         "--yes",
         "--expect-plan",
-        "6794e2e526e44c1e65f401df1fdece18dedab4c5289bce634d4b661246c39098",
+        "9e64d8ba323a93dacca36f1cb745b07dcacce9b41c4e8fefba34d6372413adcb",
     ]);
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, "");
@@ -93,7 +93,7 @@ fn property_readback_uses_python_equality() {
         "High",
         "--yes",
         "--expect-plan",
-        "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
+        "1a65b447de02b935147bba7c9db6ccd77b08b9ca728932308cdb392700cca9a7",
     ]);
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(r.json()["fields"], json!({"priority": "matched"}));
@@ -182,12 +182,13 @@ fn add_note_checks_the_tenant_before_the_session() {
             "hi",
             "--yes",
             "--expect-plan",
-            "0728f357651c6ac051c8d3e84f29cd914bf6749db7e80d470cba3626e52f0611",
+            "9ea6a7200322068e102e27b52897ca04505c2cc8c7268040366db41e6aad168c",
         ]);
         assert_eq!(r.code, 2, "session {session}: {}", r.err);
+        // With no tenant the shared write guard refuses `--yes` before the
+        // note flow runs (Python `fsv.tenant`); no client is opened either way.
         assert!(
-            r.err
-                .ends_with("}\nconfigure a tenant before sending a note\n"),
+            r.err.starts_with("error: refusing to write: tenant (none configured)"),
             "session {session}: {}",
             r.err
         );
@@ -203,7 +204,7 @@ fn add_note_checks_the_tenant_before_the_session() {
         "hi",
         "--yes",
         "--expect-plan",
-        "6a1cb720ba3db32fb4b46fc60d96a34dd122fce1e3692e10f5182cc18ad61962",
+        "112a6eb30134ce1ec4f120f74f770d62dcfb64ea1991135f8061402c75a26ec5",
     ]);
     assert_eq!(r.code, 2, "{}", r.err);
     assert!(
@@ -226,7 +227,7 @@ fn closure_rule_cache_uses_python_separators() {
         "closed",
         "--yes",
         "--expect-plan",
-        "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
+        "f245488d1c34c54dbdbf785d6c3f16e98a5b5a8bbb291946b79daa52c6ad715f",
     ]);
     assert_eq!(r.code, 2, "{}", r.err);
     let forms = env.cache_dir().join("forms");
@@ -295,7 +296,7 @@ fn conversation_readback_uses_python_equality() {
         "--json",
         "--yes",
         "--expect-plan",
-        "5c24fced7a7b4c77e468569a8fa7cbaa16dbda8cb34d184b3fe5daa0188a8263",
+        "ca2fc452e44f19c97f2ef33bad1dbfb46d41934cc7d15b022eecb9a04545ea1e",
     ]);
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(r.json()["fields"]["private"], json!("matched"));

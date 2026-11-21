@@ -17,6 +17,7 @@ pub mod reviewed_snapshot;
 pub mod runtime;
 pub mod safety;
 pub mod session;
+pub mod tenant;
 pub mod term;
 pub mod value;
 pub mod yaml;

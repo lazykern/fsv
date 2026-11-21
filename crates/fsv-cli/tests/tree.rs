@@ -212,7 +212,7 @@ fn tree_matches_python() {
     let mut problems = Vec::new();
     walk(&tree, &cmd, &mut seen, &mut problems);
     assert!(problems.is_empty(), "{}", problems.join("\n"));
-    assert_eq!(seen.len(), 263);
+    assert_eq!(seen.len(), 265);
 }
 
 /// Fixtures still stamped with an older Python commit. Each one must be
@@ -252,7 +252,7 @@ fn every_command_path_is_reachable() {
     }
     let mut all = vec![];
     paths(&fsv_cli::command(), "fsv", &mut all);
-    assert_eq!(all.len(), 262);
+    assert_eq!(all.len(), 264);
     for p in [
         "fsv changes assets legacy",
         "fsv changes relationships write",

@@ -54,7 +54,9 @@ fn update_set_fields_dry_run() {
   },
   "requires_confirmation": [
     "reassign group (group_id=9)"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -77,7 +79,9 @@ fn update_ambiguous_group() {
   "id": "SR-5",
   "body": {
     "group_id": 7
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -122,7 +126,9 @@ fn update_priority_json() {
         r#"{
   "id": 5,
   "status": 4,
-  "human_display_id": "SR-5"
+  "human_display_id": "SR-5",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -474,11 +480,12 @@ fn approval_request_no_input() {
   ],
   "approval_rule": "Everyone",
   "message_text": "hi",
-  "plan_hash": "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
+  "plan_hash": "8222fdae371d01eae71b9a406c99823f36ce3fe761291b62442af6025b39c7b8",
   "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
   "recipient_sources": [],
   "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
-  "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."
+  "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 sending requires --yes and --expect-plan in no-input mode
 "#
@@ -501,7 +508,7 @@ fn approval_request_send_unverified() {
             "31",
             "--yes",
             "--expect-plan",
-            "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
+            "8222fdae371d01eae71b9a406c99823f36ce3fe761291b62442af6025b39c7b8",
         ],
         None,
     );
@@ -532,11 +539,12 @@ fn approval_request_send_unverified() {
   ],
   "approval_rule": "Everyone",
   "message_text": "hi",
-  "plan_hash": "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
+  "plan_hash": "8222fdae371d01eae71b9a406c99823f36ce3fe761291b62442af6025b39c7b8",
   "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
   "recipient_sources": [],
   "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
-  "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."
+  "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 approval request outcome unknown; inspect the change and journal before any retry; do not resubmit
 "#
@@ -622,11 +630,12 @@ fn approval_approve_dry_run() {
     "remark": "ok"
   },
   "body_present": true,
-  "plan_hash": "63aa95e626fb54e0d3a8da12d869adb7b273a76df0476cbc2689249f03092baf",
+  "plan_hash": "2436e46a94187c7cb06759c4c0a290938fc7020b4ff0133f656010dc829f7cc2",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Approve accepted live (requested=0, approved=1); reject captured aborted (read-back mapping unobserved).",
   "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred.",
-  "approval_id": 70
+  "approval_id": 70,
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -670,7 +679,7 @@ fn approval_respond_send_unknown() {
             "ok",
             "--yes",
             "--expect-plan",
-            "63aa95e626fb54e0d3a8da12d869adb7b273a76df0476cbc2689249f03092baf",
+            "2436e46a94187c7cb06759c4c0a290938fc7020b4ff0133f656010dc829f7cc2",
         ],
         None,
     );
@@ -690,11 +699,12 @@ fn approval_respond_send_unknown() {
     "remark": "ok"
   },
   "body_present": true,
-  "plan_hash": "63aa95e626fb54e0d3a8da12d869adb7b273a76df0476cbc2689249f03092baf",
+  "plan_hash": "2436e46a94187c7cb06759c4c0a290938fc7020b4ff0133f656010dc829f7cc2",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Approve accepted live (requested=0, approved=1); reject captured aborted (read-back mapping unobserved).",
   "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred.",
-  "approval_id": 70
+  "approval_id": 70,
+  "config_dir": "<CONFIG_DIR>"
 }
 approval action outcome unknown; inspect the change and journal before any retry; do not resubmit
 "#
@@ -722,7 +732,7 @@ fn approval_cancel_dry_run() {
   "path": "/api/_/changes/5/approval-groups/3/cancel",
   "payload": null,
   "body_present": false,
-  "plan_hash": "c9df12f50a2da842b04a3ac0bd10c85133cffd76a4b013c1adf3ada3957bee71",
+  "plan_hash": "693e864f660dd0b033e2153c29b95d4a874cc607c14c2527193da773aa51ba20",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Bodyless JSON-media-type cancel accepted live; chains exposed cancelled status {id:3,name:cancelled}.",
   "verification": "Complete approval chains: exact group disappears or all original approvals change away from requested; report raw statuses.",
@@ -742,7 +752,8 @@ fn approval_cancel_dry_run() {
         }
       }
     ]
-  }
+  },
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -817,7 +828,7 @@ fn approval_cancel_confirm_eof() {
   "path": "/api/_/changes/5/approval-groups/3/cancel",
   "payload": null,
   "body_present": false,
-  "plan_hash": "c9df12f50a2da842b04a3ac0bd10c85133cffd76a4b013c1adf3ada3957bee71",
+  "plan_hash": "693e864f660dd0b033e2153c29b95d4a874cc607c14c2527193da773aa51ba20",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Bodyless JSON-media-type cancel accepted live; chains exposed cancelled status {id:3,name:cancelled}.",
   "verification": "Complete approval chains: exact group disappears or all original approvals change away from requested; report raw statuses.",
@@ -837,7 +848,8 @@ fn approval_cancel_confirm_eof() {
         }
       }
     ]
-  }
+  },
+  "config_dir": "<CONFIG_DIR>"
 }
 Aborted.
 "#
@@ -855,7 +867,7 @@ fn approval_cancel_send() {
             "3",
             "--yes",
             "--expect-plan",
-            "c9df12f50a2da842b04a3ac0bd10c85133cffd76a4b013c1adf3ada3957bee71",
+            "693e864f660dd0b033e2153c29b95d4a874cc607c14c2527193da773aa51ba20",
         ],
         None,
     );
@@ -872,7 +884,7 @@ fn approval_cancel_send() {
   "path": "/api/_/changes/5/approval-groups/3/cancel",
   "payload": null,
   "body_present": false,
-  "plan_hash": "c9df12f50a2da842b04a3ac0bd10c85133cffd76a4b013c1adf3ada3957bee71",
+  "plan_hash": "693e864f660dd0b033e2153c29b95d4a874cc607c14c2527193da773aa51ba20",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Bodyless JSON-media-type cancel accepted live; chains exposed cancelled status {id:3,name:cancelled}.",
   "verification": "Complete approval chains: exact group disappears or all original approvals change away from requested; report raw statuses.",
@@ -892,7 +904,8 @@ fn approval_cancel_send() {
         }
       }
     ]
-  }
+  },
+  "config_dir": "<CONFIG_DIR>"
 }
 approval action outcome unknown; inspect the change and journal before any retry; do not resubmit
 "#
@@ -1166,7 +1179,9 @@ fn clone_dry_run() {
   "status": 1,
   "priority": 2,
   "description": "<p>x</p>",
-  "cf_env": "prod"
+  "cf_env": "prod",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1228,7 +1243,9 @@ fn update_due_by_dry_run() {
   "id": "CHN-5",
   "body": {
     "due_by": "2026-06-09T18:00:00+07:00"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1290,7 +1307,9 @@ fn update_planning_dry_run() {
       "x.pdf"
     ],
     "duplicate": "prompt"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1345,7 +1364,9 @@ fn update_attach_dry_run() {
       ],
       "duplicate": "skip"
     }
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1423,7 +1444,9 @@ fn clone_dry_run_side_effects() {
   "status": 1,
   "priority": 2,
   "description": "<p>x</p>",
-  "cf_env": "prod"
+  "cf_env": "prod",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1503,7 +1526,9 @@ fn clone_json_step_failed() {
   "human_display_id": "CHN-8",
   "fsv_clone_steps": {
     "assets": "failed: HTTP 500 updating associate: nope"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1560,8 +1585,9 @@ fn associations_add_dry_run() {
     "module_type": "ticket"
   },
   "params": null,
-  "plan_hash": "f1f0aa0b927f4458a489fa58fd938954e09f2c12ec4d795ac7a5f7b1c05a5547",
-  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
+  "plan_hash": "c3f1ef0f88ef80b69d0a9cee366eafdbe1b336ef7f028b7a988d779bb738face",
+  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1602,8 +1628,9 @@ fn associations_add_subject_dry_run() {
     "module_type": "ticket"
   },
   "params": null,
-  "plan_hash": "feb8984cef848da9017d51abf14ee3b152733cfa31239f78bb0a3efc948e6bcd",
-  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
+  "plan_hash": "b07625fc9d7668d77cc6c42bce79c31a35b3649dc42720ef1b17160c5967ef0a",
+  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1676,7 +1703,7 @@ fn associations_add_no_input() {
     "module_type": "ticket"
   },
   "params": null,
-  "plan_hash": "feb8984cef848da9017d51abf14ee3b152733cfa31239f78bb0a3efc948e6bcd",
+  "plan_hash": "b07625fc9d7668d77cc6c42bce79c31a35b3649dc42720ef1b17160c5967ef0a",
   "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
 }
 error: sending requires --yes and --expect-plan in no-input mode
@@ -1696,7 +1723,7 @@ fn associations_add_send() {
             "SR-100",
             "--yes",
             "--expect-plan",
-            "feb8984cef848da9017d51abf14ee3b152733cfa31239f78bb0a3efc948e6bcd",
+            "b07625fc9d7668d77cc6c42bce79c31a35b3649dc42720ef1b17160c5967ef0a",
         ],
         None,
     );
@@ -1720,7 +1747,7 @@ fn associations_add_send() {
     "module_type": "ticket"
   },
   "params": null,
-  "plan_hash": "feb8984cef848da9017d51abf14ee3b152733cfa31239f78bb0a3efc948e6bcd",
+  "plan_hash": "b07625fc9d7668d77cc6c42bce79c31a35b3649dc42720ef1b17160c5967ef0a",
   "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
 }
 error: association outcome unknown/unverified; inspect the change and journal; do not resubmit
@@ -1786,8 +1813,9 @@ fn associations_remove_subject_dry_run() {
   "params": {
     "module_type": "ticket"
   },
-  "plan_hash": "f380f90a5980d60d3b25e238fecdb3e810630e5cc13d8a0ada20eff9f1ca18e6",
-  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
+  "plan_hash": "4d05487bbcb9d8683a76d54a2206e35fbd4903349a0f9a0779b38c29b6d11ef6",
+  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2106,7 +2134,7 @@ fn ticket_create_send() {
             "ann@acme.com",
             "--yes",
             "--expect-plan",
-            "971853ece554e8e5",
+            "a56698893782ce8c",
         ],
         None,
     );
@@ -2135,7 +2163,7 @@ fn ticket_create_send_json() {
             "ann@acme.com",
             "--yes",
             "--expect-plan",
-            "971853ece554e8e5",
+            "a56698893782ce8c",
             "--json",
         ],
         None,
@@ -2143,7 +2171,7 @@ fn ticket_create_send_json() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"{"created": {"id": 777, "display_id": 777, "subject": "Hello"}, "plan_hash": "971853ece554e8e5bfcebeccb06dd09cca29d059881bdea7f8f408157c2eab08"}
+        r#"{"created": {"id": 777, "display_id": 777, "subject": "Hello"}, "plan_hash": "a56698893782ce8c1ea828b2fb74946e5a2cffc1e586078357d838e7b1e8ced1", "tenant": "acme.freshservice.com", "config_dir": "<CONFIG_DIR>"}
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -2224,7 +2252,7 @@ fn ticket_create_plan_changed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: plan changed: expected deadbeef, computed 971853ece554e8e5bfcebeccb06dd09cca29d059881bdea7f8f408157c2eab08. Review again with --dry-run.
+        r#"error: plan changed: expected deadbeef, computed a56698893782ce8c1ea828b2fb74946e5a2cffc1e586078357d838e7b1e8ced1. Review again with --dry-run.
 "#
     );
 }
@@ -2240,7 +2268,7 @@ fn ticket_create_no_requester() {
             "Subject=Hello",
             "--yes",
             "--expect-plan",
-            "971853ece554e8e5",
+            "a56698893782ce8c",
         ],
         None,
     );
@@ -2282,17 +2310,19 @@ Will notify / create work for
 Warnings
   field 'orphan_note' belongs to a section that no choice reveals; hidden
 form metadata as of unknown (fetched NOW, server, fingerprint a2982a2f46005417)
-plan 971853ece554e8e5bfcebeccb06dd09cca29d059881bdea7f8f408157c2eab08
+plan a56698893782ce8c1ea828b2fb74946e5a2cffc1e586078357d838e7b1e8ced1
 Payload (POST /api/_/tickets)
 {
   "subject": "Hello",
   "priority": 2,
   "custom_fields": {},
   "email": "Ann Lee <ann@acme.com>",
-  "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+  "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
-plan_hash: 971853ece554e8e5bfcebeccb06dd09cca29d059881bdea7f8f408157c2eab08
-Send with --yes --expect-plan 971853ece554e8e5
+plan_hash: a56698893782ce8c1ea828b2fb74946e5a2cffc1e586078357d838e7b1e8ced1
+Send with --yes --expect-plan a56698893782ce8c
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -2380,7 +2410,7 @@ fn change_create_send() {
             "--no-validate",
             "--yes",
             "--expect-plan",
-            "10df27a1e78a8382",
+            "049343094fbc1701",
         ],
         None,
     );
@@ -2408,7 +2438,7 @@ fn change_create_send_json() {
             "--no-validate",
             "--yes",
             "--expect-plan",
-            "10df27a1e78a8382",
+            "049343094fbc1701",
             "--json",
         ],
         None,
@@ -2422,7 +2452,7 @@ fn change_create_send_json() {
     "display_id": 900,
     "subject": "Hello"
   },
-  "plan_hash": "10df27a1e78a8382e879aa47ee0592d8e855fe2ac2cfb41591e477cb13263692",
+  "plan_hash": "049343094fbc1701badb6ccd82b78474ba75a634303c8058ff4f7d9fbcc55a75",
   "steps": [
     {
       "step": "create",
@@ -2430,7 +2460,9 @@ fn change_create_send_json() {
       "id": 900
     }
   ],
-  "uploaded": []
+  "uploaded": [],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2460,7 +2492,7 @@ fn change_create_plan_changed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: plan changed: expected 0000, computed 10df27a1e78a8382e879aa47ee0592d8e855fe2ac2cfb41591e477cb13263692. Review again with --dry-run.
+        r#"error: plan changed: expected 0000, computed 049343094fbc1701badb6ccd82b78474ba75a634303c8058ff4f7d9fbcc55a75. Review again with --dry-run.
 "#
     );
 }
@@ -2823,7 +2855,7 @@ fn sr_create_send() {
             ),
             "--yes",
             "--expect-plan",
-            "5e0581d3ec26d93d",
+            "19860090d9294852",
         ],
         None,
     );
@@ -2886,7 +2918,7 @@ fn sr_create_send_json() {
             ),
             "--yes",
             "--expect-plan",
-            "5e0581d3ec26d93d",
+            "19860090d9294852",
             "-o",
             "json",
         ],
@@ -2907,7 +2939,7 @@ fn sr_create_send_json() {
       "human_display_id": "SR-5001"
     }
   },
-  "plan_hash": "5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2",
+  "plan_hash": "19860090d92948522db5bbd3d75040951dfd4d69ae5020eecbdad4e106289553",
   "uploaded": [
     {
       "id": 901,
@@ -2938,7 +2970,9 @@ fn sr_create_send_json() {
   "verification": {
     "verified": false,
     "fields": {}
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -3001,7 +3035,7 @@ fn sr_create_plan_changed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: plan changed: expected 0000, computed 5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2. Review again with --dry-run.
+        r#"error: plan changed: expected 0000, computed 19860090d92948522db5bbd3d75040951dfd4d69ae5020eecbdad4e106289553. Review again with --dry-run.
 "#
     );
 }
@@ -3113,7 +3147,7 @@ Attachments (uploaded after you confirm)
 Warnings
   Separate requested-for is available via --requested-for; requester remains unchanged.
 form metadata as of 2030-01-15T10:00:00+09:00 (fetched NOW, server, fingerprint 1b3febc07fed14c1)
-plan 5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2
+plan 19860090d92948522db5bbd3d75040951dfd4d69ae5020eecbdad4e106289553
 ⚠ This sends a real service request to the catalog item's fulfilment team.
 Payload (POST /api/_/catalog/service-items/77/place-request; <upload N: name> becomes the attachment id after upload)
 {
@@ -3132,10 +3166,12 @@ Payload (POST /api/_/catalog/service-items/77/place-request; <upload N: name> be
   "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyI0NDAwMDAxIjp7Im9wdGlvbmFsIjoiW10iLCJkaXNhYmxlZCI6IltdIiwiaGlkZGVuIjoiW10ifX0=",
   "attachments": [
     "<upload 2: notes.txt>"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
-plan_hash: 5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2
-send exactly this with: --yes --expect-plan 5e0581d3ec26d93d
+plan_hash: 19860090d92948522db5bbd3d75040951dfd4d69ae5020eecbdad4e106289553
+send exactly this with: --yes --expect-plan 19860090d9294852
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -3263,9 +3299,10 @@ fn task_add_dry_run() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "plan_hash": "34f7a606bae379e7f5ca1fc1f9643b3bd0fbd32f9f2e7328b0d5a52cee13e7a6",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -3284,7 +3321,7 @@ fn task_add_send_unverified() {
             "Do it",
             "--yes",
             "--expect-plan",
-            "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+            "34f7a606bae379e7f5ca1fc1f9643b3bd0fbd32f9f2e7328b0d5a52cee13e7a6",
         ],
         None,
     );
@@ -3311,9 +3348,10 @@ fn task_add_send_unverified() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "plan_hash": "34f7a606bae379e7f5ca1fc1f9643b3bd0fbd32f9f2e7328b0d5a52cee13e7a6",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 Returned task ID/state not verified in task read-back; do not resend.
 "#
@@ -3354,9 +3392,10 @@ fn task_add_no_input() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "plan_hash": "34f7a606bae379e7f5ca1fc1f9643b3bd0fbd32f9f2e7328b0d5a52cee13e7a6",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 sending requires --yes and --expect-plan in no-input mode
 "#
@@ -3416,9 +3455,10 @@ fn task_add_full_dry_run() {
   "status_label": "in progress",
   "reminder": "Never",
   "note_text": "a<b",
-  "plan_hash": "abc4854f90323e85658952e202991baba9c2065c1018232780807e0fe9eac346",
+  "plan_hash": "dab58a3937b877fc441c4ab82b57b2e5d08980a43b12a8a3e0d44ad622f4cfe6",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -3460,9 +3500,10 @@ fn task_add_hash_mismatch() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "plan_hash": "34f7a606bae379e7f5ca1fc1f9643b3bd0fbd32f9f2e7328b0d5a52cee13e7a6",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 task review hash does not match; review the exact task again
 "#
@@ -3495,9 +3536,10 @@ fn task_add_confirm_eof() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "plan_hash": "34f7a606bae379e7f5ca1fc1f9643b3bd0fbd32f9f2e7328b0d5a52cee13e7a6",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+  "config_dir": "<CONFIG_DIR>"
 }
 Aborted.
 "#

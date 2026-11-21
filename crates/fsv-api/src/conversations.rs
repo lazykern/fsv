@@ -867,7 +867,7 @@ mod tests {
 
     const TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
     const ROW_HASH: &str = "1fdf7e536748426619ff7f88ffd5fb0a1b5940b5c4352579c3a462978c2f6a79";
-    const REPLY_HASH: &str = "a6558f93a3456b1bf04f15b2e3711aa8d995ae7483bb767c1a7bcd8b5553a2ca";
+    const REPLY_HASH: &str = "bf1b8f1bea0613421081000a7c5afdebf02bfe9cf2704983f0b25ed6a570717e";
 
     #[test]
     fn payload_parses_the_reviewed_json() {
@@ -887,7 +887,7 @@ mod tests {
         };
         assert_eq!(plan.payload(), oracle["misc"]["conversation_payload"]);
     }
-    const NOTE_HASH: &str = "b968aa46849b709e7f57dcf98d4fe54d0529917405a43d49448bd410639a525a";
+    const NOTE_HASH: &str = "08c479ee77623e8acb00dcca529913b62bb1d4321ed68de32d2670eb8d5c03b3";
     const CC: &str = "Acme User <person@example.com>";
     const STATUS_ERR: &str = "could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted";
     const WARNING: &str = "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.";

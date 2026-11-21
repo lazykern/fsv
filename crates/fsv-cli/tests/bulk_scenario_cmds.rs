@@ -35,7 +35,7 @@ fn bulk_scenario_dry_run() {
     ],
     "scenario_id": 502
   },
-  "plan_hash": "544abc8b9f96db8f0dd08186aeeb2956002ee596eb1bd3aff3b786ec1e5f35ac",
+  "plan_hash": "5eb6fd88e88f751854a27c541399762a6cb49910ec8155cfc178b96f3c9663d3",
   "warning": "Runs scenario 502 ('Assign to Acme Team') on every listed ticket. Its actions (ticket type changes, assignments, emails, notes) run on the server asynchronously (HTTP 202) and cannot be proven by fsv; check the scenario name above. Never replay an uncertain run.",
   "ticket_ids": [
     30,
@@ -71,7 +71,9 @@ fn bulk_scenario_dry_run() {
   "scenario": {
     "id": 502,
     "name": "Assign to Acme Team"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -128,7 +130,7 @@ fn bulk_scenario_send_unverified() {
             "Assign to Acme Team",
             "--yes",
             "--expect-plan",
-            "544abc8b9f96db8f0dd08186aeeb2956002ee596eb1bd3aff3b786ec1e5f35ac",
+            "5eb6fd88e88f751854a27c541399762a6cb49910ec8155cfc178b96f3c9663d3",
         ],
         None,
     );
@@ -137,7 +139,7 @@ fn bulk_scenario_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "544abc8b9f96db8f0dd08186aeeb2956002ee596eb1bd3aff3b786ec1e5f35ac",
+  "plan_hash": "5eb6fd88e88f751854a27c541399762a6cb49910ec8155cfc178b96f3c9663d3",
   "verified": false,
   "ticket_ids": [
     30,
@@ -153,7 +155,7 @@ fn bulk_scenario_send_unverified() {
   },
   "warning": "Accepted for asynchronous execution; exact tickets were read back, but the scenario's effects cannot be proven. Inspect the tickets; do not resend.",
   "readback_attempts": 4,
-  "delegated_plan_hash": "bc24841791a0e7e46690a67fb4ad3e83b08d3ec1631224e2071254660506b5c4",
+  "delegated_plan_hash": "4a80938e007f76b7a8d7ab121efebf977ea17e275156b350148483ba1da90464",
   "selected_tickets": [
     {
       "id": 30,
@@ -163,7 +165,9 @@ fn bulk_scenario_send_unverified() {
       "id": 31,
       "subject": "Acme 31"
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

@@ -69,6 +69,44 @@
    "envvar": null
   },
   {
+   "name": "quiet",
+   "kind": "option",
+   "opts": [
+    "--quiet"
+   ],
+   "secondary_opts": [],
+   "type": "boolean",
+   "choices": null,
+   "required": false,
+   "multiple": false,
+   "nargs": 1,
+   "is_flag": true,
+   "default": false,
+   "hidden": false,
+   "help": "do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)",
+   "metavar": null,
+   "envvar": null
+  },
+  {
+   "name": "tenant",
+   "kind": "option",
+   "opts": [
+    "--tenant"
+   ],
+   "secondary_opts": [],
+   "type": "text",
+   "choices": null,
+   "required": false,
+   "multiple": false,
+   "nargs": 1,
+   "is_flag": false,
+   "default": null,
+   "hidden": false,
+   "help": "assert the target tenant; confirms it for --yes writes when it equals the configured domain",
+   "metavar": "DOMAIN",
+   "envvar": null
+  },
+  {
    "name": "install_completion",
    "kind": "option",
    "opts": [
@@ -108,6 +146,35 @@
   }
  ],
  "commands": [
+  {
+   "path": "fsv whoami",
+   "help": "Show the signed-in agent and the tenant/config dir this shell targets (read-only).",
+   "epilog": "[bold]Examples:[/bold]  fsv whoami  |  fsv whoami --json",
+   "hidden": false,
+   "group": false,
+   "params": [
+    {
+     "name": "json_out",
+     "kind": "option",
+     "opts": [
+      "--json"
+     ],
+     "secondary_opts": [],
+     "type": "boolean",
+     "choices": null,
+     "required": false,
+     "multiple": false,
+     "nargs": 1,
+     "is_flag": true,
+     "default": false,
+     "hidden": false,
+     "help": "print JSON",
+     "metavar": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
   {
    "path": "fsv help",
    "help": "Show topic help.",
@@ -1291,6 +1358,35 @@
      "hidden": false,
      "group": false,
      "params": [],
+     "commands": []
+    },
+    {
+     "path": "fsv config show",
+     "help": "Show the target tenant, config dir, write confirmation and all config values.",
+     "epilog": "[bold]Examples:[/bold]  fsv config show  |  fsv config show --json",
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "print JSON",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
      "commands": []
     },
     {

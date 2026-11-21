@@ -76,7 +76,7 @@ const BULK_WHERE_OUT: &str = r#"{
       141
     ]
   },
-  "plan_hash": "0ec3781638748104f9971f8dabc82497cb29014c6a030a2cf4e4dc4e104c5907",
+  "plan_hash": "98265860dfb0aaa8e3a479eabd5357008c9587ec541f8f413ef5cfc43c4903a4",
   "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
   "ticket_ids": [
     140,
@@ -106,7 +106,9 @@ const BULK_WHERE_OUT: &str = r#"{
       "id": 141,
       "subject": "Acme ticket 141"
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#;
 
@@ -189,7 +191,7 @@ fn attachment_owner_id_value_error_escapes() {
         "notes.txt",
         "--yes",
         "--expect-plan",
-        "34994e2af399fea67e7d2834cd8d3385ab3e6bc3bf277ce91d069910e64b8454",
+        "276c18541db1cb54eb3635b12913c336109f7eb8b6a3f496935158d8bd58d725",
     ]);
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, "");

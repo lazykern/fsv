@@ -200,6 +200,8 @@ impl Env {
             .env("FSV_CACHE_DIR", self.cache_dir())
             .env("XDG_STATE_HOME", h.join("state"))
             .env("FSV_NO_KEYCHAIN", "1")
+            .env("FSV_QUIET", "1")
+            .env("FSV_ALLOW_TENANT", DOMAIN)
             .env("NO_COLOR", "1")
             .env("COLUMNS", "200")
             .env("TZ", "UTC")
@@ -232,10 +234,13 @@ impl Env {
             .lines()
             .filter_map(|l| serde_json::from_str(l).ok())
             .collect();
+        let mask = |bytes: &[u8]| {
+            String::from_utf8_lossy(bytes).replace(cfg.to_string_lossy().as_ref(), "<CONFIG_DIR>")
+        };
         Run {
             code: output.status.code().unwrap_or(-1),
-            out: String::from_utf8_lossy(&output.stdout).into_owned(),
-            err: String::from_utf8_lossy(&output.stderr).into_owned(),
+            out: mask(&output.stdout),
+            err: mask(&output.stderr),
             requests,
         }
     }

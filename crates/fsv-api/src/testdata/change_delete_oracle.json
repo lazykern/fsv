@@ -6,13 +6,13 @@
   "cases": [
     {
       "name": "ok",
-      "hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
       "review": {
         "action": "change_delete",
         "method": "DELETE",
         "path": "/api/_/changes/123",
         "payload": null,
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
         "change_id": 123,
         "subject": "Acme rollout"
@@ -21,7 +21,7 @@
       "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
       "result": {
         "status": "submitted",
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "verified": true,
         "change_id": 123,
         "fields": {
@@ -42,13 +42,13 @@
     },
     {
       "name": "lag2",
-      "hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
       "review": {
         "action": "change_delete",
         "method": "DELETE",
         "path": "/api/_/changes/123",
         "payload": null,
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
         "change_id": 123,
         "subject": "Acme rollout"
@@ -57,7 +57,7 @@
       "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
       "result": {
         "status": "submitted",
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "verified": true,
         "change_id": 123,
         "fields": {
@@ -81,13 +81,13 @@
     },
     {
       "name": "lag100",
-      "hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
       "review": {
         "action": "change_delete",
         "method": "DELETE",
         "path": "/api/_/changes/123",
         "payload": null,
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
         "change_id": 123,
         "subject": "Acme rollout"
@@ -96,7 +96,7 @@
       "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
       "result": {
         "status": "submitted",
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "verified": false,
         "change_id": 123,
         "fields": {
@@ -122,13 +122,13 @@
     },
     {
       "name": "no_confirm",
-      "hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
       "review": {
         "action": "change_delete",
         "method": "DELETE",
         "path": "/api/_/changes/123",
         "payload": null,
-        "plan_hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
         "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
         "change_id": 123,
         "subject": "Acme rollout"
@@ -160,7 +160,7 @@
     },
     {
       "name": "drift",
-      "hash": "5dcdfdf710fbf987bbc650b9204a66be904f1ef8930be3fb64a19d87ed1742ee",
+      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
       "err": "target or metadata changed since review; review again",
       "writes": 0
     },

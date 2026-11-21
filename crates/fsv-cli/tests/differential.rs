@@ -295,6 +295,8 @@ fn step_output(
         .env("FSV_CACHE_DIR", home.join("cache"))
         .env("XDG_STATE_HOME", home.join("state"))
         .env("FSV_NO_KEYCHAIN", "1")
+        .env("FSV_QUIET", "1")
+        .env("FSV_ALLOW_TENANT", DOMAIN)
         .env("NO_COLOR", "1")
         .env("COLUMNS", "200")
         .env("TZ", "UTC")
@@ -386,7 +388,11 @@ fn describe(a: &Outcome, b: &Outcome) -> Vec<String> {
         diffs.push(format!("exit: py {} rs {}", a.code, b.code));
     }
     if a.out != b.out {
-        diffs.push("stdout differs".into());
+        if std::env::var_os("FSV_DIFF_VERBOSE").is_some() {
+            diffs.push(format!("stdout differs:\n  py: {:?}\n  rs: {:?}", a.out, b.out));
+        } else {
+            diffs.push("stdout differs".into());
+        }
     }
     let (ea, eb) = (normalise_err(&a.err), normalise_err(&b.err));
     if ea != eb {

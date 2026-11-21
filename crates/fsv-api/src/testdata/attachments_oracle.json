@@ -47,7 +47,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -58,7 +58,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -90,7 +90,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "uploaded_ids": [
       701,
       702
@@ -202,7 +202,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "fdd9e51ee57e014f903c599447a15c3464952f9a0f1b7e7eaa22533f147bb4c3",
+     "hash": "ef69575a0994416018d4b657e771fc2e5e1784bfae0853328584330349c69b2d",
      "review": {
       "action": "ticket_reply_attachments",
       "method": "POST",
@@ -216,7 +216,7 @@
        "full_text": "<div>Acme evidence</div>",
        "translate_reply": false
       },
-      "plan_hash": "fdd9e51ee57e014f903c599447a15c3464952f9a0f1b7e7eaa22533f147bb4c3",
+      "plan_hash": "ef69575a0994416018d4b657e771fc2e5e1784bfae0853328584330349c69b2d",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -248,7 +248,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "fdd9e51ee57e014f903c599447a15c3464952f9a0f1b7e7eaa22533f147bb4c3",
+     "plan_hash": "ef69575a0994416018d4b657e771fc2e5e1784bfae0853328584330349c69b2d",
      "uploaded_ids": [
       701,
       702
@@ -341,7 +341,7 @@
       "method": "POST",
       "path": "problems/123/notes",
       "payload_json": "{\"body\": \"Acme evidence\"}",
-      "context_hash": "ec5b4ac94071d942a45dec03c0e26f090e9561da12544f0e5c8937045c0b2b89"
+      "context_hash": "1052b3a2e9a05906a6c507702dcd24febcc4b07fc14b463d1d10dbf77efacb5f"
      },
      "files": [
       {
@@ -360,7 +360,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "cc181f89079371d53782d688141e6c3e1302ead797bff4dde6e3b3bd07cee860",
+     "hash": "4e7c3ac1d769cf553c520df8bb4f32ac56df58944b717367ae730c5bda7cec08",
      "review": {
       "action": "problem_note_attachments",
       "method": "POST",
@@ -368,7 +368,7 @@
       "payload": {
        "body": "Acme evidence"
       },
-      "plan_hash": "cc181f89079371d53782d688141e6c3e1302ead797bff4dde6e3b3bd07cee860",
+      "plan_hash": "4e7c3ac1d769cf553c520df8bb4f32ac56df58944b717367ae730c5bda7cec08",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -400,7 +400,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "cc181f89079371d53782d688141e6c3e1302ead797bff4dde6e3b3bd07cee860",
+     "plan_hash": "4e7c3ac1d769cf553c520df8bb4f32ac56df58944b717367ae730c5bda7cec08",
      "uploaded_ids": [
       701,
       702
@@ -491,7 +491,7 @@
       "method": "POST",
       "path": "tickets",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+      "context_hash": "f1f37a6e3d5c778a361e049b0d03577a43dd978a56e03ff008b14cfa5f4c4454"
      },
      "files": [
       {
@@ -510,7 +510,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "ed858819eca907e9bd22c9acf823bb458a5f64ef32a0642a40b01ca9f14b0081",
+     "hash": "195a5399879f9758ea0d046a5375b79e1e7dcc3445849dbc9473048ee30a0a83",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -518,7 +518,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "ed858819eca907e9bd22c9acf823bb458a5f64ef32a0642a40b01ca9f14b0081",
+      "plan_hash": "195a5399879f9758ea0d046a5375b79e1e7dcc3445849dbc9473048ee30a0a83",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -550,7 +550,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "ed858819eca907e9bd22c9acf823bb458a5f64ef32a0642a40b01ca9f14b0081",
+     "plan_hash": "195a5399879f9758ea0d046a5375b79e1e7dcc3445849dbc9473048ee30a0a83",
      "uploaded_ids": [
       701,
       702
@@ -641,7 +641,7 @@
       "method": "POST",
       "path": "changes",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+      "context_hash": "f1f37a6e3d5c778a361e049b0d03577a43dd978a56e03ff008b14cfa5f4c4454"
      },
      "files": [
       {
@@ -660,7 +660,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "476d4d3b69e2b262e5fda71dfcc23666791f687732c53027ef6620f460405721",
+     "hash": "5f52923bf5ae246a026c89d77a9c9ab8025a8421be315f4265e53052f16cbc36",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -668,7 +668,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "476d4d3b69e2b262e5fda71dfcc23666791f687732c53027ef6620f460405721",
+      "plan_hash": "5f52923bf5ae246a026c89d77a9c9ab8025a8421be315f4265e53052f16cbc36",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -700,7 +700,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "476d4d3b69e2b262e5fda71dfcc23666791f687732c53027ef6620f460405721",
+     "plan_hash": "5f52923bf5ae246a026c89d77a9c9ab8025a8421be315f4265e53052f16cbc36",
      "uploaded_ids": [
       701,
       702
@@ -814,7 +814,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -825,7 +825,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -929,7 +929,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -940,7 +940,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1054,7 +1054,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1065,7 +1065,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1169,7 +1169,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1180,7 +1180,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1294,7 +1294,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1305,7 +1305,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1409,7 +1409,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1420,7 +1420,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1534,7 +1534,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1545,7 +1545,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1649,7 +1649,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1660,7 +1660,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1774,7 +1774,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1785,7 +1785,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -1889,7 +1889,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+     "hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -1900,7 +1900,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "eca40232a327281d44e19d2d4c969fc25dce6efce574dda1878fd7f013d75b88",
+      "plan_hash": "b0cf3d5170f0cd96d90473aa3e7826a97876d27dd5e5c32836ee3683dc12434e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -2023,7 +2023,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -2034,7 +2034,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -2066,7 +2066,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "uploaded_ids": [
       701,
       702
@@ -2096,13 +2096,13 @@
      "payload_json": "null",
      "context_hash": "1ace098fdbf7d9505f7d32cc729df8ebf475ae4e54b21c2308ae1f4b3c2c6294"
     },
-    "hash": "8fe80de71927da46e1b611b0882ec468c15f74bd984a4b507732d7f82e444d61",
+    "hash": "1944143b57122a360c21d6a57ca410ec28c5dd9e3f73d062c53c8a7395c63941",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/701",
      "payload": null,
-     "plan_hash": "8fe80de71927da46e1b611b0882ec468c15f74bd984a4b507732d7f82e444d61",
+     "plan_hash": "1944143b57122a360c21d6a57ca410ec28c5dd9e3f73d062c53c8a7395c63941",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -2110,7 +2110,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "8fe80de71927da46e1b611b0882ec468c15f74bd984a4b507732d7f82e444d61",
+     "plan_hash": "1944143b57122a360c21d6a57ca410ec28c5dd9e3f73d062c53c8a7395c63941",
      "verified": true,
      "attachment_id": 701
     },
@@ -2212,7 +2212,7 @@
       "method": "POST",
       "path": "problems/123/notes",
       "payload_json": "{\"body\": \"Acme evidence\"}",
-      "context_hash": "ec5b4ac94071d942a45dec03c0e26f090e9561da12544f0e5c8937045c0b2b89"
+      "context_hash": "1052b3a2e9a05906a6c507702dcd24febcc4b07fc14b463d1d10dbf77efacb5f"
      },
      "files": [
       {
@@ -2231,7 +2231,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "cc181f89079371d53782d688141e6c3e1302ead797bff4dde6e3b3bd07cee860",
+     "hash": "4e7c3ac1d769cf553c520df8bb4f32ac56df58944b717367ae730c5bda7cec08",
      "review": {
       "action": "problem_note_attachments",
       "method": "POST",
@@ -2239,7 +2239,7 @@
       "payload": {
        "body": "Acme evidence"
       },
-      "plan_hash": "cc181f89079371d53782d688141e6c3e1302ead797bff4dde6e3b3bd07cee860",
+      "plan_hash": "4e7c3ac1d769cf553c520df8bb4f32ac56df58944b717367ae730c5bda7cec08",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -2271,7 +2271,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "cc181f89079371d53782d688141e6c3e1302ead797bff4dde6e3b3bd07cee860",
+     "plan_hash": "4e7c3ac1d769cf553c520df8bb4f32ac56df58944b717367ae730c5bda7cec08",
      "uploaded_ids": [
       701,
       702
@@ -2299,13 +2299,13 @@
      "payload_json": "null",
      "context_hash": "8233a5dab2984e4c737e7dc897e114392c941a684bee569ee8e5bdd215c810da"
     },
-    "hash": "3a66a2482d78737136fad9a0e1aa77acc977d0326552b82950de6d226ee5015b",
+    "hash": "cc8db784fea32a9083a968d59a8a5a2326e715c9efeebc0d1cd40a2f0866ecca",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/702",
      "payload": null,
-     "plan_hash": "3a66a2482d78737136fad9a0e1aa77acc977d0326552b82950de6d226ee5015b",
+     "plan_hash": "cc8db784fea32a9083a968d59a8a5a2326e715c9efeebc0d1cd40a2f0866ecca",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -2313,7 +2313,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "3a66a2482d78737136fad9a0e1aa77acc977d0326552b82950de6d226ee5015b",
+     "plan_hash": "cc8db784fea32a9083a968d59a8a5a2326e715c9efeebc0d1cd40a2f0866ecca",
      "verified": true,
      "attachment_id": 702
     },
@@ -2417,7 +2417,7 @@
       "method": "POST",
       "path": "tickets",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+      "context_hash": "f1f37a6e3d5c778a361e049b0d03577a43dd978a56e03ff008b14cfa5f4c4454"
      },
      "files": [
       {
@@ -2436,7 +2436,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "ed858819eca907e9bd22c9acf823bb458a5f64ef32a0642a40b01ca9f14b0081",
+     "hash": "195a5399879f9758ea0d046a5375b79e1e7dcc3445849dbc9473048ee30a0a83",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -2444,7 +2444,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "ed858819eca907e9bd22c9acf823bb458a5f64ef32a0642a40b01ca9f14b0081",
+      "plan_hash": "195a5399879f9758ea0d046a5375b79e1e7dcc3445849dbc9473048ee30a0a83",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -2476,7 +2476,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "ed858819eca907e9bd22c9acf823bb458a5f64ef32a0642a40b01ca9f14b0081",
+     "plan_hash": "195a5399879f9758ea0d046a5375b79e1e7dcc3445849dbc9473048ee30a0a83",
      "uploaded_ids": [
       701,
       702
@@ -2504,13 +2504,13 @@
      "payload_json": "null",
      "context_hash": "b2d09212a2889e518034501c3d62ceb52899ba5810b2df9f0a106aa22c762ae4"
     },
-    "hash": "8e9828198a43fdcf81663b69aa7f6f8383886133da011c2a7af27d87309d318d",
+    "hash": "5604d4365f862edca594c64fd7f78aca3363cd46d4da7f012dac2ef01f93bc1f",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/701",
      "payload": null,
-     "plan_hash": "8e9828198a43fdcf81663b69aa7f6f8383886133da011c2a7af27d87309d318d",
+     "plan_hash": "5604d4365f862edca594c64fd7f78aca3363cd46d4da7f012dac2ef01f93bc1f",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -2528,7 +2528,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "8e9828198a43fdcf81663b69aa7f6f8383886133da011c2a7af27d87309d318d",
+     "plan_hash": "5604d4365f862edca594c64fd7f78aca3363cd46d4da7f012dac2ef01f93bc1f",
      "verified": true,
      "attachment_id": 701
     },
@@ -2645,13 +2645,13 @@
      "payload_json": "null",
      "context_hash": "f74dd7a1a95a5dd39299e23c774a29474ff7aff8f3361800369214e9d2844739"
     },
-    "hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+    "hash": "731f78c3fdc277f52596076e19317c8d956afbe7bb1762ea82307054eb32e10f",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/701",
      "payload": null,
-     "plan_hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+     "plan_hash": "731f78c3fdc277f52596076e19317c8d956afbe7bb1762ea82307054eb32e10f",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 0
@@ -2666,13 +2666,13 @@
      "payload_json": "null",
      "context_hash": "f74dd7a1a95a5dd39299e23c774a29474ff7aff8f3361800369214e9d2844739"
     },
-    "hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+    "hash": "731f78c3fdc277f52596076e19317c8d956afbe7bb1762ea82307054eb32e10f",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/701",
      "payload": null,
-     "plan_hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+     "plan_hash": "731f78c3fdc277f52596076e19317c8d956afbe7bb1762ea82307054eb32e10f",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 0
@@ -2680,7 +2680,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+     "plan_hash": "731f78c3fdc277f52596076e19317c8d956afbe7bb1762ea82307054eb32e10f",
      "verified": true,
      "attachment_id": 701
     },
@@ -2751,7 +2751,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "4c291efd515cefe7262db119ef85101ef59257306871db1c93db1495bc75df78",
+     "hash": "cb4fa60667a41c7890e59cd0c6fd1aec29e6fe41385fa4cc4d41d6b9a44d7e8b",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -2762,7 +2762,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "4c291efd515cefe7262db119ef85101ef59257306871db1c93db1495bc75df78",
+      "plan_hash": "cb4fa60667a41c7890e59cd0c6fd1aec29e6fe41385fa4cc4d41d6b9a44d7e8b",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -2794,7 +2794,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "4c291efd515cefe7262db119ef85101ef59257306871db1c93db1495bc75df78",
+     "plan_hash": "cb4fa60667a41c7890e59cd0c6fd1aec29e6fe41385fa4cc4d41d6b9a44d7e8b",
      "uploaded_ids": [
       801,
       802
@@ -2906,7 +2906,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "b38593ead281b056600e3626e129a8450de0ae6d0563ebaf3958220270ef6334",
+     "hash": "91dd0e3f15616877016278a8e2176bf357050eefed5d994dfdba82ecd16850d0",
      "review": {
       "action": "ticket_reply_attachments",
       "method": "POST",
@@ -2920,7 +2920,7 @@
        "full_text": "<div>Acme evidence</div>",
        "translate_reply": false
       },
-      "plan_hash": "b38593ead281b056600e3626e129a8450de0ae6d0563ebaf3958220270ef6334",
+      "plan_hash": "91dd0e3f15616877016278a8e2176bf357050eefed5d994dfdba82ecd16850d0",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -2952,7 +2952,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "b38593ead281b056600e3626e129a8450de0ae6d0563ebaf3958220270ef6334",
+     "plan_hash": "91dd0e3f15616877016278a8e2176bf357050eefed5d994dfdba82ecd16850d0",
      "uploaded_ids": [
       801,
       802
@@ -3045,7 +3045,7 @@
       "method": "POST",
       "path": "problems/123/notes",
       "payload_json": "{\"body\": \"Acme evidence\"}",
-      "context_hash": "df5ee0ee7366396cb67821072dfc975c53e2ea12dada04c3d76d9f0c6acd6920"
+      "context_hash": "fc415f69432ee1708147bdbab4521934899ff87020797f4e265591e235e6298c"
      },
      "files": [
       {
@@ -3064,7 +3064,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "89f4c323235a6c829e3ae8107c474133031bfe1a03d497c88b5cde48a05d25cc",
+     "hash": "d27f71e8b421ff5e6843127e267ce4b6256f421a48ac1bd26a7f2476a9984b59",
      "review": {
       "action": "problem_note_attachments",
       "method": "POST",
@@ -3072,7 +3072,7 @@
       "payload": {
        "body": "Acme evidence"
       },
-      "plan_hash": "89f4c323235a6c829e3ae8107c474133031bfe1a03d497c88b5cde48a05d25cc",
+      "plan_hash": "d27f71e8b421ff5e6843127e267ce4b6256f421a48ac1bd26a7f2476a9984b59",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3104,7 +3104,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "89f4c323235a6c829e3ae8107c474133031bfe1a03d497c88b5cde48a05d25cc",
+     "plan_hash": "d27f71e8b421ff5e6843127e267ce4b6256f421a48ac1bd26a7f2476a9984b59",
      "uploaded_ids": [
       801,
       802
@@ -3195,7 +3195,7 @@
       "method": "POST",
       "path": "tickets",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+      "context_hash": "f1f37a6e3d5c778a361e049b0d03577a43dd978a56e03ff008b14cfa5f4c4454"
      },
      "files": [
       {
@@ -3214,7 +3214,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "ac2f707b859c825139e7dad7021dcc8c0069ba5edfcc284e4563366f8eb004ed",
+     "hash": "9ec7e579e0eff2f93fc86dfdaeacc7c814cd50ee3d673afe00226446c0dab144",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -3222,7 +3222,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "ac2f707b859c825139e7dad7021dcc8c0069ba5edfcc284e4563366f8eb004ed",
+      "plan_hash": "9ec7e579e0eff2f93fc86dfdaeacc7c814cd50ee3d673afe00226446c0dab144",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3254,7 +3254,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "ac2f707b859c825139e7dad7021dcc8c0069ba5edfcc284e4563366f8eb004ed",
+     "plan_hash": "9ec7e579e0eff2f93fc86dfdaeacc7c814cd50ee3d673afe00226446c0dab144",
      "uploaded_ids": [
       801,
       802
@@ -3345,7 +3345,7 @@
       "method": "POST",
       "path": "changes",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+      "context_hash": "f1f37a6e3d5c778a361e049b0d03577a43dd978a56e03ff008b14cfa5f4c4454"
      },
      "files": [
       {
@@ -3364,7 +3364,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "83e785a985345deab46f6494714aeb85262bdfe4924f990d2b2daf69c4200850",
+     "hash": "0be2bf2eefe5894548b9253d444bd732d4fb3371b309a94ee2f199700a8717c0",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -3372,7 +3372,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "83e785a985345deab46f6494714aeb85262bdfe4924f990d2b2daf69c4200850",
+      "plan_hash": "0be2bf2eefe5894548b9253d444bd732d4fb3371b309a94ee2f199700a8717c0",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3404,7 +3404,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "83e785a985345deab46f6494714aeb85262bdfe4924f990d2b2daf69c4200850",
+     "plan_hash": "0be2bf2eefe5894548b9253d444bd732d4fb3371b309a94ee2f199700a8717c0",
      "uploaded_ids": [
       801,
       802
@@ -3518,7 +3518,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -3529,7 +3529,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3633,7 +3633,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -3644,7 +3644,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3758,7 +3758,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -3769,7 +3769,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3873,7 +3873,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -3884,7 +3884,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -3998,7 +3998,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4009,7 +4009,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4113,7 +4113,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4124,7 +4124,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4238,7 +4238,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4249,7 +4249,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4353,7 +4353,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4364,7 +4364,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4478,7 +4478,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4489,7 +4489,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4593,7 +4593,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+     "hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4604,7 +4604,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "9d35857d3592627ab8714be8f8f5d51312cba82c90bf557647ffe33b7608b7f9",
+      "plan_hash": "e2779701139c09f894b24f16a03ad514b13e1f997065a61a8ef8b77de142c63e",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4727,7 +4727,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "4c291efd515cefe7262db119ef85101ef59257306871db1c93db1495bc75df78",
+     "hash": "cb4fa60667a41c7890e59cd0c6fd1aec29e6fe41385fa4cc4d41d6b9a44d7e8b",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -4738,7 +4738,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "4c291efd515cefe7262db119ef85101ef59257306871db1c93db1495bc75df78",
+      "plan_hash": "cb4fa60667a41c7890e59cd0c6fd1aec29e6fe41385fa4cc4d41d6b9a44d7e8b",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4770,7 +4770,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "4c291efd515cefe7262db119ef85101ef59257306871db1c93db1495bc75df78",
+     "plan_hash": "cb4fa60667a41c7890e59cd0c6fd1aec29e6fe41385fa4cc4d41d6b9a44d7e8b",
      "uploaded_ids": [
       801,
       802
@@ -4800,13 +4800,13 @@
      "payload_json": "null",
      "context_hash": "369882ac0ba148e677df7aa1df1f4585c303649ded659833bc3b659c71a2954d"
     },
-    "hash": "81ddf8dec4dde0b8c5e7782c8a8135402666c538600b8541a5f4edc02303db12",
+    "hash": "4166f1cf7e3381beb90cbf1911af0753917d061abfdbc81af26ddc549b6580f3",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/801",
      "payload": null,
-     "plan_hash": "81ddf8dec4dde0b8c5e7782c8a8135402666c538600b8541a5f4edc02303db12",
+     "plan_hash": "4166f1cf7e3381beb90cbf1911af0753917d061abfdbc81af26ddc549b6580f3",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -4814,7 +4814,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "81ddf8dec4dde0b8c5e7782c8a8135402666c538600b8541a5f4edc02303db12",
+     "plan_hash": "4166f1cf7e3381beb90cbf1911af0753917d061abfdbc81af26ddc549b6580f3",
      "verified": true,
      "attachment_id": 801
     },
@@ -4916,7 +4916,7 @@
       "method": "POST",
       "path": "problems/123/notes",
       "payload_json": "{\"body\": \"Acme evidence\"}",
-      "context_hash": "df5ee0ee7366396cb67821072dfc975c53e2ea12dada04c3d76d9f0c6acd6920"
+      "context_hash": "fc415f69432ee1708147bdbab4521934899ff87020797f4e265591e235e6298c"
      },
      "files": [
       {
@@ -4935,7 +4935,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "89f4c323235a6c829e3ae8107c474133031bfe1a03d497c88b5cde48a05d25cc",
+     "hash": "d27f71e8b421ff5e6843127e267ce4b6256f421a48ac1bd26a7f2476a9984b59",
      "review": {
       "action": "problem_note_attachments",
       "method": "POST",
@@ -4943,7 +4943,7 @@
       "payload": {
        "body": "Acme evidence"
       },
-      "plan_hash": "89f4c323235a6c829e3ae8107c474133031bfe1a03d497c88b5cde48a05d25cc",
+      "plan_hash": "d27f71e8b421ff5e6843127e267ce4b6256f421a48ac1bd26a7f2476a9984b59",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -4975,7 +4975,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "89f4c323235a6c829e3ae8107c474133031bfe1a03d497c88b5cde48a05d25cc",
+     "plan_hash": "d27f71e8b421ff5e6843127e267ce4b6256f421a48ac1bd26a7f2476a9984b59",
      "uploaded_ids": [
       801,
       802
@@ -5003,13 +5003,13 @@
      "payload_json": "null",
      "context_hash": "8cf268519759c36929d0e3c70cedf18bbccd22bd964588d980f74431896912d7"
     },
-    "hash": "cbb4f20302f6177b68e3491a3ad4c61fb34b833428d0a4567499cfad7dd2a3dc",
+    "hash": "dafd89503686214afe02c8f56d1b67ffaf04f50294b9c5ccc177efaf9cc0efc3",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/802",
      "payload": null,
-     "plan_hash": "cbb4f20302f6177b68e3491a3ad4c61fb34b833428d0a4567499cfad7dd2a3dc",
+     "plan_hash": "dafd89503686214afe02c8f56d1b67ffaf04f50294b9c5ccc177efaf9cc0efc3",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -5017,7 +5017,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "cbb4f20302f6177b68e3491a3ad4c61fb34b833428d0a4567499cfad7dd2a3dc",
+     "plan_hash": "dafd89503686214afe02c8f56d1b67ffaf04f50294b9c5ccc177efaf9cc0efc3",
      "verified": true,
      "attachment_id": 802
     },
@@ -5121,7 +5121,7 @@
       "method": "POST",
       "path": "tickets",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+      "context_hash": "f1f37a6e3d5c778a361e049b0d03577a43dd978a56e03ff008b14cfa5f4c4454"
      },
      "files": [
       {
@@ -5140,7 +5140,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "ac2f707b859c825139e7dad7021dcc8c0069ba5edfcc284e4563366f8eb004ed",
+     "hash": "9ec7e579e0eff2f93fc86dfdaeacc7c814cd50ee3d673afe00226446c0dab144",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -5148,7 +5148,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "ac2f707b859c825139e7dad7021dcc8c0069ba5edfcc284e4563366f8eb004ed",
+      "plan_hash": "9ec7e579e0eff2f93fc86dfdaeacc7c814cd50ee3d673afe00226446c0dab144",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -5180,7 +5180,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "ac2f707b859c825139e7dad7021dcc8c0069ba5edfcc284e4563366f8eb004ed",
+     "plan_hash": "9ec7e579e0eff2f93fc86dfdaeacc7c814cd50ee3d673afe00226446c0dab144",
      "uploaded_ids": [
       801,
       802
@@ -5208,13 +5208,13 @@
      "payload_json": "null",
      "context_hash": "475f744691ccf4563aa1b2f68aa16590de07f11aa723253fbb36d45247cba4e4"
     },
-    "hash": "b19a434c61005dc1e44474aa8f3ee5abf79a6d806c501a7996dc16370ab0c883",
+    "hash": "5c8caadcdc0f32c5e82f27502e48176907d88d536c0b42a2175e0357b14af4c7",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/801",
      "payload": null,
-     "plan_hash": "b19a434c61005dc1e44474aa8f3ee5abf79a6d806c501a7996dc16370ab0c883",
+     "plan_hash": "5c8caadcdc0f32c5e82f27502e48176907d88d536c0b42a2175e0357b14af4c7",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -5232,7 +5232,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "b19a434c61005dc1e44474aa8f3ee5abf79a6d806c501a7996dc16370ab0c883",
+     "plan_hash": "5c8caadcdc0f32c5e82f27502e48176907d88d536c0b42a2175e0357b14af4c7",
      "verified": true,
      "attachment_id": 801
     },
@@ -5349,13 +5349,13 @@
      "payload_json": "null",
      "context_hash": "a3ab22fd4745ee9307d4431004ff58b7899d60b1370a7123c648eb491dbcba94"
     },
-    "hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+    "hash": "165d67b0a864840390a14a677e73a9edf2797b309351ea084e7292a746bcccd2",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/801",
      "payload": null,
-     "plan_hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+     "plan_hash": "165d67b0a864840390a14a677e73a9edf2797b309351ea084e7292a746bcccd2",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 0
@@ -5370,13 +5370,13 @@
      "payload_json": "null",
      "context_hash": "a3ab22fd4745ee9307d4431004ff58b7899d60b1370a7123c648eb491dbcba94"
     },
-    "hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+    "hash": "165d67b0a864840390a14a677e73a9edf2797b309351ea084e7292a746bcccd2",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/801",
      "payload": null,
-     "plan_hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+     "plan_hash": "165d67b0a864840390a14a677e73a9edf2797b309351ea084e7292a746bcccd2",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 0
@@ -5384,7 +5384,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+     "plan_hash": "165d67b0a864840390a14a677e73a9edf2797b309351ea084e7292a746bcccd2",
      "verified": true,
      "attachment_id": 801
     },
@@ -5455,7 +5455,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -5466,7 +5466,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -5554,7 +5554,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -5565,7 +5565,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -5653,7 +5653,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -5664,7 +5664,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -5752,7 +5752,7 @@
      "limit": null,
      "limit_source": "not published by the tenant",
      "published_limit": null,
-     "hash": "c838a1b56c9f4cd86c05e44e1426260b4cd03f6c5698137fcac7d9fa2505ddf8",
+     "hash": "605cd9ca306a5e8e7335c7a9505875fb42fbe1a7d6d6f4b41baafb3969a9f6b6",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -5763,7 +5763,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "c838a1b56c9f4cd86c05e44e1426260b4cd03f6c5698137fcac7d9fa2505ddf8",
+      "plan_hash": "605cd9ca306a5e8e7335c7a9505875fb42fbe1a7d6d6f4b41baafb3969a9f6b6",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -6010,7 +6010,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -6021,7 +6021,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -6121,7 +6121,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -6132,7 +6132,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -6167,7 +6167,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "uploaded_ids": [
       701,
       702
@@ -6274,7 +6274,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -6285,7 +6285,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -6320,7 +6320,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "uploaded_ids": [
       701,
       702
@@ -6414,7 +6414,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "4bd0dc9c466791f95b45289ba029e7d8e218ec475f0e651ceff6f06d31f6ae86",
+     "hash": "5c298db42089bec5f153137178f8103956efe65caccf7db850ccb82682e69261",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -6427,7 +6427,7 @@
        ],
        "private": true
       },
-      "plan_hash": "4bd0dc9c466791f95b45289ba029e7d8e218ec475f0e651ceff6f06d31f6ae86",
+      "plan_hash": "5c298db42089bec5f153137178f8103956efe65caccf7db850ccb82682e69261",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -6459,7 +6459,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "4bd0dc9c466791f95b45289ba029e7d8e218ec475f0e651ceff6f06d31f6ae86",
+     "plan_hash": "5c298db42089bec5f153137178f8103956efe65caccf7db850ccb82682e69261",
      "uploaded_ids": [
       701,
       702
@@ -6734,7 +6734,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -6745,7 +6745,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7049,7 +7049,7 @@
      "limit": 4096,
      "limit_source": "tenant form metadata (bytes)",
      "published_limit": 4096,
-     "hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -7060,7 +7060,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+      "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7092,7 +7092,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "2abc6b640f84153793a668fcc107e8b05bf07c23184cfdfd12af421b20295243",
+     "plan_hash": "5de9b8f3c93198df039e5e0dc29330f771450b2ccbcbfe2f31d58fa26da957b2",
      "uploaded_ids": [
       701,
       702
@@ -7188,13 +7188,13 @@
      "payload_json": "null",
      "context_hash": "629f941095fd64ec8367c75bb82421120feb7c45731b33385a1a6358d129e82c"
     },
-    "hash": "915d0ecca6fc822722bca5c21cae01b47fcc1391ad12d1e918912331784f8967",
+    "hash": "227390e99e1ae587c3071e88b6b27ec9a205e01ffc78652be31ad808cdf1a168",
     "review": {
      "action": "attachment_delete",
      "method": "DELETE",
      "path": "/api/_/attachments/55",
      "payload": null,
-     "plan_hash": "915d0ecca6fc822722bca5c21cae01b47fcc1391ad12d1e918912331784f8967",
+     "plan_hash": "227390e99e1ae587c3071e88b6b27ec9a205e01ffc78652be31ad808cdf1a168",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     },
     "writes": 3
@@ -7202,7 +7202,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "915d0ecca6fc822722bca5c21cae01b47fcc1391ad12d1e918912331784f8967",
+     "plan_hash": "227390e99e1ae587c3071e88b6b27ec9a205e01ffc78652be31ad808cdf1a168",
      "verified": true,
      "attachment_id": 55
     },
@@ -7332,7 +7332,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+     "hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -7343,7 +7343,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+      "plan_hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7375,7 +7375,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+     "plan_hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
      "uploaded_ids": [
       701,
       702
@@ -7487,7 +7487,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "55b0db794b1a5feb2c979bf61033202780820959bf7c0bf92a3730020f4adada",
+     "hash": "f3e0b0f98c6e01df9359ce6fd982e6333986857ecdb97411f633dfa01866973c",
      "review": {
       "action": "ticket_reply_attachments",
       "method": "POST",
@@ -7501,7 +7501,7 @@
        "full_text": "<div>Acme evidence</div>",
        "translate_reply": false
       },
-      "plan_hash": "55b0db794b1a5feb2c979bf61033202780820959bf7c0bf92a3730020f4adada",
+      "plan_hash": "f3e0b0f98c6e01df9359ce6fd982e6333986857ecdb97411f633dfa01866973c",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7533,7 +7533,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "55b0db794b1a5feb2c979bf61033202780820959bf7c0bf92a3730020f4adada",
+     "plan_hash": "f3e0b0f98c6e01df9359ce6fd982e6333986857ecdb97411f633dfa01866973c",
      "uploaded_ids": [
       701,
       702
@@ -7626,7 +7626,7 @@
       "method": "POST",
       "path": "problems/123/notes",
       "payload_json": "{\"body\": \"Acme evidence\"}",
-      "context_hash": "542db94f7641b984c5bdfad8058d33ca8ec064601a5603a130dde71fae67ab62"
+      "context_hash": "2547a27ad653116d025fe7a9a9dbcf7b39de4e27963c2a3b9f2f570449a36b08"
      },
      "files": [
       {
@@ -7645,7 +7645,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "c8e9444249f175055f143e334ac70157352d5b0824953ee6ff925035c6782746",
+     "hash": "f43d06c8abf2420ac7a8118cfa513ca0ea78b28395b4c4164e3fef2441e51926",
      "review": {
       "action": "problem_note_attachments",
       "method": "POST",
@@ -7653,7 +7653,7 @@
       "payload": {
        "body": "Acme evidence"
       },
-      "plan_hash": "c8e9444249f175055f143e334ac70157352d5b0824953ee6ff925035c6782746",
+      "plan_hash": "f43d06c8abf2420ac7a8118cfa513ca0ea78b28395b4c4164e3fef2441e51926",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7685,7 +7685,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "c8e9444249f175055f143e334ac70157352d5b0824953ee6ff925035c6782746",
+     "plan_hash": "f43d06c8abf2420ac7a8118cfa513ca0ea78b28395b4c4164e3fef2441e51926",
      "uploaded_ids": [
       701,
       702
@@ -7776,7 +7776,7 @@
       "method": "POST",
       "path": "tickets",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "de4dbe1add52abd601cce02641193199005faea74f848985adea61ebc07ef8ab"
+      "context_hash": "5b0f808b34db391bf0458533b4a63881f95f1f955e9ee5810b2f053f43a7e875"
      },
      "files": [
       {
@@ -7795,7 +7795,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "a82f4a8b3a96a1ee554269a005241c4472414cee76fb525943eeb2f5c9b92d0d",
+     "hash": "888e821c8922ac6dab4ff04e1a5d2cf6b3bbd0d83413a2c51c2db720fd61d5c0",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -7803,7 +7803,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "a82f4a8b3a96a1ee554269a005241c4472414cee76fb525943eeb2f5c9b92d0d",
+      "plan_hash": "888e821c8922ac6dab4ff04e1a5d2cf6b3bbd0d83413a2c51c2db720fd61d5c0",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7835,7 +7835,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "a82f4a8b3a96a1ee554269a005241c4472414cee76fb525943eeb2f5c9b92d0d",
+     "plan_hash": "888e821c8922ac6dab4ff04e1a5d2cf6b3bbd0d83413a2c51c2db720fd61d5c0",
      "uploaded_ids": [
       701,
       702
@@ -7926,7 +7926,7 @@
       "method": "POST",
       "path": "changes",
       "payload_json": "{\"subject\": \"Acme incident\"}",
-      "context_hash": "de4dbe1add52abd601cce02641193199005faea74f848985adea61ebc07ef8ab"
+      "context_hash": "5b0f808b34db391bf0458533b4a63881f95f1f955e9ee5810b2f053f43a7e875"
      },
      "files": [
       {
@@ -7945,7 +7945,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "f7a4c22fb1e686f001a172bb2ea1c8c28dc922f9c25c0bc6816804036b4dfe20",
+     "hash": "9147fdb36156024b62c29d9d33f18de9206b2f24d3be50f1507b8afc97b68408",
      "review": {
       "action": "ticket_create_attachments",
       "method": "POST",
@@ -7953,7 +7953,7 @@
       "payload": {
        "subject": "Acme incident"
       },
-      "plan_hash": "f7a4c22fb1e686f001a172bb2ea1c8c28dc922f9c25c0bc6816804036b4dfe20",
+      "plan_hash": "9147fdb36156024b62c29d9d33f18de9206b2f24d3be50f1507b8afc97b68408",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -7985,7 +7985,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "f7a4c22fb1e686f001a172bb2ea1c8c28dc922f9c25c0bc6816804036b4dfe20",
+     "plan_hash": "9147fdb36156024b62c29d9d33f18de9206b2f24d3be50f1507b8afc97b68408",
      "uploaded_ids": [
       701,
       702
@@ -8093,7 +8093,7 @@
      "limit": 20,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 20,
-     "hash": "4bede723d135c610c057d615762ea6225eac3e37b5510dd2e67a094fbb02ebb1",
+     "hash": "e65f4110ec89ae00a160d65f95732e5326aef8c7f8a23ebc57372c64e2eeb1bc",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -8104,7 +8104,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "4bede723d135c610c057d615762ea6225eac3e37b5510dd2e67a094fbb02ebb1",
+      "plan_hash": "e65f4110ec89ae00a160d65f95732e5326aef8c7f8a23ebc57372c64e2eeb1bc",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -8197,7 +8197,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+     "hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -8208,7 +8208,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+      "plan_hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -8613,7 +8613,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+     "hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -8624,7 +8624,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+      "plan_hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -8684,7 +8684,7 @@
      "limit": 1572864,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 1572864,
-     "hash": "fba312dd94d64c3d0b0c7587db84bd98f24d4ef1ddba09594f849cb5ce67c031",
+     "hash": "5cc9c86855b71c6e063b42190fa126773eeb88f50df8c065fbe6e1ceb708976f",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -8695,7 +8695,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "fba312dd94d64c3d0b0c7587db84bd98f24d4ef1ddba09594f849cb5ce67c031",
+      "plan_hash": "5cc9c86855b71c6e063b42190fa126773eeb88f50df8c065fbe6e1ceb708976f",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -8755,7 +8755,7 @@
      "limit": 524288,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 524288,
-     "hash": "23977c77eaa330dd965f6eca0803b947fb215e2e4fbed114f04948dabed6a83f",
+     "hash": "48d255dfefc3323d2462e7a8d6cd9b5cedbc4dff2b9b687a2709812384877be9",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -8766,7 +8766,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "23977c77eaa330dd965f6eca0803b947fb215e2e4fbed114f04948dabed6a83f",
+      "plan_hash": "48d255dfefc3323d2462e7a8d6cd9b5cedbc4dff2b9b687a2709812384877be9",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -8826,7 +8826,7 @@
      "limit": 12845056,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 12845056,
-     "hash": "bf42a767d54003c4de31ec6f5688d3dd303b2a6be7df8538700ca790342cb1b8",
+     "hash": "6aa4a2ae11c69f1c179abfbabba965ddbae172240a34811c5771da7fa87208d6",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -8837,7 +8837,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "bf42a767d54003c4de31ec6f5688d3dd303b2a6be7df8538700ca790342cb1b8",
+      "plan_hash": "6aa4a2ae11c69f1c179abfbabba965ddbae172240a34811c5771da7fa87208d6",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -8997,7 +8997,7 @@
      "limit": 7340032,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 7340032,
-     "hash": "53024c84f77a8a7f35d30d76b14f0f1aa0eff3313b433287b08c634b791afe11",
+     "hash": "3f1db30aea47b2b61d86d247e15f148d21e14a0cf03351d24728fba8ab1587d5",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -9008,7 +9008,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "53024c84f77a8a7f35d30d76b14f0f1aa0eff3313b433287b08c634b791afe11",
+      "plan_hash": "3f1db30aea47b2b61d86d247e15f148d21e14a0cf03351d24728fba8ab1587d5",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -9068,7 +9068,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+     "hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -9079,7 +9079,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+      "plan_hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -9173,7 +9173,7 @@
      "limit": null,
      "limit_source": "not published by the tenant",
      "published_limit": null,
-     "hash": "c838a1b56c9f4cd86c05e44e1426260b4cd03f6c5698137fcac7d9fa2505ddf8",
+     "hash": "605cd9ca306a5e8e7335c7a9505875fb42fbe1a7d6d6f4b41baafb3969a9f6b6",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -9184,7 +9184,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "c838a1b56c9f4cd86c05e44e1426260b4cd03f6c5698137fcac7d9fa2505ddf8",
+      "plan_hash": "605cd9ca306a5e8e7335c7a9505875fb42fbe1a7d6d6f4b41baafb3969a9f6b6",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -9256,7 +9256,7 @@
      "limit": 32,
      "limit_source": "--max-bytes override",
      "published_limit": null,
-     "hash": "6ea838cd0035f9e9e3ce14820edf9bdba67ace29cf3f0f10ca34c610c86aae25",
+     "hash": "4df8ef66fc208bed800ee173323be28544faf8875c6e38a02fce898a08a4cebd",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -9267,7 +9267,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "6ea838cd0035f9e9e3ce14820edf9bdba67ace29cf3f0f10ca34c610c86aae25",
+      "plan_hash": "4df8ef66fc208bed800ee173323be28544faf8875c6e38a02fce898a08a4cebd",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -9299,7 +9299,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "6ea838cd0035f9e9e3ce14820edf9bdba67ace29cf3f0f10ca34c610c86aae25",
+     "plan_hash": "4df8ef66fc208bed800ee173323be28544faf8875c6e38a02fce898a08a4cebd",
      "uploaded_ids": [
       701,
       702
@@ -9428,7 +9428,7 @@
      "limit": 4096,
      "limit_source": "--max-bytes override",
      "published_limit": 41943040,
-     "hash": "a49736ab0d8c84445e76049aa01485e1cfffa79421aafedf5be74f00421daa43",
+     "hash": "e367d24fd5804249b9b58f7003cd8c0edf48c41ce76f189db26f50ff2417e52a",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -9439,7 +9439,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "a49736ab0d8c84445e76049aa01485e1cfffa79421aafedf5be74f00421daa43",
+      "plan_hash": "e367d24fd5804249b9b58f7003cd8c0edf48c41ce76f189db26f50ff2417e52a",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -9496,7 +9496,7 @@
      "limit": 41943040,
      "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
      "published_limit": 41943040,
-     "hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+     "hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
      "review": {
       "action": "ticket_note_attachments",
       "method": "POST",
@@ -9507,7 +9507,7 @@
        "notify_emails": [],
        "private": true
       },
-      "plan_hash": "14e34bbbedbf9c8da0b935749d715a78b7511da497a4a6ae5b45c58a15afc50a",
+      "plan_hash": "c9a176d35001ce91d667bc77afcc79eb519f7af2c24a5e76f71f9de69296d191",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {
@@ -9559,7 +9559,7 @@
       "method": "POST",
       "path": "problems/123/notes",
       "payload_json": "{\"body\": \"Acme evidence\"}",
-      "context_hash": "542db94f7641b984c5bdfad8058d33ca8ec064601a5603a130dde71fae67ab62"
+      "context_hash": "2547a27ad653116d025fe7a9a9dbcf7b39de4e27963c2a3b9f2f570449a36b08"
      },
      "files": [
       {
@@ -9578,7 +9578,7 @@
      "limit": 40,
      "limit_source": "--max-bytes override",
      "published_limit": 41943040,
-     "hash": "fac9517fb126568c8fbc4588f81e65d10574c63982c9f27bf570b40c76a7a132",
+     "hash": "707e089e60ffe41f56bbe28272ba79a62a6fb5bdc07fa66e079351ffe75c523c",
      "review": {
       "action": "problem_note_attachments",
       "method": "POST",
@@ -9586,7 +9586,7 @@
       "payload": {
        "body": "Acme evidence"
       },
-      "plan_hash": "fac9517fb126568c8fbc4588f81e65d10574c63982c9f27bf570b40c76a7a132",
+      "plan_hash": "707e089e60ffe41f56bbe28272ba79a62a6fb5bdc07fa66e079351ffe75c523c",
       "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
       "files": [
        {

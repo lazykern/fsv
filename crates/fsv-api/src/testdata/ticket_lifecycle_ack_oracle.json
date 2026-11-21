@@ -44,7 +44,7 @@
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "df454f29c6074a2042f2f3a5eb87fffa21d654090c90405e37f0884dcd64577f",
+     "hash": "2c421eb9348173db46705c4d2bf6a29e0ce8bea20d529c94c5c5d66f9174d24e",
      "review": {
       "action": "ticket_transition",
       "status_label": "Closed",
@@ -60,7 +60,7 @@
         }
        }
       ],
-      "plan_hash": "df454f29c6074a2042f2f3a5eb87fffa21d654090c90405e37f0884dcd64577f",
+      "plan_hash": "2c421eb9348173db46705c4d2bf6a29e0ce8bea20d529c94c5c5d66f9174d24e",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
       "acknowledged_rule_messages": [
        "Only the requester closes Acme tickets"
@@ -73,7 +73,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Closed",
-      "plan_hash": "df454f29c6074a2042f2f3a5eb87fffa21d654090c90405e37f0884dcd64577f",
+      "plan_hash": "2c421eb9348173db46705c4d2bf6a29e0ce8bea20d529c94c5c5d66f9174d24e",
       "verified": true
      },
      "writes": 1
@@ -135,7 +135,7 @@
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+     "hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -154,7 +154,7 @@
         }
        }
       ],
-      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+      "plan_hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -164,7 +164,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Pending",
-      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+      "plan_hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
       "verified": true
      },
      "writes": 1
@@ -229,7 +229,7 @@
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+     "hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -248,7 +248,7 @@
         }
        }
       ],
-      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+      "plan_hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -258,7 +258,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Pending",
-      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+      "plan_hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
       "verified": true,
       "verified_with_note": [
        "status rewritten server-side to 4 after the write (workflow)"
@@ -326,7 +326,7 @@
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+     "hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
      "review": {
       "action": "ticket_transition",
       "status_label": "Pending",
@@ -345,7 +345,7 @@
         }
        }
       ],
-      "plan_hash": "1ab6a4de23bfeacb86a9d3cf835f4005c868594b9b920c6034e0902b98af945c",
+      "plan_hash": "34f13a182dbe63eb95efca3c6eb7c00624f259383aa1db356a8cf93d4c01e4dd",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -413,7 +413,7 @@
       "note_html": null,
       "rule_warnings": []
      },
-     "hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+     "hash": "6af122068433922056f9f10e2f90f4353aad3984f00f30f360cfe60498b0a2ee",
      "review": {
       "action": "ticket_transition",
       "status_label": "Open",
@@ -429,7 +429,7 @@
         }
        }
       ],
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "6af122068433922056f9f10e2f90f4353aad3984f00f30f360cfe60498b0a2ee",
       "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
      },
      "writes": 0
@@ -439,7 +439,7 @@
       "status": "submitted",
       "ticket_id": 123,
       "status_label": "Open",
-      "plan_hash": "b27f70300c95e9fe321b204143c1afeb86fc4f7126feab944eda3a100ff747a5",
+      "plan_hash": "6af122068433922056f9f10e2f90f4353aad3984f00f30f360cfe60498b0a2ee",
       "verified": true,
       "verified_with_note": [
        "group_id differs on readback (server-side workflow or normalization)"

@@ -6,6 +6,13 @@ use clap::{Arg, ArgAction, Args, Command};
 use fsv_completion::OptionHint;
 use std::path::PathBuf;
 
+// fsv whoami
+#[derive(Args, Debug, Clone)]
+pub struct WhoamiArgs {
+    #[arg(help = "print JSON", long = "json")]
+    pub json_out: bool,
+}
+
 // fsv help
 #[derive(Args, Debug, Clone)]
 pub struct HelpArgs {
@@ -296,6 +303,13 @@ pub struct CompletionDoctorArgs {}
 // fsv config list
 #[derive(Args, Debug, Clone)]
 pub struct ConfigListArgs {}
+
+// fsv config show
+#[derive(Args, Debug, Clone)]
+pub struct ConfigShowArgs {
+    #[arg(help = "print JSON", long = "json")]
+    pub json_out: bool,
+}
 
 // fsv config get
 #[derive(Args, Debug, Clone)]
@@ -5445,6 +5459,18 @@ pub struct RootArgs {
     #[arg(help = "print version and exit", long = "version", short = 'V')]
     pub version: bool,
     #[arg(
+        help = "do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)",
+        long = "quiet"
+    )]
+    pub quiet: bool,
+    #[arg(
+        help = "assert the target tenant; confirms it for --yes writes when it equals the configured domain",
+        long = "tenant",
+        allow_hyphen_values = true,
+        value_name = "DOMAIN"
+    )]
+    pub tenant: Option<String>,
+    #[arg(
         help = "Install completion for the current shell.",
         long = "install-completion"
     )]
@@ -5514,6 +5540,7 @@ pub fn build() -> Command {
         .about("Freshservice CLI")
         .after_help("Examples: fsv auth login | fsv changes ls --where status=Open | fsv changes get CHN-1234 --internal | fsv changes update CHN-1234 --set 'environment=Production' | fsv changes download CHN-1234 --all");
     RootArgs::augment_args(root)
+        .subcommand(WhoamiArgs::augment_args(Command::new("whoami") .about("Show the signed-in agent and the tenant/config dir this shell targets (read-only).") .after_help("Examples: fsv whoami | fsv whoami --json").arg(global_verbose())))
         .subcommand(HelpArgs::augment_args(Command::new("help") .about("Show topic help.").arg(global_verbose())))
         .subcommand(SearchArgs::augment_args(Command::new("search") .about("Global search across all entities (tickets, problems, changes, tasks, assets, solutions).") .after_help("Examples: fsv search 'AcmeApp' | fsv search 'AcmeApp' --npages 3 | fsv search 'AcmeApp' --all | fsv search 'billing service' --json").arg(global_verbose())))
         .subcommand(SetupArgs::augment_args(Command::new("setup") .about("Interactive setup wizard.") .after_help("Examples: fsv setup").arg(global_verbose())))
@@ -5547,6 +5574,7 @@ pub fn build() -> Command {
             .about("manage fsv settings")
             .after_help("Examples: fsv config set completion.network on")
             .subcommand(ConfigListArgs::augment_args(Command::new("list") .about("List all config keys and current values.") .after_help("Examples: fsv config list").arg(global_verbose())))
+            .subcommand(ConfigShowArgs::augment_args(Command::new("show") .about("Show the target tenant, config dir, write confirmation and all config values.") .after_help("Examples: fsv config show | fsv config show --json").arg(global_verbose())))
             .subcommand(ConfigGetArgs::augment_args(Command::new("get") .about("Get a single config value.") .after_help("Examples: fsv config get completion.network").arg(global_verbose())))
             .subcommand(ConfigSetArgs::augment_args(Command::new("set") .about("Set a config value.") .after_help("Examples: fsv config set completion.network on").arg(global_verbose())))
             .subcommand(Command::new("defaults")
@@ -5806,6 +5834,7 @@ pub fn build() -> Command {
 
 // Leaf command path (without `fsv`) to its `Args` struct, for review.
 pub const LEAVES: &[(&str, &str)] = &[
+    ("whoami", "WhoamiArgs"),
     ("help", "HelpArgs"),
     ("search", "SearchArgs"),
     ("setup", "SetupArgs"),
@@ -5824,6 +5853,7 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("completion refresh", "CompletionRefreshArgs"),
     ("completion doctor", "CompletionDoctorArgs"),
     ("config list", "ConfigListArgs"),
+    ("config show", "ConfigShowArgs"),
     ("config get", "ConfigGetArgs"),
     ("config set", "ConfigSetArgs"),
     ("config defaults show", "ConfigDefaultsShowArgs"),
@@ -7211,7 +7241,32 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 resource: None,
                 value_flag: false,
             },
+            OptionHint {
+                id: "quiet",
+                flags: &["--quiet"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "tenant",
+                flags: &["--tenant"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
         ],
+    ),
+    (
+        "fsv whoami",
+        "Show the signed-in agent and the tenant/config dir this shell targets (read-only).",
+        &[OptionHint {
+            id: "json_out",
+            flags: &["--json"],
+            completer: None,
+            resource: None,
+            value_flag: false,
+        }],
     ),
     ("fsv help", "Show topic help.", &[]),
     (
@@ -7587,6 +7642,17 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
         "fsv config list",
         "List all config keys and current values.",
         &[],
+    ),
+    (
+        "fsv config show",
+        "Show the target tenant, config dir, write confirmation and all config values.",
+        &[OptionHint {
+            id: "json_out",
+            flags: &["--json"],
+            completer: None,
+            resource: None,
+            value_flag: false,
+        }],
     ),
     ("fsv config get", "Get a single config value.", &[]),
     ("fsv config set", "Set a config value.", &[]),

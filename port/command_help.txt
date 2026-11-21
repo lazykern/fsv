@@ -5,8 +5,12 @@ C	fsv	Freshservice CLI
 A	fsv	--no-input	fail instead of prompting
 A	fsv	--verbose	print debug info to stderr
 A	fsv	--version	print version and exit
+A	fsv	--quiet	do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)
+A	fsv	--tenant	assert the target tenant; confirms it for --yes writes when it equals the configured domain
 A	fsv	--install-completion	Install completion for the current shell.
 A	fsv	--show-completion	Show completion for the current shell, to copy it or customize the installation.
+C	fsv whoami	Show the signed-in agent and the tenant/config dir this shell targets (read-only).
+A	fsv whoami	--json	print JSON
 C	fsv help	Show topic help.
 A	fsv help	<topic>	topic: auth|workflow|fields|scripting|comments
 C	fsv search	Global search across all entities (tickets, problems, changes, tasks, assets, solutions).
@@ -80,6 +84,8 @@ C	fsv completion refresh	Alias for `fsv cache refresh`.
 C	fsv completion doctor	Show completion install/cache diagnostics.
 C	fsv config	manage fsv settings
 C	fsv config list	List all config keys and current values.
+C	fsv config show	Show the target tenant, config dir, write confirmation and all config values.
+A	fsv config show	--json	print JSON
 C	fsv config get	Get a single config value.
 A	fsv config get	<key>	config key
 C	fsv config set	Set a config value.

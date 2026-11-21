@@ -682,7 +682,7 @@ mod tests {
     use crate::service::testing::*;
 
     const TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
-    const HASH: &str = "8d4a9b0683a1e5313139a37cb19d4b6f4e9fc917ee7891bd836574a744b03ffc";
+    const HASH: &str = "6afd07c3ea58c448fa3ba9a0517310560cccff163f7d69ff31a47f1b41364518";
     const UNVERIFIED: &str = "Ticket fields not fully verified on read-back; do not resend.";
 
     #[test]

@@ -35,8 +35,10 @@ fn problems_time_write_update_dry_run() {
     "note": "x",
     "time_spent": "01:30"
   },
-  "plan_hash": "b8585304864383253259663b85791ce7726d1ec04d03e87d926f6882a75d721d",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "9deb72ebbbd2f8fc7bc15fbcb72e57ba3c482ec75d3d99935dd0168ba888b8b1",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -71,8 +73,10 @@ fn problems_time_update_shortcut_dry_run() {
     "note": "Acme work",
     "time_spent": "00:45"
   },
-  "plan_hash": "556f54acb4309c8784fc30ebb6ea60f57e871a0554be88b3d70fe5a64c156752",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "d311ef34c634b4d2106d8164b0c13fb6111cf960e412fec62fe62b72b47c3cec",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -107,8 +111,10 @@ fn changes_time_update_shortcut_dry_run() {
     "note": "Edited",
     "time_spent": "01:30"
   },
-  "plan_hash": "857c013dc55082b91c8ad75822efd73f088515663b4e908ca96266460f086d62",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "dbe8529905fe34c05b519b5f7816d14207b0791d82346958537c73f250ad1d69",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -170,8 +176,10 @@ fn changes_time_create_no_billable_dry_run() {
     "time_spent": "00:45",
     "timer_running": false
   },
-  "plan_hash": "bf99aee3382ce2e1ad8d921e971a72863b42cdd4f9d216df0e9f37db9eaedfc7",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "28d4b788bf14df27996bfa30b3d6f25be7d848e5ca9610032205d6e15e2e7ce1",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -214,8 +222,10 @@ fn problems_time_create_billable_dry_run() {
     "time_spent": "00:01",
     "timer_running": false
   },
-  "plan_hash": "e876f9c0122e499484eb2af019f44bb32bac1479dd7c6bd8694d55d6aac4849a",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "1b1646e83f299bde1735e42bee820c753399b4d1eae9e6924145e0e8d197a5f0",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

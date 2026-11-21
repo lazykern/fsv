@@ -1,41 +1,9 @@
 use super::*;
 use crate::testing::{
-    BASE, FakeWriter, MemJournal, acme_meta, acme_meta_id, fake_client, golden, resolver_arc,
+    BASE, FakeWriter, MemJournal, acme_meta, acme_meta_id, config_guard, fake_client, golden,
+    resolver_arc,
 };
 use std::cell::RefCell;
-use std::sync::{Mutex, MutexGuard};
-
-/// Update-plan hashes bind `config.DOMAIN`. Goldens are stamped with an empty
-/// domain; sends need a non-empty one. One lock so those tests do not race.
-static CONFIG_LOCK: Mutex<()> = Mutex::new(());
-
-struct CfgGuard {
-    _dir: tempfile::TempDir,
-    _lock: MutexGuard<'static, ()>,
-}
-
-impl Drop for CfgGuard {
-    fn drop(&mut self) {
-        crate::testing::hermetic_reset();
-    }
-}
-
-/// The process config under a temp dir with `domain` (never the user's
-/// real config, also not on restore).
-fn config_guard(domain: Option<&str>) -> CfgGuard {
-    let lock = CONFIG_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-    let dir = tempfile::tempdir().unwrap();
-    let paths = fsv_core::Paths::under(dir.path());
-    std::fs::create_dir_all(&paths.config_dir).unwrap();
-    if let Some(domain) = domain {
-        std::fs::write(&paths.config_file, format!("{{\"domain\": \"{domain}\"}}")).unwrap();
-    }
-    fsv_core::config::use_for_tests(paths, domain.unwrap_or(""));
-    CfgGuard {
-        _dir: dir,
-        _lock: lock,
-    }
-}
 
 fn arm_change(w: &FakeWriter, plan: &Plan, record: &Json) {
     *w.change.lock().unwrap() = record_of(record);
@@ -150,6 +118,7 @@ fn plan_ok(h: &Hints) -> Plan {
 
 #[test]
 fn golden_create_plans() {
+    let _cfg = config_guard(None);
     let h = Hints::new();
     for case in golden(&["create"]).as_object().unwrap().keys() {
         let (p, g) = golden_create(case, &h);
@@ -478,16 +447,17 @@ fn attachment_rows_label_planning_targets() {
 
 #[test]
 fn hash_matches_python() {
+    let _cfg = config_guard(None);
     let mut files = IndexMap::new();
     files.insert("attachments".to_string(), Vec::new());
     let r = json!({"a": 1});
     assert_eq!(
         hash(&r, &files, &[], None).unwrap(),
-        "4240c4340fe295a32bbdf617c19505e717346b74c1d954cc23efe5bf77007aa3"
+        "fc1d378990046fed98a37584e027f53517739c37fbc468ef12aa99634d78ed43"
     );
     assert_eq!(
         hash(&r, &files, &[], Some(501)).unwrap(),
-        "2cc093d73cb24d039d849305dc3a19c06061c837a7b22a501631ec097c80e51d"
+        "f49bf5e571ec0de992d903903491f367475b3ccce59ea61842ff8614cf08d5e8"
     );
     let p = PlanningEntry {
         label: "P".into(),
@@ -498,7 +468,7 @@ fn hash_matches_python() {
     };
     assert_eq!(
         hash(&r, &files, &[p], None).unwrap(),
-        "3cc49e490ea43b0a40cf6116e168368fd5ad812bd2c232d0f9aa60efdeb0cf81"
+        "a44fa7c359e27ff58d19a6a90cf541d7bb5d97def70d18fa59072002b3ea11f9"
     );
 }
 
@@ -776,6 +746,7 @@ fn freshen_same_rebuilt_and_changed() {
 
 #[test]
 fn edit_loop_reopens_until_complete() {
+    let _cfg = config_guard(None);
     let h = Hints::new();
     let opts = create_opts(&h, Some(jane()));
     let mut build = |d: &Draft| build_create_plan(&change_meta(), d, &opts);
@@ -854,6 +825,7 @@ fn template_for_requester_fallbacks() {
 
 #[test]
 fn save_draft_writes_reloadable_template() {
+    let _cfg = config_guard(None);
     let h = Hints::new();
     let p = plan_ok(&h);
     let d = tempfile::tempdir().unwrap();

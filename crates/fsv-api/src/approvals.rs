@@ -1341,7 +1341,7 @@ mod tests {
     "remark": "no"
   },
   "body_present": true,
-  "plan_hash": "b3e8da8d89f5333a78ad68b31f7715d4acac7eb1bb62193fe425ce9f8e324b34",
+  "plan_hash": "98030a0a6c8fed784bde514da8ffe2692910c7cb51a81e10001ae14f22eeab27",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Approve accepted live (requested=0, approved=1); reject captured aborted (read-back mapping unobserved).",
   "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred.",
@@ -1360,7 +1360,7 @@ mod tests {
     "remark": "no"
   },
   "body_present": true,
-  "plan_hash": "b3e8da8d89f5333a78ad68b31f7715d4acac7eb1bb62193fe425ce9f8e324b34",
+  "plan_hash": "98030a0a6c8fed784bde514da8ffe2692910c7cb51a81e10001ae14f22eeab27",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Approve accepted live (requested=0, approved=1); reject captured aborted (read-back mapping unobserved).",
   "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred.",
@@ -1375,7 +1375,7 @@ mod tests {
   "path": "/api/_/changes/12/approval-groups/50/cancel",
   "payload": null,
   "body_present": false,
-  "plan_hash": "1f4a2a31268a841edcf67ddefe9782a5f6f295ff9d8fd546cbf49eb7eed1e201",
+  "plan_hash": "6d1e84a0dc47319a652c4bb63d18168d554da83e4b74f1e030c34b9bd68bd2ec",
   "warning": "Approval actions notify people; approval/rejection may move the change workflow. Cancellation is irreversible. Review the exact tenant and identifiers.",
   "contract": "Bodyless JSON-media-type cancel accepted live; chains exposed cancelled status {id:3,name:cancelled}.",
   "verification": "Complete approval chains: exact group disappears or all original approvals change away from requested; report raw statuses.",
@@ -1416,7 +1416,7 @@ mod tests {
   ],
   "observed_status": null,
   "readback": null,
-  "plan_hash": "1f4a2a31268a841edcf67ddefe9782a5f6f295ff9d8fd546cbf49eb7eed1e201",
+  "plan_hash": "6d1e84a0dc47319a652c4bb63d18168d554da83e4b74f1e030c34b9bd68bd2ec",
   "warning": "Observed group disappearance/status transition only; cancellation status names and notification delivery are not inferred."
 }"#;
 
@@ -1424,9 +1424,9 @@ mod tests {
     use crate::service::testing::*;
 
     const T: &str = "acme.freshservice.com";
-    const AP_HASH: &str = "f29a229eb1b6c509f36896fdb131c314bb0eb444f68531059b6ab065230d113f";
-    const RJ_HASH: &str = "b3e8da8d89f5333a78ad68b31f7715d4acac7eb1bb62193fe425ce9f8e324b34";
-    const CN_HASH: &str = "1f4a2a31268a841edcf67ddefe9782a5f6f295ff9d8fd546cbf49eb7eed1e201";
+    const AP_HASH: &str = "af32385d16ba87e29144eb2b90c6ff80deb9305bd96df38b1bfdfe57a0975e3a";
+    const RJ_HASH: &str = "98030a0a6c8fed784bde514da8ffe2692910c7cb51a81e10001ae14f22eeab27";
+    const CN_HASH: &str = "6d1e84a0dc47319a652c4bb63d18168d554da83e4b74f1e030c34b9bd68bd2ec";
     const CANCEL_WARNING: &str = "Observed group disappearance/status transition only; cancellation status names and notification delivery are not inferred.";
     const CONFIRM: &str = "Send this exact approval action (notifies people; may move workflow; cancel irreversible)?";
 
@@ -1527,7 +1527,7 @@ mod tests {
         )
         .unwrap();
         let payload = json!({"approval_groups": [{"name": "CAB", "approval_type": 2, "email_content": "<p dir=\"ltr\">Please<br>review &lt;now&gt;</p>", "notified_to": [7, 8]}]});
-        let h = "7f34fb9adce9ce2a92cbf6f9ff6c4239eb8cac53e6c4a70b2d1dc23496111c07";
+        let h = "93eb6240a4f7bce7d25d4f10ee505c85281ce7b1a60b9109a09c03092d454e18";
         assert_eq!(
             (p.path(), p.payload(), p.hash()),
             (
@@ -1717,7 +1717,7 @@ mod tests {
         let h = e.hash();
         assert_eq!(
             h,
-            "43c116a9e47dc8584187d2dceb020c6d4bbef2ce5f79c360e6a8e0f7cce011e6"
+            "aa6bf56a727bc7d85f8d310ca65dd0612c343dd5cb38f583471e743ac77a3558"
         );
         let api = FakeApi::new()
             .ok("GET changes/12/approvals", json!([row(1, 5)]))

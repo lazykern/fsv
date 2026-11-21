@@ -3,33 +3,42 @@
 
 complete -c fsv -f
 
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a help -d 'Show topic help.'
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a search -d 'Full-text search across every entity type via /search/all.'
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a setup -d 'Interactive setup wizard.'
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a tui -d 'Launch interactive TUI.'
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a auth
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a assets
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a solutions
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a templates
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a completion
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a config
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a cache
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a journal
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a changes
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a tickets
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a problems
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a attachments
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a form
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a sr
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --no-input
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --verbose
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a -v
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --version
-complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a -V
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a whoami -d 'Show the signed-in agent and the tenant/config dir this shell targets (read-only).'
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a help -d 'Show topic help.'
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a search -d 'Full-text search across every entity type via /search/all.'
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a setup -d 'Interactive setup wizard.'
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a tui -d 'Launch interactive TUI.'
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a auth
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a assets
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a solutions
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a templates
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a completion
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a config
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a cache
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a journal
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a changes
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a tickets
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a problems
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a attachments
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a form
+complete -c fsv -f -n 'not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a sr
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --no-input
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --verbose
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a -v
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --version
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a -V
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --quiet
+complete -c fsv -f -n 'not contains -- (commandline -opc)[-1] --tenant; and not __fish_seen_subcommand_from whoami help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --tenant
+complete -c fsv -f -n '__fish_seen_subcommand_from whoami' -a --verbose
+complete -c fsv -f -n '__fish_seen_subcommand_from whoami' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from whoami' -a --quiet
+complete -c fsv -f -n '__fish_seen_subcommand_from whoami' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from help' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from help' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from help' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --sort
@@ -49,16 +58,20 @@ complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -a
 complete -c fsv -f -n '__fish_seen_subcommand_from setup' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from setup' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from setup' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a --read-only
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a login -d 'Save Freshservice session cookies.'
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a logout -d 'Wipe this config dir'"'"'s stored session (file, its own Keychain item, backend pref).'
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a status -d 'Show current agent identity and session status.'
 complete -c fsv -f -n '__fish_seen_subcommand_from auth' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from auth' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from auth' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a --domain
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a -d
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a --header
@@ -72,16 +85,20 @@ complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcomm
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from login; and not contains -- (commandline -opc)[-1] --domain -d --header -H --store' -a --force
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from logout' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from logout' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from logout' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from logout' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from logout' -a -y
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from logout' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from status' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from status' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from auth; and __fish_seen_subcommand_from status' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from search' -a search
 complete -c fsv -f -n '__fish_seen_subcommand_from assets' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from assets' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from assets' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --json
@@ -90,8 +107,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and not __fish_see
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and not __fish_seen_subcommand_from delete delete-forever create' -a create
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from solutions' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -100,6 +119,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_su
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --max-records
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --yes
@@ -109,6 +129,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_su
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --title --body --type --category --folder --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --title --body --type --category --folder --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --title --body --type --category --folder --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --title --body --type --category --folder --expect-plan' -a --title
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --title --body --type --category --folder --expect-plan' -a --body
 complete -c fsv -f -n '__fish_seen_subcommand_from solutions; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --title --body --type --category --folder --expect-plan' -a --type
@@ -124,11 +145,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from templates; and not __fish_see
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and not __fish_seen_subcommand_from list show' -a show
 complete -c fsv -f -n '__fish_seen_subcommand_from templates' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from templates' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from templates' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from list' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from list' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from show' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from show' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from show' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from templates; and __fish_seen_subcommand_from show' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and not __fish_seen_subcommand_from show install refresh doctor' -a show -d 'Show shell completion script.'
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and not __fish_seen_subcommand_from show install refresh doctor' -a install -d 'Install shell completion for current shell.'
@@ -136,68 +160,94 @@ complete -c fsv -f -n '__fish_seen_subcommand_from completion; and not __fish_se
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and not __fish_seen_subcommand_from show install refresh doctor' -a doctor -d 'Show completion install/cache diagnostics.'
 complete -c fsv -f -n '__fish_seen_subcommand_from completion' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from completion' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from completion' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from show' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from show' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from show' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from install' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from install' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from install' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from refresh' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from refresh' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from refresh' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from doctor' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from doctor' -a -v
-complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list get set defaults' -a list -d 'List all config keys and current values.'
-complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list get set defaults' -a get -d 'Get a single config value.'
-complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list get set defaults' -a set -d 'Set a config value.'
-complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list get set defaults' -a defaults
+complete -c fsv -f -n '__fish_seen_subcommand_from completion; and __fish_seen_subcommand_from doctor' -a --quiet
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list show get set defaults' -a list -d 'List all config keys and current values.'
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list show get set defaults' -a show -d 'Show the target tenant, config dir, write confirmation and all config values.'
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list show get set defaults' -a get -d 'Get a single config value.'
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list show get set defaults' -a set -d 'Set a config value.'
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and not __fish_seen_subcommand_from list show get set defaults' -a defaults
 complete -c fsv -f -n '__fish_seen_subcommand_from config' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from list' -a --quiet
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from show' -a --verbose
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from show' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from show' -a --quiet
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from show' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from get' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from get' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from get' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from set' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from set' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from set' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and not __fish_seen_subcommand_from show set clear' -a show -d 'Show default --where filters.'
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and not __fish_seen_subcommand_from show set clear' -a set -d 'Set (replace) default --where filters for a resource.'
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and not __fish_seen_subcommand_from show set clear' -a clear -d 'Clear default --where filters for a resource.'
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from show' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from show' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from show' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --where -w' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --where -w' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --where -w' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --where -w' -a --where
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --where -w' -a -w
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from clear' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from clear' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from config; and __fish_seen_subcommand_from defaults; and __fish_seen_subcommand_from clear' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and not __fish_seen_subcommand_from status refresh clear' -a status -d 'Show cache health and TTL.'
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and not __fish_seen_subcommand_from status refresh clear' -a refresh -d 'Refresh only stale caches.'
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and not __fish_seen_subcommand_from status refresh clear' -a clear -d 'Delete cached data.'
 complete -c fsv -f -n '__fish_seen_subcommand_from cache' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from cache' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from cache' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from status' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from status' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from status' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from refresh' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from refresh' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from refresh' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from clear' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from clear' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from cache; and __fish_seen_subcommand_from clear' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and not __fish_seen_subcommand_from ls tail path' -a ls -d 'List journaled write requests (oldest first).'
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and not __fish_seen_subcommand_from ls tail path' -a tail -d 'Show the most recent journaled writes.'
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and not __fish_seen_subcommand_from ls tail path' -a path -d 'Print the journal file location.'
 complete -c fsv -f -n '__fish_seen_subcommand_from journal' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from journal' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from journal' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a --limit
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a -n
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a --failed
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --limit -n' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from tail; and not contains -- (commandline -opc)[-1] --limit -n' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from tail; and not contains -- (commandline -opc)[-1] --limit -n' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from tail; and not contains -- (commandline -opc)[-1] --limit -n' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from tail; and not contains -- (commandline -opc)[-1] --limit -n' -a --limit
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from tail; and not contains -- (commandline -opc)[-1] --limit -n' -a -n
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from tail; and not contains -- (commandline -opc)[-1] --limit -n' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from path' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from path' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from journal; and __fish_seen_subcommand_from path' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and not __fish_seen_subcommand_from ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time windows associations assets columns private-views watchers' -a ls
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and not __fish_seen_subcommand_from ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time windows associations assets columns private-views watchers' -a get
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and not __fish_seen_subcommand_from ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time windows associations assets columns private-views watchers' -a activity
@@ -239,8 +289,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and not __fish_seen_
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and not __fish_seen_subcommand_from ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time windows associations assets columns private-views watchers' -a watchers
 complete -c fsv -f -n '__fish_seen_subcommand_from changes' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --view
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and contains -- (commandline -opc)[-1] --view' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_filter_name changes (commandline -ct))"
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --where
@@ -274,6 +326,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --no-defaults
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --tab
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a -t
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and contains -- (commandline -opc)[-1] --tab -t' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish _complete_tab changes (commandline -ct))"
@@ -289,6 +342,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a -l
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --limit
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --all
@@ -301,6 +355,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -310,6 +365,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a --title
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a --owner
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a --group
@@ -332,6 +388,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-add; and not contains -- (commandline -opc)[-1] --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a --name
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a --message
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a --approver
@@ -349,6 +406,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-request; and not contains -- (commandline -opc)[-1] --name --message --approver --approver-group --cab --approver-cab --rule --model --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a --model
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a --yes
@@ -357,6 +415,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-remind; and not contains -- (commandline -opc)[-1] --model --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --approve
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --reject
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --remark
@@ -369,6 +428,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-respond; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a --read-only
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
@@ -378,6 +438,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approval-cancel; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -386,6 +447,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and not contains -- (commandline -opc)[-1] --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --note --planned-effort --notify-before --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and not contains -- (commandline -opc)[-1] --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --note --planned-effort --notify-before --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and not contains -- (commandline -opc)[-1] --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --note --planned-effort --notify-before --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and not contains -- (commandline -opc)[-1] --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --note --planned-effort --notify-before --expect-plan' -a --status
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and not contains -- (commandline -opc)[-1] --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --note --planned-effort --notify-before --expect-plan' -a -s
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and contains -- (commandline -opc)[-1] --status -s' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish _complete_task_status - (commandline -ct))"
@@ -419,6 +481,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-update; and not contains -- (commandline -opc)[-1] --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --note --planned-effort --notify-before --expect-plan' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -426,6 +489,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from tasks-delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --groups
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a -o
@@ -436,6 +500,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -445,6 +510,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from state; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -454,6 +520,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -463,10 +530,12 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ci-list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --view
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --field
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --dry-run
@@ -477,6 +546,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a --select
@@ -485,6 +555,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from asset-picker; and not contains -- (commandline -opc)[-1] --search --page --select --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --section
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and contains -- (commandline -opc)[-1] --section' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_planning_field_names changes (commandline -ct))"
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --description
@@ -497,6 +568,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --default
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --custom
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --required
@@ -512,6 +584,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --refresh
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a -o
@@ -522,6 +595,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -531,6 +605,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --sort
@@ -550,8 +625,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -a
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from url' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from url' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from url' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --planning --description --desc --file -f --duplicate --backup-replaced --no-backup-replaced --backup-name --attach -a --due-by --from --preset --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --planning --description --desc --file -f --duplicate --backup-replaced --no-backup-replaced --backup-name --attach -a --due-by --from --preset --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --planning --description --desc --file -f --duplicate --backup-replaced --no-backup-replaced --backup-name --attach -a --due-by --from --preset --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --planning --description --desc --file -f --duplicate --backup-replaced --no-backup-replaced --backup-name --attach -a --due-by --from --preset --expect-plan' -a --status
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --planning --description --desc --file -f --duplicate --backup-replaced --no-backup-replaced --backup-name --attach -a --due-by --from --preset --expect-plan' -a -s
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and contains -- (commandline -opc)[-1] --status -s' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_update_choice changes (commandline -ct))"
@@ -596,6 +673,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --planning --description --desc --file -f --duplicate --backup-replaced --no-backup-replaced --backup-name --attach -a --due-by --from --preset --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --planning --dir --out' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --planning --dir --out' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --planning --dir --out' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --planning --dir --out' -a --planning
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and contains -- (commandline -opc)[-1] --planning' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_planning_field_names changes (commandline -ct))"
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --planning --dir --out' -a --all-planning
@@ -609,6 +687,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --planning --dir --out' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a --no-edit
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a --with-tasks
@@ -621,6 +700,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from clone' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a --device
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a --from
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a --set
@@ -668,6 +748,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --requester --attach -a --max-bytes --attach-flow --output -o --expect-plan --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id' -a --all
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --per-page
@@ -685,6 +766,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -N
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --public
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from add-note' -a --yes
@@ -694,11 +776,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and not __fish_seen_subcommand_from list write' -a write
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from list' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from list' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --project-json --project-key --name --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --project-json --project-key --name --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --project-json --project-key --name --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --project-json --project-key --name --expect-plan' -a --item
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --project-json --project-key --name --expect-plan' -a --project-json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from relationships; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --project-json --project-key --name --expect-plan' -a --project-key
@@ -712,13 +797,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and not __fish_seen_subcommand_from list write update' -a update
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --entry
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --spent
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --executed-at
@@ -733,6 +821,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --spent
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --note
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --dry-run
@@ -744,11 +833,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and not __fish_seen_subcommand_from list create delete' -a delete
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from list' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from list' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a --name
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a --start
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a --end
@@ -764,6 +856,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --name --start --end --timezone --criteria --description --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from windows; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -777,8 +870,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and not __fish_seen_subcommand_from legacy ls search add remove pick' -a pick
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search -q --add --remove --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search -q --add --remove --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search -q --add --remove --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search -q --add --remove --expect-plan --output -o' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search -q --add --remove --expect-plan --output -o' -a -q
 complete -c fsv -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and contains -- (commandline -opc)[-1] --search -q' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish _complete_ticket_for_change - (commandline -ct))"
@@ -801,6 +896,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search -q --add --remove --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -810,6 +906,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -819,6 +916,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -827,6 +925,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -835,6 +934,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from pick; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from pick; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from pick; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from pick; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from pick; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from associations; and __fish_seen_subcommand_from pick; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -850,26 +950,32 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates legacy add remove search' -a search
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from legacy; and not contains -- (commandline -opc)[-1] --search' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -879,6 +985,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -888,6 +995,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --kind --page' -a --json
@@ -895,13 +1003,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and not __fish_seen_subcommand_from list set' -a set
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --column
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --freeze
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --dry-run
@@ -915,18 +1026,22 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and not __fish_seen_subcommand_from list show write' -a write
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --name
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --yes
@@ -938,13 +1053,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and not __fish_seen_subcommand_from list set' -a set
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --watch
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --unwatch
 complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --dry-run
@@ -1001,8 +1119,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and not __fish_seen_
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and not __fish_seen_subcommand_from ls get activity tasks-legacy export note-edit note-delete assign pick-up merge resolve close reopen status bulk-priority bulk restore delete-forever spam unspam fields lookup views search url add-note create approvals associations update download conversations reply forward assets columns watchers tasks private-views canned scenarios time problems changes children trash' -a trash
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --view
 complete -c fsv -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and contains -- (commandline -opc)[-1] --view' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_filter_name tickets (commandline -ct))"
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --where
@@ -1036,6 +1156,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --no-defaults
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --tab
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a -t
 complete -c fsv -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and contains -- (commandline -opc)[-1] --tab -t' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish _complete_tab tickets (commandline -ct))"
@@ -1051,6 +1172,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a -l
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --limit
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --all
@@ -1063,6 +1185,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -1072,6 +1195,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks-legacy; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --view
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --field
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --dry-run
@@ -1082,6 +1206,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a --body
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a --yes
@@ -1091,6 +1216,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-edit; and not contains -- (commandline -opc)[-1] --body --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --expect-plan
@@ -1099,6 +1225,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from note-delete; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a --agent
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a --group
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a --unassign
@@ -1110,6 +1237,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assign; and not contains -- (commandline -opc)[-1] --agent --group --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --expect-plan
@@ -1118,6 +1246,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from pick-up; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a --note-primary
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a --note-secondary
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a --private-primary
@@ -1132,6 +1261,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from merge; and not contains -- (commandline -opc)[-1] --note-primary --note-secondary --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --note
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --dry-run
@@ -1140,6 +1270,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from resolve; and not contains -- (commandline -opc)[-1] --note --set --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --yes
@@ -1147,12 +1278,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from close; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reopen; and not contains -- (commandline -opc)[-1] --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --yes
@@ -1160,6 +1293,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --set --expect-plan' -a --ack
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --priority
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --yes
@@ -1169,6 +1303,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk-priority; and not contains -- (commandline -opc)[-1] --priority --output -o --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a --where
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a --select-all
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a --max-records
@@ -1187,6 +1322,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from bulk; and not contains -- (commandline -opc)[-1] --where --max-records --status --agent --group --primary --note-primary --note-secondary --expect-plan --set --scenario' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -1194,6 +1330,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --max-records
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --confirm-destructive
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --dry-run
@@ -1203,6 +1340,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --confirm-destructive
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
@@ -1211,6 +1349,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from spam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --confirm-destructive
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
@@ -1219,6 +1358,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from unspam; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --default
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --custom
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --required
@@ -1234,6 +1374,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --refresh
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a -o
@@ -1244,6 +1385,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -1253,6 +1395,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --sort
@@ -1272,8 +1415,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -a
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from url' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from url' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from url' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a --body
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a -b
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a --public
@@ -1295,6 +1440,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from add-note; and not contains -- (commandline -opc)[-1] --body -b --notify-email --notify-agent --attach --inline-image --max-bytes --set-status --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a --device
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a --from
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a --set
@@ -1318,6 +1464,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --device --from --set --preset --template --requester --cc --attach --max-bytes --output -o --expect-plan' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -1327,6 +1474,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from approvals; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -1336,6 +1484,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from associations; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --status
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a -s
 complete -c fsv -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and contains -- (commandline -opc)[-1] --status -s' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_update_choice tickets (commandline -ct))"
@@ -1364,6 +1513,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --attachments
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --main-attachments
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --conversations
@@ -1375,6 +1525,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --per-page
@@ -1392,6 +1543,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from conversations; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -N
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a --cc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a --bcc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a --attach
@@ -1408,6 +1560,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --cc --bcc --attach --inline-image --max-bytes --sender --set-status --expect-plan' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from forward; and not contains -- (commandline -opc)[-1] --conversation --to --sender --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from forward; and not contains -- (commandline -opc)[-1] --conversation --to --sender --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from forward; and not contains -- (commandline -opc)[-1] --conversation --to --sender --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from forward; and not contains -- (commandline -opc)[-1] --conversation --to --sender --output -o --expect-plan' -a --conversation
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from forward; and not contains -- (commandline -opc)[-1] --conversation --to --sender --output -o --expect-plan' -a --to
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from forward; and not contains -- (commandline -opc)[-1] --conversation --to --sender --output -o --expect-plan' -a --sender
@@ -1424,22 +1577,27 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates add remove' -a remove
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1449,6 +1607,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1460,13 +1619,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and not __fish_seen_subcommand_from list set' -a set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --column
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --freeze
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --dry-run
@@ -1479,13 +1641,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and not __fish_seen_subcommand_from list set' -a set
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --watch
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --unwatch
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from watchers; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --dry-run
@@ -1501,11 +1666,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and not __fish_seen_subcommand_from list add update status delete' -a delete
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from list' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from list' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a --title
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a --status
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a --owner
@@ -1517,6 +1685,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --title --status --owner --group --set --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a --title
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a --owner
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a --group
@@ -1526,6 +1695,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --title --owner --group --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --to
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --yes
@@ -1533,6 +1703,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from tasks; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --expect-plan
@@ -1542,18 +1713,22 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and not __fish_seen_subcommand_from list show write' -a write
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --name
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from private-views; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --name --expect-plan --output -o' -a --yes
@@ -1567,24 +1742,29 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and not __fish_seen_subcommand_from folders list show reply' -a reply
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from folders; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from folders; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from folders; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from folders; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from folders; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from folders; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a --folder
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --folder --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --response --content-pointer --sender --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --response --content-pointer --sender --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --response --content-pointer --sender --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --response --content-pointer --sender --expect-plan --output -o' -a --response
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --response --content-pointer --sender --expect-plan --output -o' -a --content-pointer
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from canned; and __fish_seen_subcommand_from reply; and not contains -- (commandline -opc)[-1] --response --content-pointer --sender --expect-plan --output -o' -a --sender
@@ -1599,18 +1779,22 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and not __fish_seen_subcommand_from list show apply' -a apply
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from show; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from apply; and not contains -- (commandline -opc)[-1] --scenario --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from apply; and not contains -- (commandline -opc)[-1] --scenario --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from apply; and not contains -- (commandline -opc)[-1] --scenario --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from apply; and not contains -- (commandline -opc)[-1] --scenario --expect-plan --output -o' -a --scenario
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from apply; and not contains -- (commandline -opc)[-1] --scenario --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from scenarios; and __fish_seen_subcommand_from apply; and not contains -- (commandline -opc)[-1] --scenario --expect-plan --output -o' -a --yes
@@ -1622,13 +1806,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and not __fish_seen_subcommand_from list write' -a write
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --output -o --expect-plan' -a --entry
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --output -o --expect-plan' -a --spent
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --output -o --expect-plan' -a --executed-at
@@ -1645,17 +1832,21 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and not __fish_seen_subcommand_from list candidates link unlink' -a unlink
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1664,6 +1855,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1676,17 +1868,21 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and not __fish_seen_subcommand_from list candidates link unlink' -a unlink
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1695,6 +1891,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from changes; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1707,17 +1904,21 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and not __fish_seen_subcommand_from list candidates link unlink' -a unlink
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1726,6 +1927,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from link; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from children; and __fish_seen_subcommand_from unlink; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -1735,8 +1937,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subc
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and not __fish_seen_subcommand_from list' -a list
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --page --per-page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --page --per-page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --page --per-page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --page --per-page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --page --per-page' -a --per-page
 complete -c fsv -f -n '__fish_seen_subcommand_from tickets; and __fish_seen_subcommand_from trash; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --page --per-page' -a --json
@@ -1773,8 +1977,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and not __fish_seen
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and not __fish_seen_subcommand_from ls get activity tasks export task-write delete restore delete-forever link-incident unlink-incident note status create write-child link-solution unlink-solution mark-known-error planning-text fields lookup views search url update download notes add-note assets columns time' -a time
 complete -c fsv -f -n '__fish_seen_subcommand_from problems' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --view
 complete -c fsv -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and contains -- (commandline -opc)[-1] --view' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_filter_name problems (commandline -ct))"
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --where
@@ -1808,6 +2014,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --no-defaults
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --tab
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a -t
 complete -c fsv -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and contains -- (commandline -opc)[-1] --tab -t' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish _complete_tab problems (commandline -ct))"
@@ -1823,6 +2030,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --tab -t --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a -l
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --limit
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --all
@@ -1835,6 +2043,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from activity; and not contains -- (commandline -opc)[-1] -l --limit --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -1844,6 +2053,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from tasks; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --view
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --field
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --dry-run
@@ -1854,6 +2064,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from export; and not contains -- (commandline -opc)[-1] --view --field --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a --title
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a --status
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a --owner
@@ -1870,6 +2081,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from task-write; and not contains -- (commandline -opc)[-1] --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -1878,6 +2090,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -1886,6 +2099,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from restore; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --max-records
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --yes
@@ -1895,6 +2109,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from delete-forever; and not contains -- (commandline -opc)[-1] --max-records --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --expect-plan
@@ -1903,6 +2118,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --expect-plan
@@ -1911,6 +2127,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-incident; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a --body
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a --attach
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a --max-bytes
@@ -1920,6 +2137,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from note; and not contains -- (commandline -opc)[-1] --body --attach --max-bytes --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --to
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --yes
@@ -1927,6 +2145,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from status; and not contains -- (commandline -opc)[-1] --to --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a --from
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a --requester
@@ -1938,6 +2157,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --requester --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --expect-plan
@@ -1946,6 +2166,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from write-child; and not contains -- (commandline -opc)[-1] --expect-plan --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -1954,6 +2175,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from link-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a -y
@@ -1962,6 +2184,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from unlink-solution; and not contains -- (commandline -opc)[-1] --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --yes
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --output
@@ -1970,6 +2193,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from mark-known-error; and not contains -- (commandline -opc)[-1] --output -o --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --section
 complete -c fsv -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and contains -- (commandline -opc)[-1] --section' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_section - (commandline -ct))"
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --description
@@ -1982,6 +2206,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from planning-text; and not contains -- (commandline -opc)[-1] --section --description --output -o --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --default
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --custom
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --required
@@ -1997,6 +2222,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --refresh
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a -o
@@ -2007,6 +2233,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from lookup; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and contains -- (commandline -opc)[-1] --output -o' -a table -d 'rich table'
@@ -2016,6 +2243,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from views; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --sort
@@ -2035,8 +2263,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a -a
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from url' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from url' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from url' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --status
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a -s
 complete -c fsv -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and contains -- (commandline -opc)[-1] --status -s' -a "(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete fish complete_update_choice problems (commandline -ct))"
@@ -2065,6 +2295,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --expect-plan' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --attachments
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --main-attachments
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --notes
@@ -2076,6 +2307,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from download; and not contains -- (commandline -opc)[-1] --dir --out' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -p
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a --per-page
@@ -2093,6 +2325,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from notes; and not contains -- (commandline -opc)[-1] --page -p --per-page -n --output -o --npages -N' -a -N
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --public
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from add-note' -a --yes
@@ -2105,22 +2338,27 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates add remove' -a remove
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -2130,6 +2368,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -2141,13 +2380,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and not __fish_seen_subcommand_from list set' -a set
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --column
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --freeze
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from columns; and __fish_seen_subcommand_from set; and not contains -- (commandline -opc)[-1] --column --freeze --expect-plan --output -o' -a --dry-run
@@ -2161,13 +2403,16 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and not __fish_seen_subcommand_from list write update' -a update
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --output -o' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --entry
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --spent
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --executed-at
@@ -2182,6 +2427,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --entry --spent --executed-at --note --billable --non-billable --output -o --expect-plan' -a --expect-plan
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --spent
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --note
 complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_subcommand_from time; and __fish_seen_subcommand_from update; and not contains -- (commandline -opc)[-1] --spent --note --expect-plan' -a --dry-run
@@ -2191,8 +2437,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from problems; and __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and not __fish_seen_subcommand_from delete' -a delete
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from attachments' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --owner --child --section --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --owner --child --section --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --owner --child --section --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --owner --child --section --expect-plan' -a --owner
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --owner --child --section --expect-plan' -a --child
 complete -c fsv -f -n '__fish_seen_subcommand_from attachments; and __fish_seen_subcommand_from delete; and not contains -- (commandline -opc)[-1] --owner --child --section --expect-plan' -a --section
@@ -2206,8 +2454,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from form; and not __fish_seen_sub
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and not __fish_seen_subcommand_from explain fields dump diff' -a diff -d 'Compare a snapshot with the current metadata (or another snapshot).'
 complete -c fsv -f -n '__fish_seen_subcommand_from form' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from form' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from form' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a --from
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a --preset
@@ -2218,16 +2468,19 @@ complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcomm
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from explain; and not contains -- (commandline -opc)[-1] --set --from --preset --id --output -o --item' -a --item
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a --choices
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --choices --output -o --item' -a --item
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from dump; and not contains -- (commandline -opc)[-1] --mode --item' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from dump; and not contains -- (commandline -opc)[-1] --mode --item' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from dump; and not contains -- (commandline -opc)[-1] --mode --item' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from dump; and not contains -- (commandline -opc)[-1] --mode --item' -a --mode
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from dump; and not contains -- (commandline -opc)[-1] --mode --item' -a --item
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from diff; and not contains -- (commandline -opc)[-1] --against --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from diff; and not contains -- (commandline -opc)[-1] --against --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from diff; and not contains -- (commandline -opc)[-1] --against --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from diff; and not contains -- (commandline -opc)[-1] --against --output -o' -a --against
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from diff; and not contains -- (commandline -opc)[-1] --against --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from form; and __fish_seen_subcommand_from diff; and not contains -- (commandline -opc)[-1] --against --output -o' -a -o
@@ -2240,8 +2493,10 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and not __fish_seen_subco
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and not __fish_seen_subcommand_from catalog fields create get assets approvals items' -a items
 complete -c fsv -f -n '__fish_seen_subcommand_from sr' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a --category
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a -c
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a --search
@@ -2252,10 +2507,12 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from catalog; and not contains -- (commandline -opc)[-1] --category -c --search -s --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --output -o' -a --output
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from fields; and not contains -- (commandline -opc)[-1] --output -o' -a -o
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a --from
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a --set
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a --preset
@@ -2275,6 +2532,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from create; and not contains -- (commandline -opc)[-1] --from --set --preset --requester --requested-for --cc --attach --output -o --expect-plan' -a --no-input
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --download --output -o' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --download --output -o' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --download --output -o' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --download --output -o' -a --items
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --download --output -o' -a --attachments
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from get; and not contains -- (commandline -opc)[-1] --download --output -o' -a --download
@@ -2288,22 +2546,27 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and not __fish_seen_subcommand_from ls list candidates add remove' -a remove
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from list; and not contains -- (commandline -opc)[-1] --kind' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --search
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --page
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from candidates; and not contains -- (commandline -opc)[-1] --search --kind --page' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -2313,6 +2576,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from add; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --kind
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from assets; and __fish_seen_subcommand_from remove; and not contains -- (commandline -opc)[-1] --kind --expect-plan' -a --yes
@@ -2328,11 +2592,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and not __fish_seen_subcommand_from list request approve reject cancel remind' -a remind
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from list' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from list' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a --name
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a --message
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a --approver
@@ -2345,6 +2612,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from request; and not contains -- (commandline -opc)[-1] --name --message --approver --rule --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --remark
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --yes
@@ -2354,6 +2622,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from approve; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --remark
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --yes
@@ -2363,6 +2632,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from reject; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --remark
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --yes
@@ -2372,6 +2642,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from cancel; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from remind; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from remind; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from remind; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from remind; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --remark
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from remind; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --dry-run
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from approvals; and __fish_seen_subcommand_from remind; and not contains -- (commandline -opc)[-1] --remark --expect-plan' -a --yes
@@ -2383,11 +2654,14 @@ complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcomman
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and not __fish_seen_subcommand_from list write' -a write
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from list' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from list' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from list' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from list' -a --json
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --catalog-item --answers-json --stage --expect-plan' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --catalog-item --answers-json --stage --expect-plan' -a -v
+complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --catalog-item --answers-json --stage --expect-plan' -a --quiet
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --catalog-item --answers-json --stage --expect-plan' -a --item
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --catalog-item --answers-json --stage --expect-plan' -a --catalog-item
 complete -c fsv -f -n '__fish_seen_subcommand_from sr; and __fish_seen_subcommand_from items; and __fish_seen_subcommand_from write; and not contains -- (commandline -opc)[-1] --item --catalog-item --answers-json --stage --expect-plan' -a --answers-json

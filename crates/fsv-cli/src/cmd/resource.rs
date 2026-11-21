@@ -1477,7 +1477,7 @@ fn problem_planning_update(a: &ResUpdateArgs) -> CmdResult {
             fsv_py::Dumps::default()
                 .indent(2)
                 .ensure_ascii(false)
-                .dump(v)
+                .dump(&fsv_core::tenant::annotate(v))
         };
         if a.dry_run {
             let mut out = Map::new();
@@ -1569,7 +1569,7 @@ fn ticket_properties(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         fsv_py::Dumps::default()
             .indent(2)
             .ensure_ascii(false)
-            .dump(v)
+            .dump(&fsv_core::tenant::annotate(v))
     };
     let review = plan.review();
     if a.dry_run {

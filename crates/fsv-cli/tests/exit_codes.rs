@@ -24,6 +24,7 @@ fn fsv(args: &[&str]) -> Run {
         .env("FSV_CACHE_DIR", h.join("cache"))
         .env("XDG_STATE_HOME", h.join("state"))
         .env("NO_COLOR", "1")
+        .env("FSV_QUIET", "1")
         .stdin(Stdio::null())
         .output()
         .unwrap();

@@ -48,7 +48,9 @@ fn problem_note_dry_run_states_visibility() {
   },
   "warnings": [
     "visibility: problem notes accept only a body (captured `{body}`; the tenant rejects `private` with HTTP 400): visibility is not controllable and the tenant default applies"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -136,7 +138,9 @@ fn change_note_dry_run() {
   "body": {
     "body": "Acme change note",
     "private": true
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -170,7 +174,9 @@ fn change_public_note_dry_run() {
   },
   "requires_confirmation": [
     "public note: visible to the requester and may send notifications"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
