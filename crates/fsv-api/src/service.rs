@@ -87,6 +87,11 @@ pub trait Api: Sync {
     }
     /// `_client.get(url, follow_redirects=True)`: raw download, no status mapping.
     fn fetch(&self, url: &str) -> Result<Response>;
+    /// [`Api::fetch`] that stops reading a successful body past `limit` bytes
+    /// (a download's `--max-bytes`); fakes answer with the whole body.
+    fn fetch_capped(&self, url: &str, _limit: Option<i64>) -> Result<Response> {
+        self.fetch(url)
+    }
     /// `_send("GET", f"https://{DOMAIN}{path}", follow_redirects=False)`
     /// with an HTML `Accept`: one tenant web page, no status mapping; the
     /// default has none.
@@ -216,6 +221,9 @@ impl Api for fsv_core::Client {
     }
     fn fetch(&self, url: &str) -> Result<Response> {
         self.fetch_raw(url, true)
+    }
+    fn fetch_capped(&self, url: &str, limit: Option<i64>) -> Result<Response> {
+        self.fetch_capped(url, true, limit.and_then(|n| u64::try_from(n).ok()))
     }
     fn page(&self, path: &str) -> Result<Response> {
         let opts = RequestOpts {

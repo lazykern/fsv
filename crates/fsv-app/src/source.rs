@@ -78,6 +78,9 @@ impl Api for ClientSource {
     fn fetch(&self, url: &str) -> Result<Response> {
         Api::fetch(&*self.client, url)
     }
+    fn fetch_capped(&self, url: &str, limit: Option<i64>) -> Result<Response> {
+        Api::fetch_capped(&*self.client, url, limit)
+    }
     fn page(&self, path: &str) -> Result<Response> {
         Api::page(&*self.client, path)
     }

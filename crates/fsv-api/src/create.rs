@@ -643,7 +643,7 @@ pub fn download_attachment(
         return Ok(too_large(&name, &path, declared, max, "listed size"));
     }
     eprintln!("  downloading {name}...");
-    let r = c.fetch(&url)?;
+    let r = c.fetch_capped(&url, max_bytes)?;
     if r.status >= 400 {
         let text: String = String::from_utf8_lossy(&r.body).chars().take(500).collect();
         return Err(ApiError::new(r.status, Value::String(text)).into());

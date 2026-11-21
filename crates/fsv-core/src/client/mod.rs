@@ -57,6 +57,8 @@ pub struct RequestOpts {
     pub headers: Vec<(String, String)>,
     /// Follow redirects (`follow_redirects=`); off by default like the Python client.
     pub follow: bool,
+    /// See [`Request::body_limit`].
+    pub body_limit: Option<u64>,
 }
 
 impl RequestOpts {
@@ -305,6 +307,7 @@ impl Client {
                 url: current.to_string(),
                 headers,
                 body: body.clone(),
+                body_limit: opts.body_limit,
             };
             let mut resp = self.transport.send(&req).map_err(SendErr::Transport)?;
             resp.url = req.url;
@@ -412,7 +415,17 @@ impl Client {
 
     /// GET for downloads: no retry, no journal, no status mapping, no log.
     pub fn fetch_raw(&self, url: &str, follow: bool) -> Result<Response> {
-        match self.exchange("GET", url, &RequestOpts::default().follow(follow)) {
+        self.fetch_capped(url, follow, None)
+    }
+
+    /// [`Client::fetch_raw`] reading at most `limit` + 1 body bytes of a
+    /// successful response (none when `Content-Length` is already over it).
+    pub fn fetch_capped(&self, url: &str, follow: bool, limit: Option<u64>) -> Result<Response> {
+        let opts = RequestOpts {
+            body_limit: limit,
+            ..RequestOpts::default().follow(follow)
+        };
+        match self.exchange("GET", url, &opts) {
             Ok(r) => Ok(r),
             Err(SendErr::Transport(e)) => Err(e.into()),
             Err(SendErr::Fatal(e)) => Err(e),

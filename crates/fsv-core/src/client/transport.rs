@@ -22,6 +22,10 @@ pub struct Request {
     pub url: String,
     pub headers: Vec<(String, String)>,
     pub body: Option<Vec<u8>>,
+    /// Read at most this many body bytes of a successful (< 400) response,
+    /// and none at all when `Content-Length` already exceeds it: a download
+    /// guard, like Python's streamed read that stops at the limit.
+    pub body_limit: Option<u64>,
 }
 
 impl Request {
@@ -200,7 +204,23 @@ impl Transport for ReqwestTransport {
             })
             .collect();
         let mut body = Vec::new();
-        resp.read_to_end(&mut body).map_err(map_read)?;
+        let declared = resp
+            .headers()
+            .get("content-length")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<u64>().ok());
+        match req.body_limit.filter(|_| status < 400) {
+            Some(limit) if declared.is_some_and(|n| n > limit) => {}
+            Some(limit) => {
+                resp.by_ref()
+                    .take(limit.saturating_add(1))
+                    .read_to_end(&mut body)
+                    .map_err(map_read)?;
+            }
+            None => {
+                resp.read_to_end(&mut body).map_err(map_read)?;
+            }
+        }
         Ok(Response {
             status,
             url: req.url.clone(),
@@ -253,4 +273,59 @@ fn map_read(e: std::io::Error) -> TransportError {
         },
         error_chain(&e),
     )
+}
+
+#[cfg(test)]
+mod body_limit_tests {
+    use super::*;
+    use std::io::Write;
+    use std::net::TcpListener;
+
+    fn serve(status_line: &str, headers: &str, body: Vec<u8>) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/file", listener.local_addr().unwrap());
+        let head = format!("HTTP/1.1 {status_line}\r\n{headers}Connection: close\r\n\r\n");
+        std::thread::spawn(move || {
+            if let Ok((mut sock, _)) = listener.accept() {
+                let mut buf = [0u8; 2048];
+                let _ = sock.read(&mut buf);
+                let _ = sock.write_all(head.as_bytes());
+                let _ = sock.write_all(&body);
+            }
+        });
+        url
+    }
+
+    fn get(url: &str, limit: Option<u64>) -> Response {
+        let req = Request {
+            method: "GET".into(),
+            url: url.into(),
+            headers: vec![],
+            body: None,
+            body_limit: limit,
+        };
+        ReqwestTransport::new().unwrap().send(&req).unwrap()
+    }
+
+    #[test]
+    fn a_declared_length_over_the_limit_reads_no_body() {
+        let url = serve("200 OK", "Content-Length: 5000\r\n", vec![b'x'; 5000]);
+        assert!(get(&url, Some(100)).body.is_empty());
+    }
+
+    #[test]
+    fn an_unknown_length_stops_one_byte_past_the_limit() {
+        let url = serve("200 OK", "", vec![b'x'; 5000]);
+        assert_eq!(get(&url, Some(100)).body.len(), 101);
+    }
+
+    #[test]
+    fn a_body_within_the_limit_is_whole_and_errors_are_never_cut() {
+        let url = serve("200 OK", "Content-Length: 50\r\n", vec![b'x'; 50]);
+        assert_eq!(get(&url, Some(100)).body.len(), 50);
+        let url = serve("500 Internal Server Error", "", vec![b'e'; 400]);
+        assert_eq!(get(&url, Some(10)).body.len(), 400);
+        let url = serve("200 OK", "", vec![b'x'; 5000]);
+        assert_eq!(get(&url, None).body.len(), 5000);
+    }
 }
