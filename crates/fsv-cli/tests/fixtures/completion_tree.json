@@ -33,6 +33,14 @@
    "kind": "boolean",
    "completer": null,
    "resource": null
+  },
+  {
+   "flags": [
+    "--refresh"
+   ],
+   "kind": "boolean",
+   "completer": null,
+   "resource": null
   }
  ],
  "subcommands": [

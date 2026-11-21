@@ -45,6 +45,15 @@ fn ttl_text(kind: &str) -> String {
     }
 }
 
+/// Cache age: minutes below an hour (the form TTLs are 15 minutes), else hours.
+fn age_text(seconds: f64) -> String {
+    if seconds < 3600.0 {
+        format!("{:.0}m", seconds / 60.0)
+    } else {
+        format!("{:.1}h", seconds / 3600.0)
+    }
+}
+
 fn status_row(
     name: &str,
     label: &str,
@@ -57,11 +66,10 @@ fn status_row(
         .and_then(Value::as_f64)
         .filter(|s| *s != 0.0)
         .unwrap_or_else(|| mtime(&path));
-    let age = (now() - saved) / 3600.0;
     Some([
         name.replace(".json", ""),
         label.to_string(),
-        format!("{age:.1}h"),
+        age_text(now() - saved),
         if stale { "stale" } else { "ok" }.to_string(),
         ttl_text(kind),
     ])
@@ -93,7 +101,57 @@ pub fn status() -> CmdResult {
         "groups",
         first_doc(config::groups_cache_candidates(None)),
     ));
-    let mut t = Table::new().title("cache status");
+    let forms_dir = config::cache_dir().join("forms");
+    let mut form_files: Vec<PathBuf> = std::fs::read_dir(&forms_dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| {
+            p.extension().is_some_and(|x| x == "json")
+                && p.file_name()
+                    .is_some_and(|n| !n.to_string_lossy().starts_with('.'))
+        })
+        .collect();
+    form_files.sort();
+    for fp in form_files {
+        let (Some(doc), stale) = cache::load(&fp) else {
+            continue;
+        };
+        let kind = doc
+            .get("_kind")
+            .and_then(Value::as_str)
+            .filter(|k| !k.is_empty())
+            .unwrap_or("schema")
+            .to_string();
+        let saved = doc
+            .get("saved_at")
+            .and_then(Value::as_f64)
+            .filter(|s| *s != 0.0)
+            .unwrap_or_else(|| mtime(&fp));
+        let stem = fp
+            .file_stem()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let name = stem
+            .split_once("--")
+            .map_or(stem.as_str(), |(_, rest)| rest);
+        rows.push([
+            format!("forms/{name}"),
+            if kind == "form_rules" {
+                "form rules"
+            } else {
+                "form fields"
+            }
+            .to_string(),
+            age_text(now() - saved),
+            if stale { "stale" } else { "ok" }.to_string(),
+            ttl_text(&kind),
+        ]);
+    }
+    let mut t = Table::new().title("cache status").caption(
+        "clear: fsv cache clear schema (module schemas) | forms (forms/*) | views | groups | all",
+    );
     for c in ["cache", "kind", "age", "state", "ttl"] {
         t.add_column(Column::new(c));
     }
@@ -248,12 +306,17 @@ pub fn clear(a: CacheClearArgs) -> CmdResult {
     let target = a.target.unwrap_or_default();
     if !matches!(
         target.as_str(),
-        "schema" | "views" | "filters" | "groups" | "all"
+        "schema" | "forms" | "views" | "filters" | "groups" | "all"
     ) {
-        return Err(usage("choose schema|views|groups|all"));
+        return Err(usage("choose schema|forms|views|groups|all"));
     }
     if matches!(target.as_str(), "schema" | "all") && remove_tree(&config::schema_dir())? {
         out().print("schema cache cleared");
+    }
+    if matches!(target.as_str(), "forms" | "all")
+        && remove_tree(&config::cache_dir().join("forms"))?
+    {
+        out().print("forms cache cleared");
     }
     if matches!(target.as_str(), "views" | "filters" | "all")
         && remove_tree(&config::cache_dir().join("filters"))?

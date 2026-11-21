@@ -6,6 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 static VERBOSE: AtomicBool = AtomicBool::new(false);
 static NO_INPUT: AtomicBool = AtomicBool::new(false);
+static FORCE_REFRESH: AtomicBool = AtomicBool::new(false);
 static COMMAND_PATH: RwLock<Option<String>> = RwLock::new(None);
 
 /// `--verbose`: log every HTTP request to stderr.
@@ -16,6 +17,15 @@ pub fn set_verbose(value: bool) {
 /// `is_verbose`: whether `--verbose` is on.
 pub fn verbose() -> bool {
     VERBOSE.load(Ordering::Relaxed)
+}
+
+/// Global `--refresh`: every cache read in this process refetches once.
+pub fn set_force_refresh(value: bool) {
+    FORCE_REFRESH.store(value, Ordering::Relaxed);
+}
+
+pub fn force_refresh() -> bool {
+    FORCE_REFRESH.load(Ordering::Relaxed)
 }
 
 /// `--no-input`: prompts fail instead of reading stdin.

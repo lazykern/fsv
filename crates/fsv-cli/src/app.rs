@@ -228,6 +228,11 @@ pub fn run(argv: Vec<String>) -> i32 {
     }
     fsv_core::runtime::set_no_input(matches.get_flag("no_input"));
     fsv_core::runtime::set_verbose(matches.get_flag("verbose"));
+    let refresh = matches.get_flag("refresh");
+    fsv_core::runtime::set_force_refresh(refresh);
+    if refresh {
+        fsv_core::cache::reset_refreshed();
+    }
     let (path, m) = leaf(&matches);
     if path.is_empty() {
         let _ = root.print_help();

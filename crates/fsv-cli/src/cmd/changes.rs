@@ -525,6 +525,7 @@ fn clone(a: ChangesCloneArgs) -> CmdResult {
             a.no_input,
         )?
     };
+    fsv_api::schema::revalidate_for_write(&CHANGES, &c).map_err(fail_exc)?;
     let sch = crate::schema::load(&CHANGES, &c, false).map_err(fail_exc)?;
     let created = fsv_api::create::submit_change(c.as_ref(), &body, &crate::schema::fields(&sch))
         .map_err(fail_exc)?;
@@ -1546,6 +1547,7 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
     if quick {
         // Field flags and --set take the form path above; only --attach lands here.
         let c = client()?;
+        fsv_api::schema::revalidate_for_write(&CHANGES, &c).map_err(fail_exc)?;
         crate::schema::load(&CHANGES, &c, false).map_err(fail_exc)?;
         let subject = format_cid(id, &CHANGES);
         if a.dry_run {

@@ -14,8 +14,8 @@ use fsv_core::{Client, Error, Result, cache};
 
 use crate::service::Api;
 
-/// Field definitions rarely change. `schema.CACHE_TTL`.
-pub const CACHE_TTL_SECS: u64 = 7 * 86_400;
+/// 15 minutes: admins edit labels and choices without notice. `schema.CACHE_TTL`.
+pub const CACHE_TTL_SECS: u64 = 900;
 
 // Static labels for the platform's default priority/impact/risk ids. These
 // are ONLY a documented fallback when no runtime schema is loaded (or the
@@ -349,7 +349,7 @@ fn cached_doc(candidates: &[PathBuf]) -> Option<(PathBuf, Map<String, Value>, bo
         let stale = match saved.filter(|s| s.is_finite()) {
             Some(s) => {
                 let age = now() - s;
-                !(0.0..=CACHE_TTL_SECS as f64).contains(&age)
+                !(0.0..=CACHE_TTL_SECS as f64).contains(&age) || cache::forced(path)
             }
             None => true,
         };
@@ -449,7 +449,9 @@ fn load_at(
     candidates: &[PathBuf],
     paths: &Paths,
 ) -> Result<(Value, Option<String>)> {
-    if let Some((path, doc, stale)) = cached_doc(candidates)
+    let cached = cached_doc(candidates);
+    let force = force || cached.as_ref().is_some_and(|(p, _, _)| cache::forced(p));
+    if let Some((path, doc, stale)) = cached
         && !force
     {
         if !stale {
@@ -570,6 +572,110 @@ fn choice_labels(choices: &Value, out: &mut Vec<String>) {
         }
         _ => {}
     }
+}
+
+const REFUSAL_MARKERS: [&str; 7] = [
+    "not offered",
+    "field not found",
+    "required field",
+    "no choice ",
+    "unknown ",
+    "did not match a",
+    "not a valid choice",
+];
+
+thread_local! {
+    static RETRY_SCOPE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    static REFUSAL: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
+}
+
+/// A local refusal a newer schema could lift: an unknown choice value, an
+/// unknown field, a missing required field.
+pub fn looks_like_schema_refusal(message: &str) -> bool {
+    let low = message.to_lowercase();
+    REFUSAL_MARKERS.iter().any(|m| low.contains(m))
+}
+
+/// True inside [`validate_with_refetch`] for a refusal a newer schema could lift.
+pub fn is_schema_refusal(message: &str) -> bool {
+    RETRY_SCOPE.with(std::cell::Cell::get) && looks_like_schema_refusal(message)
+}
+
+/// Remember a refusal the CLI's error helper withheld (`SchemaRefusal`).
+pub fn record_refusal(message: &str) {
+    REFUSAL.with(|r| *r.borrow_mut() = Some(message.to_string()));
+}
+
+fn take_refusal() -> Option<String> {
+    REFUSAL.with(|r| r.borrow_mut().take())
+}
+
+/// Run `build(schema)` (the local validation of a write). When it refuses
+/// with a schema refusal and the schema came from the cache, refetch that
+/// module's schema ONCE and validate again; a second refusal is final. A
+/// schema just fetched from the server is never refetched. Returns the
+/// schema actually used and the build result.
+pub fn validate_with_refetch<T>(
+    res: &'static Resource,
+    client: &Arc<Client>,
+    sch: Value,
+    mut build: impl FnMut(&Value) -> Result<T>,
+) -> Result<(Value, T)> {
+    if sch.get("source").and_then(Value::as_str) != Some("cache") {
+        let built = build(&sch)?;
+        return Ok((sch, built));
+    }
+    let was = RETRY_SCOPE.with(|c| c.replace(true));
+    take_refusal();
+    let first = build(&sch);
+    RETRY_SCOPE.with(|c| c.set(was));
+    match first {
+        Ok(built) => return Ok((sch, built)),
+        Err(e) => match take_refusal() {
+            Some(message) => eprintln!(
+                "note: {message}; refetching the {} form schema once and validating again",
+                res.name
+            ),
+            None => return Err(e),
+        },
+    }
+    let fresh = load(res, client, true)?;
+    let built = build(&fresh)?;
+    Ok((fresh, built))
+}
+
+/// Called before every write (dry run included): a cached schema older than
+/// [`cache::WRITE_MAX_AGE`] is refetched now (blocking), so the following
+/// `load` validates against current labels and choices. No cache: no-op.
+pub fn revalidate_for_write(res: &'static Resource, client: &Arc<Client>) -> Result<()> {
+    revalidate_for_write_in(
+        res,
+        client,
+        &config::paths(),
+        &config::cache_scope_key(None),
+    )
+}
+
+pub fn revalidate_for_write_in(
+    res: &'static Resource,
+    client: &Arc<Client>,
+    paths: &Paths,
+    domain_key: &str,
+) -> Result<()> {
+    let primary = cache_path(paths, domain_key, res.name);
+    let Some((_, doc, stale)) = cached_doc(std::slice::from_ref(&primary)) else {
+        return Ok(());
+    };
+    let old = match doc.get("saved_at") {
+        Some(Value::Number(n)) => n
+            .as_f64()
+            .is_none_or(|saved| now() - saved > cache::WRITE_MAX_AGE),
+        _ => true,
+    };
+    if stale || old {
+        load_in(res, client, true, paths, domain_key)?;
+    }
+    Ok(())
 }
 
 /// One form-fields GET against a cached schema. `None` when the cache is
@@ -708,6 +814,15 @@ mod load_tests {
                 .paths()
                 .iter()
                 .filter(|p| p.ends_with("change_form_fields"))
+                .count()
+        }
+
+        /// Internal-API form-field fetches (`c.calls` of the Python freshness fake).
+        fn int_calls(&self) -> usize {
+            self.mock
+                .paths()
+                .iter()
+                .filter(|p| p.contains("/api/_/") && p.ends_with("change_form_fields"))
                 .count()
         }
 
@@ -885,10 +1000,163 @@ mod load_tests {
         assert_eq!(w.data(), fields());
     }
 
+    fn old_fields() -> Value {
+        json!([
+            {"name": "status", "label": "Status", "choices": [{"id": 2, "value": "Open"}]},
+        ])
+    }
+
+    fn new_world() -> World {
+        let new = json!([
+            {"name": "status", "label": "Status",
+             "choices": [{"id": 2, "value": "Open"}, {"id": 7, "value": "Parked"}]},
+        ]);
+        World::new(R::Ok(json!({"change_fields": new})), R::Status(401))
+    }
+
+    fn seed_aged(w: &World, age: f64) {
+        w.save(&old_fields());
+        if age > 0.0 {
+            w.set_saved_at(json!(now() - age));
+        }
+    }
+
+    fn choice_ids(sch: &Value) -> Vec<Value> {
+        sch["fields"][0]["choices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["id"].clone())
+            .collect()
+    }
+
+    /// `test_form_schema_and_rule_ttls_are_15_minutes`.
+    #[test]
+    fn form_schema_and_rule_ttls_are_15_minutes() {
+        assert_eq!(CACHE_TTL_SECS, 900);
+        assert_eq!(cache::ttl_for("schema"), 900);
+        assert_eq!(cache::ttl_for("form_rules"), 900);
+        assert_eq!(cache::WRITE_MAX_AGE, 900.0);
+    }
+
+    /// `test_read_within_ttl_uses_cache_without_fetch`.
+    #[test]
+    fn read_within_ttl_uses_cache_without_fetch() {
+        let w = new_world();
+        seed_aged(&w, 60.0);
+        let sch = w.load(false).unwrap();
+        assert_eq!(sch["source"], json!("cache"));
+        assert_eq!(w.int_calls(), 0);
+    }
+
+    /// `test_revalidate_for_write_refetches_only_an_old_cache`.
+    #[test]
+    fn revalidate_for_write_refetches_only_an_old_cache() {
+        let w = new_world();
+        seed_aged(&w, 60.0);
+        revalidate_for_write_in(&CHANGES, &w.client, &w.paths(), KEY).unwrap();
+        assert_eq!(w.int_calls(), 0);
+        seed_aged(&w, 16.0 * 60.0);
+        revalidate_for_write_in(&CHANGES, &w.client, &w.paths(), KEY).unwrap();
+        assert_eq!(w.int_calls(), 1);
+        assert_eq!(choice_ids(&w.load(false).unwrap()), [json!(2), json!(7)]);
+    }
+
+    /// `revalidate_for_write` with no cache is a no-op.
+    #[test]
+    fn revalidate_for_write_without_a_cache_does_nothing() {
+        let w = new_world();
+        revalidate_for_write_in(&CHANGES, &w.client, &w.paths(), KEY).unwrap();
+        assert_eq!(w.int_calls(), 0);
+    }
+
+    fn resolve(sch: &Value, wanted: &str) -> Result<i64> {
+        let found = sch["fields"][0]["choices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["value"] == json!(wanted))
+            .and_then(|c| c["id"].as_i64());
+        found.ok_or_else(|| {
+            let message = format!("unknown status: '{wanted}'");
+            if is_schema_refusal(&message) {
+                record_refusal(&message);
+            }
+            Error::exit(2, "")
+        })
+    }
+
+    /// `test_new_choice_refused_by_cache_is_accepted_after_one_refetch`.
+    #[test]
+    fn new_choice_refused_by_cache_is_accepted_after_one_refetch() {
+        let w = new_world();
+        seed_aged(&w, 0.0);
+        let sch = w.load(false).unwrap();
+        assert_eq!((sch["source"].clone(), w.int_calls()), (json!("cache"), 0));
+        let (used, value) =
+            validate_with_refetch(&CHANGES, &w.client, sch, |s| resolve(s, "Parked")).unwrap();
+        assert_eq!(value, 7);
+        assert_eq!(used["source"], json!("server"));
+        assert_eq!(w.int_calls(), 1);
+    }
+
+    /// `test_still_unknown_value_refuses_after_exactly_one_refetch`.
+    #[test]
+    fn still_unknown_value_refuses_after_exactly_one_refetch() {
+        let w = new_world();
+        seed_aged(&w, 0.0);
+        let sch = w.load(false).unwrap();
+        let mut seen = Vec::new();
+        let r = validate_with_refetch(&CHANGES, &w.client, sch, |s| {
+            seen.push(s["source"].as_str().unwrap().to_string());
+            resolve(s, "Nowhere")
+        });
+        assert!(matches!(r, Err(Error::Exit { code: 2, .. })));
+        assert_eq!(seen, ["cache", "server"]);
+        assert_eq!(w.int_calls(), 1);
+    }
+
+    /// `test_server_fresh_schema_is_never_refetched`.
+    #[test]
+    fn server_fresh_schema_is_never_refetched() {
+        let w = World::new(
+            R::Ok(json!({"change_fields": old_fields()})),
+            R::Status(401),
+        );
+        let sch = w.load(false).unwrap();
+        assert_eq!((sch["source"].clone(), w.int_calls()), (json!("server"), 1));
+        let r = validate_with_refetch(&CHANGES, &w.client, sch, |s| resolve(s, "Parked"));
+        assert!(r.is_err());
+        assert_eq!(w.int_calls(), 1);
+    }
+
+    /// `test_non_schema_refusal_does_not_refetch`.
+    #[test]
+    fn non_schema_refusal_does_not_refetch() {
+        let w = new_world();
+        seed_aged(&w, 0.0);
+        let sch = w.load(false).unwrap();
+        let r = validate_with_refetch::<()>(&CHANGES, &w.client, sch, |_| {
+            let message = "nothing to update; pass at least one field";
+            assert!(!is_schema_refusal(message));
+            Err(Error::exit(2, ""))
+        });
+        assert!(r.is_err());
+        assert_eq!(w.int_calls(), 0);
+    }
+
+    /// `test_refusal_outside_the_retry_scope_prints_and_exits`.
+    #[test]
+    fn refusal_outside_the_retry_scope_is_not_withheld() {
+        assert!(!is_schema_refusal("unknown status: 'Parked'"));
+        assert!(looks_like_schema_refusal("value is not a valid choice"));
+        assert!(!looks_like_schema_refusal("nothing to update"));
+    }
+
     #[test]
     fn legacy_cache_uses_schema_ttl_not_generic_ttl() {
         let w = World::new(R::Status(401), R::Status(401));
-        w.write(&json!({"fields": fields(), "saved_at": now() - 7200.0}));
+        w.write(&json!({"fields": fields(), "saved_at": now() - 600.0}));
         let got = w.load(false).unwrap();
         assert_eq!(
             (got["stale"].clone(), got["source"].clone()),

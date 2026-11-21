@@ -5,6 +5,7 @@ C	fsv	Freshservice CLI
 A	fsv	--no-input	fail instead of prompting
 A	fsv	--verbose	print debug info to stderr
 A	fsv	--version	print version and exit
+A	fsv	--refresh	refetch every cached form schema, form rule set and view list once in this run
 A	fsv	--install-completion	Install completion for the current shell.
 A	fsv	--show-completion	Show completion for the current shell, to copy it or customize the installation.
 C	fsv help	Show topic help.
@@ -96,8 +97,8 @@ A	fsv config defaults clear	<resource>	changes|tickets|problems
 C	fsv cache	inspect and manage local cache
 C	fsv cache status	Show cache health and TTL.
 C	fsv cache refresh	Refresh only stale caches.
-C	fsv cache clear	Delete cached data.
-A	fsv cache clear	<target>	schema|views|groups|all
+C	fsv cache clear	Delete cached data. schema: the per-module field schemas (`fsv <module> fields`, list filters, quick updates); forms: the form engine's fields and business rules (`forms/*`: form create/update, ticket property reviews); all: both plus views and groups. Each target removes only its own files.
+A	fsv cache clear	<target>	schema|forms|views|groups|all
 C	fsv journal	read the local write journal
 C	fsv journal ls	List journaled write requests (oldest first).
 A	fsv journal ls	--limit	only the last N entries (0 = all)

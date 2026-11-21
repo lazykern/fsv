@@ -26,6 +26,7 @@ complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui aut
 complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a -v
 complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --version
 complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a -V
+complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr' -a --refresh
 complete -c fsv -f -n '__fish_seen_subcommand_from help' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from help' -a -v
 complete -c fsv -f -n '__fish_seen_subcommand_from search; and not contains -- (commandline -opc)[-1] --page -p --sort --output -o --npages -N' -a --verbose

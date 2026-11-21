@@ -130,7 +130,10 @@ pub fn windows_create(a: ChangesWindowsCreateArgs) -> CmdResult {
         };
         Ok(me.get_or_init(|| v).clone())
     };
-    let schema = || fsv_api::schema::load(&CHANGES, &c, false);
+    let schema = || {
+        fsv_api::schema::revalidate_for_write(&CHANGES, &c)?;
+        fsv_api::schema::load(&CHANGES, &c, false)
+    };
     let env = WindowEnv {
         schema: &schema,
         configured_workspace: fsv_api::configured_workspace(),

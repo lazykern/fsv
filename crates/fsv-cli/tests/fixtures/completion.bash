@@ -1205,7 +1205,7 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "catalog fields create get assets approvals items --verbose -v" -- "$cur") )
             return 0 ;;
         "")
-            COMPREPLY=( $(compgen -W "help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V" -- "$cur") )
+            COMPREPLY=( $(compgen -W "help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V --refresh" -- "$cur") )
             return 0 ;;
     esac
 }

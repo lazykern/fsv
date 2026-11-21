@@ -1,7 +1,7 @@
 # upstream 31a910336ac8b936d6d5891cb74c21632dd232f9
 # path<TAB>long options<TAB>positional count
 # --verbose is global in Rust and listed on every command; this file lists it only where Python declares it.
-fsv	--install-completion,--no-input,--show-completion,--verbose,--version	0
+fsv	--install-completion,--no-input,--refresh,--show-completion,--verbose,--version	0
 fsv assets		0
 fsv assets search	--json,--kind,--page	1
 fsv attachments		0

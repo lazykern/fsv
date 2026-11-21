@@ -357,7 +357,7 @@ pub struct CacheRefreshArgs {}
 // fsv cache clear
 #[derive(Args, Debug, Clone)]
 pub struct CacheClearArgs {
-    #[arg(help = "schema|views|groups|all", value_name = "TARGET")]
+    #[arg(help = "schema|forms|views|groups|all", value_name = "TARGET")]
     pub target: Option<String>,
 }
 
@@ -5445,6 +5445,11 @@ pub struct RootArgs {
     #[arg(help = "print version and exit", long = "version", short = 'V')]
     pub version: bool,
     #[arg(
+        help = "refetch every cached form schema, form rule set and view list once in this run",
+        long = "refresh"
+    )]
+    pub refresh: bool,
+    #[arg(
         help = "Install completion for the current shell.",
         long = "install-completion"
     )]
@@ -5560,7 +5565,7 @@ pub fn build() -> Command {
             .after_help("Examples: fsv cache status | fsv cache refresh | fsv cache clear schema")
             .subcommand(CacheStatusArgs::augment_args(Command::new("status") .about("Show cache health and TTL.") .after_help("Examples: fsv cache status").arg(global_verbose())))
             .subcommand(CacheRefreshArgs::augment_args(Command::new("refresh") .about("Refresh only stale caches.") .after_help("Examples: fsv cache refresh").arg(global_verbose())))
-            .subcommand(CacheClearArgs::augment_args(Command::new("clear") .about("Delete cached data.") .after_help("Examples: fsv cache clear views | fsv cache clear all").arg(global_verbose()))))
+            .subcommand(CacheClearArgs::augment_args(Command::new("clear") .about("Delete cached data. schema: the per-module field schemas (`fsv <module> fields`, list filters, quick updates); forms: the form engine's fields and business rules (`forms/*`: form create/update, ticket property reviews); all: both plus views and groups. Each target removes only its own files.") .after_help("Examples: fsv cache clear views | fsv cache clear forms | fsv cache clear all").arg(global_verbose()))))
         .subcommand(Command::new("journal")
             .about("read the local write journal")
             .subcommand(JournalLsArgs::augment_args(Command::new("ls") .about("List journaled write requests (oldest first).") .after_help("Examples: fsv journal ls | fsv journal ls --json --failed").arg(global_verbose())))
@@ -7207,6 +7212,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "version",
                 flags: &["--version", "-V"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "refresh",
+                flags: &["--refresh"],
                 completer: None,
                 resource: None,
                 value_flag: false,

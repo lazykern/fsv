@@ -15,8 +15,12 @@ use crate::error::Result;
 
 /// Built-in TTLs in seconds by cache kind.
 pub const TTL: &[(&str, u64)] = &[
-    // field definitions rarely change; expensive payloads
-    ("schema", 7 * 86400),
+    // Form fields/choices validate writes and drive the form rules: an admin
+    // can rename a label or add a choice at any time and nothing tells fsv,
+    // so they are trusted for 15 minutes only.
+    ("schema", 900),
+    // business rules evaluated by the form engine
+    ("form_rules", 900),
     // saved-filter list may change daily; cheap payloads
     ("filters", 900),
     // org groups; server supports ETag
@@ -26,6 +30,39 @@ pub const TTL: &[(&str, u64)] = &[
     // lookup field completions
     ("lookup", 300),
 ];
+
+/// A write never validates against form metadata older than this (seconds).
+pub const WRITE_MAX_AGE: f64 = 900.0;
+
+static REFRESHED: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+
+/// Global `fsv --refresh`: forget which cache files this process refetched.
+pub fn reset_refreshed() {
+    if let Ok(mut g) = REFRESHED.lock() {
+        g.clear();
+    }
+}
+
+fn mark_refreshed(path: &Path) {
+    if let Ok(mut g) = REFRESHED.lock() {
+        let key = path.to_string_lossy().into_owned();
+        if !g.contains(&key) {
+            g.push(key);
+        }
+    }
+}
+
+/// True while `fsv --refresh` is in effect and `path` has not been refetched
+/// yet in this process (one refetch per cache file).
+pub fn forced(path: &Path) -> bool {
+    forced_when(crate::runtime::force_refresh(), path)
+}
+
+fn forced_when(on: bool, path: &Path) -> bool {
+    on && REFRESHED
+        .lock()
+        .is_ok_and(|g| !g.contains(&path.to_string_lossy().into_owned()))
+}
 
 /// TTL for a kind (default one hour).
 pub fn ttl_for(kind: &str) -> u64 {
@@ -83,7 +120,7 @@ pub fn load(path: &Path) -> (Option<Map<String, Value>>, bool) {
         None => ttl_for(""),
         Some(_) => 3600,
     };
-    let stale = (now() - saved) > ttl as f64;
+    let stale = (now() - saved) > ttl as f64 || forced(path);
     (Some(doc), stale)
 }
 
@@ -101,7 +138,11 @@ pub fn save(path: &Path, kind: &str, data: &Value, etag: &str, latency_ms: u64) 
         "fetch_count": 1,
         "data": data,
     });
-    atomic_write(path, &doc)
+    let written = atomic_write(path, &doc);
+    if written.is_ok() {
+        mark_refreshed(path);
+    }
+    written
 }
 
 /// Update envelope metadata without touching `data`. Silent on unreadable files.
@@ -207,6 +248,7 @@ mod tests {
     fn ttl_for_kinds() {
         let got: Vec<u64> = [
             "schema",
+            "form_rules",
             "filters",
             "groups",
             "autocomplete",
@@ -216,7 +258,7 @@ mod tests {
         ]
         .map(ttl_for)
         .to_vec();
-        assert_eq!(got, vec![604800, 900, 21600, 1800, 300, 3600, 3600]);
+        assert_eq!(got, vec![900, 900, 900, 21600, 1800, 300, 3600, 3600]);
     }
 
     #[test]
@@ -278,6 +320,8 @@ mod tests {
         write(&p, &json!({"_kind": "filters", "saved_at": old}));
         assert!(load(&p).1, "older than the 900s filters TTL");
         write(&p, &json!({"_kind": "schema", "saved_at": old}));
+        assert!(load(&p).1, "older than the 900s schema TTL");
+        write(&p, &json!({"_kind": "schema", "saved_at": now() - 600.0}));
         assert!(!load(&p).1);
         write(&p, &json!({"_kind": "schema", "saved_at": "bad"}));
         assert!(load(&p).1, "a non-numeric saved_at counts as 0");
@@ -289,6 +333,19 @@ mod tests {
         assert_eq!(load(&p), (None, true));
         std::fs::write(&p, "{bad").unwrap();
         assert_eq!(load(&p), (None, true));
+    }
+
+    #[test]
+    fn forced_refresh_is_once_per_file_and_off_by_default() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("c.json");
+        let q = dir.path().join("d.json");
+        assert!(!forced(&p), "off by default");
+        assert!(!forced_when(false, &p));
+        assert!(forced_when(true, &p) && forced_when(true, &q));
+        save(&p, "schema", &json!([1]), "", 0).unwrap();
+        assert!(!forced_when(true, &p), "a saved file counts as refetched");
+        assert!(forced_when(true, &q));
     }
 
     #[test]

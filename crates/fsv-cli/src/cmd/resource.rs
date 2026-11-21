@@ -1586,6 +1586,7 @@ fn ticket_properties(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
 fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
     let id = cid(&a.id_, res)?;
     let c = client()?;
+    fsv_api::schema::revalidate_for_write(res, &c).map_err(fail_exc)?;
     let sch = schema::load(res, &c, false).map_err(fail_exc)?;
     let stale_warning = if a.dry_run {
         fsv_api::schema::freshness_warning(res, c.as_ref(), &sch)
@@ -1610,63 +1611,9 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
             )));
         }
     }
-    let mut body = Map::new();
-    if let Some(s) = &a.status {
-        body.insert(
-            "status".into(),
-            lookup::resolve_update_choice(&sch, "status", s)?,
-        );
-    }
-    if let Some(p) = &a.priority {
-        body.insert(
-            "priority".into(),
-            lookup::resolve_update_choice(&sch, "priority", p)?,
-        );
-    }
-    if let Some(agent) = &a.agent_id {
-        let key = if res.name == TICKETS.name {
-            "responder_id"
-        } else {
-            "agent_id"
-        };
-        let v = lookup::resolve_agent(&c, agent).map_err(uncaught)?;
-        body.insert(key.into(), lookup::int_id(&v));
-    }
-    if let Some(group) = &a.group_id {
-        let v = lookup::resolve_group(&c, group).map_err(uncaught)?;
-        body.insert("group_id".into(), lookup::int_id(&v));
-    }
-    for expr in &a.set_ {
-        let Some((field_text, raw_value)) = expr.split_once('=') else {
-            return Err(usage(&format!(
-                "--set requires FIELD=VALUE format, got: {}",
-                fsv_py::py_repr_str(expr)
-            )));
-        };
-        let field_text = pystr::strip(field_text);
-        let field = lookup::find_schema_field(&sch, field_text)?;
-        let (k, v) =
-            lookup::resolve_set_field(&c, &sch, field_text, raw_value).map_err(uncaught)?;
-        let f = field.unwrap_or(Value::Null);
-        let ftype = lookup::s_or(&f, "field_type");
-        let is_default = match f.get("default_field") {
-            Some(d) => fsv_py::truthy(d),
-            None => ftype.starts_with("default_"),
-        };
-        if (res.name == TICKETS.name || res.name == PROBLEMS.name) && !is_default {
-            let cf = body.entry("custom_fields").or_insert_with(|| json!({}));
-            if let Value::Object(m) = cf {
-                m.insert(k, v);
-            }
-        } else {
-            body.insert(k, v);
-        }
-    }
-    if body.is_empty() {
-        return Err(usage(
-            "nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)",
-        ));
-    }
+    let (sch, body) = fsv_api::schema::validate_with_refetch(res, &c, sch, |sch| {
+        update_body(res, &c, sch, a.status.as_deref(), a)
+    })?;
     let current = if a.dry_run && res.name == TICKETS.name {
         lookup::current_flat(res, id, &c)
     } else {
@@ -1739,6 +1686,74 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         fsv_core::resource::format_id(&item, res)
     ));
     Ok(())
+}
+
+/// `_update_body`: the resolved PUT body of a ticket or problem update from
+/// its flags.
+fn update_body(
+    res: &'static Resource,
+    c: &std::sync::Arc<fsv_core::Client>,
+    sch: &Value,
+    status: Option<&str>,
+    a: &ResUpdateArgs,
+) -> Result<Map<String, Value>, Error> {
+    let mut body = Map::new();
+    if let Some(s) = status {
+        body.insert(
+            "status".into(),
+            lookup::resolve_update_choice(sch, "status", s)?,
+        );
+    }
+    if let Some(p) = &a.priority {
+        body.insert(
+            "priority".into(),
+            lookup::resolve_update_choice(sch, "priority", p)?,
+        );
+    }
+    if let Some(agent) = &a.agent_id {
+        let key = if res.name == TICKETS.name {
+            "responder_id"
+        } else {
+            "agent_id"
+        };
+        let v = lookup::resolve_agent(c, agent).map_err(uncaught)?;
+        body.insert(key.into(), lookup::int_id(&v));
+    }
+    if let Some(group) = &a.group_id {
+        let v = lookup::resolve_group(c, group).map_err(uncaught)?;
+        body.insert("group_id".into(), lookup::int_id(&v));
+    }
+    for expr in &a.set_ {
+        let Some((field_text, raw_value)) = expr.split_once('=') else {
+            return Err(usage(&format!(
+                "--set requires FIELD=VALUE format, got: {}",
+                fsv_py::py_repr_str(expr)
+            )));
+        };
+        let field_text = pystr::strip(field_text);
+        let field = lookup::find_schema_field(sch, field_text)?;
+        let (k, v) = lookup::resolve_set_field(c, sch, field_text, raw_value).map_err(uncaught)?;
+        let f = field.unwrap_or(Value::Null);
+        let ftype = lookup::s_or(&f, "field_type");
+        let is_default = match f.get("default_field") {
+            Some(d) => fsv_py::truthy(d),
+            None => ftype.starts_with("default_"),
+        };
+        if (res.name == TICKETS.name || res.name == PROBLEMS.name) && !is_default {
+            let cf = body.entry("custom_fields").or_insert_with(|| json!({}));
+            if let Value::Object(m) = cf {
+                m.insert(k, v);
+            }
+        } else {
+            body.insert(k, v);
+        }
+    }
+    if body.is_empty() {
+        return Err(usage(
+            "nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)",
+        ));
+    }
+    Ok(body)
 }
 
 /// `_problem_update_hash`: tenant, target, exact PUT body and the stable

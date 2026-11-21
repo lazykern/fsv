@@ -69,6 +69,25 @@
    "envvar": null
   },
   {
+   "name": "refresh",
+   "kind": "option",
+   "opts": [
+    "--refresh"
+   ],
+   "secondary_opts": [],
+   "type": "boolean",
+   "choices": null,
+   "required": false,
+   "multiple": false,
+   "nargs": 1,
+   "is_flag": true,
+   "default": false,
+   "hidden": false,
+   "help": "refetch every cached form schema, form rule set and view list once in this run",
+   "metavar": null,
+   "envvar": null
+  },
+  {
    "name": "install_completion",
    "kind": "option",
    "opts": [
@@ -1517,8 +1536,8 @@
     },
     {
      "path": "fsv cache clear",
-     "help": "Delete cached data.",
-     "epilog": "[bold]Examples:[/bold]  fsv cache clear views  |  fsv cache clear all",
+     "help": "Delete cached data.\n\nschema: the per-module field schemas (`fsv <module> fields`, list filters,\nquick updates); forms: the form engine's fields and business rules\n(`forms/*`: form create/update, ticket property reviews); all: both plus\nviews and groups. Each target removes only its own files.",
+     "epilog": "[bold]Examples:[/bold]  fsv cache clear views  |  fsv cache clear forms  |  fsv cache clear all",
      "hidden": false,
      "group": false,
      "params": [
@@ -1537,7 +1556,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "schema|views|groups|all",
+       "help": "schema|forms|views|groups|all",
        "metavar": null,
        "envvar": null
       }

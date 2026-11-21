@@ -1016,7 +1016,7 @@ _fsv() {
         "sr")
             compadd -- catalog fields create get assets approvals items --verbose -v; return 0 ;;
         "")
-            compadd -- help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V; return 0 ;;
+            compadd -- help search setup tui auth assets solutions templates completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V --refresh; return 0 ;;
     esac
 }
 
