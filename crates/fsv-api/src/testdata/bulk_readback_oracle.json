@@ -1,17 +1,17 @@
 {
   "_python": {
-    "commit": "aa8df3956389e29eecb3774680772c32c0af9f1a",
+    "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
     "dirty": false
   },
   "cases": [
     {
       "action": "spam",
       "lag": 0,
-      "hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
-      "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
+      "hash": "289a4303d3ae2afd61b630ad2df95eea56d1cc9460b2619fdaf3841ef971b446",
+      "write_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430",
       "result": {
         "status": "submitted",
-        "plan_hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
+        "plan_hash": "289a4303d3ae2afd61b630ad2df95eea56d1cc9460b2619fdaf3841ef971b446",
         "verified": true,
         "ticket_ids": [
           71,
@@ -26,7 +26,7 @@
           }
         },
         "readback_attempts": 1,
-        "delegated_plan_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6"
+        "delegated_plan_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430"
       },
       "sleeps": [],
       "post_reads": 2,
@@ -36,11 +36,11 @@
     {
       "action": "spam",
       "lag": 2,
-      "hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
-      "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
+      "hash": "289a4303d3ae2afd61b630ad2df95eea56d1cc9460b2619fdaf3841ef971b446",
+      "write_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430",
       "result": {
         "status": "submitted",
-        "plan_hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
+        "plan_hash": "289a4303d3ae2afd61b630ad2df95eea56d1cc9460b2619fdaf3841ef971b446",
         "verified": true,
         "ticket_ids": [
           71,
@@ -55,7 +55,7 @@
           }
         },
         "readback_attempts": 2,
-        "delegated_plan_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6"
+        "delegated_plan_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430"
       },
       "sleeps": [
         0.5
@@ -67,11 +67,11 @@
     {
       "action": "spam",
       "lag": 100,
-      "hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
-      "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
+      "hash": "289a4303d3ae2afd61b630ad2df95eea56d1cc9460b2619fdaf3841ef971b446",
+      "write_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430",
       "result": {
         "status": "submitted",
-        "plan_hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
+        "plan_hash": "289a4303d3ae2afd61b630ad2df95eea56d1cc9460b2619fdaf3841ef971b446",
         "verified": false,
         "ticket_ids": [
           71,
@@ -87,7 +87,7 @@
         },
         "readback_attempts": 4,
         "warning": "Readback was not fully verified; do not resend.",
-        "delegated_plan_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6"
+        "delegated_plan_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430"
       },
       "sleeps": [
         0.5,
@@ -101,11 +101,11 @@
     {
       "action": "delete",
       "lag": 0,
-      "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
-      "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
+      "hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
+      "write_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122",
       "result": {
         "status": "submitted",
-        "plan_hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+        "plan_hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
         "verified": true,
         "ticket_ids": [
           71,
@@ -120,7 +120,7 @@
           }
         },
         "readback_attempts": 1,
-        "delegated_plan_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453"
+        "delegated_plan_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122"
       },
       "sleeps": [],
       "post_reads": 2,
@@ -130,11 +130,11 @@
     {
       "action": "delete",
       "lag": 2,
-      "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
-      "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
+      "hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
+      "write_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122",
       "result": {
         "status": "submitted",
-        "plan_hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+        "plan_hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
         "verified": true,
         "ticket_ids": [
           71,
@@ -149,7 +149,7 @@
           }
         },
         "readback_attempts": 2,
-        "delegated_plan_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453"
+        "delegated_plan_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122"
       },
       "sleeps": [
         0.5
@@ -161,11 +161,11 @@
     {
       "action": "delete",
       "lag": 100,
-      "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
-      "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
+      "hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
+      "write_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122",
       "result": {
         "status": "submitted",
-        "plan_hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+        "plan_hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
         "verified": false,
         "ticket_ids": [
           71,
@@ -181,7 +181,7 @@
         },
         "readback_attempts": 4,
         "warning": "Readback was not fully verified; do not resend.",
-        "delegated_plan_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453"
+        "delegated_plan_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122"
       },
       "sleeps": [
         0.5,

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "a3f2a1a1c802d5db32ef4bb8b0cc1b86da1137f9",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "cases": {
@@ -49,7 +49,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -66,7 +66,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -85,7 +85,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": true,
       "readback": [
        {
@@ -122,7 +122,7 @@
        "remark": ""
       },
       "context_hash": "e2d730866994b9280b18325f04a4acf66e478d1407de47f982311dc1bbea4e01",
-      "hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+      "hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
       "review": {
        "action": "sr_approval_approve",
        "method": "PUT",
@@ -131,7 +131,7 @@
         "approval_status": 1,
         "remark": ""
        },
-       "plan_hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+       "plan_hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -148,7 +148,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+      "plan_hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
       "verified": true,
       "readback": {
        "id": 101,
@@ -216,7 +216,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -233,7 +233,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -252,7 +252,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": true,
       "readback": [
        {
@@ -289,7 +289,7 @@
        "remark": "Needs revision"
       },
       "context_hash": "e2d730866994b9280b18325f04a4acf66e478d1407de47f982311dc1bbea4e01",
-      "hash": "b0cb8cb0d6adc4de9dbf040946370fc251194d9cd3c3e69759f7d60194e61b4c",
+      "hash": "49d51c02265cc0ff4bad8cdfe586402d932a962b385c9e7677ed4b44d57928e0",
       "review": {
        "action": "sr_approval_reject",
        "method": "PUT",
@@ -298,7 +298,7 @@
         "approval_status": 2,
         "remark": "Needs revision"
        },
-       "plan_hash": "b0cb8cb0d6adc4de9dbf040946370fc251194d9cd3c3e69759f7d60194e61b4c",
+       "plan_hash": "49d51c02265cc0ff4bad8cdfe586402d932a962b385c9e7677ed4b44d57928e0",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -315,7 +315,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "b0cb8cb0d6adc4de9dbf040946370fc251194d9cd3c3e69759f7d60194e61b4c",
+      "plan_hash": "49d51c02265cc0ff4bad8cdfe586402d932a962b385c9e7677ed4b44d57928e0",
       "verified": true,
       "readback": {
        "id": 101,
@@ -382,7 +382,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -399,7 +399,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -418,7 +418,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": true,
       "readback": [
        {
@@ -452,13 +452,13 @@
       "path": "tickets/23/approval-groups/91/cancel",
       "payload": null,
       "context_hash": "e2d730866994b9280b18325f04a4acf66e478d1407de47f982311dc1bbea4e01",
-      "hash": "d39ea41a0079285acc14bbd19a0ce31517bf7e07d1f1ec17fbb7cb6aa395a497",
+      "hash": "f3228af17fef3b03965abbf3415c12a098c1ecbf8e100cbc443a17e82021eadc",
       "review": {
        "action": "sr_approval_cancel",
        "method": "PUT",
        "path": "/api/_/tickets/23/approval-groups/91/cancel",
        "payload": null,
-       "plan_hash": "d39ea41a0079285acc14bbd19a0ce31517bf7e07d1f1ec17fbb7cb6aa395a497",
+       "plan_hash": "f3228af17fef3b03965abbf3415c12a098c1ecbf8e100cbc443a17e82021eadc",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -475,7 +475,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "d39ea41a0079285acc14bbd19a0ce31517bf7e07d1f1ec17fbb7cb6aa395a497",
+      "plan_hash": "f3228af17fef3b03965abbf3415c12a098c1ecbf8e100cbc443a17e82021eadc",
       "verified": true,
       "readback": {
        "id": 91,
@@ -545,7 +545,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -562,7 +562,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -581,7 +581,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": true,
       "readback": [
        {
@@ -615,13 +615,13 @@
       "path": "tickets/23/approvals/101/resend",
       "payload": null,
       "context_hash": "e2d730866994b9280b18325f04a4acf66e478d1407de47f982311dc1bbea4e01",
-      "hash": "6c81fec5942aa652e174d40393afd51478d0ca4551b06b99f22c2c88d366ba76",
+      "hash": "d622ad6b6f7d4ac3fd51b3c26f06df5cbcf4c823d06789c86a49628cb93857f9",
       "review": {
        "action": "sr_approval_remind",
        "method": "PUT",
        "path": "/api/_/tickets/23/approvals/101/resend",
        "payload": null,
-       "plan_hash": "6c81fec5942aa652e174d40393afd51478d0ca4551b06b99f22c2c88d366ba76",
+       "plan_hash": "d622ad6b6f7d4ac3fd51b3c26f06df5cbcf4c823d06789c86a49628cb93857f9",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -638,7 +638,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "6c81fec5942aa652e174d40393afd51478d0ca4551b06b99f22c2c88d366ba76",
+      "plan_hash": "d622ad6b6f7d4ac3fd51b3c26f06df5cbcf4c823d06789c86a49628cb93857f9",
       "verified": true,
       "readback": {
        "id": 101,
@@ -699,7 +699,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -716,7 +716,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -736,7 +736,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": false,
       "readback": [],
       "warning": "Readback was not fully verified; do not resend."
@@ -799,7 +799,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -816,7 +816,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -835,7 +835,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": true,
       "readback": [
        {
@@ -872,7 +872,7 @@
        "remark": ""
       },
       "context_hash": "e2d730866994b9280b18325f04a4acf66e478d1407de47f982311dc1bbea4e01",
-      "hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+      "hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
       "review": {
        "action": "sr_approval_approve",
        "method": "PUT",
@@ -881,7 +881,7 @@
         "approval_status": 1,
         "remark": ""
        },
-       "plan_hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+       "plan_hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -904,7 +904,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+      "plan_hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
       "verified": true,
       "readback": {
        "id": 101,
@@ -997,7 +997,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "review": {
        "action": "sr_approval_request",
        "method": "POST",
@@ -1014,7 +1014,7 @@
          }
         ]
        },
-       "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+       "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -1033,7 +1033,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "cf49674fcaa95ce45c34645b31c6039df5dd6eb2cd72aa9cf87dd84e01e56592",
+      "plan_hash": "52492f11cbe1eb156c159a2f3e0d1d7e50ab622e444c21e21935c99e7ea2c7b2",
       "verified": true,
       "readback": [
        {
@@ -1070,7 +1070,7 @@
        "remark": ""
       },
       "context_hash": "e2d730866994b9280b18325f04a4acf66e478d1407de47f982311dc1bbea4e01",
-      "hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+      "hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
       "review": {
        "action": "sr_approval_approve",
        "method": "PUT",
@@ -1079,7 +1079,7 @@
         "approval_status": 1,
         "remark": ""
        },
-       "plan_hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+       "plan_hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -1096,7 +1096,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "10a82a202bd4898a4a1c14c36b4863e6a27c9bc0120063806606a0d1f371809f",
+      "plan_hash": "408bb617b1d96e461e2e26a47c884492236ae010cd8675e48d73a47937e47419",
       "verified": true,
       "readback": {
        "id": 101,

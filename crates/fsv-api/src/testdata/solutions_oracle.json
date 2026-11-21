@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "a3f2a1a1c802d5db32ef4bb8b0cc1b86da1137f9",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "cases": {
@@ -50,7 +50,7 @@
        "title": "Acme article"
       },
       "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
-      "hash": "d4c66175a87b8150975a22fb427336752e28450071d7736db888db4351170441",
+      "hash": "397bc1448c3647a9209e677a9f19eb7df7aa0699114c363db22fcce665d820a4",
       "review": {
        "action": "solution_create",
        "method": "POST",
@@ -63,7 +63,7 @@
         "status": 1,
         "title": "Acme article"
        },
-       "plan_hash": "d4c66175a87b8150975a22fb427336752e28450071d7736db888db4351170441",
+       "plan_hash": "397bc1448c3647a9209e677a9f19eb7df7aa0699114c363db22fcce665d820a4",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -79,7 +79,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "d4c66175a87b8150975a22fb427336752e28450071d7736db888db4351170441",
+      "plan_hash": "397bc1448c3647a9209e677a9f19eb7df7aa0699114c363db22fcce665d820a4",
       "verified": true,
       "article_id": 91,
       "fields": {
@@ -112,7 +112,7 @@
        "type": "link"
       },
       "context_hash": "d827b472a2b2b9439f960076c4ffc37851268a86e99f78e9db11472164d173ca",
-      "hash": "977c495d598737a25b7f018f08ca8c94ff369f792095bfde129c70528fc56c85",
+      "hash": "107632b7ff175a1f2ad08967aad2bac90d41e436022fef5214d59c72da612ec0",
       "review": {
        "action": "problem_solution_link",
        "method": "PUT",
@@ -120,7 +120,7 @@
        "payload": {
         "type": "link"
        },
-       "plan_hash": "977c495d598737a25b7f018f08ca8c94ff369f792095bfde129c70528fc56c85",
+       "plan_hash": "107632b7ff175a1f2ad08967aad2bac90d41e436022fef5214d59c72da612ec0",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -133,7 +133,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "977c495d598737a25b7f018f08ca8c94ff369f792095bfde129c70528fc56c85",
+      "plan_hash": "107632b7ff175a1f2ad08967aad2bac90d41e436022fef5214d59c72da612ec0",
       "verified": true,
       "readback": [
        {
@@ -160,7 +160,7 @@
        "type": "unlink"
       },
       "context_hash": "3348c0066f1cbed8240b8c7d05bca96d77f333a7215fa793912640c8a7f2e90e",
-      "hash": "afe4bcfacf593f15870151032ac6ecd8a62980048b4e3d7b6b659f520f43f605",
+      "hash": "b9c35d4af02d19ce27bff30ca1821a6f26692cde4e5fc1a1900ebcbe48d3bf51",
       "review": {
        "action": "problem_solution_unlink",
        "method": "PUT",
@@ -168,7 +168,7 @@
        "payload": {
         "type": "unlink"
        },
-       "plan_hash": "afe4bcfacf593f15870151032ac6ecd8a62980048b4e3d7b6b659f520f43f605",
+       "plan_hash": "b9c35d4af02d19ce27bff30ca1821a6f26692cde4e5fc1a1900ebcbe48d3bf51",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -181,7 +181,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "afe4bcfacf593f15870151032ac6ecd8a62980048b4e3d7b6b659f520f43f605",
+      "plan_hash": "b9c35d4af02d19ce27bff30ca1821a6f26692cde4e5fc1a1900ebcbe48d3bf51",
       "verified": true,
       "readback": []
      },
@@ -235,7 +235,7 @@
        "title": "Acme article"
       },
       "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
-      "hash": "1e656d1a00a86927a75da9c832c09f91c5e2aba357a406d46825f39bd674e98a",
+      "hash": "8e9da53cc1d0cddd882b62c2027ec7e70bc3d3bf07ce924301caf6411327fadc",
       "review": {
        "action": "solution_create",
        "method": "POST",
@@ -248,7 +248,7 @@
         "status": 1,
         "title": "Acme article"
        },
-       "plan_hash": "1e656d1a00a86927a75da9c832c09f91c5e2aba357a406d46825f39bd674e98a",
+       "plan_hash": "8e9da53cc1d0cddd882b62c2027ec7e70bc3d3bf07ce924301caf6411327fadc",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -264,7 +264,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "1e656d1a00a86927a75da9c832c09f91c5e2aba357a406d46825f39bd674e98a",
+      "plan_hash": "8e9da53cc1d0cddd882b62c2027ec7e70bc3d3bf07ce924301caf6411327fadc",
       "verified": true,
       "article_id": 91,
       "fields": {
@@ -297,7 +297,7 @@
        "type": "link"
       },
       "context_hash": "e1f579c2e9b2a349b1d6e35c32cdb0d2f2c80a4f8a1c9e4dfe3f0f77f71e4540",
-      "hash": "89293eae97b152b270ae743c98050a891e58800c185c41664af64565a262989c",
+      "hash": "729931ef913f08b9ac380b25f02ab1b1c2be5201123a0567b1ae8f43438670bb",
       "review": {
        "action": "problem_solution_link",
        "method": "PUT",
@@ -305,7 +305,7 @@
        "payload": {
         "type": "link"
        },
-       "plan_hash": "89293eae97b152b270ae743c98050a891e58800c185c41664af64565a262989c",
+       "plan_hash": "729931ef913f08b9ac380b25f02ab1b1c2be5201123a0567b1ae8f43438670bb",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -318,7 +318,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "89293eae97b152b270ae743c98050a891e58800c185c41664af64565a262989c",
+      "plan_hash": "729931ef913f08b9ac380b25f02ab1b1c2be5201123a0567b1ae8f43438670bb",
       "verified": true,
       "readback": [
        {
@@ -345,7 +345,7 @@
        "type": "unlink"
       },
       "context_hash": "c25c2ff2a33b7882afe3e05e68c0460851d0d11db91412a849b5a4390f16a17f",
-      "hash": "01b7d14494fa23af23a757f707a27b30d2b169b2ebafddf44cd1f79d4e5fcf43",
+      "hash": "58a4ab8b8483735939d6b81107bcbff3f2ea7a923409e64d482fc25db9cdd0f1",
       "review": {
        "action": "problem_solution_unlink",
        "method": "PUT",
@@ -353,7 +353,7 @@
        "payload": {
         "type": "unlink"
        },
-       "plan_hash": "01b7d14494fa23af23a757f707a27b30d2b169b2ebafddf44cd1f79d4e5fcf43",
+       "plan_hash": "58a4ab8b8483735939d6b81107bcbff3f2ea7a923409e64d482fc25db9cdd0f1",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -366,7 +366,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "01b7d14494fa23af23a757f707a27b30d2b169b2ebafddf44cd1f79d4e5fcf43",
+      "plan_hash": "58a4ab8b8483735939d6b81107bcbff3f2ea7a923409e64d482fc25db9cdd0f1",
       "verified": true,
       "readback": []
      },
@@ -410,7 +410,7 @@
        "title": "Acme article"
       },
       "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
-      "hash": "61b730b4134420c28dcbb719538614a3c5b51d8096975961be0d878d94e97c3d",
+      "hash": "52ef159d9157d83ccf4daa7c20094bc0556a7021b54f733dc5a8b01b8750c054",
       "review": {
        "action": "solution_create",
        "method": "POST",
@@ -423,7 +423,7 @@
         "status": 1,
         "title": "Acme article"
        },
-       "plan_hash": "61b730b4134420c28dcbb719538614a3c5b51d8096975961be0d878d94e97c3d",
+       "plan_hash": "52ef159d9157d83ccf4daa7c20094bc0556a7021b54f733dc5a8b01b8750c054",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -442,7 +442,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "61b730b4134420c28dcbb719538614a3c5b51d8096975961be0d878d94e97c3d",
+      "plan_hash": "52ef159d9157d83ccf4daa7c20094bc0556a7021b54f733dc5a8b01b8750c054",
       "verified": false,
       "warning": "Independent readback failed; do not resend."
      },

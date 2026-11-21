@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "b6b741f150a53ffa37961b54455a2af392e5903e",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "closure_acme_note_Resolved": {
@@ -27,7 +27,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "f998013d29b133000c0c41d94d9de6ce409b8c0ecc295bf3352a1b024c009771",
+    "hash": "6fbfa8e1bd61fba97fd85b2448c3ba094aa6d03342d83a5d75c065d91863afb9",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -45,8 +45,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "f998013d29b133000c0c41d94d9de6ce409b8c0ecc295bf3352a1b024c009771",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "6fbfa8e1bd61fba97fd85b2448c3ba094aa6d03342d83a5d75c065d91863afb9",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -55,7 +58,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "f998013d29b133000c0c41d94d9de6ce409b8c0ecc295bf3352a1b024c009771",
+     "plan_hash": "6fbfa8e1bd61fba97fd85b2448c3ba094aa6d03342d83a5d75c065d91863afb9",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -111,7 +114,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "0ced8791af95b19143b79d9c714acf45e95727f7feccd89667c9cc4bcd6cc97e",
+    "hash": "fa46144e628c9b821ad65b1b5bcd34a7f1f47589aa9e4162f3d9434021b70143",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -129,8 +132,11 @@
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "0ced8791af95b19143b79d9c714acf45e95727f7feccd89667c9cc4bcd6cc97e",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "fa46144e628c9b821ad65b1b5bcd34a7f1f47589aa9e4162f3d9434021b70143",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -139,7 +145,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "0ced8791af95b19143b79d9c714acf45e95727f7feccd89667c9cc4bcd6cc97e",
+     "plan_hash": "fa46144e628c9b821ad65b1b5bcd34a7f1f47589aa9e4162f3d9434021b70143",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -195,7 +201,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"translate_reply\": false}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "7991c7629ef6f9b08e7866864f387606178bdfde0b30c2a9dbf1f3a04a314ed4",
+    "hash": "5c283582688351a01a384f4f0dc770352da47d3ff7c773de4cdef791c627141a",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -215,8 +221,11 @@
       "translate_reply": false
      },
      "status_label": "Resolved",
-     "plan_hash": "7991c7629ef6f9b08e7866864f387606178bdfde0b30c2a9dbf1f3a04a314ed4",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "5c283582688351a01a384f4f0dc770352da47d3ff7c773de4cdef791c627141a",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -225,7 +234,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "7991c7629ef6f9b08e7866864f387606178bdfde0b30c2a9dbf1f3a04a314ed4",
+     "plan_hash": "5c283582688351a01a384f4f0dc770352da47d3ff7c773de4cdef791c627141a",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -280,7 +289,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"translate_reply\": false}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "a1b0208149c31f3824f95ee112b4a9360bbd96401fc5396d73ed15c054d63f8d",
+    "hash": "895c062b9e462c832ae30ab1641c1d84041481f36012e0f2d4c272a2b5d7078e",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -300,8 +309,11 @@
       "translate_reply": false
      },
      "status_label": "Closed",
-     "plan_hash": "a1b0208149c31f3824f95ee112b4a9360bbd96401fc5396d73ed15c054d63f8d",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "895c062b9e462c832ae30ab1641c1d84041481f36012e0f2d4c272a2b5d7078e",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -310,7 +322,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "a1b0208149c31f3824f95ee112b4a9360bbd96401fc5396d73ed15c054d63f8d",
+     "plan_hash": "895c062b9e462c832ae30ab1641c1d84041481f36012e0f2d4c272a2b5d7078e",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -365,7 +377,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "c08d8d4e2120e6d1c12f8114478da73b9ceab21a9eb9c1e06a6047cf1fe396b6",
+    "hash": "925fd9119c6f281c0122cfb5ceea25702c5d1d0942a6ea919258ca4ce7e3fa85",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -383,8 +395,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "c08d8d4e2120e6d1c12f8114478da73b9ceab21a9eb9c1e06a6047cf1fe396b6",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "925fd9119c6f281c0122cfb5ceea25702c5d1d0942a6ea919258ca4ce7e3fa85",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -393,7 +408,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "c08d8d4e2120e6d1c12f8114478da73b9ceab21a9eb9c1e06a6047cf1fe396b6",
+     "plan_hash": "925fd9119c6f281c0122cfb5ceea25702c5d1d0942a6ea919258ca4ce7e3fa85",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -449,7 +464,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "e276f354b6541a990e281e33e288f616b8965d14c0dcc3cd2985c39e30989e3c",
+    "hash": "0b2e17aa02c37b9820231b99985059ba90abe8c6a0cc5d683d71647d163c08de",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -467,8 +482,11 @@
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "e276f354b6541a990e281e33e288f616b8965d14c0dcc3cd2985c39e30989e3c",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "0b2e17aa02c37b9820231b99985059ba90abe8c6a0cc5d683d71647d163c08de",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -477,7 +495,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "e276f354b6541a990e281e33e288f616b8965d14c0dcc3cd2985c39e30989e3c",
+     "plan_hash": "0b2e17aa02c37b9820231b99985059ba90abe8c6a0cc5d683d71647d163c08de",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -533,7 +551,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"translate_reply\": false}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "dbaf0c0697a1509d979dedcf18f062a7a39e25d14b5b239f502c38f7fb89967e",
+    "hash": "0fa4e4076adc2225079a0b4eff9d3c37320d18585aaaef0e6ea615aa8fcbe08f",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -553,8 +571,11 @@
       "translate_reply": false
      },
      "status_label": "Resolved",
-     "plan_hash": "dbaf0c0697a1509d979dedcf18f062a7a39e25d14b5b239f502c38f7fb89967e",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "0fa4e4076adc2225079a0b4eff9d3c37320d18585aaaef0e6ea615aa8fcbe08f",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -563,7 +584,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "dbaf0c0697a1509d979dedcf18f062a7a39e25d14b5b239f502c38f7fb89967e",
+     "plan_hash": "0fa4e4076adc2225079a0b4eff9d3c37320d18585aaaef0e6ea615aa8fcbe08f",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -618,7 +639,7 @@
     "payload_json": "{\"body\": \"<div>Acme self-only update</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme self-only update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"translate_reply\": false}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "e20773bf44de11650211b66370cecc83e2f0d1cae4bb2328ab04af410c9fa357",
+    "hash": "392d5e2815947f9ab2352d5bde24705f2e3a5b7eac46e5ad08a05b7802c117ff",
     "review": {
      "action": "ticket_reply",
      "method": "POST",
@@ -638,8 +659,11 @@
       "translate_reply": false
      },
      "status_label": "Closed",
-     "plan_hash": "e20773bf44de11650211b66370cecc83e2f0d1cae4bb2328ab04af410c9fa357",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "392d5e2815947f9ab2352d5bde24705f2e3a5b7eac46e5ad08a05b7802c117ff",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -648,7 +672,7 @@
      "status": "submitted",
      "conversation_id": 9000000742,
      "ticket_id": 742,
-     "plan_hash": "e20773bf44de11650211b66370cecc83e2f0d1cae4bb2328ab04af410c9fa357",
+     "plan_hash": "392d5e2815947f9ab2352d5bde24705f2e3a5b7eac46e5ad08a05b7802c117ff",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -706,7 +730,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+    "hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -724,8 +748,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -737,7 +764,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
      "verified": false,
      "fields": {
       "body": "unavailable",
@@ -796,7 +823,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+    "hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -814,8 +841,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -827,7 +857,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
      "verified": true,
      "fields": {
       "body": "matched",
@@ -886,7 +916,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+    "hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -904,8 +934,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -917,7 +950,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
      "verified": false,
      "fields": {
       "body": "unavailable",
@@ -976,7 +1009,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3c122a5c8a58e5689f09e2317a78b030875ad42a7217f6497a4a5137c055a4bf\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+    "hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -994,8 +1027,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1007,7 +1043,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "5e657dbc840b6c7bb3efcacfdacecc065f67de65f57bbb0dc9898e221e539a16",
+     "plan_hash": "8fef788e705040a526242e40d4e478ec44cb714f196441ce6515378912b9e1c9",
      "verified": false,
      "fields": {
       "body": "mismatched",
@@ -1067,7 +1103,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
+    "hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1085,8 +1121,11 @@
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1147,7 +1186,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
+    "hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1165,8 +1204,11 @@
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1227,7 +1269,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
+    "hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1245,8 +1287,11 @@
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1307,7 +1352,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 5}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"f93e15331a43225ac1206e035e97c14e3639c787b66dc3198b7c1cb6532341f7\", \"record\": \"c2ecb9d889649cf3cac3ec195ffe2eed990d5bb10c51fbe4fcd1e3c16e3b5217\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Closed",
-    "hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
+    "hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1325,8 +1370,11 @@
       "private": true
      },
      "status_label": "Closed",
-     "plan_hash": "a18927a8d8f495b089aefcbeec8415fb94f8135d1caf4889ac0d5c8e5cf9afb4",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "2ac1f555b90c6fe4e050d756ebda92261e1e5ecd22b8fe72ced2f7d0acdb5f6f",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1412,7 +1460,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 4}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "{\"metadata\": \"1ca7b03788ba933ae649cf14d1828b379539c5351d15da94c3823ba8131a9fc8\", \"record\": \"3999f5ace0db03ee285eef7fc120fac16e47e2450f452a6e3684b1a3fca07d5c\", \"state\": {\"sends\": 0, \"server_version\": null}}",
     "status_label": "Resolved",
-    "hash": "790d1880224e35ee5938c0ac6936b67f2acbf8da0fe39c36c5bff1d5ff9d80fa",
+    "hash": "8588e05f7ae6ddd076cb4ac121cfcb03c9c826a4110dc4877bacb83c8594a97d",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1430,8 +1478,11 @@
       "private": true
      },
      "status_label": "Resolved",
-     "plan_hash": "790d1880224e35ee5938c0ac6936b67f2acbf8da0fe39c36c5bff1d5ff9d80fa",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "8588e05f7ae6ddd076cb4ac121cfcb03c9c826a4110dc4877bacb83c8594a97d",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1506,7 +1557,7 @@
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"status\": 3}, \"notify_emails\": [], \"private\": true}",
     "record_hash": "18e639512523278bcd34ee98bff72b845d6ce5ca44c256b97793fe7b6dd9dfe6",
     "status_label": "Pending",
-    "hash": "5e32be96906205cf32ba4aeb5a43a3a230ea9666c427dfb033b9fe2509ebcc9c",
+    "hash": "7ac07dd025bd3d6952b9645286043af43c3d67263e841e9c83b2631e1becf06b",
     "review": {
      "action": "ticket_note",
      "method": "POST",
@@ -1522,8 +1573,11 @@
       "private": true
      },
      "status_label": "Pending",
-     "plan_hash": "5e32be96906205cf32ba4aeb5a43a3a230ea9666c427dfb033b9fe2509ebcc9c",
-     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+     "plan_hash": "7ac07dd025bd3d6952b9645286043af43c3d67263e841e9c83b2631e1becf06b",
+     "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+     "record_state": {
+      "sends": 0
+     }
     },
     "posts": 0
    },
@@ -1532,7 +1586,7 @@
      "status": "submitted",
      "conversation_id": 9000000123,
      "ticket_id": 123,
-     "plan_hash": "5e32be96906205cf32ba4aeb5a43a3a230ea9666c427dfb033b9fe2509ebcc9c",
+     "plan_hash": "7ac07dd025bd3d6952b9645286043af43c3d67263e841e9c83b2631e1becf06b",
      "verified": true,
      "fields": {
       "body": "matched",

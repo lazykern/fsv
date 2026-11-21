@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "a3f2a1a1c802d5db32ef4bb8b0cc1b86da1137f9",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "cases": {
@@ -46,7 +46,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "829da56c7e518bb06fe0fa7e5b4277ffdd5d4b7e435fa4671130be49bf1776c5",
+      "hash": "eb03ff6b62aa2f8e67ffc4ca127731c33f9594368adbcde899a458ea6a252922",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -62,7 +62,7 @@
         "status": 7,
         "title": "Acme revised"
        },
-       "plan_hash": "829da56c7e518bb06fe0fa7e5b4277ffdd5d4b7e435fa4671130be49bf1776c5",
+       "plan_hash": "eb03ff6b62aa2f8e67ffc4ca127731c33f9594368adbcde899a458ea6a252922",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -87,7 +87,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "829da56c7e518bb06fe0fa7e5b4277ffdd5d4b7e435fa4671130be49bf1776c5",
+      "plan_hash": "eb03ff6b62aa2f8e67ffc4ca127731c33f9594368adbcde899a458ea6a252922",
       "verified": true,
       "fields_verified": true,
       "fields": {
@@ -104,13 +104,13 @@
       "readback": {
        "id": 17,
        "title": "Acme revised",
-       "planned_effort": "1h 30m",
        "group_id": 92,
        "status": 7,
        "planned_start_date": "2026-12-01T10:15:00Z",
        "planned_end_date": "2026-12-01T06:15:00-05:00",
        "description": "<div style='font:inherit'><div>Review evidence</div></div>",
        "notify_before": 900,
+       "planned_effort": "1h 30m",
        "agent_id": 82
       }
      },
@@ -149,7 +149,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "30e856982c35cbb052b7c1f259206f8bbaeefabe84dbcbabf0d8e05028e3a164",
+      "hash": "09e9fc65f9a68e0e2c1c55d6dc7990a2537cfb9e01f6d1dca5b328dd88c4c6a3",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -157,7 +157,7 @@
        "payload": {
         "title": "Acme revised"
        },
-       "plan_hash": "30e856982c35cbb052b7c1f259206f8bbaeefabe84dbcbabf0d8e05028e3a164",
+       "plan_hash": "09e9fc65f9a68e0e2c1c55d6dc7990a2537cfb9e01f6d1dca5b328dd88c4c6a3",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -177,7 +177,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "30e856982c35cbb052b7c1f259206f8bbaeefabe84dbcbabf0d8e05028e3a164",
+      "plan_hash": "09e9fc65f9a68e0e2c1c55d6dc7990a2537cfb9e01f6d1dca5b328dd88c4c6a3",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -259,7 +259,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "30e856982c35cbb052b7c1f259206f8bbaeefabe84dbcbabf0d8e05028e3a164",
+      "hash": "09e9fc65f9a68e0e2c1c55d6dc7990a2537cfb9e01f6d1dca5b328dd88c4c6a3",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -267,7 +267,7 @@
        "payload": {
         "title": "Acme revised"
        },
-       "plan_hash": "30e856982c35cbb052b7c1f259206f8bbaeefabe84dbcbabf0d8e05028e3a164",
+       "plan_hash": "09e9fc65f9a68e0e2c1c55d6dc7990a2537cfb9e01f6d1dca5b328dd88c4c6a3",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -319,7 +319,7 @@
        "owner_id": null
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "a231cff967a485445a0c9a0af2aed195fbbbcae53785b1301ffb77881a5b7aad",
+      "hash": "20345234098804a9643e36d6d6d03a00aa5556222e869cb6156c967efdc5d3a3",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -328,7 +328,7 @@
         "group_id": null,
         "owner_id": null
        },
-       "plan_hash": "a231cff967a485445a0c9a0af2aed195fbbbcae53785b1301ffb77881a5b7aad",
+       "plan_hash": "20345234098804a9643e36d6d6d03a00aa5556222e869cb6156c967efdc5d3a3",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -346,7 +346,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a231cff967a485445a0c9a0af2aed195fbbbcae53785b1301ffb77881a5b7aad",
+      "plan_hash": "20345234098804a9643e36d6d6d03a00aa5556222e869cb6156c967efdc5d3a3",
       "verified": true,
       "fields_verified": true,
       "fields": {
@@ -356,10 +356,10 @@
       "readback": {
        "id": 17,
        "title": "Acme task",
-       "planned_end_date": "2026-12-01T11:00:00Z",
        "group_id": null,
        "status": 1,
        "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
        "agent_id": null
       }
      },
@@ -436,7 +436,7 @@
        }
       },
       "context_hash": "95e9215702b4c28ff65f92002389ba7e1b19f260a338d6c2fd59cfb64931a3f4",
-      "hash": "a4a87127eb8af9163e577d6ec95550a33b7c87c144eb75c9b4d7dd6a35d7cc3b",
+      "hash": "10f9228c6ee7988bb43190707c01a6ce443cc16ba097680d8b55fd031cec9669",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -446,7 +446,7 @@
          "system": "SAP"
         }
        },
-       "plan_hash": "a4a87127eb8af9163e577d6ec95550a33b7c87c144eb75c9b4d7dd6a35d7cc3b",
+       "plan_hash": "10f9228c6ee7988bb43190707c01a6ce443cc16ba097680d8b55fd031cec9669",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -465,7 +465,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a4a87127eb8af9163e577d6ec95550a33b7c87c144eb75c9b4d7dd6a35d7cc3b",
+      "plan_hash": "10f9228c6ee7988bb43190707c01a6ce443cc16ba097680d8b55fd031cec9669",
       "verified": true,
       "fields_verified": true,
       "fields": {
@@ -557,7 +557,7 @@
        "status": 3
       },
       "context_hash": "9817e5dae80719b66e78b75181f2041843d22824e29df28b30922e24b1472e8d",
-      "hash": "556f9ddbf8e967574ddc511f5b99678cac1c55e1c59488163fcc3fff91a6ce78",
+      "hash": "94a001b919fbfc148bafd9271389c9d50f4d9659252dc3a655288d4fff42fd2f",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -568,7 +568,7 @@
         },
         "status": 3
        },
-       "plan_hash": "556f9ddbf8e967574ddc511f5b99678cac1c55e1c59488163fcc3fff91a6ce78",
+       "plan_hash": "94a001b919fbfc148bafd9271389c9d50f4d9659252dc3a655288d4fff42fd2f",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -710,7 +710,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -720,7 +720,7 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+       "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -739,7 +739,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "verified": true,
       "fields_verified": false,
       "fields": {
@@ -798,7 +798,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -808,7 +808,7 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+       "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -827,7 +827,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -886,7 +886,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -896,7 +896,7 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+       "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -915,7 +915,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -975,7 +975,7 @@
        "title": "Acme revised"
       },
       "context_hash": "a5c6d87aec0956f1ad3f5bd2fd455d933984240b271d4f3ebfa7f493bb5d25af",
-      "hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "review": {
        "action": "change_task_update",
        "method": "PUT",
@@ -985,7 +985,7 @@
         "planned_effort": "1h 0m",
         "title": "Acme revised"
        },
-       "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+       "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "record_state": {
         "sends": 0,
@@ -1004,7 +1004,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "90240f4cba67b32107c110b18d2f383a4719abfee543216e936a0a76a2ee4d60",
+      "plan_hash": "49c2b00e5fde066597fa7df9834e181f1d7901202a95a4feec467686de906257",
       "verified": false,
       "fields_verified": false,
       "fields": {
@@ -1014,12 +1014,12 @@
       },
       "readback": {
        "id": 17,
-       "planned_effort": "1h",
        "owner_id": 81,
        "group_id": 91,
        "status": 1,
        "planned_start_date": "2026-12-01T10:00:00Z",
-       "planned_end_date": "2026-12-01T11:00:00Z"
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "planned_effort": "1h"
       },
       "warning": "Reminder absent from GET remains unverified; do not resend."
      },

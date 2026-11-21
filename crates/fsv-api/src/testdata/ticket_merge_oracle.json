@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "b6b741f150a53ffa37961b54455a2af392e5903e",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "exact_wire": {
@@ -26,7 +26,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -46,7 +46,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -59,7 +59,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "verified": true,
      "surviving_ticket": 123,
      "primary_status_unchanged": true,
@@ -128,7 +128,7 @@
      "payload_json": "{\"source\": {\"is_private\": false, \"note\": \"Secondary note\", \"ticket_ids\": [124]}, \"target\": {\"is_private\": false, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}}}"
     },
-    "hash": "fb04f1796b622e12292fa66ab416bc39a79c57ee9d7369e9be86953d78d2ec25",
+    "hash": "1db070331688079e4bdb99088bdcfb01edc461c76651f849ed1a891e54a91993",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -147,7 +147,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "fb04f1796b622e12292fa66ab416bc39a79c57ee9d7369e9be86953d78d2ec25",
+     "plan_hash": "1db070331688079e4bdb99088bdcfb01edc461c76651f849ed1a891e54a91993",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -159,7 +159,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "fb04f1796b622e12292fa66ab416bc39a79c57ee9d7369e9be86953d78d2ec25",
+     "plan_hash": "1db070331688079e4bdb99088bdcfb01edc461c76651f849ed1a891e54a91993",
      "verified": true,
      "surviving_ticket": 123,
      "primary_status_unchanged": true,
@@ -260,7 +260,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -280,7 +280,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -427,7 +427,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "f95434c285753c0a1f59bfb0af377888de768f7753b7843819f8b481148de5bb",
+    "hash": "fb882e17aad8ad99a0d8aea2fa908337c42b93a76f0298fa86a968858efbf360",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -447,7 +447,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "f95434c285753c0a1f59bfb0af377888de768f7753b7843819f8b481148de5bb",
+     "plan_hash": "fb882e17aad8ad99a0d8aea2fa908337c42b93a76f0298fa86a968858efbf360",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -585,7 +585,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -605,7 +605,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -682,7 +682,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -702,7 +702,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -779,7 +779,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -799,7 +799,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -876,7 +876,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -896,7 +896,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -967,7 +967,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -987,7 +987,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -1003,7 +1003,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "verified": false,
      "surviving_ticket": 123,
      "primary_status_unchanged": true,
@@ -1074,7 +1074,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -1094,7 +1094,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -1110,7 +1110,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "verified": false,
      "surviving_ticket": 123,
      "primary_status_unchanged": true,
@@ -1181,7 +1181,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -1201,7 +1201,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -1217,7 +1217,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "verified": false,
      "surviving_ticket": 123,
      "primary_status_unchanged": true,
@@ -1288,7 +1288,7 @@
      "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
      "context_hash": "{\"closed\": {\"124\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"], \"125\": [5, \"95e56cef79ce50902c16d3b98b2567b21233d43a52923f1920b7b23634d1d0e0\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 2, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 2, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 2, \"subject\": \"Acme 125\"}}}"
     },
-    "hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+    "hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
     "review": {
      "action": "ticket_merge",
      "method": "POST",
@@ -1308,7 +1308,7 @@
        "ticket_id": 123
       }
      },
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
      "surviving_ticket": 123,
      "merged_tickets": [
@@ -1324,7 +1324,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "150279166edf20df8ed2b42a41a5060d9ed8f460b6f25682364529350566b919",
+     "plan_hash": "0707cd37ea4b2f869e32db85472be704d3c6eea943111b62ff4e102e865419d0",
      "verified": false,
      "surviving_ticket": 123,
      "primary_status_unchanged": false,

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "3c005b61910e5e29eff3aab4287325a5d040b8cb",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "cases": {
@@ -65,7 +65,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "25e3a34385bdaa29fd988e5257c4341311e80479d0bb592a3c7f8e002e14b839",
+      "hash": "5d6cc4fd922545b119424133bda3f8ceec0f6eeec46f3d8e9da33cd6f666f1fe",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -76,7 +76,7 @@
          82
         ]
        },
-       "plan_hash": "25e3a34385bdaa29fd988e5257c4341311e80479d0bb592a3c7f8e002e14b839",
+       "plan_hash": "5d6cc4fd922545b119424133bda3f8ceec0f6eeec46f3d8e9da33cd6f666f1fe",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -84,7 +84,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "25e3a34385bdaa29fd988e5257c4341311e80479d0bb592a3c7f8e002e14b839",
+      "plan_hash": "5d6cc4fd922545b119424133bda3f8ceec0f6eeec46f3d8e9da33cd6f666f1fe",
       "verified": true,
       "readback": [
        {
@@ -111,7 +111,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
-      "hash": "a9cc274c0fad5bfa7809fab5f3a6ef8ddc70f0b496d4bab8a78d64ad553a1b4b",
+      "hash": "e7f071f1a9b7401ec3efcb2ec28aa141e93288ac54ef4a757a73f97232facbf2",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -119,7 +119,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "a9cc274c0fad5bfa7809fab5f3a6ef8ddc70f0b496d4bab8a78d64ad553a1b4b",
+       "plan_hash": "e7f071f1a9b7401ec3efcb2ec28aa141e93288ac54ef4a757a73f97232facbf2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -128,7 +128,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a9cc274c0fad5bfa7809fab5f3a6ef8ddc70f0b496d4bab8a78d64ad553a1b4b",
+      "plan_hash": "e7f071f1a9b7401ec3efcb2ec28aa141e93288ac54ef4a757a73f97232facbf2",
       "verified": true,
       "readback": [
        {
@@ -211,7 +211,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "a6a5248057e3cc8e2f03be9fe910bdfa9fa35f2f81876c08e039de5c9adc04ae",
+      "hash": "4cfc508224270fcd541750798625a72917aecf507bd1e0f6aa143f63d79ab46f",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -222,7 +222,7 @@
          82
         ]
        },
-       "plan_hash": "a6a5248057e3cc8e2f03be9fe910bdfa9fa35f2f81876c08e039de5c9adc04ae",
+       "plan_hash": "4cfc508224270fcd541750798625a72917aecf507bd1e0f6aa143f63d79ab46f",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -230,7 +230,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a6a5248057e3cc8e2f03be9fe910bdfa9fa35f2f81876c08e039de5c9adc04ae",
+      "plan_hash": "4cfc508224270fcd541750798625a72917aecf507bd1e0f6aa143f63d79ab46f",
       "verified": true,
       "readback": [
        {
@@ -257,7 +257,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
-      "hash": "03052252c764460bee527970790014b284db19239cc4f04867fe6762d9af997a",
+      "hash": "5ac0f4d6222db2314fc70a5603c6d374a8ba0a64c4d06eed11545ce3d4db651c",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -265,7 +265,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "03052252c764460bee527970790014b284db19239cc4f04867fe6762d9af997a",
+       "plan_hash": "5ac0f4d6222db2314fc70a5603c6d374a8ba0a64c4d06eed11545ce3d4db651c",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -274,7 +274,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "03052252c764460bee527970790014b284db19239cc4f04867fe6762d9af997a",
+      "plan_hash": "5ac0f4d6222db2314fc70a5603c6d374a8ba0a64c4d06eed11545ce3d4db651c",
       "verified": true,
       "readback": [
        {
@@ -357,7 +357,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "25e3a34385bdaa29fd988e5257c4341311e80479d0bb592a3c7f8e002e14b839",
+      "hash": "5d6cc4fd922545b119424133bda3f8ceec0f6eeec46f3d8e9da33cd6f666f1fe",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -368,7 +368,7 @@
          82
         ]
        },
-       "plan_hash": "25e3a34385bdaa29fd988e5257c4341311e80479d0bb592a3c7f8e002e14b839",
+       "plan_hash": "5d6cc4fd922545b119424133bda3f8ceec0f6eeec46f3d8e9da33cd6f666f1fe",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -376,7 +376,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "25e3a34385bdaa29fd988e5257c4341311e80479d0bb592a3c7f8e002e14b839",
+      "plan_hash": "5d6cc4fd922545b119424133bda3f8ceec0f6eeec46f3d8e9da33cd6f666f1fe",
       "verified": true,
       "readback": [
        {
@@ -403,7 +403,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
-      "hash": "a9cc274c0fad5bfa7809fab5f3a6ef8ddc70f0b496d4bab8a78d64ad553a1b4b",
+      "hash": "e7f071f1a9b7401ec3efcb2ec28aa141e93288ac54ef4a757a73f97232facbf2",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -411,7 +411,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "a9cc274c0fad5bfa7809fab5f3a6ef8ddc70f0b496d4bab8a78d64ad553a1b4b",
+       "plan_hash": "e7f071f1a9b7401ec3efcb2ec28aa141e93288ac54ef4a757a73f97232facbf2",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -420,7 +420,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a9cc274c0fad5bfa7809fab5f3a6ef8ddc70f0b496d4bab8a78d64ad553a1b4b",
+      "plan_hash": "e7f071f1a9b7401ec3efcb2ec28aa141e93288ac54ef4a757a73f97232facbf2",
       "verified": true,
       "readback": [
        {
@@ -503,7 +503,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "a6a5248057e3cc8e2f03be9fe910bdfa9fa35f2f81876c08e039de5c9adc04ae",
+      "hash": "4cfc508224270fcd541750798625a72917aecf507bd1e0f6aa143f63d79ab46f",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -514,7 +514,7 @@
          82
         ]
        },
-       "plan_hash": "a6a5248057e3cc8e2f03be9fe910bdfa9fa35f2f81876c08e039de5c9adc04ae",
+       "plan_hash": "4cfc508224270fcd541750798625a72917aecf507bd1e0f6aa143f63d79ab46f",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -522,7 +522,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a6a5248057e3cc8e2f03be9fe910bdfa9fa35f2f81876c08e039de5c9adc04ae",
+      "plan_hash": "4cfc508224270fcd541750798625a72917aecf507bd1e0f6aa143f63d79ab46f",
       "verified": true,
       "readback": [
        {
@@ -549,7 +549,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
-      "hash": "03052252c764460bee527970790014b284db19239cc4f04867fe6762d9af997a",
+      "hash": "5ac0f4d6222db2314fc70a5603c6d374a8ba0a64c4d06eed11545ce3d4db651c",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -557,7 +557,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "03052252c764460bee527970790014b284db19239cc4f04867fe6762d9af997a",
+       "plan_hash": "5ac0f4d6222db2314fc70a5603c6d374a8ba0a64c4d06eed11545ce3d4db651c",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -566,7 +566,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "03052252c764460bee527970790014b284db19239cc4f04867fe6762d9af997a",
+      "plan_hash": "5ac0f4d6222db2314fc70a5603c6d374a8ba0a64c4d06eed11545ce3d4db651c",
       "verified": true,
       "readback": [
        {
@@ -649,7 +649,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "6e135efb880b0f16390d5226e30ca5a43648c41d5105bbf625a2361ea80e2d13",
+      "hash": "965e45897a4ee421e83d9e6f95715acbac84229ebe7ccc0e3e5106df4561b0a5",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -660,7 +660,7 @@
          82
         ]
        },
-       "plan_hash": "6e135efb880b0f16390d5226e30ca5a43648c41d5105bbf625a2361ea80e2d13",
+       "plan_hash": "965e45897a4ee421e83d9e6f95715acbac84229ebe7ccc0e3e5106df4561b0a5",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -668,7 +668,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "6e135efb880b0f16390d5226e30ca5a43648c41d5105bbf625a2361ea80e2d13",
+      "plan_hash": "965e45897a4ee421e83d9e6f95715acbac84229ebe7ccc0e3e5106df4561b0a5",
       "verified": true,
       "readback": [
        {
@@ -695,7 +695,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
-      "hash": "aba3f628e1f8291655b3c9df99db8dfe094967bf0ac5532aad237d42aef44ed4",
+      "hash": "e6397d19d2b3a0a2d0eaf2722adf937297bb419d8e6ebd3d5e42d7b692cf58a1",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -703,7 +703,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "aba3f628e1f8291655b3c9df99db8dfe094967bf0ac5532aad237d42aef44ed4",
+       "plan_hash": "e6397d19d2b3a0a2d0eaf2722adf937297bb419d8e6ebd3d5e42d7b692cf58a1",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -712,7 +712,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "aba3f628e1f8291655b3c9df99db8dfe094967bf0ac5532aad237d42aef44ed4",
+      "plan_hash": "e6397d19d2b3a0a2d0eaf2722adf937297bb419d8e6ebd3d5e42d7b692cf58a1",
       "verified": true,
       "readback": [
        {
@@ -795,7 +795,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "8416cb47a1d2750695699344fcfc619cb798e89f08ec3321b6c411212d3176ab",
+      "hash": "1017ac5dd0db2783fa84d92391469110853282af786f99c9f9a35c3d8b7a35f7",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -806,7 +806,7 @@
          82
         ]
        },
-       "plan_hash": "8416cb47a1d2750695699344fcfc619cb798e89f08ec3321b6c411212d3176ab",
+       "plan_hash": "1017ac5dd0db2783fa84d92391469110853282af786f99c9f9a35c3d8b7a35f7",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -814,7 +814,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "8416cb47a1d2750695699344fcfc619cb798e89f08ec3321b6c411212d3176ab",
+      "plan_hash": "1017ac5dd0db2783fa84d92391469110853282af786f99c9f9a35c3d8b7a35f7",
       "verified": true,
       "readback": [
        {
@@ -841,7 +841,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
-      "hash": "462390d55bd5f474009fc16422e91e9838e909d938d0d48d0fc8f7771370572d",
+      "hash": "33cf2ca0021e77a9425efe6ee49072bb85759669cbf18ece0339878ef582a637",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -849,7 +849,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "462390d55bd5f474009fc16422e91e9838e909d938d0d48d0fc8f7771370572d",
+       "plan_hash": "33cf2ca0021e77a9425efe6ee49072bb85759669cbf18ece0339878ef582a637",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -858,7 +858,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "462390d55bd5f474009fc16422e91e9838e909d938d0d48d0fc8f7771370572d",
+      "plan_hash": "33cf2ca0021e77a9425efe6ee49072bb85759669cbf18ece0339878ef582a637",
       "verified": true,
       "readback": [
        {
@@ -941,7 +941,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "686336e71d0e5f1e12ce93cf763e39ea5150ab05ace2c044e8660f3743c90276",
+      "hash": "2f77d19f65ec275520da339699b5151e594aa4727c515c27808434803eb8cc8d",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -952,7 +952,7 @@
          82
         ]
        },
-       "plan_hash": "686336e71d0e5f1e12ce93cf763e39ea5150ab05ace2c044e8660f3743c90276",
+       "plan_hash": "2f77d19f65ec275520da339699b5151e594aa4727c515c27808434803eb8cc8d",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -960,7 +960,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "686336e71d0e5f1e12ce93cf763e39ea5150ab05ace2c044e8660f3743c90276",
+      "plan_hash": "2f77d19f65ec275520da339699b5151e594aa4727c515c27808434803eb8cc8d",
       "verified": true,
       "readback": [
        {
@@ -987,7 +987,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
-      "hash": "0fad97e9718ac8c3c1bed6f4fb9492d376e96c0525660ca87cb8fab6e57d2b7b",
+      "hash": "6e8350fa5d071dbe2b6ec9d6beeb25d971ce2d565e3b94f4514324ef790a2e64",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -995,7 +995,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "0fad97e9718ac8c3c1bed6f4fb9492d376e96c0525660ca87cb8fab6e57d2b7b",
+       "plan_hash": "6e8350fa5d071dbe2b6ec9d6beeb25d971ce2d565e3b94f4514324ef790a2e64",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1004,7 +1004,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "0fad97e9718ac8c3c1bed6f4fb9492d376e96c0525660ca87cb8fab6e57d2b7b",
+      "plan_hash": "6e8350fa5d071dbe2b6ec9d6beeb25d971ce2d565e3b94f4514324ef790a2e64",
       "verified": true,
       "readback": [
        {
@@ -1087,7 +1087,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "1a04cf6dee3dce833373b81542a878d3aa8506fb3c32626dd91918d66476d675",
+      "hash": "e0787a000165ade52f9ff721e1ed14ead7b1afeb17484112cb9fe8d1c7d328be",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -1098,7 +1098,7 @@
          82
         ]
        },
-       "plan_hash": "1a04cf6dee3dce833373b81542a878d3aa8506fb3c32626dd91918d66476d675",
+       "plan_hash": "e0787a000165ade52f9ff721e1ed14ead7b1afeb17484112cb9fe8d1c7d328be",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1106,7 +1106,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "1a04cf6dee3dce833373b81542a878d3aa8506fb3c32626dd91918d66476d675",
+      "plan_hash": "e0787a000165ade52f9ff721e1ed14ead7b1afeb17484112cb9fe8d1c7d328be",
       "verified": true,
       "readback": [
        {
@@ -1133,7 +1133,7 @@
        "itam_cmdb_request_id": 981
       },
       "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
-      "hash": "f44205a2152d94daa6df65ed410b23825b184c738fd5e386ab397163f3c72b8e",
+      "hash": "75f0142b1a1eb292937b29ced9d7ea1858a2ff3572474ab919420e1821043edb",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -1141,7 +1141,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "f44205a2152d94daa6df65ed410b23825b184c738fd5e386ab397163f3c72b8e",
+       "plan_hash": "75f0142b1a1eb292937b29ced9d7ea1858a2ff3572474ab919420e1821043edb",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1150,7 +1150,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "f44205a2152d94daa6df65ed410b23825b184c738fd5e386ab397163f3c72b8e",
+      "plan_hash": "75f0142b1a1eb292937b29ced9d7ea1858a2ff3572474ab919420e1821043edb",
       "verified": true,
       "readback": [
        {
@@ -1491,7 +1491,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "a8e7a8621732b0595bb81c335722e3af08113b25a32d7029ee93f381931f104f",
+      "hash": "dad70f1ec86c30b0e584e06040a52be93f590b3de058fd9405b746892e5ba797",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -1501,7 +1501,7 @@
          81
         ]
        },
-       "plan_hash": "a8e7a8621732b0595bb81c335722e3af08113b25a32d7029ee93f381931f104f",
+       "plan_hash": "dad70f1ec86c30b0e584e06040a52be93f590b3de058fd9405b746892e5ba797",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1509,7 +1509,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "a8e7a8621732b0595bb81c335722e3af08113b25a32d7029ee93f381931f104f",
+      "plan_hash": "dad70f1ec86c30b0e584e06040a52be93f590b3de058fd9405b746892e5ba797",
       "verified": true,
       "readback": [
        {
@@ -1563,7 +1563,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "a8e7a8621732b0595bb81c335722e3af08113b25a32d7029ee93f381931f104f",
+      "hash": "dad70f1ec86c30b0e584e06040a52be93f590b3de058fd9405b746892e5ba797",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -1573,7 +1573,7 @@
          81
         ]
        },
-       "plan_hash": "a8e7a8621732b0595bb81c335722e3af08113b25a32d7029ee93f381931f104f",
+       "plan_hash": "dad70f1ec86c30b0e584e06040a52be93f590b3de058fd9405b746892e5ba797",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1677,7 +1677,7 @@
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "478c0c0a4134cc384edf7660db3ff6dd345a7776644a079f57aa1449410b61ce",
+      "hash": "6c202d235e5a0580f0e9b8ba4c14e492b9ed7f5bb88720ce395234cbfee4f190",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
@@ -1687,7 +1687,7 @@
          81
         ]
        },
-       "plan_hash": "478c0c0a4134cc384edf7660db3ff6dd345a7776644a079f57aa1449410b61ce",
+       "plan_hash": "6c202d235e5a0580f0e9b8ba4c14e492b9ed7f5bb88720ce395234cbfee4f190",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1695,7 +1695,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "478c0c0a4134cc384edf7660db3ff6dd345a7776644a079f57aa1449410b61ce",
+      "plan_hash": "6c202d235e5a0580f0e9b8ba4c14e492b9ed7f5bb88720ce395234cbfee4f190",
       "verified": true,
       "readback": [
        {

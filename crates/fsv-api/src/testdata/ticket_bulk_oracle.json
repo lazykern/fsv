@@ -1,11 +1,11 @@
 {
   "_python": {
-    "commit": "041d86589726f01be5bc5ef8d00e21ee6132c660",
+    "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
     "dirty": false
   },
   "spam": {
-    "hash": "28160296af4d2d25cb402ee74b6b32fc3cc65b6debd3a063800e252735740032",
-    "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
+    "hash": "2e692535e45c685447eac8476ac07ac99ca1809d3e41c0ec4f00c73b6ec43ad5",
+    "write_hash": "ea60ba444313005d10d268213f94f2b7d6f470e2383c09364f2339c582026430",
     "action": "ticket_bulk_spam",
     "method": "POST",
     "path": "tickets/spam_multiple",
@@ -15,8 +15,8 @@
     "context": "b219ac39ad471fe860ab6097d7e54804427dde6ac251fcd67e189b213b940354"
   },
   "unspam": {
-    "hash": "daec862afa08135aaa6aa5517ee73fa032f92afc9628be2e8aa1e131fdc36cd6",
-    "write_hash": "f599a744b4fb81fb278ca3839d64f7d5758ff67408b54ef03c27344669ecdb64",
+    "hash": "45d3c70b497d318c19eae6d1e7edb5a1020d3cb8d33726371b0843a487a0a4f8",
+    "write_hash": "84af6bd9c4b973cfd65c63de13722f6251f23ec33ed68c3a92330f73d1aca031",
     "action": "ticket_bulk_unspam",
     "method": "POST",
     "path": "tickets/unspam_multiple",
@@ -26,8 +26,8 @@
     "context": "68780678d5e0dd09fd94ba12b5bade2363ebb21b23232724e811a6942a60cee1"
   },
   "delete": {
-    "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
-    "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
+    "hash": "66f46220f057a8535c6a76f1dfdbcc99e4f1d9f9dd93caffaa37a7d44534ea51",
+    "write_hash": "8bc5ed4d802ad50e1cb2b337a423af21f01318719ce71dfe976a16f90b5c1122",
     "action": "ticket_bulk_delete",
     "method": "DELETE",
     "path": "tickets/delete_multiple?ids=71%2C72",
