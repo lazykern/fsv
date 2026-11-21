@@ -25,8 +25,16 @@
 //! compared by kind; JSON decoder wording and form-metadata fetch times are
 //! masked. The rest is compared exactly.
 //!
-//! `fixtures/diff_cases.json` is every literal `run_fixture`/`run_files` call
-//! in this crate's tests (except `tui`, `setup`, `login` and installers).
+//! Cases come from three places. `fixtures/diff_cases.json` is every literal
+//! `run_fixture`/`run_files` call in this crate's tests (except `tui`, `setup`,
+//! `login` and installers) plus the `"tag": "hand"` rows that
+//! `golden/gen_hand_cases.py` writes (`hash_from` runs a review on the Python
+//! side and `@HASH@` in the args becomes its plan hash on both sides).
+//! `fixtures/diff_env_cases.json` is every `Env::run` of the tests that build
+//! their own routes (`golden/collect_env_cases.py`). `FSV_DIFF_TAG`,
+//! `FSV_DIFF_ONLY`, `FSV_DIFF_VERBOSE` and `FSV_DIFF_EXITS` narrow or widen
+//! the report. Request headers are compared too, except the ones httpx adds
+//! below the transport.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -90,7 +98,8 @@ def handler(req):
         else:
             body = None
         with open(log_path, "a") as f:
-            f.write(json.dumps({"method": req.method, "url": str(req.url), "body": body}) + "\n")
+            headers = {k.lower(): v for k, v in req.headers.items()}
+            f.write(json.dumps({"method": req.method, "url": str(req.url), "body": body, "headers": headers}) + "\n")
     found = None
     for i, route in enumerate(routes):
         if not used[i] and matches(route, req):
@@ -367,10 +376,11 @@ fn run(program: &[&str], home: &Path, work: &Path, case: &Case) -> Outcome {
                 .replace(DOMAIN, "DOMAIN");
             let body = mask_boundary(&r["body"].to_string());
             let method = r["method"].as_str().unwrap_or_default().to_string();
+            let headers = wire_headers(&r["headers"]);
             if method == "GET" || method == "HEAD" {
-                gets.push(format!("{method} {url}"));
+                gets.push(format!("{method} {url}{headers}"));
             } else {
-                writes.push(format!("{method} {url} {body}"));
+                writes.push(format!("{method} {url} {body}{headers}"));
             }
         }
     }
@@ -451,7 +461,26 @@ fn step_output(
 /// Form metadata lines carry the wall-clock fetch time
 /// (`fetched 2026-11-13T05:20:03+00:00`), which can tick between the runs.
 fn mask_fetched(text: &str) -> String {
-    mask_epoch(&mask_stamps(&mask_sent_at(text)))
+    mask_epoch(&mask_stamps(&mask_json_fetched(&mask_sent_at(text))))
+}
+
+/// `"fetched_at": "2026-11-21T12:04:03+00:00"` in a review's metadata.
+fn mask_json_fetched(text: &str) -> String {
+    const MARK: &str = "\"fetched_at\": \"";
+    const STAMP: usize = "2026-11-21T12:04:03+00:00".len();
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(i) = rest.find(MARK) {
+        let start = i + MARK.len();
+        out.push_str(&rest[..start]);
+        rest = &rest[start..];
+        if rest.get(..STAMP).is_some_and(|s| s.as_bytes()[10] == b'T') {
+            out.push_str("<time>");
+            rest = &rest[STAMP..];
+        }
+    }
+    out.push_str(rest);
+    out
 }
 
 /// Journal timestamps `2026-11-21T11:47:44+0000`.
@@ -572,7 +601,10 @@ fn normalise_err(err: &str) -> String {
 fn describe(a: &Outcome, b: &Outcome) -> Vec<String> {
     let mut diffs = Vec::new();
     if a.code != b.code {
-        diffs.push(format!("exit: py {} rs {}", a.code, b.code));
+        diffs.push(format!(
+            "exit: py {} rs {}\n  py err: {:?}\n  rs err: {:?}",
+            a.code, b.code, a.err, b.err
+        ));
     }
     if a.out != b.out {
         if std::env::var_os("FSV_DIFF_VERBOSE").is_some() {
@@ -706,7 +738,7 @@ fn python_and_rust_agree_on_canned_routes() {
 
 /// `------fsv<32 hex>`: a multipart boundary, random per run.
 fn mask_boundary(text: &str) -> String {
-    const MARK: &str = "------fsv";
+    const MARK: &str = "----fsv";
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
     while let Some(i) = rest.find(MARK) {
@@ -721,4 +753,24 @@ fn mask_boundary(text: &str) -> String {
     }
     out.push_str(rest);
     out
+}
+
+/// The request headers both clients set themselves. httpx adds `host`,
+/// `user-agent`, `accept-encoding`, `connection` and `content-length` below
+/// the transport; the Rust mock sees the request before reqwest does.
+fn wire_headers(headers: &Value) -> String {
+    const SKIP: [&str; 5] = ["host", "user-agent", "accept-encoding", "connection", "content-length"];
+    let Some(map) = headers.as_object() else {
+        return String::new();
+    };
+    let mut rows: Vec<String> = map
+        .iter()
+        .filter(|(k, _)| !SKIP.contains(&k.as_str()))
+        .map(|(k, v)| {
+            let v = mask_boundary(v.as_str().unwrap_or_default());
+            format!("{k}: {v}")
+        })
+        .collect();
+    rows.sort();
+    format!(" [{}]", rows.join("; "))
 }

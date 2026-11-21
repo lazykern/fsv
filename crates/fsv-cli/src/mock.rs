@@ -6,12 +6,12 @@
 //! the same method and URL path whose `query` pairs all appear in the URL;
 //! a route with `"once": true` answers one request, later ones fall through.
 //! Unmatched requests get a 404. With `FSV_TEST_LOG=<file>` every request is
-//! appended there as one JSON line `{"method", "url", "body"}`.
+//! appended there as one JSON line `{"method", "url", "body", "headers"}`.
 
 use std::io::Write;
 use std::sync::Arc;
 
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 
 use fsv_core::client::mock::MockTransport;
 use fsv_core::client::{Request, Response};
@@ -88,7 +88,14 @@ pub fn routed(
                     .filter(|b| !b.is_empty())
                     .map_or(Value::Null, |b| json!(String::from_utf8_lossy(b)))
             });
-            let line = json!({"method": req.method, "url": req.url, "body": body});
+            let headers: Map<String, Value> = req
+                .headers
+                .iter()
+                .map(|(k, v)| (k.to_ascii_lowercase(), json!(v)))
+                .collect();
+            let line = json!({
+                "method": req.method, "url": req.url, "body": body, "headers": headers,
+            });
             let _ = writeln!(f, "{line}");
         }
         let found = {
