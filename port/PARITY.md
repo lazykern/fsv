@@ -696,11 +696,64 @@ Not verified / known differences left:
   so those sizes only agree within the chunk. Mock responses carry
   `Content-Length`, so the differential cannot see that case; `fsv-core` has
   local-socket tests for the reader.
-- The unit oracles (`fsv-api/src/testdata/*_oracle.json`, `fsv-flows` goldens)
-  were not regenerated: `port/golden/gen_*.py` is not in the tree. The
-  composed ones re-blessed from Rust output (`ticket_assignment`,
-  `ticket_bulk_set`) are exercised at CLI level by the differential
-  (`tickets assign|pick-up`, `tickets bulk` sends with Python-checked hashes).
+- Oracle provenance: see "Oracle regeneration against Python 84ffb0f" at the
+  end of this file; the earlier note that the unit oracles were not
+  regenerated no longer holds.
 - Interactive TUI/form UI, `setup`/`login` flows beyond the tty-scripted cases,
   and real-network behavior (redirects, timeouts, retries) are not in the
   differential; the canned-route harness answers every request at once.
+
+## Oracle regeneration against Python 84ffb0f
+
+`port/golden/` is back (generators restored from `ecb2071^`, inputs updated to
+mirror the Python 84ffb0f tests, plus new generators for `ticket_associations`,
+`ticket_bulk_set`, `change_delete`, `windows`, `approval_model`,
+`change_lifecycle` and `inline_images`). `port/golden/regen_api.sh` rewrites
+every fsv-api oracle it covers from a pinned Python export (journal
+timestamps in "sent at <ts>" refusals are normalised to "an earlier run",
+which is what the Rust in-memory journal produces).
+
+- Result: with the Rust side untouched in production code, every regenerated
+  oracle matches Python 84ffb0f. The earlier hash re-blessing (tenant rebind,
+  composite hashes "took the value the Rust port computes") turned out
+  correct: the only differences were in the test harnesses (the plan hash binds
+  `config::domain()`, which the Rust unit tests left empty while the Python
+  generators set `config.DOMAIN`; several harnesses did not compare
+  `state_json`/`prior_context`/`record_state`, or did not call `.stated()`
+  where Python's `build_plan` always sets `sends`). The fix is
+  `fsv_core::config::use_domain_on_thread` (a per-thread `config.DOMAIN` for
+  tests) and the extra compared fields.
+- Covered by Python-regenerated oracles: ticket_assignment, ticket_bulk_set,
+  ticket_bulk, bulk_readback, ticket_lifecycle (+ack), ticket_merge,
+  ticket_tasks, ticket_note_mutation, ticket_associations, problem_status,
+  problem_incidents, closure_conversation, change_task_update,
+  change_tasks_required, change_delete, change_lifecycle, windows,
+  approval_model, inline_images, workflows (canned, scenarios, planning text,
+  private-view lifecycle, list preferences, problem flows), integrated_assets,
+  attachments, solutions, sr_approvals, sr_requested_items, notes, reviewed,
+  module_time, create, catalog, coverage, query_flow, views and the rest of
+  the `gen_fsv_api_*` set. `fsv-flows` `flows.json`/`sr.json` regenerate
+  byte-identical (apart from the stamp), and the fsv-app form hash constants
+  (`NEW_HASH`, `EDIT_HASH`, `TICKET_HASH`, `SR_HASH`, `SR_FILES_HASH`,
+  `ATTACH_HASH`) equal Python's plan hashes for the same mocked tenant.
+- Generator inputs that changed because Python's tests did (b6b741f+: built-in
+  status ids 1/3 or 2..5, closure conversations carry Resolved/Closed ids 4/5,
+  `merge_date_ranges` refuses two `from` bounds, a task plan without reminder
+  metadata is refused, bulk `--set` rule in workspace 1). Unit tests that read
+  the old values were updated to the same inputs.
+- Not regenerated at unit level (no generator, and not worth reverse
+  engineering): `private_views_native_oracle.json` (its 320 CLI cases are in
+  the differential), `problem_status_activity_oracle.json` (no test reads it),
+  the `fsv_oracle` `o_*` outputs without a fixture, the TUI hooks
+  (`gen_fsv_app_tui_reviewed.py`), the `fsv-cli` `cmp.py`/`emit_upstream.py`
+  families and the completion fixtures (not run here), and inline hash
+  literals in tests that have no fixture (`approvals`, `tasks`, `catalog`
+  unit tests under the harness's empty domain): those stay Rust-derived; the
+  CLI-level differential covers the same plans.
+- Differential against Python 84ffb0f: 1706 of 1707 cases agree; the one
+  difference moves between runs (`auth login` cases: Python's cache refresh
+  after login runs on daemon threads, so a `GET change-filters` happens or not
+  depending on timing). Not a Rust divergence.
+- `downloads --max-bytes` without `Content-Length`: see the downloads entry
+  under "Not verified".
+

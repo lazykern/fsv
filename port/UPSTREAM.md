@@ -3881,3 +3881,5 @@ completion fixtures carry only this batch's nodes and flags
 `FSV_ALLOW_TENANT` to both sides, so run it against a Python tree that includes
 `5eefaaf`; against the pinned `31a9103` every `--expect-plan` case differs by
 design (tenant-bound hashes). `FSV_DIFF_VERBOSE=1` prints both stdouts.
+
+Oracle debt closed: see "Oracle regeneration against Python 84ffb0f" in `PARITY.md`. The oracles named in the debt notes above (problem status, incidents, assignment, bulk set, lifecycle, closure conversations, change task update, change delete, workflows, integrated assets, attachments, `flows.json`) were regenerated from Python 84ffb0f and matched; `private_views_native_oracle.json` was not.

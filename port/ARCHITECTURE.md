@@ -290,6 +290,9 @@ too (`saved_at` etc.) so both versions read each other's files.
   `provenance_tests.rs` checks the fixtures it loads. Generate at a pinned
   commit from a `git archive` export with `FSV_PY_SRC`/`FSV_PY_COMMIT` set
   (see the `provenance.py` docstring), not the live worktree.
+  `port/golden/regen_api.sh` regenerates the fsv-api oracles in one go. Plan
+  hashes bind `config.DOMAIN`: a Rust test that replays an oracle calls
+  `fsv_core::config::use_domain_on_thread(<the generator's domain>)`.
 
 ## Building while other agents work
 
