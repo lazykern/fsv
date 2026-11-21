@@ -3758,3 +3758,34 @@ Divergences are in `port/PARITY.md`. Provenance debt left as is:
   `terminal_status_ids`, the label-based `status_closes`) are removed from
   `fsv-core/src/safety.rs`; `safety.status_closes` maps to
   `fsv_api::status_semantics::status_closes`.
+
+## Ledger: `port/up-d` (`31a9103..84ffb0f`, parity port of ten commits)
+
+Self-contained table for the commits ported in `port/up-d`; other agents port
+the remaining commits of the range in sibling branches.
+
+| commit | subject | status | crates |
+|---|---|---|---|
+| `9056d44` | changes update --planning (--description/--file) on the reviewed contract | ported | fsv-api `planning_files.rs`; fsv-cli `cmd/upload_update.rs`, `cmd/changes.rs`; tests `planning_files_cmds.rs` |
+| `6cd384b` | problems planning files (update/download/attachment delete --section) | ported | fsv-api `planning_files.rs` (`module`), `attachments.rs::delete`; fsv-cli `cmd/resource.rs`, `cmd/download.rs`; tests `problem_planning_files_cmds.rs` |
+| `6c4d270` | changes private-views write rename and delete | ported | fsv-api `private_views.rs`; fsv-cli `cmd/native.rs` |
+| `ef52462` | tickets/changes/problems export: real send | ported | fsv-api `list_preferences.rs` (`send_export`); fsv-core `Client::last_status`; fsv-cli `cmd/native.rs` |
+| `6327af5` | export `data_hash` takes string values only | ported | fsv-api `list_preferences.rs` (`export_data_hash`) |
+| `8e51091` | changes update --attach (attach-only) reviewed | ported | fsv-api `change_attach.rs`; fsv-cli `cmd/upload_update.rs` |
+| `838c9eb` | --max-bytes for changes update --attach and sr create --attach | ported (form UI binds the limit in `fsv-app/src/form.rs`; its hash constant is Rust-derived) | fsv-api `catalog.rs`, fsv-flows `change.rs`, fsv-cli `cmd/sr.rs`, `cmd/changes.rs` |
+| `8465498` | downloads --max-bytes | ported, buffered body (see PARITY) | fsv-api `create.rs`, fsv-cli `cmd/download.rs` |
+| `4e44315` | attachments delete --confirm-destructive | ported | fsv-cli `cmd/attachments.rs` |
+| `7abd5a0` | assets search / candidates --per-page | ported | fsv-api `integrated_assets.rs`, fsv-cli `cmd/inventory.rs` |
+| `a427f9a` | docs only | n/a | no `docs/freshservice/` in the Rust tree |
+
+Provenance of fixtures edited by hand in this branch (Python-derived values,
+not captured by a generator): `workflows_oracle.json` (export plan hash,
+review and send rows), `private_views_native_oracle.json` (recipient cases;
+`change_refusals` removed), `integrated_assets_oracle.json` (search rows),
+`attachments_oracle.json` (`delete_refusals` op 13). They reflect Python
+31a9103 plus 7abd5a0, 6c4d270, ef52462, 6327af5 and 6cd384b, computed with a
+scratch copy of 31a9103 with only those commits' module changes applied.
+`cli_tree.json`, `command_flags.txt` and `command_help.txt` got the new
+parameters from a dump of Python `84ffb0f`; the completion fixtures did not.
+`1c06342` is the shared journal-primitives commit (taken from `port/up-b`
+`73c84eb`), not one of these ports.
