@@ -168,6 +168,7 @@ impl Env {
     }
 
     pub fn run(&self, args: &[&str]) -> Run {
+        capture::record(self, args);
         let h = self.home();
         let cfg = self.config_dir();
         std::fs::create_dir_all(&cfg).unwrap();
@@ -259,4 +260,95 @@ pub fn change_fields() -> Value {
         {"name": "cf_env", "label": "Environment", "field_type": "custom_dropdown", "default_field": false,
          "choices": [{"id": 11, "value": "Prod"}, {"id": 12, "value": "UAT"}]}
     ])
+}
+
+/// `FSV_CASE_DUMP=DIR`: every `Env::run` appends the case it is part of (the
+/// earlier steps in the same home, plus this one) to `DIR/<pid>.jsonl`, for the
+/// differential test (`fixtures/diff_env_cases.json`, built by
+/// `golden/collect_env_cases.py`).
+mod capture {
+    use super::Env;
+    use serde_json::{Value, json};
+    use std::collections::HashMap;
+    use std::path::Path;
+    use std::sync::Mutex;
+
+    static STEPS: Mutex<Option<HashMap<String, Vec<Value>>>> = Mutex::new(None);
+
+    fn mask(text: &str, home: &Path) -> String {
+        let mut text = text.to_string();
+        let real = home.canonicalize().unwrap_or_else(|_| home.to_path_buf());
+        for h in [real, home.to_path_buf()] {
+            text = text.replace(&*h.to_string_lossy(), "@HOME@");
+        }
+        text
+    }
+
+    fn hex(bytes: &[u8]) -> String {
+        bytes.iter().map(|b| format!("{b:02x}")).collect()
+    }
+
+    fn seed(dir: &Path, root: &Path, out: &mut serde_json::Map<String, Value>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for e in entries.flatten() {
+            let path = e.path();
+            if path.is_dir() {
+                seed(&path, root, out);
+                continue;
+            }
+            let rel = path
+                .strip_prefix(root)
+                .unwrap()
+                .to_string_lossy()
+                .into_owned();
+            if rel == "routes.json" || rel == "requests.log" {
+                continue;
+            }
+            let Ok(bytes) = std::fs::read(&path) else {
+                continue;
+            };
+            let v = match String::from_utf8(bytes.clone()) {
+                Ok(t) => json!({"text": mask(&t, root)}),
+                Err(_) => json!({"hex": hex(&bytes)}),
+            };
+            out.insert(rel, v);
+        }
+    }
+
+    pub fn record(env: &Env, args: &[&str]) {
+        let Some(dump) = std::env::var_os("FSV_CASE_DUMP") else {
+            return;
+        };
+        let home = env.home();
+        let key = home.to_string_lossy().into_owned();
+        let mut guard = STEPS.lock().unwrap();
+        let map = guard.get_or_insert_with(HashMap::new);
+        let first = !map.contains_key(&key);
+        let steps = map.entry(key).or_default();
+        let mut seeds = serde_json::Map::new();
+        if first {
+            seed(home, home, &mut seeds);
+        }
+        let routes = mask(&Value::Array(env.routes.clone()).to_string(), home);
+        steps.push(json!({
+            "args": args.iter().map(|a| mask(a, home)).collect::<Vec<_>>(),
+            "stdin": env.stdin.as_ref().map(|s| mask(s, home)),
+            "routes": serde_json::from_str::<Value>(&routes).unwrap(),
+            "seed": Value::Object(seeds),
+            "session": env.session,
+            "vars": env.vars,
+        }));
+        let name = std::thread::current().name().unwrap_or("?").to_string();
+        let line = json!({"name": name, "steps": steps});
+        use std::io::Write;
+        let path = Path::new(&dump).join(format!("{}.jsonl", std::process::id()));
+        let mut f = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+            .unwrap();
+        writeln!(f, "{line}").unwrap();
+    }
 }

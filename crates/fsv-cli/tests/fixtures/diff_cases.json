@@ -12268,7 +12268,7 @@
    "tickets",
    "ls",
    "--query-hash",
-   "[{\"condition\":\"x\",\"operator\":\"is_in\",\"value\":{\"a\":\"é\"}}]"
+   "[{\"condition\":\"x\",\"operator\":\"is_in\",\"value\":{\"a\":\"\u00e9\"}}]"
   ]
  },
  {
@@ -13175,6 +13175,5815 @@
    "30",
    "--scenario",
    "501",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--max-bytes",
+   "3"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--max-bytes",
+   "7",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--max-bytes",
+   "6",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--all",
+   "--max-bytes",
+   "4",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--conversations",
+   "--max-bytes",
+   "3"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "download",
+   "5",
+   "--max-bytes",
+   "3"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "download",
+   "5",
+   "--all",
+   "--max-bytes",
+   "100",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "problems",
+   "download",
+   "9",
+   "--max-bytes",
+   "1"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5",
+   "--max-bytes",
+   "0"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "acme",
+   "--per-page",
+   "2",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "acme",
+   "--per-page",
+   "2",
+   "--page",
+   "3",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "acme",
+   "--per-page",
+   "0"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "acme",
+   "--per-page",
+   "101"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "--per-page",
+   "100"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "--kind",
+   "services",
+   "--per-page",
+   "1",
+   "--page",
+   "2"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "search",
+   "acme",
+   "--per-page",
+   "5"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "candidates",
+   "151",
+   "--per-page",
+   "2"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "changes",
+   "assets",
+   "candidates",
+   "51",
+   "--per-page",
+   "1",
+   "--json"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "candidates",
+   "151",
+   "--per-page",
+   "101"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "candidates",
+   "151",
+   "--per-page",
+   "0"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--yes",
+   "--confirm-destructive"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--confirm-destructive",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--confirm-destructive"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "list"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "703"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "delete",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "list"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "704"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "list"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "show",
+   "811"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "811",
+   "delete",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "list"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "show",
+   "812"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "create",
+   "--name",
+   "Globex copy",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Acme source",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex changes",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--confirm-destructive"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--expect-plan",
+   "abc"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "private_views_native",
+  "args": [
+   "changes",
+   "private-views",
+   "write",
+   "812",
+   "delete",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--public",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "999",
+   "Acme evidence",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--public",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_note_reviewed",
+  "args": [
+   "problems",
+   "add-note",
+   "999",
+   "Acme evidence",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--yes",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note"
+  ],
+  "tag": "hand",
+  "stdin": "y\n",
+  "tty": true
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "changes",
+   "add-note",
+   "3",
+   "Acme change note",
+   "--public"
+  ],
+  "tag": "hand",
+  "stdin": "n\n",
+  "tty": true
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_500",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_mismatch",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain_rejected",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--cc",
+   "ann@acme.com",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High"
+  ],
+  "tag": "hand",
+  "stdin": "y\n",
+  "tty": true
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High"
+  ],
+  "tag": "hand",
+  "stdin": "n\n",
+  "tty": true
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--no-review",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--no-review",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "Nope",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--ack",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "Cost Code=new",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High"
+  ],
+  "tag": "hand",
+  "stdin": "y\n",
+  "tty": true
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High"
+  ],
+  "tag": "hand",
+  "stdin": "n\n",
+  "tty": true
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--no-review",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--no-review",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_reviewed_ack",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "Nope",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "Resolved",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "Resolved",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "Resolved",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "Resolved",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "Resolved",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--status",
+   "Resolved",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "cf_owner_note=Acme new owner",
+   "--json",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "cf_owner_note=Acme new owner",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "cf_owner_note=Acme new owner",
+   "--json",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "cf_owner_note=Acme new owner",
+   "--json",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "cf_owner_note=Acme new owner",
+   "--json",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--set",
+   "subject=Acme renamed",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--set",
+   "subject=Acme renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "71",
+   "--set",
+   "subject=Acme renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--set",
+   "subject=Acme renamed",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--set",
+   "subject=Acme renamed",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "76",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "76",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "76",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "76",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "76",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "72",
+   "--set",
+   "subject=x",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "72",
+   "--set",
+   "subject=x",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "72",
+   "--set",
+   "subject=x",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "72",
+   "--set",
+   "subject=x",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "72",
+   "--set",
+   "subject=x",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--no-review",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner"
+  ],
+  "tag": "hand",
+  "stdin": "y\n",
+  "tty": true
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "71",
+   "--planned-effort",
+   "2h",
+   "--yes",
+   "--expect-plan",
+   "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "76",
+   "--planned-start",
+   "2030-01-02T09:00:00Z",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "update",
+   "76",
+   "--planned-start",
+   "2030-01-02T09:00:00Z",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09T18:00:00+07:00",
+   "--no-input"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "none",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "update",
+   "5",
+   "--due-by",
+   "2026-06-09",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "changes",
+   "planning-text",
+   "5",
+   "--section",
+   "Rollout plan",
+   "--clear",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "changes",
+   "planning-text",
+   "5",
+   "--section",
+   "Rollout plan",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "hash_from": [
+   "changes",
+   "planning-text",
+   "5",
+   "--section",
+   "Rollout plan",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "changes",
+   "planning-text",
+   "5",
+   "--section",
+   "Rollout plan",
+   "--clear",
+   "--yes"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "planning_clear_empty",
+  "args": [
+   "changes",
+   "planning-text",
+   "5",
+   "--section",
+   "Rollout plan",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "schema"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "forms"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "views"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "groups"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "all"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "bogus"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "status"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "clear",
+    "forms"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ],
+   [
+    "cache",
+    "clear",
+    "schema"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "status",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--status",
+    "Resolved",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "cache",
+    "refresh"
+   ]
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "cache",
+   "clear",
+   "schema"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "cache",
+    "refresh"
+   ]
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "cache",
+    "refresh"
+   ],
+   [
+    "cache",
+    "clear",
+    "schema"
+   ]
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "cache",
+   "clear",
+   "forms"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "cache",
+    "refresh"
+   ]
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "cache",
+    "refresh"
+   ],
+   [
+    "cache",
+    "clear",
+    "forms"
+   ]
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "journal",
+   "ls"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "add-note",
+    "12",
+    "Acme evidence",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "journal",
+   "ls",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "add-note",
+    "12",
+    "Acme evidence",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "journal",
+   "tail"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "add-note",
+    "12",
+    "Acme evidence",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_add_note",
+  "args": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "add-note",
+    "12",
+    "Acme evidence",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "add-note",
+   "12",
+   "Acme evidence",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "journal",
+   "ls"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "journal",
+   "ls",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "journal",
+   "tail"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "journal",
+   "ls"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "private-views",
+    "write",
+    "703",
+    "edit",
+    "--name",
+    "Globex renamed",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "journal",
+   "ls",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "private-views",
+    "write",
+    "703",
+    "edit",
+    "--name",
+    "Globex renamed",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "journal",
+   "tail"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "private-views",
+    "write",
+    "703",
+    "edit",
+    "--name",
+    "Globex renamed",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "private-views",
+    "write",
+    "703",
+    "edit",
+    "--name",
+    "Globex renamed",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "journal",
+   "ls"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "planning-text",
+    "123",
+    "--section",
+    "Root Cause",
+    "--description",
+    "Acme new",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "journal",
+   "ls",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "planning-text",
+    "123",
+    "--section",
+    "Root Cause",
+    "--description",
+    "Acme new",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "journal",
+   "tail"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "planning-text",
+    "123",
+    "--section",
+    "Root Cause",
+    "--description",
+    "Acme new",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "planning-text",
+    "123",
+    "--section",
+    "Root Cause",
+    "--description",
+    "Acme new",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "journal",
+   "ls"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "reply",
+    "123",
+    "Acme is working on it",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "journal",
+   "ls",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "reply",
+    "123",
+    "Acme is working on it",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "journal",
+   "tail"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "reply",
+    "123",
+    "Acme is working on it",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reply_plain",
+  "args": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "reply",
+    "123",
+    "Acme is working on it",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "reply",
+   "123",
+   "Acme is working on it",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "journal",
+   "ls"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "attachments",
+    "delete",
+    "62",
+    "--owner",
+    "tickets/6",
+    "--confirm-destructive",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "journal",
+   "ls",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "attachments",
+    "delete",
+    "62",
+    "--owner",
+    "tickets/6",
+    "--confirm-destructive",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "journal",
+   "tail"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "attachments",
+    "delete",
+    "62",
+    "--owner",
+    "tickets/6",
+    "--confirm-destructive",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "attachments",
+  "args": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
+   "--confirm-destructive",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "attachments",
+    "delete",
+    "62",
+    "--owner",
+    "tickets/6",
+    "--confirm-destructive",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "attachments",
+   "delete",
+   "62",
+   "--owner",
+   "tickets/6",
    "--dry-run"
   ]
  }

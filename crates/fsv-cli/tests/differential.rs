@@ -130,14 +130,29 @@ except SystemExit as e:
 ///   "pre"?: [[...]], "tty"?: true, "env"?: {K: V}}`.
 /// `pre` commands run first in the same home with empty stdin; `tty` sets
 /// `FSV_TEST_TTY=1`. `@MANIFEST@` in an argument is this crate's directory.
+#[derive(Clone)]
 struct Case {
     fixture: String,
     args: Vec<String>,
     files: Option<String>,
     stdin: Option<String>,
-    pre: Vec<Vec<String>>,
+    pre: Vec<Step>,
     tty: bool,
     env: Vec<(String, String)>,
+    routes: Option<Value>,
+    seed: Vec<(String, Vec<u8>)>,
+    session: bool,
+    hash_from: Option<Vec<String>>,
+    tag: Option<String>,
+}
+
+/// An earlier command of the same home; `routes` replaces the route table
+/// for it when the case carries its own.
+#[derive(Clone)]
+struct Step {
+    args: Vec<String>,
+    stdin: String,
+    routes: Option<Value>,
 }
 
 fn strings(v: &Value) -> Vec<String> {
@@ -154,6 +169,68 @@ fn strings(v: &Value) -> Vec<String> {
         .unwrap_or_default()
 }
 
+/// Cases collected from the integration tests' `Env` runs (inline routes and
+/// seed files): `{"name", "steps": [{"args", "stdin", "routes", "seed",
+/// "session", "vars"}]}`, the last step being the compared one.
+fn load_env_cases() -> Vec<Case> {
+    let rows: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/diff_env_cases.json")).unwrap();
+    let text = |v: &Value| v.as_str().map(str::to_string);
+    rows.iter()
+        .map(|r| {
+            let steps = r["steps"].as_array().unwrap();
+            let (last, before) = steps.split_last().unwrap();
+            let mut seed = Vec::new();
+            for st in steps {
+                for (rel, v) in st["seed"].as_object().into_iter().flatten() {
+                    let bytes = match v["text"].as_str() {
+                        Some(t) => t.as_bytes().to_vec(),
+                        None => {
+                            let h = v["hex"].as_str().unwrap();
+                            (0..h.len() / 2)
+                                .map(|i| u8::from_str_radix(&h[2 * i..2 * i + 2], 16).unwrap())
+                                .collect()
+                        }
+                    };
+                    seed.push((rel.clone(), bytes));
+                }
+            }
+            let vars = last["vars"].as_array().cloned().unwrap_or_default();
+            let tty = vars.iter().any(|kv| kv[0] == "FSV_TEST_TTY");
+            Case {
+                fixture: format!("env:{}", r["name"].as_str().unwrap()),
+                args: strings(&last["args"]),
+                files: None,
+                stdin: text(&last["stdin"]),
+                pre: before
+                    .iter()
+                    .map(|st| Step {
+                        args: strings(&st["args"]),
+                        stdin: text(&st["stdin"]).unwrap_or_default(),
+                        routes: Some(st["routes"].clone()),
+                    })
+                    .collect(),
+                tty,
+                env: vars
+                    .iter()
+                    .filter(|kv| kv[0] != "FSV_TEST_TTY")
+                    .map(|kv| {
+                        (
+                            kv[0].as_str().unwrap().into(),
+                            kv[1].as_str().unwrap().into(),
+                        )
+                    })
+                    .collect(),
+                routes: Some(last["routes"].clone()),
+                seed,
+                session: last["session"].as_bool().unwrap_or(true),
+                hash_from: None,
+                tag: None,
+            }
+        })
+        .collect()
+}
+
 fn load_cases() -> Vec<Case> {
     let rows: Vec<Value> = serde_json::from_str(include_str!("fixtures/diff_cases.json")).unwrap();
     let text = |v: &Value| v.as_str().map(str::to_string);
@@ -165,7 +242,15 @@ fn load_cases() -> Vec<Case> {
             stdin: text(&r["stdin"]),
             pre: r["pre"]
                 .as_array()
-                .map(|p| p.iter().map(strings).collect())
+                .map(|p| {
+                    p.iter()
+                        .map(|a| Step {
+                            args: strings(a),
+                            stdin: String::new(),
+                            routes: None,
+                        })
+                        .collect()
+                })
                 .unwrap_or_default(),
             tty: r["tty"].as_bool().unwrap_or(false),
             env: r["env"]
@@ -176,6 +261,11 @@ fn load_cases() -> Vec<Case> {
                         .collect()
                 })
                 .unwrap_or_default(),
+            routes: None,
+            seed: Vec::new(),
+            session: true,
+            hash_from: r.get("hash_from").map(strings),
+            tag: text(&r["tag"]),
         })
         .collect()
 }
@@ -214,10 +304,25 @@ fn prepare(home: &Path, case: &Case) -> PathBuf {
         "domain": DOMAIN,
         "cookies": {"_x_m": "m", "_x_d": "d", "_x_w": "w", "fw-session-id": "s"},
     });
-    std::fs::write(cfg.join("session.json"), session.to_string()).unwrap();
+    if case.session {
+        std::fs::write(cfg.join("session.json"), session.to_string()).unwrap();
+    }
     let work = home.join("work");
     std::fs::create_dir_all(&work).unwrap();
-    std::fs::copy(fixture_routes(fixture), home.join("routes.json")).unwrap();
+    if let Some(routes) = &case.routes {
+        write_routes(home, routes);
+    } else {
+        std::fs::copy(fixture_routes(fixture), home.join("routes.json")).unwrap();
+    }
+    for (rel, bytes) in &case.seed {
+        let dest = home.join(rel);
+        std::fs::create_dir_all(dest.parent().unwrap()).unwrap();
+        let bytes = match String::from_utf8(bytes.clone()) {
+            Ok(t) => unhome(&t, home).into_bytes(),
+            Err(e) => e.into_bytes(),
+        };
+        std::fs::write(dest, bytes).unwrap();
+    }
     if let Some(files) = &case.files {
         let src = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/files")
@@ -230,9 +335,23 @@ fn prepare(home: &Path, case: &Case) -> PathBuf {
     work
 }
 
+fn unhome(text: &str, home: &Path) -> String {
+    text.replace("@HOME@", &home.to_string_lossy())
+}
+
+fn write_routes(home: &Path, routes: &Value) {
+    std::fs::write(home.join("routes.json"), unhome(&routes.to_string(), home)).unwrap();
+}
+
 fn run(program: &[&str], home: &Path, work: &Path, case: &Case) -> Outcome {
     for step in &case.pre {
-        step_output(program, home, work, case, step, "");
+        if let Some(routes) = &step.routes {
+            write_routes(home, routes);
+        }
+        step_output(program, home, work, case, &step.args, &step.stdin);
+    }
+    if let Some(routes) = &case.routes {
+        write_routes(home, routes);
     }
     let _ = std::fs::remove_file(home.join("requests.log"));
     let input = case.stdin.clone().unwrap_or_default();
@@ -246,7 +365,7 @@ fn run(program: &[&str], home: &Path, work: &Path, case: &Case) -> Outcome {
                 .as_str()
                 .unwrap_or_default()
                 .replace(DOMAIN, "DOMAIN");
-            let body = r["body"].to_string();
+            let body = mask_boundary(&r["body"].to_string());
             let method = r["method"].as_str().unwrap_or_default().to_string();
             if method == "GET" || method == "HEAD" {
                 gets.push(format!("{method} {url}"));
@@ -284,9 +403,11 @@ fn step_output(
     args: &[String],
     input: &str,
 ) -> std::process::Output {
+    let args: Vec<String> = args.iter().map(|a| unhome(a, home)).collect();
+    let input = unhome(input, home);
     let mut cmd = Command::new(program[0]);
     cmd.args(&program[1..])
-        .args(args)
+        .args(&args)
         .current_dir(work)
         .env_clear()
         .env("PATH", "/usr/bin:/bin")
@@ -317,7 +438,6 @@ fn step_output(
         cmd.env("PYTHONPATH", src);
     }
     let mut child = cmd.spawn().unwrap();
-    let input = input.to_string();
     let mut pipe = child.stdin.take().unwrap();
     let writer = std::thread::spawn(move || {
         use std::io::Write;
@@ -331,6 +451,73 @@ fn step_output(
 /// Form metadata lines carry the wall-clock fetch time
 /// (`fetched 2026-11-13T05:20:03+00:00`), which can tick between the runs.
 fn mask_fetched(text: &str) -> String {
+    mask_epoch(&mask_stamps(&mask_sent_at(text)))
+}
+
+/// Journal timestamps `2026-11-21T11:47:44+0000`.
+fn mask_stamps(text: &str) -> String {
+    const STAMP: usize = "2026-11-21T11:47:44+0000".len();
+    let bytes = text.as_bytes();
+    let mut out = String::with_capacity(text.len());
+    let mut i = 0;
+    while i < text.len() {
+        let shaped = i + STAMP <= text.len()
+            && text.is_char_boundary(i)
+            && text.is_char_boundary(i + STAMP)
+            && bytes[i + 10] == b'T'
+            && bytes[i + 19] == b'+'
+            && bytes[i..i + 4].iter().all(u8::is_ascii_digit)
+            && bytes[i + 20..i + STAMP].iter().all(u8::is_ascii_digit);
+        if shaped {
+            out.push_str("<ts>");
+            i += STAMP;
+        } else {
+            let ch = text[i..].chars().next().unwrap();
+            out.push(ch);
+            i += ch.len_utf8();
+        }
+    }
+    out
+}
+
+/// `"epoch": 1795261665`.
+fn mask_epoch(text: &str) -> String {
+    const MARK: &str = "\"epoch\": ";
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(i) = rest.find(MARK) {
+        let start = i + MARK.len();
+        out.push_str(&rest[..start]);
+        rest = &rest[start..];
+        let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
+        out.push_str("<epoch>");
+        rest = &rest[digits..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// `was already sent at 2026-11-21T11:37:30+0000`: the journal's wall-clock
+/// stamp, which can tick between the runs.
+fn mask_sent_at(text: &str) -> String {
+    const MARK: &str = "was already sent at ";
+    const STAMP: usize = "2026-11-21T11:37:30+0000".len();
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(i) = rest.find(MARK) {
+        let start = i + MARK.len();
+        out.push_str(&rest[..start]);
+        rest = &rest[start..];
+        if rest.len() >= STAMP && rest.as_bytes().get(10) == Some(&b'T') {
+            out.push_str("<time>");
+            rest = &rest[STAMP..];
+        }
+    }
+    out.push_str(rest);
+    mask_fetched_stamp(&out)
+}
+
+fn mask_fetched_stamp(text: &str) -> String {
     const STAMP: usize = "2026-11-13T05:20:03+00:00".len();
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
@@ -431,6 +618,12 @@ fn python_and_rust_agree_on_canned_routes() {
     let only = std::env::var("FSV_DIFF_ONLY").ok();
     let cases: Vec<Case> = load_cases()
         .into_iter()
+        .chain(load_env_cases())
+        .filter(|c| {
+            std::env::var("FSV_DIFF_TAG")
+                .ok()
+                .is_none_or(|t| c.tag.as_deref() == Some(t.as_str()))
+        })
         .filter(|c| {
             only.as_deref()
                 .is_none_or(|o| format!("{}: fsv {}", c.fixture, c.args.join(" ")).contains(o))
@@ -439,7 +632,36 @@ fn python_and_rust_agree_on_canned_routes() {
     let mut failures: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut succeeded = 0;
     for case in &cases {
+        let mut case = case.clone();
         let label = format!("{}: fsv {}", case.fixture, case.args.join(" "));
+        if let Some(review) = case.hash_from.clone() {
+            let probe = Case {
+                args: review,
+                stdin: None,
+                hash_from: None,
+                ..case.clone()
+            };
+            let home = tempfile::tempdir().unwrap();
+            let work = prepare(home.path(), &probe);
+            let out = run(
+                &[python.as_str(), shim.as_str()],
+                home.path(),
+                &work,
+                &probe,
+            );
+            let hash = serde_json::from_str::<Value>(&out.out)
+                .ok()
+                .and_then(|v| v["plan_hash"].as_str().map(str::to_string))
+                .unwrap_or_else(|| format!("NO-HASH {}", out.err));
+            for a in case
+                .args
+                .iter_mut()
+                .chain(case.pre.iter_mut().flat_map(|s| s.args.iter_mut()))
+            {
+                *a = a.replace("@HASH@", &hash);
+            }
+        }
+        let case = &case;
         let py_home = tempfile::tempdir().unwrap();
         let py_work = prepare(py_home.path(), case);
         let py = run(
@@ -453,6 +675,9 @@ fn python_and_rust_agree_on_canned_routes() {
         let rs = run(&[rust], rs_home.path(), &rs_work, case);
         if py.code == 0 {
             succeeded += 1;
+        }
+        if std::env::var_os("FSV_DIFF_EXITS").is_some() {
+            println!("EXIT {} {label}", py.code);
         }
         let diffs = describe(&py, &rs);
         if !diffs.is_empty() {
@@ -477,4 +702,23 @@ fn python_and_rust_agree_on_canned_routes() {
         "{} of {total} cases differ",
         failures.len()
     );
+}
+
+/// `------fsv<32 hex>`: a multipart boundary, random per run.
+fn mask_boundary(text: &str) -> String {
+    const MARK: &str = "------fsv";
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(i) = rest.find(MARK) {
+        let start = i + MARK.len();
+        out.push_str(&rest[..start]);
+        rest = &rest[start..];
+        let hex = rest.bytes().take_while(u8::is_ascii_hexdigit).count();
+        if hex >= 32 {
+            out.push_str("<boundary>");
+            rest = &rest[32..];
+        }
+    }
+    out.push_str(rest);
+    out
 }
