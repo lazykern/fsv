@@ -1199,6 +1199,7 @@ mod tests {
     /// `test_ticket_properties.py::test_full_properties_runtime_enums_and_custom_readback`.
     #[test]
     fn full_properties_runtime_enums_and_custom_readback() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
         let want = &oracle["properties"]["full"];
@@ -1255,6 +1256,7 @@ mod tests {
     /// `test_legacy_property_hash_identity_is_unchanged`.
     #[test]
     fn legacy_hash_identity_unchanged() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
         let c = rich_api(rich_form(&[]), json!({"business_rules": []}), rich_row());

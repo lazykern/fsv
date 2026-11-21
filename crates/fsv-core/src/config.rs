@@ -142,7 +142,21 @@ pub fn filters_dir() -> PathBuf {
 
 /// Configured tenant host (`config.DOMAIN`), `""` when none.
 pub fn domain() -> String {
+    if let Some(d) = THREAD_DOMAIN.with(|t| t.borrow().clone()) {
+        return d;
+    }
     read_state(|s| s.domain.clone())
+}
+
+thread_local! {
+    static THREAD_DOMAIN: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Tests: `config.DOMAIN = domain` for this thread only, so parallel tests
+/// hash plans for different tenants like the Python generators do.
+#[doc(hidden)]
+pub fn use_domain_on_thread(domain: &str) {
+    THREAD_DOMAIN.with(|t| *t.borrow_mut() = Some(domain.to_string()));
 }
 
 /// `https://<domain>/api/v2` (`""` without a domain).

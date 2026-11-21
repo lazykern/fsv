@@ -133,11 +133,13 @@ fn api(w: Arc<Mutex<Wire>>, domain: &str) -> FnApi {
         Err(ApiError::new(404, json!({"error": "unexpected"})).into())
     });
     a.domain = domain.into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 
 #[test]
 fn closure_conversations_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/closure_conversation_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
@@ -175,6 +177,7 @@ fn closure_conversations_match_python() {
                     };
                     Some(
                         build_plan(&c, &store, &cid, op["body"].as_str().unwrap(), &args).map(|p| {
+                            let p = p.stated(&journal);
                             let out = json!({"payload_json": p.payload_json, "record_hash": p.record_hash,
                                 "status_label": p.status_label, "hash": p.hash(), "review": p.review()});
                             plan = Some(p);

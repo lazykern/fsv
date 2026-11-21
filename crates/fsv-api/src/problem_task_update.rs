@@ -356,6 +356,7 @@ mod tests {
 
     #[test]
     fn updates_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for (key, inputs, omit) in [
             ("task-full", full(), None),
             ("task-complete", obj(json!({"status": "Completed"})), None),
@@ -383,6 +384,7 @@ mod tests {
 
     #[test]
     fn delete_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let want = &ORACLE["task-delete"];
         let state = Arc::new(Mutex::new(world()));
         let c = api(Arc::clone(&state));

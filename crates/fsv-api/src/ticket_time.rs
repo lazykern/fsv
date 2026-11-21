@@ -419,6 +419,7 @@ mod tests {
     /// `test_ticket_time.py::test_exact_wire_crud_and_independent_readback`.
     #[test]
     fn exact_wire_crud_and_readback() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
         let w = world();

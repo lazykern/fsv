@@ -761,6 +761,7 @@ mod tests {
             Ok(json!({}))
         });
         c.domain = "acme.example.com".into();
+        fsv_core::config::use_domain_on_thread(&c.domain);
         (c, state)
     }
 
@@ -782,6 +783,7 @@ mod tests {
     /// The whole oracle sequence of the Python generator, in order.
     #[test]
     fn sequence_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let (c, _s) = tenant();
         let j = MemJournal::default();
         let o = &*ORACLE;

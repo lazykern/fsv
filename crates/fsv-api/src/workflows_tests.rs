@@ -224,7 +224,7 @@ fn reply(
     pointer: &str,
     sender: &str,
 ) -> Result<conversations::ConversationPlan> {
-    canned::reply_plan(&w.api, &w.store, target, &id, pointer, sender)
+    canned::reply_plan(&w.api, &w.store, target, &id, pointer, sender).map(|p| p.stated(&w.journal))
 }
 
 fn conv_send(w: &Wire, p: &conversations::ConversationPlan, confirmed: bool) -> Result<Value> {
@@ -274,6 +274,7 @@ fn canned_reads_and_content_picker() {
 
 #[test]
 fn canned_reply_plan_send_and_refusals() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let want = &ORACLE["canned"];
     let r = &want["reply"];
     let w = canned_wire();
@@ -304,7 +305,8 @@ fn canned_reply_plan_send_and_refusals() {
         "Acme",
         &ConversationArgs::default(),
     )
-    .unwrap();
+    .unwrap()
+    .stated(&w.journal);
     assert_eq!(legacy.hash(), want["legacy_hash"]);
 
     let w = canned_wire();
@@ -366,6 +368,7 @@ fn canned_reply_plan_send_and_refusals() {
 
 #[test]
 fn scenarios_plan_send_failures_and_refusals() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let want = &ORACLE["scenarios"];
     let w = canned_wire();
     let p = scenarios::build_plan(&w.api, "INC-123", &json!(703)).unwrap();
@@ -465,6 +468,7 @@ fn view_send(w: &Wire, p: &private_views::ViewPlan) -> Value {
 
 #[test]
 fn private_views_lifecycle_and_refusals() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let want = &ORACLE["private_views"];
     let w = view_wire(view());
     for entry in want["lifecycle"].as_array().unwrap() {
@@ -642,6 +646,7 @@ fn assert_plan(got: &Value, want: &Value, ctx: &str) {
 
 #[test]
 fn list_preferences_columns_export_and_refusals() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     for module in ["tickets", "changes", "problems"] {
         let want = &ORACLE["list_preferences"][module];
         let w = list_wire(module);
@@ -886,6 +891,7 @@ fn problem_send(w: &Wire, p: &problem_workflows::ProblemPlan) -> Value {
 
 #[test]
 fn problem_create_send_and_custom_readback() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let want = &ORACLE["problem_workflows"];
     let w = problem_wire();
     let p = create(&w, &answers(), "person@example.com").unwrap();
@@ -950,6 +956,7 @@ fn problem_create_send_and_custom_readback() {
 
 #[test]
 fn problem_note_and_task() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let want = &ORACLE["problem_workflows"];
     for kind in ["note", "task"] {
         let w = problem_wire();
@@ -1017,6 +1024,7 @@ fn child_task_reminder_not_exposed_by_server() {
 
 #[test]
 fn problem_refusals() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let want = &ORACLE["problem_workflows"]["refusals"];
     let with_answer = |k: &str, v: &str| {
         let mut a = answers();

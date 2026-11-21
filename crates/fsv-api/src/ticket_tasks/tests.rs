@@ -114,6 +114,7 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
         }
     });
     a.domain = "acme.example.com".into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 

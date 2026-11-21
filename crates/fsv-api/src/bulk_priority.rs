@@ -210,6 +210,7 @@ mod tests {
             Ok(json!({"ticket": w.rows[id]}))
         });
         api.domain = domain.into();
+        fsv_core::config::use_domain_on_thread(&api.domain);
         api
     }
 

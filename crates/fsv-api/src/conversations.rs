@@ -1218,6 +1218,7 @@ mod tests {
     /// `test_ticket_conversation.py::test_bcc_and_whole_ticket_forward_exact_wire_hash_and_readback`.
     #[test]
     fn bcc_and_forward_exact_wire_hash_and_readback() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
         let to = vec!["person@example.com".to_string()];

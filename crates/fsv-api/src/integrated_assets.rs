@@ -874,6 +874,7 @@ mod tests {
 
     #[test]
     fn cases_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/integrated_assets_oracle.json")).unwrap();
         let cases = oracle["cases"].as_object().unwrap();

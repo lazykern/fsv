@@ -430,6 +430,7 @@ mod tests {
     /// Server-normalized readback (`gen_fsv_api_note_readback.py`).
     #[test]
     fn normalized_readback_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/note_readback_oracle.json")).unwrap();
         for (name, case) in oracle.as_object().unwrap() {

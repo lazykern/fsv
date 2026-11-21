@@ -130,6 +130,7 @@ fn date_bounds_are_inclusive_merged_and_do_not_erase_other_fields() {
 
 #[test]
 fn number_filters_use_captured_advanced_is_with_string() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     for (expr, case) in q()["number"].as_object().unwrap() {
         let got = hash_from("tickets", &q()["schema"], std::slice::from_ref(expr));
         assert_eq!(got, *case, "{expr}");
@@ -138,6 +139,7 @@ fn number_filters_use_captured_advanced_is_with_string() {
 
 #[test]
 fn repeated_bound_and_inverted_range_are_refused() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     for (pair, case) in q()["repeated_bound"].as_object().unwrap() {
         let exprs: Vec<String> = pair.split('|').map(String::from).collect();
         assert_eq!(from_schema(&exprs), *case, "{pair}");

@@ -127,6 +127,7 @@ fn api(state: Arc<Mutex<State>>, domain: &str) -> FnApi {
         }
     });
     a.domain = domain.into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 
@@ -139,6 +140,7 @@ fn strings(v: Option<&Value>, default: &[&str]) -> Vec<String> {
 
 #[test]
 fn cases_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/ticket_merge_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
@@ -274,6 +276,7 @@ fn cases_match_python() {
 
 #[test]
 fn closed_status_matches_the_python_context() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/ticket_merge_oracle.json")).unwrap();
     let plan = &oracle["exact_wire"]["outputs"][0]["plan"];

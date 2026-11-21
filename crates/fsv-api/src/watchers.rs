@@ -285,6 +285,7 @@ mod tests {
     /// `test_watchers.py::test_self_watch_unwatch_preserves_other_members_and_exact_methods`.
     #[test]
     fn watch_unwatch_exact_methods() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
         for module in ["tickets", "changes"] {

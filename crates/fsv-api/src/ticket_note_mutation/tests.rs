@@ -95,6 +95,7 @@ fn api(state: Arc<Mutex<State>>, domain: &str) -> FnApi {
         Ok(json!({"conversations": rows, "meta": {"count": n}}))
     });
     a.domain = domain.into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 

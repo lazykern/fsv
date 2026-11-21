@@ -142,11 +142,13 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
         Err(ApiError::new(404, json!({"error": "unexpected"})).into())
     });
     a.domain = "acme.example.com".into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 
 #[test]
 fn cases_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let dir = std::env::temp_dir().join(format!("fsv-closure-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
@@ -190,7 +192,8 @@ fn cases_match_python() {
                                     "label": p.label, "before_json": p.before_json,
                                     "warnings_json": p.warnings_json,
                                     "status_labels_json": p.status_labels_json,
-                                    "closure_check_json": p.closure_check_json},
+                                    "closure_check_json": p.closure_check_json,
+                                    "state_json": w.state_json, "prior_context": w.prior_context},
                                     "hash": p.hash(), "review": p.review()});
                                 plan = Some(p);
                                 out

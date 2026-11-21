@@ -336,6 +336,7 @@ mod tests {
     /// Hash and review from `uv run python` on `reviewed_write.WritePlan`.
     #[test]
     fn hash_and_review_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let p = plan(r#"{"user_id": 901}"#);
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();

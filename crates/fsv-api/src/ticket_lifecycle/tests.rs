@@ -190,6 +190,7 @@ fn api(world: Arc<Mutex<World>>, tenant: &str) -> FnApi {
         }
     });
     a.domain = tenant.into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 
@@ -208,6 +209,7 @@ fn opt_str(v: &Value) -> Option<&str> {
 
 #[test]
 fn cases_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let cases = ORACLE["cases"].as_object().unwrap();
     assert_eq!(cases.len(), 36);
     replay(cases);
@@ -217,6 +219,7 @@ fn cases_match_python() {
 /// workflow rewrites accepted as `verified_with_note`.
 #[test]
 fn ack_and_workflow_rewrites_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let cases = ACK_ORACLE["cases"].as_object().unwrap();
     assert_eq!(cases.len(), 5);
     replay(cases);
@@ -234,6 +237,7 @@ fn ack_and_workflow_rewrites_match_python() {
 /// `test_unacknowledged_plans_keep_their_context_identity`.
 #[test]
 fn unacknowledged_plans_keep_their_context_identity() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let case = &ORACLE["cases"]["pending_reason_rule"]["outputs"][1]["plan"]["context_hash"];
     let keys: Vec<String> = serde_json::from_str::<Map<String, Value>>(case.as_str().unwrap())
         .unwrap()

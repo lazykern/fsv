@@ -476,6 +476,7 @@ pub(crate) mod tests {
 
     #[test]
     fn time_flows_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for module in ["changes", "problems"] {
             let key = format!("time-{module}");
             let want = &ORACLE[&key];
@@ -583,6 +584,7 @@ pub(crate) mod tests {
 
     #[test]
     fn time_missing_field_stays_unverified() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let want = &ORACLE["time-missing"];
         let state = Arc::new(Mutex::new(world()));
         let c = api(Arc::clone(&state));

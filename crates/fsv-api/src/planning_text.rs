@@ -563,6 +563,7 @@ mod tests {
     /// with plans and results from `gen_fsv_api_workflows.py`.
     #[test]
     fn section_query_exact_wire_and_readback() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for case in ORACLE["sections"].as_array().unwrap() {
             let module = module_of(case);
             let section = case["section"].as_str().unwrap();
@@ -609,6 +610,7 @@ mod tests {
     /// refused unknown text and files, the GET race, and normalized readback.
     #[test]
     fn create_versus_edit_boundaries() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let build = |case: &Value, rows: &Value, text: &str| {
             let module = module_of(case);
             let w = world(module);
@@ -897,6 +899,7 @@ mod tests {
     /// one verified send, and a refused resend.
     #[test]
     fn edit_and_clear_exact_wire_and_readback() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for case in edit_clear("wire") {
             let w = populated(module_of(case), key_of(case));
             let c = client(&w);
@@ -962,6 +965,7 @@ mod tests {
     /// transport timeout are unknown outcomes; the write is attempted once.
     #[test]
     fn edit_and_clear_unknown_outcome_single_attempt() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for case in edit_clear("transport") {
             let w = world(module_of(case));
             w.lock().unwrap().rows = json!([{"id": 987, "name": key_of(case),
@@ -989,6 +993,7 @@ mod tests {
     /// response is ignored; verification reads a fresh inventory.
     #[test]
     fn edit_and_clear_verify_from_a_fresh_inventory() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for case in edit_clear("envelope") {
             let w = world(module_of(case));
             w.lock().unwrap().rows = case["rows"].clone();
@@ -1022,6 +1027,7 @@ mod tests {
     /// verified only by a removed row or a known-empty placeholder.
     #[test]
     fn clear_readback_matrix() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for case in edit_clear("delete_readback") {
             let w = populated("changes", "acme_plan");
             w.lock().unwrap().after = Some(case["after"].clone());

@@ -97,6 +97,7 @@ fn api(state: Arc<Mutex<State>>) -> Arc<FnApi> {
         Err(ApiError::new(404, json!({"error": "unexpected"})).into())
     });
     a.domain = "acme.example.com".into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     Arc::new(a)
 }
 
@@ -141,7 +142,8 @@ fn cases_match_python() {
                         let w = &p.write;
                         let out = json!({"write": {"action": w.action, "target": w.target, "tenant": w.tenant,
                             "method": w.method, "path": w.path, "payload_json": w.payload_json,
-                            "context_hash": w.context_hash}, "intent_json": p.intent_json,
+                            "context_hash": w.context_hash, "state_json": w.state_json,
+                            "prior_context": w.prior_context}, "intent_json": p.intent_json,
                             "before_json": p.before_json, "hash": p.hash(), "review": p.review()});
                         plan = Some(p);
                         out

@@ -312,6 +312,7 @@ mod tests {
             }))
         });
         api.domain = "acme.example.com".into();
+        fsv_core::config::use_domain_on_thread(&api.domain);
         api
     }
 

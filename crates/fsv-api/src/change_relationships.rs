@@ -1022,6 +1022,7 @@ mod tests {
 
     #[test]
     fn plans_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let project = project_body();
         let cases = [
             ("caused-incident", "add", Some("71"), None, None, None),

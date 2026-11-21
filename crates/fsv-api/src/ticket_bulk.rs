@@ -1221,6 +1221,7 @@ mod tests {
 
     #[test]
     fn spam_matches_python_and_replays_once() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let state = Arc::new(Mutex::new(world()));
         let c = api(Arc::clone(&state));
         let plan = spam_plan(&c);
@@ -1258,6 +1259,7 @@ mod tests {
 
     #[test]
     fn delete_and_unspam_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let state = Arc::new(Mutex::new(world()));
         let c = api(Arc::clone(&state));
         let plan = build_plan(
@@ -1705,6 +1707,7 @@ mod tests {
 
     #[test]
     fn lagging_readback_rereads_only_and_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for case in READBACK["cases"].as_array().unwrap() {
             let action = case["action"].as_str().unwrap();
             let state = Arc::new(Mutex::new(world()));
@@ -1929,6 +1932,7 @@ mod tests {
             Ok(json!({}))
         });
         a.domain = "acme.example.com".into();
+        fsv_core::config::use_domain_on_thread(&a.domain);
         a
     }
 

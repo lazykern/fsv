@@ -737,6 +737,7 @@ mod tests {
 
     #[test]
     fn wires_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for (key, action, missing) in [
             ("edit", "edit", false),
             ("stage", "stage", false),

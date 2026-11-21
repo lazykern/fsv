@@ -493,6 +493,7 @@ mod tests {
             Ok(json!({"approval_chain": {"id": 999}}))
         });
         a.domain = "acme.example.com".into();
+        fsv_core::config::use_domain_on_thread(&a.domain);
         a
     }
 

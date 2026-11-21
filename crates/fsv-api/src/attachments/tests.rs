@@ -180,6 +180,7 @@ fn api(state: Arc<Mutex<Value>>, domain: &str) -> FnApi {
     })
     .with_fetch(move |path| page(&pages.lock().unwrap(), path));
     a.domain = domain.into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 
@@ -466,6 +467,7 @@ mod hardening {
 
     #[test]
     fn identities_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let a = "a".repeat(64);
         let b = "b".repeat(64);
         let guards = [

@@ -82,11 +82,13 @@ fn api(state: Arc<Mutex<Value>>, domain: &str) -> FnApi {
         }
     });
     a.domain = domain.into();
+    fsv_core::config::use_domain_on_thread(&a.domain);
     a
 }
 
 #[test]
 fn cases_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/problem_incidents_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
@@ -122,7 +124,8 @@ fn cases_match_python() {
                     .map(|p| {
                         let out = json!({"plan": {"action": p.action, "target": p.target, "tenant": p.tenant,
                             "method": p.method, "path": p.path, "payload_json": p.payload_json,
-                            "context_hash": p.context_hash}, "hash": p.hash(), "review": p.review()});
+                            "context_hash": p.context_hash, "state_json": p.state_json,
+                            "prior_context": p.prior_context}, "hash": p.hash(), "review": p.review()});
                         plan = Some(p);
                         out
                     }),

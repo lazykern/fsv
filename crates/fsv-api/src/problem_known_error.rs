@@ -118,6 +118,7 @@ mod tests {
     /// `test_problem_known_error.py::test_exact_mark_and_noop`.
     #[test]
     fn exact_mark_and_noop() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
         let w = world();
