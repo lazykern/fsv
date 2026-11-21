@@ -515,7 +515,7 @@ fn dry_run_and_foreign_plans_send_nothing() {
     assert!(f.writes().is_empty());
 }
 
-const SR_FILES_HASH: &str = "91d529fae5ca8385206aac0703e70ece7457a0138eb9acaf4055a817250ce4a3";
+const SR_FILES_HASH: &str = "6416a148b3efe72a9d7b517f2c87d3806ecf71220f2211d718a328b09d88b971";
 const UNKNOWN_OUTCOME: &str =
     "the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying";
 

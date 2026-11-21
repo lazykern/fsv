@@ -5148,6 +5148,13 @@ pub struct SrCreateArgs {
     )]
     pub attach: Vec<String>,
     #[arg(
+        help = "total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
+    #[arg(
         help = "show the review, payload and plan hash; send nothing",
         long = "dry-run"
     )]

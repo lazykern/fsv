@@ -1020,6 +1020,9 @@ pub struct SRPlan {
     pub errors: Vec<String>,
     pub requester: Option<LookupValue>,
     pub identity: Map<String, Json>,
+    /// Upload size limit bound into the hash when the plan uploads files:
+    /// `{"max_bytes": N | None, "source": ...}` (tenant limit or `--max-bytes`).
+    pub upload_limit: Map<String, Json>,
     pub hash: String,
     /// Journal / duplicate-check compatible with changes.
     pub action: String,
@@ -1099,6 +1102,12 @@ impl SRPlan {
             hashed.insert(
                 "recipient_identity".into(),
                 Json::Object(self.identity.clone()),
+            );
+        }
+        if !self.upload_limit.is_empty() {
+            hashed.insert(
+                "upload_limit".into(),
+                Json::Object(self.upload_limit.clone()),
             );
         }
         Json::Object(hashed)
@@ -1309,6 +1318,10 @@ pub struct Recipients<'a> {
     pub cc_ids: &'a [Json],
 }
 
+/// The upload size limit callback of [`build_sr_plan_limited`]
+/// (`attachments.Limit`: `--max-bytes`, else the tenant's published limit).
+pub type UploadLimit<'a> = &'a dyn Fn() -> Result<crate::attachments::Limit>;
+
 /// `build_sr_plan`: engine state, payload, uploads, review and plan hash.
 pub fn build_sr_plan(
     meta: &ItemMeta,
@@ -1318,6 +1331,22 @@ pub fn build_sr_plan(
     ack_all: bool,
     who: &Recipients<'_>,
     tenant: &str,
+) -> Result<SRPlan> {
+    build_sr_plan_limited(meta, draft, resolver, requester, ack_all, who, tenant, None)
+}
+
+/// [`build_sr_plan`] with `upload_limit`, asked only when the plan uploads
+/// files; the limit is checked here and bound into the plan hash.
+#[allow(clippy::too_many_arguments)]
+pub fn build_sr_plan_limited(
+    meta: &ItemMeta,
+    draft: &Draft,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    requester: Option<&LookupValue>,
+    ack_all: bool,
+    who: &Recipients<'_>,
+    tenant: &str,
+    upload_limit: Option<UploadLimit<'_>>,
 ) -> Result<SRPlan> {
     let spec = meta.spec();
     let item = spec
@@ -1404,6 +1433,27 @@ pub fn build_sr_plan(
             .filter(|u| !is_file(&u.path))
             .map(|u| format!("file not found: {}", u.path)),
     );
+    let mut limit_info: Map<String, Json> = Map::new();
+    if !uploads.is_empty()
+        && let Some(ask) = upload_limit
+    {
+        let lim = ask()?;
+        limit_info = obj(json!({"max_bytes": lim.max_bytes, "source": lim.source}));
+        let total: u64 = uploads
+            .iter()
+            .filter(|u| is_file(&u.path))
+            .filter_map(|u| std::fs::metadata(&u.path).ok())
+            .map(|m| m.len())
+            .sum();
+        if let Some(max) = lim.max_bytes
+            && total as i64 > max
+        {
+            errors.push(format!(
+                "uploads total {total} bytes and exceed the {max}-byte limit ({}); nothing would be uploaded",
+                lim.source
+            ));
+        }
+    }
 
     let skip: HashSet<String> = failed
         .iter()
@@ -1584,6 +1634,11 @@ pub fn build_sr_plan(
             })
         })
         .collect();
+    if !limit_info.is_empty() && limit_info["max_bytes"].is_null() {
+        warnings.push(
+            "the tenant publishes no attachment size limit; pass --max-bytes N to bind one".into(),
+        );
+    }
     review.warnings = warnings;
     review.metadata = meta.as_of();
     let mut identity = Map::new();
@@ -1614,6 +1669,7 @@ pub fn build_sr_plan(
         errors: problems,
         requester: requester.cloned(),
         identity,
+        upload_limit: limit_info,
         hash: String::new(),
         action: "create".into(),
     };
@@ -1839,6 +1895,23 @@ pub fn execute_detailed(
             2,
             format!("plan has problems: {}", preflight.join("; ")),
         ));
+    }
+    if let Some(max) = plan.upload_limit.get("max_bytes").and_then(Json::as_i64) {
+        let total: u64 = plan
+            .uploads
+            .iter()
+            .map(|u| {
+                std::fs::metadata(&u.path)
+                    .map(|m| m.len())
+                    .map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))
+            })
+            .sum::<std::result::Result<u64, Executed>>()?;
+        if total as i64 > max {
+            return Err(flow_exit(
+                2,
+                format!("uploads exceed the reviewed {max}-byte limit; nothing was uploaded"),
+            ));
+        }
     }
     let current = plan_hash(&plan.hashed(), Some(&plan.plan_files()))
         .map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))?;
@@ -2071,6 +2144,20 @@ pub fn duplicate_check(plan: &SRPlan, allow_duplicate: bool, journal: &dyn Journ
         hashed.insert("recipient_identity".into(), Json::Object(previous));
         hashes.push(
             plan_hash(&Json::Object(hashed), Some(&plan.plan_files()))
+                .map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))?,
+        );
+    }
+    if !plan.upload_limit.is_empty() {
+        // Plans reviewed before the upload limit was bound must still refuse.
+        let mut older = obj(json!({"request": plan.payload, "target": plan.target()}));
+        if !plan.identity.is_empty() {
+            older.insert(
+                "recipient_identity".into(),
+                Json::Object(plan.identity.clone()),
+            );
+        }
+        hashes.push(
+            plan_hash(&Json::Object(older), Some(&plan.plan_files()))
                 .map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))?,
         );
     }
@@ -2386,6 +2473,107 @@ mod tests {
             "acme.freshservice.com",
         )
         .unwrap()
+    }
+
+    fn limited_plan(limit: crate::attachments::Limit) -> SRPlan {
+        let draft = Draft {
+            answers: answers(json!({"Answer": "ok", "Size": "meg", "Deck": file("deck.pptx")})),
+            attachments: vec![file("notes.txt")],
+            ..Draft::default()
+        };
+        let ask = move || Ok(limit.clone());
+        build_sr_plan_limited(
+            &meta(),
+            &draft,
+            None,
+            Some(&ann()),
+            false,
+            &Recipients::default(),
+            "acme.freshservice.com",
+            Some(&ask),
+        )
+        .unwrap()
+    }
+
+    /// `tests/test_sr_max_bytes.py`: the limit is bound into the hash only
+    /// when files are uploaded, over-limit uploads are refused at review, and
+    /// a plan reviewed before the limit was bound still guards.
+    #[test]
+    fn upload_limit_is_bound_checked_and_guarded() {
+        let lim = |n: Option<i64>, src: &str| crate::attachments::Limit {
+            max_bytes: n,
+            source: src.into(),
+            published: None,
+        };
+        let plain = full_plan();
+        let bound = limited_plan(lim(Some(1000), "--max-bytes override"));
+        assert!(bound.errors.is_empty(), "{:?}", bound.errors);
+        assert_eq!(
+            Json::Object(bound.upload_limit.clone()),
+            json!({"max_bytes": 1000, "source": "--max-bytes override"})
+        );
+        assert_ne!(bound.hash, plain.hash);
+        assert_eq!(
+            limited_plan(lim(Some(1000), "--max-bytes override")).hash,
+            bound.hash
+        );
+        assert_ne!(
+            limited_plan(lim(Some(2000), "--max-bytes override")).hash,
+            bound.hash
+        );
+
+        let small = limited_plan(lim(Some(5), "--max-bytes override"));
+        assert!(small.hash.is_empty());
+        assert!(
+            small
+                .errors
+                .iter()
+                .any(|e| e.contains("exceed the 5-byte limit (--max-bytes override)")),
+            "{:?}",
+            small.errors
+        );
+
+        let none = limited_plan(lim(None, "not published by the tenant"));
+        assert!(
+            none.review
+                .warnings
+                .iter()
+                .any(|w| w.contains("publishes no attachment size limit")),
+            "{:?}",
+            none.review.warnings
+        );
+
+        // a plan without uploads never asks for or binds a limit
+        let ask = || -> Result<crate::attachments::Limit> { panic!("no uploads, no limit") };
+        let no_files = build_sr_plan_limited(
+            &meta(),
+            &Draft {
+                answers: answers(json!({"Answer": "ok"})),
+                ..Draft::default()
+            },
+            None,
+            Some(&ann()),
+            false,
+            &Recipients::default(),
+            "acme.freshservice.com",
+            Some(&ask),
+        )
+        .unwrap();
+        assert!(no_files.upload_limit.is_empty());
+
+        // an unknown earlier outcome of the plan reviewed without the limit still refuses
+        let older = plan_hash(
+            &json!({"request": bound.payload, "target": bound.target()}),
+            Some(&bound.plan_files()),
+        )
+        .unwrap();
+        assert_ne!(older, bound.hash);
+        let j = MemJournal::default();
+        j.record_plan("started", &older, "create", None, None);
+        assert_eq!(
+            err(duplicate_check(&bound, true, &j)),
+            want_err("dup_started")
+        );
     }
 
     fn recipients_plan() -> SRPlan {

@@ -1560,6 +1560,7 @@ A	fsv sr create	--requester	requester email or exact name
 A	fsv sr create	--requested-for	exact user email or name
 A	fsv sr create	--cc	plain CC email (repeatable)
 A	fsv sr create	--attach	general attachment (repeatable)
+A	fsv sr create	--max-bytes	total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash
 A	fsv sr create	--dry-run	show the review, payload and plan hash; send nothing
 A	fsv sr create	--output	table|json (with --dry-run: the plan)
 A	fsv sr create	--yes	place without the prompt (required without a terminal)

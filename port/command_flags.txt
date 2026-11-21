@@ -168,7 +168,7 @@ fsv sr assets list	--json,--kind	1
 fsv sr assets ls	--json,--kind	1
 fsv sr assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
 fsv sr catalog	--categories,--category,--output,--popular,--search	0
-fsv sr create	--ack,--allow-duplicate,--attach,--cc,--dry-run,--edit,--expect-plan,--from,--no-input,--output,--preset,--requested-for,--requester,--set,--yes	1
+fsv sr create	--ack,--allow-duplicate,--attach,--cc,--dry-run,--edit,--expect-plan,--from,--max-bytes,--no-input,--output,--preset,--requested-for,--requester,--set,--yes	1
 fsv sr fields	--output	1
 fsv sr get	--attachments,--download,--force,--items,--output	1
 fsv sr items		0

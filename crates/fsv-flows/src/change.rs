@@ -177,6 +177,8 @@ pub struct Plan {
     pub legacy_hash: String,
     /// Tenant the update hash binds. Empty on create plans.
     pub tenant: String,
+    /// `{"max_bytes", "source"}` bound into the update hash when files are uploaded.
+    pub upload_limit: Map<String, Json>,
 }
 
 fn is_file(p: &str) -> bool {
@@ -1047,6 +1049,7 @@ pub fn build_create_plan(
         record_hash: String::new(),
         legacy_hash: String::new(),
         tenant: String::new(),
+        upload_limit: Map::new(),
     };
     if let Some(p) = &plan.payload
         && plan.errors.is_empty()
@@ -1129,6 +1132,10 @@ pub struct UpdateOptions<'a> {
     /// Status value -> label (default: the status field's choice label).
     pub status_label: Option<&'a dyn Fn(&Json) -> String>,
     pub hints_path: Option<PathBuf>,
+    /// `upload_limit=`: the size limit (`--max-bytes`, else the tenant's
+    /// published limit), asked only when the plan uploads files; checked at
+    /// build and bound into the plan hash.
+    pub upload_limit: Option<&'a dyn Fn() -> Result<fsv_api::attachments::Limit>>,
 }
 
 pub fn build_update_plan(
@@ -1267,6 +1274,31 @@ pub fn build_update_plan_with_lifecycle(
     let files = plan_files(draft, &planning);
     problems.extend(perr);
     problems.extend(file_errors(&all_paths(&files)));
+    let mut limit_info: Map<String, Json> = Map::new();
+    let uploading = all_paths(&files);
+    if !uploading.is_empty()
+        && let Some(ask) = opts.upload_limit
+    {
+        let lim = ask()?;
+        limit_info.insert("max_bytes".into(), json!(lim.max_bytes));
+        limit_info.insert("source".into(), json!(lim.source));
+        let total: u64 = uploading
+            .iter()
+            .filter(|x| is_file(x))
+            .filter_map(|x| std::fs::metadata(x).ok())
+            .map(|m| m.len())
+            .sum();
+        match lim.max_bytes {
+            Some(max) if total as i64 > max => problems.push(format!(
+                "uploads total {total} bytes and exceed the {max}-byte limit ({}); nothing would be uploaded",
+                lim.source
+            )),
+            None => warnings.push(
+                "the tenant publishes no attachment size limit; pass --max-bytes N to bind one".into(),
+            ),
+            _ => {}
+        }
+    }
     if let Some(read) = lifecycle.filter(|_| !body.is_empty()) {
         let label = |name: &str| -> String {
             [name, name.strip_suffix("_id").unwrap_or(name)]
@@ -1335,6 +1367,7 @@ pub fn build_update_plan_with_lifecycle(
         record_hash: String::new(),
         legacy_hash: String::new(),
         tenant: String::new(),
+        upload_limit: limit_info,
     };
     let body = plan.payload.clone().unwrap_or_default();
     if plan.errors.is_empty() && (!body.is_empty() || any_files || !plan.planning.is_empty()) {
@@ -1348,13 +1381,17 @@ pub fn build_update_plan_with_lifecycle(
             .map_err(Error::value)?
             .unwrap_or_default();
         plan.tenant = fsv_core::config::domain();
-        plan.hash = fsv_core::journal::plan_hash(Some(&json!({
+        let mut doc = json!({
             "legacy": plan.legacy_hash,
             "record": plan.record_hash,
             "metadata": meta.fingerprint().hash,
             "tenant": plan.tenant,
-        })))
-        .unwrap_or_default();
+        });
+        if !plan.upload_limit.is_empty() {
+            // only plans that upload files under a size limit (older hashes unchanged)
+            doc["upload_limit"] = Json::Object(plan.upload_limit.clone());
+        }
+        plan.hash = fsv_core::journal::plan_hash(Some(&doc)).unwrap_or_default();
         plan.review.plan_hash = plan.hash.clone();
     }
     Ok(plan)

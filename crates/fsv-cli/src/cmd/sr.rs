@@ -409,6 +409,25 @@ fn sr_create(a: &SrCreateArgs, c: std::sync::Arc<fsv_core::Client>, m: SrModes) 
     let resolver: Arc<dyn fsv_forms::LookupResolver> = deps.resolver.clone();
     let domain = deps.api.domain();
     let api = deps.api.as_ref();
+    let limit_cache: std::cell::RefCell<Option<fsv_api::attachments::Limit>> =
+        std::cell::RefCell::new(None);
+    // The upload size limit: `--max-bytes`, else the tenant's published
+    // limit; read once, only when the plan uploads files.
+    let upload_limit = || -> Result<fsv_api::attachments::Limit, Error> {
+        if let Some(limit) = limit_cache.borrow().clone() {
+            return Ok(limit);
+        }
+        let limit = fsv_api::attachments::resolve_limit(api, &Value::Null, a.max_bytes).map_err(
+            |e| match e {
+                Error::Exit { code: 2, message } => {
+                    Error::exit(2, format!("{message}; pass --max-bytes N"))
+                }
+                other => other,
+            },
+        )?;
+        *limit_cache.borrow_mut() = Some(limit.clone());
+        Ok(limit)
+    };
     let build = |d: &SrDraft,
                  ack_all: bool,
                  mt: Option<cat::ItemMeta>|
@@ -451,7 +470,7 @@ fn sr_create(a: &SrCreateArgs, c: std::sync::Arc<fsv_core::Client>, m: SrModes) 
             cc_emails: &cc_emails,
             cc_ids: &cc_ids,
         };
-        let mut plan = cat::build_sr_plan(
+        let mut plan = cat::build_sr_plan_limited(
             mt.as_ref().unwrap_or(&meta),
             &d.catalog_draft(),
             Some(resolver.clone()),
@@ -459,6 +478,7 @@ fn sr_create(a: &SrCreateArgs, c: std::sync::Arc<fsv_core::Client>, m: SrModes) 
             ack_all,
             &who,
             &domain,
+            Some(&upload_limit),
         )?;
         if let Some(p) = problem {
             let mut errors = vec![p];

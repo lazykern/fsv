@@ -3033,7 +3033,7 @@ fn sr_send_failure_lists_uploads() {
             "/Users/phusit.somb/lab/work/fsv-rust/crates/fsv-cli/tests/fixtures/files/sr/notes.txt",
             "--yes",
             "--expect-plan",
-            "5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2",
+            "4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9",
         ],
         None,
     );

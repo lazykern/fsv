@@ -256,6 +256,7 @@ pub fn build_create_plan(
         record_hash: String::new(),
         legacy_hash: String::new(),
         tenant: String::new(),
+        upload_limit: Map::new(),
     };
     if let Some(p) = &plan.payload
         && plan.errors.is_empty()

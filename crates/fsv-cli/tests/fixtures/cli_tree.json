@@ -28047,6 +28047,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "dry_run",
        "kind": "option",
        "opts": [

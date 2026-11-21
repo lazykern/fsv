@@ -999,12 +999,29 @@ fn change_update(
         *flow_cache.borrow_mut() = Some(flow.clone());
         Ok(flow)
     };
+    let limit_cache: std::cell::RefCell<Option<attachments::Limit>> = std::cell::RefCell::new(None);
+    let upload_limit = || -> Result<attachments::Limit, Error> {
+        if let Some(limit) = limit_cache.borrow().clone() {
+            return Ok(limit);
+        }
+        let limit = attachments::resolve_limit(api.as_ref(), &Value::Null, a.max_bytes).map_err(
+            |e| match e {
+                Error::Exit { code: 2, message } => {
+                    flow_exit(2, format!("{message}; pass --max-bytes N"))
+                }
+                other => other,
+            },
+        )?;
+        *limit_cache.borrow_mut() = Some(limit.clone());
+        Ok(limit)
+    };
     let build = |d: &Draft, ack_all: bool, mt: Option<Arc<FormMeta>>| -> Result<Plan, Error> {
         let opts = change::UpdateOptions {
             resolver: Some(resolver.clone()),
             ack_all,
             status_label: None,
             hints_path: None,
+            upload_limit: Some(&upload_limit),
         };
         let lifecycle: Option<&dyn Fn() -> Result<Value, Error>> = record
             .get("state_flow_id")

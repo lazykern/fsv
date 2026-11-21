@@ -171,3 +171,22 @@ fn backup_replaced_is_refused_on_this_path() {
         r.err
     );
 }
+
+#[test]
+fn max_bytes_is_checked_before_any_upload_and_names_its_source() {
+    let mut e = env(verified());
+    let r = go(&mut e, &["--max-bytes", "5", "--dry-run"]);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(
+        r.err.contains("--attach files total 10 bytes and exceed the 5-byte limit (--max-bytes override); nothing was uploaded"),
+        "{}",
+        r.err
+    );
+    assert!(r.write_paths().is_empty());
+    let r = go(&mut e, &["--max-bytes", "100", "--dry-run"]);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.json()["attachment_size_limit"]["source"],
+        "--max-bytes override"
+    );
+}
