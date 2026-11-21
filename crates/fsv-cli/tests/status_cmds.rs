@@ -38,7 +38,9 @@ fn problem_update_routes(subject: &str) -> Vec<Value> {
 
 /// Python `_problem_update_hash(PROBLEMS, 7, {"priority": 3}, row)` on
 /// acme.freshservice.com for subject "Acme outage" (0208fdb).
-const PLAN: &str = "19e0acf527f1540c258c405a57bde7fc9878063fea0f014e6ea7af833cb8ded0";
+/// With the record-state token (`state: {sends: 0, server_version: None}`)
+/// bound since Python 55d3e87.
+const PLAN: &str = "decf0683eabb2c85de82aaa7e15e6b3788a69a35dd7deb305d04fbfa53cdfa58";
 
 /// Python tests/test_problem_write_fixes.py::test_problem_update_dry_run_prints_a_plan_hash_bound_on_send
 #[test]
@@ -53,7 +55,7 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     assert_eq!(
         r.out,
         format!(
-            "{{\n  \"dry_run\": true,\n  \"action\": \"update\",\n  \"id\": \"PRB-7\",\n  \"body\": {{\n    \"priority\": 3\n  }},\n  \"plan_hash\": \"{PLAN}\"\n}}\n"
+            "{{\n  \"dry_run\": true,\n  \"action\": \"update\",\n  \"id\": \"PRB-7\",\n  \"body\": {{\n    \"priority\": 3\n  }},\n  \"plan_hash\": \"{PLAN}\",\n  \"record_state\": {{\n    \"sends\": 0,\n    \"server_version\": null\n  }}\n}}\n"
         )
     );
     assert!(r.writes().is_empty());
@@ -63,7 +65,7 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     let r = run(&env, &["--yes", "--expect-plan", &zeros, "--json"]);
     assert_ne!(r.code, 0);
     assert!(
-        r.err.contains("PRB-7 or the update changed since review (or the problem could not be read); review again with --dry-run. Nothing was sent"),
+        r.err.contains("PRB-7 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent"),
         "{}",
         r.err
     );
@@ -77,24 +79,4 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
     assert_eq!(r.writes()[0].2, json!({"priority": 3}));
-}
-
-#[test]
-fn ticket_update_expect_plan_still_requires_reviewed() {
-    let env = Env::new(vec![]);
-    let r = env.run(&[
-        "tickets",
-        "update",
-        "5",
-        "--priority",
-        "High",
-        "--expect-plan",
-        "abc",
-    ]);
-    assert_eq!(r.code, 2);
-    assert!(
-        r.err.contains("--expect-plan requires --reviewed"),
-        "{}",
-        r.err
-    );
 }

@@ -599,4 +599,3 @@ fn sr_cli_upload_failure_places_nothing() {
     assert_eq!(text, "");
     assert_eq!(f.write_paths(), [UPLOAD]);
 }
-

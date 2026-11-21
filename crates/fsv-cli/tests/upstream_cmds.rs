@@ -2775,7 +2775,7 @@ fn update_expect_plan_needs_reviewed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: --expect-plan requires --reviewed, --tag, --planned-start or --planned-end
+        r#"error: INC-5 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
 "#
     );
 }
@@ -11106,7 +11106,11 @@ fn problems_update_custom_field_dry_run() {
       "cf_owner_note": "Acme new owner"
     }
   },
-  "plan_hash": "cf2c602b13bc95730db21789d995b51a33dd60ab6d6670d3a88c0f07f95fa750",
+  "plan_hash": "03c7a17e6de6e8613248b7f50388730832214dce604d9ed07e381c2820ae74b5",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "requires_confirmation": [
     "problem status -> Change Requested (status semantics and workflows require confirmation)"
   ]

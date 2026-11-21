@@ -111,7 +111,15 @@ pub fn execute_rejecting(
     rejection: Option<&dyn Fn(&fsv_core::ApiError) -> String>,
 ) -> Result<Value> {
     execute_guarded(
-        plan, hash, c, journal, reviewed_hash, rebuild, verify, rejection, &[],
+        plan,
+        hash,
+        c,
+        journal,
+        reviewed_hash,
+        rebuild,
+        verify,
+        rejection,
+        &[],
     )
 }
 

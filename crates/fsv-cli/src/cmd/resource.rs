@@ -1431,7 +1431,10 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
             other => uncaught(other),
         });
     }
-    if a.expect_plan.as_deref().is_some_and(|s| !s.is_empty()) && res.name != PROBLEMS.name {
+    if a.expect_plan.as_deref().is_some_and(|s| !s.is_empty())
+        && res.name != PROBLEMS.name
+        && res.name != TICKETS.name
+    {
         return Err(usage(
             "--expect-plan requires --reviewed, --tag, --planned-start or --planned-end",
         ));
@@ -1635,6 +1638,13 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
                 format_cid(id, res)
             )));
         }
+    } else if res.name == TICKETS.name && (a.dry_run || a.expect_plan.is_some()) {
+        row = c
+            .int_get(&format!("{}/{id}", res.api_path), None)
+            .ok()
+            .filter(Value::is_object)
+            .map(|r| r.get(res.item_key).cloned().unwrap_or(r))
+            .filter(Value::is_object);
     }
     let mut body = Map::new();
     if let Some(s) = &a.status {
@@ -1699,7 +1709,7 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         None
     };
     let risks = lookup::risks_for_item_write(res, id, &body, &sch, &c, current.clone());
-    let plan_hash = if res.name == PROBLEMS.name {
+    let plan_hash = if res.name == PROBLEMS.name || res.name == TICKETS.name {
         problem_update_hash(res, id, &body, row.as_ref(), &c.tenant().domain)
     } else {
         None
@@ -1708,7 +1718,7 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         && plan_hash.as_deref() != Some(expect.as_str())
     {
         return Err(usage(&format!(
-            "{} or the update changed since review (or the problem could not be read); review again with --dry-run. Nothing was sent",
+            "{} or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent",
             format_cid(id, res)
         )));
     }
@@ -1729,7 +1739,10 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
             }
         });
         let warnings: Vec<String> = stale_warning.into_iter().collect();
-        crate::util::emit_dry_run_hashed(
+        let state = plan_hash
+            .is_some()
+            .then(|| update_state_token(row.as_ref()));
+        crate::util::emit_dry_run_stated(
             res,
             id,
             Value::Object(body),
@@ -1738,6 +1751,7 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
             display_id,
             &warnings,
             plan_hash.as_deref(),
+            state,
         );
         return Ok(());
     }
@@ -1767,9 +1781,20 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
     Ok(())
 }
 
+/// `_update_state_token`: the record-state token of a problem or legacy
+/// ticket update. These paths keep no plan journal, so repeats are never
+/// refused; the token is shown in the dry-run and bound into the hash.
+fn update_state_token(row: Option<&Value>) -> Value {
+    let version = row
+        .and_then(|r| r.get("updated_at"))
+        .cloned()
+        .unwrap_or(Value::Null);
+    json!({"sends": 0, "server_version": version})
+}
+
 /// `_problem_update_hash`: tenant, target, exact PUT body and the stable
-/// snapshot of the problem it was reviewed against (`None` when the problem
-/// could not be read).
+/// snapshot of the problem or legacy ticket it was reviewed against, plus
+/// the record-state token (`None` when the record could not be read).
 fn problem_update_hash(
     res: &Resource,
     id: i64,
@@ -1785,7 +1810,7 @@ fn problem_update_hash(
     fsv_core::journal::plan_hash(Some(&json!({
         "action": "update", "resource": res.name, "target": id, "tenant": domain,
         "method": "PUT", "path": format!("{}/{id}", res.api_path), "payload": body,
-        "record": record,
+        "record": record, "state": update_state_token(Some(row)),
     })))
 }
 

@@ -558,3 +558,336 @@ fn problem_note_help_lists_the_reviewed_flags() {
         assert!(r.out.contains(flag), "{flag}: {}", r.out);
     }
 }
+#[test]
+fn ticket_update_legacy_dry_run() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "update",
+  "id": "SR-11",
+  "body": {
+    "priority": 2
+  },
+  "plan_hash": "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+  "record_state": {
+    "sends": 0,
+    "server_version": "2030-01-01T00:00:00Z"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ticket_update_legacy_send_hash() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--yes",
+            "--expect-plan",
+            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 11,
+  "human_display_id": "SR-11",
+  "subject": "Acme laptop",
+  "priority": 2,
+  "updated_at": "2030-01-01T00:00:01Z"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/11"]);
+}
+
+#[test]
+fn ticket_update_legacy_plain_send() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"updated SR-11
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/11"]);
+}
+
+#[test]
+fn ticket_update_legacy_hash_body() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Low",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "update",
+  "id": "SR-11",
+  "body": {
+    "priority": 1
+  },
+  "plan_hash": "dbde07c5f3d2a2fba5293cb139a696d1a361f319a0ead0640852e0ec883e8ba6",
+  "record_state": {
+    "sends": 0,
+    "server_version": "2030-01-01T00:00:00Z"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ticket_update_legacy_hash_set() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--set",
+            "subject=Acme desk",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "update",
+  "id": "SR-11",
+  "body": {
+    "priority": 2,
+    "subject": "Acme desk"
+  },
+  "plan_hash": "81fa736b5a29f662719ad7086ec97126edf53029b716d87dc15de7beba908e89",
+  "record_state": {
+    "sends": 0,
+    "server_version": "2030-01-01T00:00:00Z"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ticket_update_legacy_body_changed() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Low",
+            "--yes",
+            "--expect-plan",
+            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+"#
+    );
+}
+
+#[test]
+fn ticket_update_legacy_prefix() {
+    let r = run_fixture(
+        "ticket_update_legacy",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--yes",
+            "--expect-plan",
+            "1a4809ff529d1b86",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+"#
+    );
+}
+
+#[test]
+fn ticket_update_legacy_record_changed() {
+    let r = run_fixture(
+        "ticket_update_legacy_edited",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--yes",
+            "--expect-plan",
+            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+"#
+    );
+}
+
+#[test]
+fn ticket_update_legacy_unreadable_dry_run() {
+    let r = run_fixture(
+        "ticket_update_legacy_unreadable",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "update",
+  "id": "SR-11",
+  "body": {
+    "priority": 2
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ticket_update_legacy_unreadable_expect() {
+    let r = run_fixture(
+        "ticket_update_legacy_unreadable",
+        &[
+            "tickets",
+            "update",
+            "SR-11",
+            "--priority",
+            "Medium",
+            "--yes",
+            "--expect-plan",
+            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+"#
+    );
+}
+#[test]
+fn problem_update_dry_run_state() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "PRB-71",
+            "--set",
+            "subject=Acme renamed",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "update",
+  "id": "PRB-71",
+  "body": {
+    "subject": "Acme renamed"
+  },
+  "plan_hash": "bb9a77018f7a349ed8b34f05186d93add6936f3c134be9e738dce89539299c26",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}

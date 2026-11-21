@@ -72,7 +72,10 @@ pub fn review(plan: &WritePlan) -> Map<String, Value> {
         serde_json::from_str(&plan.context_hash).unwrap_or(Value::Null)
     };
     out.insert("record_state".into(), state);
-    out.insert("warnings".into(), json!([format!("visibility: {VISIBILITY}")]));
+    out.insert(
+        "warnings".into(),
+        json!([format!("visibility: {VISIBILITY}")]),
+    );
     out
 }
 
@@ -192,7 +195,11 @@ mod tests {
         let p = build_plan(&j, "acme.example.com", "PRB-12", "Acme evidence").unwrap();
         assert_eq!(
             (p.method.as_str(), p.path.as_str(), p.payload()),
-            ("POST", "problems/12/notes", json!({"body": "Acme evidence"}))
+            (
+                "POST",
+                "problems/12/notes",
+                json!({"body": "Acme evidence"})
+            )
         );
         assert_eq!(p.hash().len(), 64);
         assert_eq!(review(&p)["record_state"], json!({"sends": 0}));

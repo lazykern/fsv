@@ -249,6 +249,25 @@ pub fn emit_dry_run_hashed(
     warnings: &[String],
     plan_hash: Option<&str>,
 ) {
+    emit_dry_run_stated(
+        res, cid, body, action, risks, display_id, warnings, plan_hash, None,
+    );
+}
+
+/// `_emit_dry_run(..., plan_hash=..., record_state=...)`: the state token is
+/// shown only next to a hash.
+#[allow(clippy::too_many_arguments)]
+pub fn emit_dry_run_stated(
+    res: &Resource,
+    cid: i64,
+    body: Value,
+    action: &str,
+    risks: &[String],
+    display_id: Option<String>,
+    warnings: &[String],
+    plan_hash: Option<&str>,
+    record_state: Option<Value>,
+) {
     let mut out = Map::new();
     out.insert("dry_run".into(), json!(true));
     out.insert("action".into(), json!(action));
@@ -259,6 +278,9 @@ pub fn emit_dry_run_hashed(
     out.insert("body".into(), body);
     if let Some(h) = plan_hash.filter(|h| !h.is_empty()) {
         out.insert("plan_hash".into(), json!(h));
+        if let Some(state) = record_state {
+            out.insert("record_state".into(), state);
+        }
     }
     if !risks.is_empty() {
         out.insert("requires_confirmation".into(), json!(risks));

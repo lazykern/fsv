@@ -1,0 +1,101 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "id": 9000008001,
+     "name": "subject",
+     "label": "Subject",
+     "description": "",
+     "field_type": "default_subject",
+     "required": false,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000008002,
+     "name": "priority",
+     "label": "Priority",
+     "description": "",
+     "field_type": "default_priority",
+     "required": false,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/11",
+  "json": {
+   "ticket": {
+    "id": 11,
+    "human_display_id": "SR-11",
+    "subject": "Acme laptop (edited)",
+    "priority": 1,
+    "updated_at": "2030-01-02T00:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/11",
+  "json": {
+   "ticket": {
+    "id": 11,
+    "human_display_id": "SR-11",
+    "subject": "Acme laptop",
+    "priority": 2,
+    "updated_at": "2030-01-01T00:00:01Z"
+   }
+  }
+ }
+]

@@ -52,6 +52,11 @@ fn update_set_fields_dry_run() {
       "cf_ok": true
     }
   },
+  "plan_hash": "eb9aa851271699f6e34a9839ebb77f571c624b2b31f3ff49f4f700fb02b12365",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
   "requires_confirmation": [
     "reassign group (group_id=9)"
   ]
@@ -77,6 +82,11 @@ fn update_ambiguous_group() {
   "id": "SR-5",
   "body": {
     "group_id": 7
+  },
+  "plan_hash": "56be2958001a10da39e52456ebce4d840dcbb09457ceb0d5152021c62654eefd",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
   }
 }
 "#
