@@ -3046,6 +3046,7 @@ mod tests {
 
     #[test]
     fn build_sr_plan_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let p = full_plan();
         let mut j = p.to_json();
         j["review"]["metadata"]
@@ -3124,6 +3125,7 @@ mod tests {
 
     #[test]
     fn execute_uploads_then_places() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let p = full_plan();
         let j = MemJournal::default();
         let a = FakeApi::new().ok(
@@ -3149,6 +3151,7 @@ mod tests {
 
     #[test]
     fn execute_failures() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let p = full_plan();
         let seven = |_: &dyn Api, _: &str| Ok(7);
         let j = MemJournal::default();
@@ -3369,6 +3372,7 @@ mod tests {
 
     #[test]
     fn freshen_rebuilds_on_change() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let store = MemStore::default();
         let a = FakeApi::new()
             .ok(

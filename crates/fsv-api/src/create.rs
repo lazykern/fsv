@@ -3300,6 +3300,7 @@ mod tests {
 
     #[test]
     fn ticket_association_wrappers() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let j = MemJournal::default();
         let dry = crate::associations::SendOpts {
             reviewed_hash: None,
