@@ -52,19 +52,44 @@ pub fn target_id(module: &str, target: &Value) -> Result<(&'static str, i64)> {
     Ok((wire, id))
 }
 
-/// `integrated_assets.PAGE_SIZE`.
-const PAGE_SIZE: i64 = 50;
+/// `integrated_assets.PAGE_SIZE`: the integrated inventory search default.
+pub const PAGE_SIZE: i64 = 50;
+/// `integrated_assets.LEGACY_PAGE_SIZE`: the legacy picker default.
+pub const LEGACY_PAGE_SIZE: i64 = 30;
+/// `integrated_assets.MAX_PAGE_SIZE`.
+pub const MAX_PAGE_SIZE: i64 = 100;
+
+/// `_per_page`: the chosen page size, bounded 1 to 100.
+fn per_page_or(value: Option<i64>, default: i64) -> Result<i64> {
+    match value {
+        None => Ok(default),
+        Some(n) if (1..=MAX_PAGE_SIZE).contains(&n) => Ok(n),
+        Some(_) => Err(Error::value(format!(
+            "--per-page must be a whole number from 1 to {MAX_PAGE_SIZE}"
+        ))),
+    }
+}
+
+fn page_count(total: i64, per_page: i64) -> i64 {
+    std::cmp::max(1, (total + per_page - 1).div_euclid(per_page))
+}
 
 /// `_past_end`: the `ValueError` for a page after the inventory's last row.
-fn past_end(kind: &str, page: i64, total: i64) -> Error {
-    let pages = std::cmp::max(1, (total + PAGE_SIZE - 1).div_euclid(PAGE_SIZE));
+fn past_end(kind: &str, page: i64, total: i64, per_page: i64) -> Error {
+    let pages = page_count(total, per_page);
     Error::value(format!(
-        "no results on page {page}: the {kind} inventory has {total} row(s) ({pages} page(s) of {PAGE_SIZE})"
+        "no results on page {page}: the {kind} inventory has {total} row(s) ({pages} page(s) of {per_page})"
     ))
 }
 
 /// Port of `integrated_assets.search`.
-pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> {
+pub fn search(
+    c: &dyn Api,
+    query: &str,
+    kind: &str,
+    page: i64,
+    per_page: Option<i64>,
+) -> Result<Value> {
     let Some(family) = family(kind) else {
         return Err(Error::value(
             "choose devices, assets or services and a positive page",
@@ -75,8 +100,9 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
             "choose devices, assets or services and a positive page",
         ));
     }
+    let per_page = per_page_or(per_page, PAGE_SIZE)?;
     let url = format!("https://{}/itam/core/{family}/api/", c.domain());
-    let params = obj(json!({"order": "", "page": page, "page_size": PAGE_SIZE, "q": query}));
+    let params = obj(json!({"order": "", "page": page, "page_size": per_page, "q": query}));
     let raw = match c.absolute_get(&url, Some(params)) {
         Ok(raw) => raw,
         Err(e) if page != 1 && matches!(e.status(), Some(400 | 404)) => Value::Null,
@@ -86,10 +112,10 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
         && raw.get("error").is_some_and(Value::is_string)
         && raw.get("data") == Some(&json!([]))
         && let Some(total) = raw.get("total_rows").and_then(json_int)
-        && (0..=(page - 1) * PAGE_SIZE).contains(&total)
+        && (0..=(page - 1) * per_page).contains(&total)
     {
         // Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
-        return Err(past_end(kind, page, total));
+        return Err(past_end(kind, page, total, per_page));
     }
     let valid = raw.is_object()
         && !raw.get("error").is_some_and(fsv_py::truthy)
@@ -103,10 +129,10 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
     if page > 1 && !(valid && rows_here) {
         // Other past-the-end shapes (404/400, an error without a total, an
         // empty page): page 1's total decides; a read-only GET, never a guess.
-        let first = search(c, query, kind, 1)?;
+        let first = search(c, query, kind, 1, Some(per_page))?;
         let total = first.get("total_rows").and_then(json_int).unwrap_or(0);
-        if total <= (page - 1) * PAGE_SIZE {
-            return Err(past_end(kind, page, total));
+        if total <= (page - 1) * per_page {
+            return Err(past_end(kind, page, total, per_page));
         }
     }
     let Some(obj) = raw.as_object() else {
@@ -138,11 +164,18 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
         }
         ids.push(ident);
     }
-    if ids.iter().collect::<HashSet<_>>().len() != ids.len() || total < ids.len() as i64 {
+    if ids.iter().collect::<HashSet<_>>().len() != ids.len()
+        || total < ids.len() as i64
+        || ids.len() as i64 > per_page
+    {
         return Err(refused("invalid inventory totals or duplicate identities"));
     }
     let mut out = obj.clone();
     out.insert("kind".into(), json!(kind));
+    out.insert("page".into(), json!(page));
+    out.insert("per_page".into(), json!(per_page));
+    out.insert("total_rows".into(), json!(total));
+    out.insert("pages".into(), json!(page_count(total, per_page)));
     out.insert(
         "complete".into(),
         json!(page == 1 && ids.len() as i64 == total),
@@ -337,7 +370,12 @@ fn legacy_entity(module: &str) -> Option<&'static str> {
 }
 
 /// Port of `integrated_assets.legacy_candidates`.
-pub fn legacy_candidates(c: &dyn Api, module: &str, target: &Value) -> Result<Vec<Value>> {
+pub fn legacy_candidates(
+    c: &dyn Api,
+    module: &str,
+    target: &Value,
+    per_page: Option<i64>,
+) -> Result<Vec<Value>> {
     let (module, target) = target_id(module, target)?;
     let Some(entity) = legacy_entity(module) else {
         return Err(refused("no legacy asset association for this module"));
@@ -354,13 +392,14 @@ pub fn legacy_candidates(c: &dyn Api, module: &str, target: &Value) -> Result<Ve
         return Err(refused("exact record identity unavailable"));
     }
     let requester = positive_id(row.get("requester_id").unwrap_or(&Value::Null))?;
+    let per_page = per_page_or(per_page, LEGACY_PAGE_SIZE)?;
     let mut rows = Vec::new();
     let mut total = 0_i64;
     let mut finished = false;
-    for page in 1..=50 {
+    for page in 1..=std::cmp::max(50, 1500 / per_page) {
         let params = obj(json!({
             "entity": entity,
-            "per_page": 30,
+            "per_page": per_page,
             "page": page,
             "user_id": requester,
             "entity_id": target,
@@ -418,6 +457,7 @@ pub fn candidates(
     query: &str,
     kind: &str,
     page: i64,
+    per_page: Option<i64>,
 ) -> Result<Value> {
     let (module_name, target_num) = target_id(module, target)?;
     if kind != "devices" && kind != "services" {
@@ -431,8 +471,15 @@ pub fn candidates(
     };
     let mut note = None;
     if found == Some(LEGACY) && kind == "devices" && legacy_entity(module_name).is_some() {
-        match legacy_candidates(c, module, &target_num) {
-            Ok(rows) => return Ok(json!({"data": rows, "complete": true, "driver": LEGACY})),
+        match legacy_candidates(c, module, &target_num, per_page) {
+            Ok(rows) => {
+                let size = per_page_or(per_page, LEGACY_PAGE_SIZE)?;
+                return Ok(json!({
+                    "data": rows, "complete": true, "driver": LEGACY, "page": "all",
+                    "per_page": size, "pages": page_count(rows.len() as i64, size),
+                    "total_rows": rows.len(),
+                }));
+            }
             Err(e) => match e.status() {
                 Some(status @ (403 | 404)) => {
                     note = Some(format!(
@@ -443,7 +490,7 @@ pub fn candidates(
             },
         }
     }
-    let result = search(c, query, kind, page)?;
+    let result = search(c, query, kind, page, per_page)?;
     let associated: Option<HashSet<i64>> = if found == Some(INTEGRATED) {
         let mut ids = HashSet::new();
         for r in inventory(c, module, &target_num, kind)? {
@@ -465,6 +512,8 @@ pub fn candidates(
     }
     let mut out = obj(json!({
         "data": rows, "driver": INTEGRATED, "kind": kind, "query": query, "page": page,
+        "per_page": result.get("per_page").cloned().unwrap_or(Value::Null),
+        "pages": result.get("pages").cloned().unwrap_or(Value::Null),
         "total_rows": result.get("total_rows").cloned().unwrap_or(Value::Null),
         "complete": result.get("complete").cloned().unwrap_or(json!(false)),
         "id_meaning": "inventory IDs (use with assets add)",
@@ -512,7 +561,7 @@ pub fn legacy_plan(
     if ids.iter().any(|id| current.contains(id)) {
         return Err(refused("requested asset is already associated; omit it"));
     }
-    let offered: HashSet<i64> = legacy_candidates(c, module, &json!(target))?
+    let offered: HashSet<i64> = legacy_candidates(c, module, &json!(target), None)?
         .iter()
         .map(|row| positive_id(row.get("display_id").unwrap_or(&Value::Null)))
         .collect::<Result<_>>()?;
@@ -753,7 +802,7 @@ mod tests {
             let mut w = world();
             w.search["page"] = pg.clone();
             let c = api(Arc::new(Mutex::new(w)));
-            match search(&c, "", "devices", 1) {
+            match search(&c, "", "devices", 1, None) {
                 Ok(raw) => assert!(ok && raw["total_rows"] == json!(1), "{pg}"),
                 Err(e) => assert!(
                     !ok && e.to_string() == "integrated inventory pagination unavailable",
@@ -869,6 +918,7 @@ mod tests {
                         op.get("q").and_then(Value::as_str).unwrap_or(""),
                         kind,
                         op.get("page").and_then(Value::as_i64).unwrap_or(1),
+                        None,
                     )
                     .map(|r| json!({"result": r})),
                     "build" => {
@@ -1115,7 +1165,7 @@ mod tests {
     #[test]
     fn integrated_record_uses_inventory_search_and_marks_associated() {
         let (s, c) = cand(true, 403);
-        let out = candidates(&c, "tickets", &json!("INC-41"), "acme", "devices", 1).unwrap();
+        let out = candidates(&c, "tickets", &json!("INC-41"), "acme", "devices", 1, None).unwrap();
         assert_eq!(out["driver"], "integrated");
         let ids: Vec<&Value> = out["data"]
             .as_array()
@@ -1143,7 +1193,7 @@ mod tests {
         for status in [403, 404] {
             for (module, target) in [("tickets", "SR-41"), ("changes", "CHN-41")] {
                 let (_, c) = cand(false, status);
-                let out = candidates(&c, module, &json!(target), "", "devices", 1).unwrap();
+                let out = candidates(&c, module, &json!(target), "", "devices", 1, None).unwrap();
                 assert_eq!(out["driver"], "integrated");
                 assert!(
                     out["note"]
@@ -1166,19 +1216,19 @@ mod tests {
     #[test]
     fn legacy_record_with_working_list_keeps_legacy_and_other_errors_propagate() {
         let (s, c) = cand(false, 200);
-        let out = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1).unwrap();
+        let out = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1, None).unwrap();
         assert_eq!(out["driver"], "legacy");
         assert_eq!(out["data"][0]["display_id"], 3811);
         assert!(s.lock().unwrap().searches.is_empty());
         s.lock().unwrap().legacy_status = 500;
-        let err = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1).unwrap_err();
+        let err = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1, None).unwrap_err();
         assert_eq!(err.status(), Some(500));
     }
 
     #[test]
     fn problem_without_association_endpoint_uses_service_search() {
         let (s, c) = cand(false, 403);
-        let out = candidates(&c, "problems", &json!("PRB-41"), "", "services", 1).unwrap();
+        let out = candidates(&c, "problems", &json!("PRB-41"), "", "services", 1, None).unwrap();
         assert_eq!(out["kind"], "services");
         let s = s.lock().unwrap();
         assert_eq!(
@@ -1235,7 +1285,7 @@ mod tests {
                 ),
             ] {
                 let (calls, c) = pages_api(page2.clone(), 2);
-                let err = search(&c, "acme", kind, 2).unwrap_err();
+                let err = search(&c, "acme", kind, 2, None).unwrap_err();
                 assert!(matches!(err, Error::Value(_)), "{kind} {page2:?}: {err}");
                 assert!(
                     err.to_string().starts_with(&format!(
@@ -1249,7 +1299,7 @@ mod tests {
         }
         let (_, c) = pages_api((404, json!({})), 2);
         assert_eq!(
-            search(&c, "", "devices", 2).unwrap_err().to_string(),
+            search(&c, "", "devices", 2, None).unwrap_err().to_string(),
             "no results on page 2: the devices inventory has 2 row(s) (1 page(s) of 50)"
         );
     }
@@ -1257,7 +1307,7 @@ mod tests {
     #[test]
     fn unreadable_page_inside_the_inventory_stays_unavailable() {
         let (_, c) = pages_api((200, json!({"error": "internal"})), 120);
-        let err = search(&c, "", "devices", 2).unwrap_err();
+        let err = search(&c, "", "devices", 2, None).unwrap_err();
         assert!(
             matches!(err, Error::Exit { code: 2, .. }) && err.to_string().contains("unavailable")
         );
@@ -1274,7 +1324,7 @@ mod tests {
             ),
             52,
         );
-        let out = search(&c, "", "devices", 2).unwrap();
+        let out = search(&c, "", "devices", 2, None).unwrap();
         let ids: Vec<&Value> = out["data"]
             .as_array()
             .unwrap()
@@ -1286,6 +1336,138 @@ mod tests {
         assert_eq!(
             *calls.lock().unwrap(),
             [("/itam/core/device/api/".to_string(), 2)]
+        );
+    }
+
+    /// `tests/test_assets_per_page.py`.
+    type RequestLog = Arc<Mutex<Vec<Map<String, Value>>>>;
+
+    fn per_page_api(legacy: bool) -> (RequestLog, FnApi) {
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let log = Arc::clone(&requests);
+        let api = FnApi::new(move |call: &Call| {
+            let params = call.params.clone().unwrap_or_default();
+            if call.path.contains("/itam/core/") {
+                log.lock().unwrap().push(params.clone());
+                let size = params["page_size"].as_i64().unwrap();
+                let page = params["page"].as_i64().unwrap();
+                let rows: Vec<Value> = (0..5)
+                    .map(|i| json!({"name": {"id": 100 + i, "label": format!("acme-device-{i}")}, "device_pk": 100 + i}))
+                    .skip(((page - 1) * size) as usize)
+                    .take(size as usize)
+                    .collect();
+                if rows.is_empty() && page > 1 {
+                    return Ok(
+                        json!({"error": "Requested page is out of range.", "data": [], "page": 1, "total_rows": 5}),
+                    );
+                }
+                return Ok(json!({"data": rows, "page": page, "total_rows": 5}));
+            }
+            match call.path.as_str() {
+                "changes/7/associated-cis" => Err(ApiError::new(404, json!({})).into()),
+                "changes/7/assets" => Ok(json!({"associated_assets": []})),
+                "changes/7" => Ok(json!({"change": {"id": 7, "requester_id": 3}})),
+                "assets-to-associate" => {
+                    assert!(legacy);
+                    log.lock().unwrap().push(params.clone());
+                    let size = params["per_page"].as_i64().unwrap();
+                    let page = params["page"].as_i64().unwrap();
+                    let rows: Vec<Value> = (0..5)
+                        .map(|i| json!({"display_id": i + 1, "name": format!("acme-asset-{i}")}))
+                        .skip(((page - 1) * size) as usize)
+                        .take(size as usize)
+                        .collect();
+                    Ok(json!({"assets": rows, "meta": {"total_count": 5}}))
+                }
+                other => panic!("{other}"),
+            }
+        });
+        (requests, api)
+    }
+
+    #[test]
+    fn per_page_is_sent_and_paging_is_reported() {
+        let (requests, c) = per_page_api(false);
+        let out = search(&c, "acme", "devices", 3, Some(2)).unwrap();
+        let got: Vec<i64> = [
+            &out["page"],
+            &out["per_page"],
+            &out["pages"],
+            &out["total_rows"],
+        ]
+        .iter()
+        .map(|v| v.as_i64().unwrap())
+        .collect();
+        assert_eq!(got, [3, 2, 3, 5]);
+        assert_eq!(out["data"].as_array().unwrap().len(), 1);
+        assert_eq!(out["data"][0]["name"]["id"], json!(104));
+        assert_eq!(out["complete"], json!(false));
+        assert_eq!(
+            requests.lock().unwrap().last().unwrap()["page_size"],
+            json!(2)
+        );
+        let err = search(&c, "", "devices", 4, Some(2)).unwrap_err();
+        assert!(err.to_string().contains("3 page(s) of 2"), "{err}");
+    }
+
+    #[test]
+    fn default_page_size_is_unchanged_and_bounds_are_enforced() {
+        let (requests, c) = per_page_api(false);
+        let out = search(&c, "", "devices", 1, None).unwrap();
+        assert_eq!(out["per_page"], json!(50));
+        assert_eq!(
+            requests.lock().unwrap().last().unwrap()["page_size"],
+            json!(50)
+        );
+        assert_eq!(out["complete"], json!(true));
+        for bad in [0, 101] {
+            let err = search(&c, "", "devices", 1, Some(bad)).unwrap_err();
+            assert!(err.to_string().contains("1 to 100"), "{err}");
+            assert_eq!(err.exit_code(), 2);
+        }
+    }
+
+    #[test]
+    fn legacy_picker_reads_every_page_at_the_chosen_size() {
+        let (requests, c) = per_page_api(true);
+        let out = candidates(&c, "changes", &json!(7), "", "devices", 1, Some(2)).unwrap();
+        assert_eq!(out["driver"], json!(LEGACY));
+        let ids: Vec<i64> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["display_id"].as_i64().unwrap())
+            .collect();
+        assert_eq!(ids, [1, 2, 3, 4, 5]);
+        assert_eq!(
+            [&out["per_page"], &out["pages"], &out["total_rows"]].map(|v| v.as_i64().unwrap()),
+            [2, 3, 5]
+        );
+        assert_eq!(out["page"], json!("all"));
+        let sent = requests.lock().unwrap().clone();
+        assert_eq!(
+            sent.iter()
+                .map(|p| p["per_page"].as_i64().unwrap())
+                .collect::<Vec<_>>(),
+            [2, 2, 2]
+        );
+        assert_eq!(
+            sent.iter()
+                .map(|p| p["page"].as_i64().unwrap())
+                .collect::<Vec<_>>(),
+            [1, 2, 3]
+        );
+        requests.lock().unwrap().clear();
+        let out = candidates(&c, "changes", &json!(7), "", "devices", 1, None).unwrap();
+        assert_eq!(out["per_page"], json!(LEGACY_PAGE_SIZE));
+        assert_eq!(
+            requests
+                .lock()
+                .unwrap()
+                .iter()
+                .map(|p| p["per_page"].as_i64().unwrap())
+                .collect::<Vec<_>>(),
+            [30]
         );
     }
 }

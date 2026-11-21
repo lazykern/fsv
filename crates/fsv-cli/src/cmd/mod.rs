@@ -75,7 +75,7 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         "attachments delete" => attachments::delete(parse(m)?),
         "assets search" => {
             let a: AssetsSearchArgs = parse(m)?;
-            inventory::search(&a.query, &a.kind, a.page)
+            inventory::search(&a.query, &a.kind, a.page, a.per_page)
         }
         "solutions create" => inventory::solutions_create(parse(m)?),
         "sr items list" => reviewed::sr_items_list(parse(m)?),

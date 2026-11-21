@@ -3,7 +3,7 @@
 # --verbose is global in Rust and listed on every command; this file lists it only where Python declares it.
 fsv	--install-completion,--no-input,--show-completion,--verbose,--version	0
 fsv assets		0
-fsv assets search	--json,--kind,--page	1
+fsv assets search	--json,--kind,--page,--per-page	1
 fsv attachments		0
 fsv attachments delete	--child,--dry-run,--expect-plan,--json,--owner,--section,--yes	1
 fsv auth		0
@@ -25,12 +25,12 @@ fsv changes approvals	--groups,--json,--output	1
 fsv changes asset-picker	--json,--output,--page,--search,--select	1
 fsv changes assets		0
 fsv changes assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv changes assets candidates	--json,--kind,--page,--search	1
+fsv changes assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv changes assets legacy	--json,--search	1
 fsv changes assets list	--json,--kind	1
 fsv changes assets ls	--json,--kind	1
 fsv changes assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv changes assets search	--json,--kind,--page	1
+fsv changes assets search	--json,--kind,--page,--per-page	1
 fsv changes associations		0
 fsv changes associations add	--dry-run,--expect-plan,--json,--read-only,--yes	2
 fsv changes associations legacy	--add,--dry-run,--expect-plan,--json,--output,--pick,--read-only,--remove,--search,--yes	1
@@ -110,7 +110,7 @@ fsv problems activity	--all,--json,--limit,--output	1
 fsv problems add-note	--dry-run,--no-input,--public,--yes	2
 fsv problems assets		0
 fsv problems assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv problems assets candidates	--json,--kind,--page,--search	1
+fsv problems assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv problems assets list	--json,--kind	1
 fsv problems assets ls	--json,--kind	1
 fsv problems assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
@@ -163,7 +163,7 @@ fsv sr approvals remind	--dry-run,--expect-plan,--json,--read-only,--remark,--ye
 fsv sr approvals request	--approver,--dry-run,--expect-plan,--json,--message,--name,--read-only,--rule,--yes	1
 fsv sr assets		0
 fsv sr assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv sr assets candidates	--json,--kind,--page,--search	1
+fsv sr assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv sr assets list	--json,--kind	1
 fsv sr assets ls	--json,--kind	1
 fsv sr assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
@@ -183,7 +183,7 @@ fsv tickets add-note	--ack,--attach,--body,--confirm-public,--dry-run,--expect-p
 fsv tickets approvals	--json,--output	1
 fsv tickets assets		0
 fsv tickets assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv tickets assets candidates	--json,--kind,--page,--search	1
+fsv tickets assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv tickets assets list	--json,--kind	1
 fsv tickets assets ls	--json,--kind	1
 fsv tickets assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2

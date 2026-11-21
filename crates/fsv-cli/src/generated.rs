@@ -148,6 +148,13 @@ pub struct AssetsSearchArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -2300,6 +2307,13 @@ pub struct ChangesAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -2386,6 +2400,13 @@ pub struct ChangesAssetsSearchArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -3547,6 +3568,13 @@ pub struct TicketsAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -4578,6 +4606,13 @@ pub struct ProblemsAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -5152,6 +5187,13 @@ pub struct SrAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }

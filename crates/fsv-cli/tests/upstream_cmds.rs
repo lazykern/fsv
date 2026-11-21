@@ -13918,6 +13918,8 @@ fn assets_search_devices() {
   "total_rows": 1,
   "page": 1,
   "kind": "devices",
+  "per_page": 50,
+  "pages": 1,
   "complete": true
 }
 "#
@@ -13948,6 +13950,8 @@ fn assets_search_services_page() {
   "total_rows": 4,
   "page": 2,
   "kind": "services",
+  "per_page": 50,
+  "pages": 1,
   "complete": false
 }
 "#
@@ -13995,6 +13999,8 @@ fn changes_assets_search_devices() {
   "total_rows": 1,
   "page": 1,
   "kind": "devices",
+  "per_page": 50,
+  "pages": 1,
   "complete": true
 }
 "#
@@ -14150,6 +14156,8 @@ fn changes_assets_legacy() {
   "total_rows": 1,
   "page": 1,
   "kind": "devices",
+  "per_page": 50,
+  "pages": 1,
   "complete": true
 }
 "#
@@ -14492,7 +14500,11 @@ fn tickets_assets_candidates() {
     }
   ],
   "complete": true,
-  "driver": "legacy"
+  "driver": "legacy",
+  "page": "all",
+  "per_page": 30,
+  "pages": 1,
+  "total_rows": 2
 }
 "#
     );
@@ -14517,7 +14529,11 @@ fn changes_assets_candidates() {
     }
   ],
   "complete": true,
-  "driver": "legacy"
+  "driver": "legacy",
+  "page": "all",
+  "per_page": 30,
+  "pages": 1,
+  "total_rows": 1
 }
 "#
     );
@@ -14546,7 +14562,11 @@ fn sr_assets_candidates() {
     }
   ],
   "complete": true,
-  "driver": "legacy"
+  "driver": "legacy",
+  "page": "all",
+  "per_page": 30,
+  "pages": 1,
+  "total_rows": 2
 }
 "#
     );
