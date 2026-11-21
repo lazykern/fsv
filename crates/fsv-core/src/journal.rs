@@ -107,6 +107,11 @@ pub fn sha256_hex(data: &[u8]) -> String {
     hex::encode(Sha256::digest(data))
 }
 
+/// sha256 hex of the resolved config directory (journal profile, Keychain account).
+pub fn config_dir_digest() -> String {
+    sha256_hex(&path_bytes(&resolve_path(&config::config_dir())))
+}
+
 /// Journal file for the current profile and tenant.
 pub fn journal_path() -> PathBuf {
     let base = config::test_state_home().unwrap_or_else(|| {
@@ -115,7 +120,7 @@ pub fn journal_path() -> PathBuf {
             .map(PathBuf::from)
             .unwrap_or_else(|| config::home_dir().join(".local").join("state"))
     });
-    let profile = sha256_hex(&path_bytes(&resolve_path(&config::config_dir())));
+    let profile = config_dir_digest();
     let domain = config::domain();
     let tenant = if domain.is_empty() {
         "unknown".to_string()

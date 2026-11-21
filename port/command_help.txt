@@ -28,7 +28,7 @@ A	fsv auth login	--browser	Open an isolated browser, let you finish SSO/MFA, the
 A	fsv auth login	--store	Where to save: 'file' (plain chmod 600), 'argon' (Argon2id + AES-GCM), or 'keychain' (macOS Keychain). Interactive when omitted; default keychain on macOS.
 A	fsv auth login	--no-input	fail instead of prompting
 A	fsv auth login	--force	save cookies even if they fail validation against the tenant
-C	fsv auth logout	Wipe stored session (file + Keychain + backend pref).
+C	fsv auth logout	Wipe this config dir's stored session (file, its own Keychain item, backend pref).
 A	fsv auth logout	--yes	skip confirmation prompt
 A	fsv auth logout	--no-input	fail instead of prompting
 C	fsv auth status	Show current agent identity and session status.

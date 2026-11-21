@@ -467,7 +467,7 @@
     },
     {
      "path": "fsv auth logout",
-     "help": "Wipe stored session (file + Keychain + backend pref).",
+     "help": "Wipe this config dir's stored session (file, its own Keychain item, backend pref).",
      "epilog": "[bold]Examples:[/bold]  fsv auth logout  |  fsv auth logout --yes",
      "hidden": false,
      "group": false,

@@ -33,7 +33,7 @@ COMMAND: fsv auth login | hidden: False | help: Save Freshservice session cookie
   OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
   OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='save cookies even if they fail validation against the tenant'
 ============================================================
-COMMAND: fsv auth logout | hidden: False | help: Wipe stored session (file + Keychain + backend pref).
+COMMAND: fsv auth logout | hidden: False | help: Wipe this config dir's stored session (file, its own Keychain item, backend pref).
   OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='skip confirmation prompt'
   OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
 ============================================================

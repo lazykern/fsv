@@ -5522,7 +5522,7 @@ pub fn build() -> Command {
             .about("authenticate and manage sessions")
             .after_help("Examples: fsv auth login | fsv auth login --domain acme.freshservice.com | fsv auth status")
             .subcommand(AuthLoginArgs::augment_args(Command::new("login") .about("Save Freshservice session cookies.") .after_help("Examples: fsv auth login --browser | pbpaste | fsv auth login --header - --store keychain").arg(global_verbose())))
-            .subcommand(AuthLogoutArgs::augment_args(Command::new("logout") .about("Wipe stored session (file + Keychain + backend pref).") .after_help("Examples: fsv auth logout | fsv auth logout --yes").arg(global_verbose())))
+            .subcommand(AuthLogoutArgs::augment_args(Command::new("logout") .about("Wipe this config dir's stored session (file, its own Keychain item, backend pref).") .after_help("Examples: fsv auth logout | fsv auth logout --yes").arg(global_verbose())))
             .subcommand(AuthStatusArgs::augment_args(Command::new("status") .about("Show current agent identity and session status.") .after_help("Examples: fsv auth status").arg(global_verbose()))))
         .subcommand(Command::new("assets")
             .about("Integrated inventory search (read-only).")
@@ -7325,7 +7325,7 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
     ),
     (
         "fsv auth logout",
-        "Wipe stored session (file + Keychain + backend pref).",
+        "Wipe this config dir's stored session (file, its own Keychain item, backend pref).",
         &[
             OptionHint {
                 id: "yes",

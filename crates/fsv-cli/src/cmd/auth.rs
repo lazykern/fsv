@@ -206,14 +206,23 @@ pub fn login(a: AuthLoginArgs) -> CmdResult {
         store = Some(choose_store()?);
     }
     let backend = session::save_cookies(&cookies, store)?;
-    let target = if backend == Backend::Keychain {
-        "Keychain".to_string()
-    } else {
-        config::display_path(&config::session_file())
-    };
+    let target = session_target(backend);
     out().print(&format!("saved {} cookies to {target}", cookies.len()));
     report_login();
     Ok(())
+}
+
+/// `_session_target`: where the session was saved.
+pub fn session_target(backend: Backend) -> String {
+    if backend == Backend::Keychain {
+        format!(
+            "Keychain (service fsv, account {}, for {})",
+            session::keychain_account(),
+            config::display_path(&config::config_dir())
+        )
+    } else {
+        config::display_path(&config::session_file())
+    }
 }
 
 /// `fsv auth logout`.

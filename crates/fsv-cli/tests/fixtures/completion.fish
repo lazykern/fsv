@@ -53,7 +53,7 @@ complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a -v
 complete -c fsv -f -n '__fish_seen_subcommand_from tui' -a --read-only
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a login -d 'Save Freshservice session cookies.'
-complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a logout -d 'Wipe stored session (file + Keychain + backend pref).'
+complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a logout -d 'Wipe this config dir'"'"'s stored session (file, its own Keychain item, backend pref).'
 complete -c fsv -f -n '__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from login logout status' -a status -d 'Show current agent identity and session status.'
 complete -c fsv -f -n '__fish_seen_subcommand_from auth' -a --verbose
 complete -c fsv -f -n '__fish_seen_subcommand_from auth' -a -v
