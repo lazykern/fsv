@@ -245,6 +245,20 @@ those stay identical.
 - Record IDs are `i64`: a numeric ID beyond it is refused locally as
   `invalid id: …` (exit 2) before any request. Python's `int` sends the GET
   and fails on the server's answer (a 404 in tests).
+- `changes update` form sends PUT through `ChangeWriter::put_change_raw`
+  (the server's `APIError`), as Python's `reviewed_write.execute` does with
+  `client._request`. The earlier Rust port reused `create.put_change_body`,
+  whose `_api_failure` turned a 4xx with a JSON-object body into a
+  `RuntimeError`: the failure read "outcome unknown" and the plan was never
+  journaled `failed`. Now a definite 4xx is `write rejected (HTTP n: ...)` and
+  journals `failed`, as Python.
+- A failed write's "outcome unknown (X)" names the transport error class
+  (`ReadError`, `ConnectError`, ...) for `Error::Http`; other Rust errors map
+  to the nearest Python class (`SessionError`, `ValueError`, `OSError`,
+  else `RuntimeError`). `ReviewedWriteError.http_status` and `server_message`
+  travel in a per-thread record (`fsv_core::error::reviewed_write_error` /
+  `write_answer`) instead of attributes on the error, so every
+  `Error::Exit { code: 2 }` match keeps working.
 
 ## fsv-app
 

@@ -308,6 +308,73 @@ pub fn server_message(body: &Value, limit: usize) -> String {
     text
 }
 
+/// `reviewed_write.http_detail`: `("HTTP 503: <message>", "<message>")` for a
+/// failed write; an empty reply reads `HTTP 502 (empty response body)`.
+pub fn http_detail(e: &ApiError) -> (String, String) {
+    let reason = server_message(&e.body, 240);
+    let detail = if reason.is_empty() {
+        format!("HTTP {} (empty response body)", e.status)
+    } else {
+        format!("HTTP {}: {reason}", e.status)
+    };
+    (detail, reason)
+}
+
+/// `type(exc).__name__` of an error that is not an `APIError`.
+pub fn exception_name(e: &Error) -> String {
+    match e {
+        Error::Http { kind, .. } => kind.clone(),
+        Error::Session(_) => "SessionError".into(),
+        Error::Value(_) => "ValueError".into(),
+        Error::Io(_) => "OSError".into(),
+        Error::Api(_) => "APIError".into(),
+        Error::Context { source, .. } => exception_name(source),
+        Error::EditorAbort(_) => "EditorAbort".into(),
+        Error::Exit { .. } | Error::Aborted | Error::Other(_) => "RuntimeError".into(),
+    }
+}
+
+/// The server's answer behind a `ReviewedWriteError` (Python's `http_status`
+/// and `server_message` attributes).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WriteAnswer {
+    pub message: String,
+    pub http_status: Option<u16>,
+    pub server_message: Option<String>,
+}
+
+thread_local! {
+    static WRITE_ANSWER: std::cell::RefCell<Option<WriteAnswer>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// A `ReviewedWriteError` (exit 2 where a command catches it) that remembers
+/// the server's status and message for [`write_answer`].
+pub fn reviewed_write_error(
+    message: impl Into<String>,
+    http_status: Option<u16>,
+    server_message: Option<String>,
+) -> Error {
+    let message = message.into();
+    WRITE_ANSWER.with(|a| {
+        *a.borrow_mut() = Some(WriteAnswer {
+            message: message.clone(),
+            http_status,
+            server_message,
+        });
+    });
+    Error::exit(EXIT_USAGE, message)
+}
+
+/// The answer recorded by [`reviewed_write_error`] when `e` is that error,
+/// `None` for any other error (a `FlowExit`, an `APIError`, ...).
+pub fn write_answer(e: &Error) -> Option<WriteAnswer> {
+    let Error::Exit { message, .. } = e else {
+        return None;
+    };
+    WRITE_ANSWER.with(|a| a.borrow().clone().filter(|w| &w.message == message))
+}
+
 /// Short phrase for the request (`"creating change"`, `"listing tickets"`).
 pub fn describe_request(method: Option<&str>, target: Option<&str>) -> String {
     let (Some(method), Some(target)) = (method, target) else {

@@ -555,7 +555,7 @@ fn tickets_delete_forever_stops_at_failure() {
   "tickets": {
     "36": {
       "verified": false,
-      "error": "write outcome unknown; inspect target and journal before retry"
+      "error": "write outcome unknown (HTTP 500: synthetic); inspect target and journal before retry"
     }
   },
   "stopped_at": 36,

@@ -1016,7 +1016,7 @@ fn problems_forever_stops_at_first_failure() {
     },
     "45": {
       "verified": false,
-      "error": "write outcome unknown; inspect target and journal before retry"
+      "error": "write outcome unknown (HTTP 500: no); inspect target and journal before retry"
     }
   },
   "stopped_at": 45,

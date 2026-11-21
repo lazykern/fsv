@@ -49,7 +49,12 @@ fn write(s: &mut Value, call: &Call) -> Result<Value> {
         .push(json!({"method": call.method, "path": call.path, "raw": raw}));
     let body = call.body.clone().unwrap();
     match &s["fail"] {
-        Value::String(_) => return Err(Error::other("disconnect")),
+        Value::String(_) => {
+            return Err(Error::Http {
+                kind: "ReadError".into(),
+                message: "disconnect".into(),
+            });
+        }
         Value::Object(f) => {
             let status = f["status"].as_u64().unwrap() as u16;
             return Err(ApiError::new(status, f["body"].clone()).into());

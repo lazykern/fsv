@@ -70,6 +70,13 @@ impl ChangeWriter for LiveWriter {
         )
     }
 
+    fn put_change_raw(&self, change_id_v: &Json, body: &Map<String, Json>) -> Result<Json> {
+        self.api.int_put(
+            &format!("changes/{}", change_id(change_id_v)?),
+            &Json::Object(body.clone()),
+        )
+    }
+
     fn attach_files_to_change(
         &self,
         change_id_v: &Json,

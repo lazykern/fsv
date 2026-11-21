@@ -166,13 +166,13 @@
     },
     {
       "name": "403",
-      "err": "write outcome unknown; inspect target and journal before retry",
+      "err": "write outcome unknown (HTTP 403: synthetic); inspect target and journal before retry",
       "replay": "write was sent or outcome unknown; inspect target and journal before retry",
       "writes": 1
     },
     {
       "name": "429",
-      "err": "write outcome unknown; inspect target and journal before retry",
+      "err": "write outcome unknown (HTTP 429: synthetic); inspect target and journal before retry",
       "replay": "write was sent or outcome unknown; inspect target and journal before retry",
       "writes": 1
     },
@@ -184,7 +184,7 @@
     },
     {
       "name": "disconnect",
-      "err": "write outcome unknown; inspect target and journal before retry",
+      "err": "write outcome unknown (ReadError); inspect target and journal before retry",
       "replay": "write was sent or outcome unknown; inspect target and journal before retry",
       "writes": 1
     }

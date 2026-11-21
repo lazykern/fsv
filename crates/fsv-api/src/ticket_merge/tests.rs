@@ -53,7 +53,12 @@ fn post(s: &mut State, call: &Call) -> Result<Value> {
     s.requests
         .push(json!({"method": "POST", "path": call.path, "raw": raw}));
     match &s.fail {
-        Value::String(_) => return Err(Error::other("connection lost")),
+        Value::String(_) => {
+            return Err(Error::Http {
+                kind: "ReadError".into(),
+                message: "connection lost".into(),
+            });
+        }
         Value::Number(n) => {
             let status = n.as_u64().unwrap() as u16;
             return Err(ApiError::new(status, json!({"message": "synthetic failure"})).into());

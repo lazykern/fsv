@@ -506,7 +506,7 @@
    ]
   },
   "fail_500": {
-   "error": "write outcome unknown; inspect target and journal before retry",
+   "error": "write outcome unknown (HTTP 500: synthetic); inspect target and journal before retry",
    "type": "ReviewedWriteError",
    "calls": [
     [
@@ -565,7 +565,7 @@
    ]
   },
   "fail_disconnect": {
-   "error": "write outcome unknown; inspect target and journal before retry",
+   "error": "write outcome unknown (ReadError); inspect target and journal before retry",
    "type": "ReviewedWriteError",
    "calls": [
     [
@@ -1155,7 +1155,7 @@
    ]
   },
   "create_fail_500": {
-   "error": "write outcome unknown; inspect target and journal before retry",
+   "error": "write outcome unknown (HTTP 500: synthetic); inspect target and journal before retry",
    "type": "ReviewedWriteError",
    "calls": [
     [
@@ -4940,7 +4940,7 @@
    "events": []
   },
   "create_fail_500": {
-   "error": "write outcome unknown; inspect target and journal before retry",
+   "error": "write outcome unknown (HTTP 500: synthetic); inspect target and journal before retry",
    "type": "ReviewedWriteError",
    "calls": [
     [
@@ -8870,7 +8870,7 @@
      "failure": 403,
      "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 403: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -8894,7 +8894,7 @@
      "failure": 429,
      "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 429: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -8918,7 +8918,7 @@
      "failure": "timeout",
      "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (ReadTimeout); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -8942,7 +8942,7 @@
      "failure": 403,
      "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 403: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -8964,7 +8964,7 @@
      "failure": 429,
      "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 429: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -8986,7 +8986,7 @@
      "failure": "timeout",
      "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (ReadTimeout); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -9008,7 +9008,7 @@
      "failure": 403,
      "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 403: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -9032,7 +9032,7 @@
      "failure": 429,
      "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 429: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -9056,7 +9056,7 @@
      "failure": "timeout",
      "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (ReadTimeout); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -9080,7 +9080,7 @@
      "failure": 403,
      "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 403: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -9102,7 +9102,7 @@
      "failure": 429,
      "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (HTTP 429: synthetic rejection); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {
@@ -9124,7 +9124,7 @@
      "failure": "timeout",
      "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
      "first": {
-      "error": "write outcome unknown; inspect target and journal before retry",
+      "error": "write outcome unknown (ReadTimeout); inspect target and journal before retry",
       "type": "ReviewedWriteError"
      },
      "second": {

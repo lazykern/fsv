@@ -267,7 +267,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 403: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -353,7 +353,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 429: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -439,7 +439,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 500: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -525,7 +525,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (ReadError); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1179,7 +1179,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 403: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1265,7 +1265,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 429: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1351,7 +1351,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 500: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1437,7 +1437,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (ReadError); inspect target and journal before retry"
     },
     "writes": 1
    },

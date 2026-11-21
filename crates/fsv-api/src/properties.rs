@@ -613,15 +613,20 @@ pub fn send_with(
         None,
         &csrf,
     ) {
-        if let Some(status) = definite_rejection(&e) {
-            journal.record_plan("failed", &hash, ACTION, Some(&target), None);
+        let Some(api) = e.as_api() else {
             return Err(refused(format!(
-                "update rejected (HTTP {status}); no retry"
+                "update outcome unknown ({}); inspect ticket and journal before retry",
+                fsv_core::error::exception_name(&e)
             )));
+        };
+        let (detail, _reason) = fsv_core::error::http_detail(api);
+        if definite_rejection(&e).is_some() {
+            journal.record_plan("failed", &hash, ACTION, Some(&target), None);
+            return Err(refused(format!("update rejected ({detail}); no retry")));
         }
-        return Err(refused(
-            "update outcome unknown; inspect ticket and journal before retry",
-        ));
+        return Err(refused(format!(
+            "update outcome unknown ({detail}); inspect ticket and journal before retry"
+        )));
     }
     journal.record_plan("done", &hash, ACTION, Some(&target), None);
     let mut result = obj(
@@ -908,9 +913,32 @@ mod tests {
         let c = ticket_api(json!({"ticket": row()})).on("PUT tickets/123", Reply::Status(409));
         assert_eq!(
             err(send(&p, &c, &j, &store, Some(HASH))),
-            "update rejected (HTTP 409); no retry"
+            "update rejected (HTTP 409: nope); no retry"
         );
         assert_eq!(j.events(), ["started", "failed"]);
+        for (status, body, want) in [
+            (
+                500,
+                json!({"message": "Synthetic server error"}),
+                "outcome unknown (HTTP 500: Synthetic server error)",
+            ),
+            (
+                422,
+                json!({"errors": [{"field": "tags", "message": "Synthetic tag limit"}]}),
+                "rejected (HTTP 422: tags: Synthetic tag limit)",
+            ),
+            (
+                502,
+                json!(""),
+                "outcome unknown (HTTP 502 (empty response body))",
+            ),
+        ] {
+            let c = ticket_api(json!({"ticket": row()}))
+                .on("PUT tickets/123", Reply::Fail(status, body));
+            let text = err(send(&p, &c, &MemJournal::default(), &store, Some(HASH)));
+            assert!(text.contains(want), "{text}");
+            assert_eq!(c.writes().len(), 1);
+        }
     }
 
     fn rich_form(extra: &[Value]) -> Value {

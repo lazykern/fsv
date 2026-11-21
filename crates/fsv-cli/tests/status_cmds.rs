@@ -98,3 +98,37 @@ fn ticket_update_expect_plan_still_requires_reviewed() {
         r.err
     );
 }
+
+/// Python tests/test_update_error_paths.py::test_problem_update_failure_names_status_and_message
+#[test]
+fn problem_update_failure_names_status_and_message() {
+    let html = "<html><head><style>p{}</style></head><body><h1>Service Unavailable</h1><p>Try later</p></body></html>";
+    let cases = [
+        (500, json!({"description": "Synthetic outage"}), "Synthetic outage"),
+        (400, Value::String(html.into()), "Service Unavailable"),
+    ];
+    for (status, body, expect) in cases {
+        let mut routes = problem_update_routes("Acme outage");
+        routes.pop();
+        let mut put = route("PUT", "/api/_/problems/7", status, json!(null));
+        if body.is_string() {
+            put = json!({"method": "PUT", "path": "/api/_/problems/7", "status": status, "text": body});
+        } else {
+            put["json"] = body;
+        }
+        routes.push(put);
+        let env = Env::new(routes);
+        let args = ["problems", "update", "PRB-7", "--priority", "High"];
+        let review = env.run(&[&args[..], &["--dry-run", "--json"]].concat());
+        let hash = review.json()["plan_hash"].as_str().unwrap().to_string();
+        let r = env.run(&[&args[..], &["--yes", "--expect-plan", &hash, "--json"]].concat());
+        assert_ne!(r.code, 0, "{}", r.err);
+        assert_eq!(r.write_paths().len(), 1, "{}", r.err);
+        let flat = format!("{} {}", r.out, r.err)
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        assert!(flat.contains(&format!("HTTP {status}")) && flat.contains(expect), "{flat}");
+        assert!(!flat.contains("<h1>"), "{flat}");
+    }
+}

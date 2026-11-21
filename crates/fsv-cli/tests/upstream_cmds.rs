@@ -8830,7 +8830,7 @@ fn tickets_merge_server_error_unknown() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"write outcome unknown; inspect target and journal before retry
+        r#"write outcome unknown (HTTP 500: synthetic failure); inspect target and journal before retry
 "#
     );
     assert_eq!(

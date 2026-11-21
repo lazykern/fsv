@@ -430,7 +430,7 @@
      "tickets": {
       "71": {
        "verified": false,
-       "error": "update rejected (HTTP 400); no retry"
+       "error": "update rejected (HTTP 400: status: Synthetic rejection); no retry"
       }
      },
      "stopped_at": 71,
@@ -563,7 +563,7 @@
       },
       "72": {
        "verified": false,
-       "error": "update rejected (HTTP 400); no retry"
+       "error": "update rejected (HTTP 400: status: Synthetic rejection); no retry"
       }
      },
      "stopped_at": 72,
