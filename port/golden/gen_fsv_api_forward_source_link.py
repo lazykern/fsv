@@ -65,7 +65,7 @@ def main():
     test.write_text(HARNESS.replace("open(OUT", f"open({str(OUT)!r}"))
     stdout, sys.stdout = sys.stdout, sys.stderr
     try:
-        code = pytest.main(["-q", "-p", "no:cacheprovider", str(test)], plugins=[])
+        code = pytest.main(["-q", "-p", "no:cacheprovider", "-n", "0", str(test)], plugins=[])
     finally:
         sys.stdout = stdout
         test.unlink()

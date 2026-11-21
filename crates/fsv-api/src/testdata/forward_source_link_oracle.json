@@ -16,6 +16,23 @@
       "source_link_readback": "unavailable",
       "source_link_verified": false,
       "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "plain",
+      "extra": {},
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
       "name": "quoted_source",
       "extra": {
         "quoted_text_html": "<div>Original Acme message</div>",
@@ -47,40 +64,6 @@
       "posts": 1
     },
     {
-      "verified": true,
-      "fields": {
-        "body": "matched",
-        "private": "matched",
-        "notify_emails": "matched",
-        "from_email": "matched"
-      },
-      "source_conversation_id": 901,
-      "source_link_readback": "unavailable",
-      "source_link_verified": false,
-      "verification_scope": "delivery fields; source link is not exposed by independent readback",
-      "name": "plain",
-      "extra": {},
-      "has_warning": false,
-      "posts": 1
-    },
-    {
-      "verified": true,
-      "fields": {
-        "body": "matched",
-        "private": "matched",
-        "notify_emails": "matched",
-        "from_email": "matched"
-      },
-      "source_conversation_id": 901,
-      "source_link_readback": "unavailable",
-      "source_link_verified": false,
-      "verification_scope": "delivery fields; source link is not exposed by independent readback",
-      "name": "plain",
-      "extra": {},
-      "has_warning": false,
-      "posts": 1
-    },
-    {
       "verified": false,
       "fields": {
         "body": "matched",
@@ -99,6 +82,23 @@
         ]
       },
       "has_warning": true,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "plain",
+      "extra": {},
+      "has_warning": false,
       "posts": 1
     },
     {
