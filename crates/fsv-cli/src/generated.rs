@@ -3248,7 +3248,7 @@ pub struct ResUpdateArgs {
     )]
     pub planned_effort: Option<String>,
     #[arg(
-        help = "tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release",
+        help = "--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release",
         long = "reviewed",
         overrides_with = "no_review"
     )]
@@ -5759,7 +5759,7 @@ pub fn build() -> Command {
             .subcommand(ResViewsArgs::augment_args(Command::new("views") .about("List saved view names.") .after_help("Examples: fsv problems views | fsv problems ls --view all").arg(global_verbose())))
             .subcommand(ResSearchArgs::augment_args(Command::new("search") .about("Full-text keyword search problems.") .after_help("Examples: fsv problems search 'AcmeApp' | fsv problems search 'AcmeApp' --npages 3 | fsv problems search 'AcmeApp' --all | fsv problems search 'data migration' --json").arg(global_verbose())))
             .subcommand(ResUrlArgs::augment_args(Command::new("url") .about("Print problem browser URL.") .after_help("Examples: fsv problems url PRB-1234").arg(global_verbose())))
-            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Examples: fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH").arg(global_verbose())))
+            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Note: reviewed by default: --dry-run prints the plan_hash and record_state; send with --yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is deprecated (body-only update, removed in the next release). Problem status: `fsv problems status ID --to STATUS`. Examples: fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download problem attachments.") .after_help("Examples: fsv problems download PRB-1234 | fsv problems download PRB-1234 --all --dir ./evidence").arg(global_verbose())).mut_arg("threads", |a| a.help("download attachments from notes").long("notes").alias(None).short(None).short_alias(None)))
             .subcommand(ResNotesArgs::augment_args(Command::new("notes") .about("List problem notes.") .after_help("Examples: fsv problems notes PRB-1234 | fsv problems notes PRB-1234 --json").arg(global_verbose())))
             .subcommand(ResAddNoteArgs::augment_args(Command::new("add-note") .about("Add problem note.") .after_help("Note: Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md). Examples: fsv problems add-note PRB-1234 'Checked deployment evidence' (problem notes have no visibility key: the tenant default applies)").arg(global_verbose())))

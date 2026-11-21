@@ -11117,6 +11117,7 @@ fn problems_update_custom_field_dry_run() {
         &[
             "problems",
             "update",
+            "--no-review",
             "74",
             "--status",
             "Change Requested",
@@ -11146,7 +11147,11 @@ fn problems_update_custom_field_dry_run() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
 }
 
 #[test]
@@ -11156,6 +11161,7 @@ fn problems_update_custom_field_send() {
         &[
             "problems",
             "update",
+            "--no-review",
             "74",
             "--set",
             "Owner Note=Acme new owner",
@@ -11182,7 +11188,11 @@ fn problems_update_custom_field_send() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/74"]);
 }
 
@@ -11190,14 +11200,15 @@ fn problems_update_custom_field_send() {
 fn problems_update_deleted_refused() {
     let r = run_fixture(
         "problem_update",
-        &["problems", "update", "72", "--status", "Closed", "--yes"],
+        &["problems", "update", "--no-review", "72", "--status", "Closed", "--yes"],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: PRB-72 is deleted (in trash); restore it before updating
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: PRB-72 is deleted (in trash); restore it before updating
 "#
     );
 }
@@ -11209,6 +11220,7 @@ fn problems_update_not_editable_405() {
         &[
             "problems",
             "update",
+            "--no-review",
             "73",
             "--set",
             "cf_owner_note=x",
@@ -11220,7 +11232,8 @@ fn problems_update_not_editable_405() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: HTTP 405 updating problem: PRB-73 is not editable (deleted or in trash?); nothing was changed
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: HTTP 405 updating problem: PRB-73 is not editable (deleted or in trash?); nothing was changed
 "#
     );
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/73"]);

@@ -190,6 +190,7 @@ fn dry_run_reports_stale_schema() {
     let args = [
         "problems",
         "update",
+        "--no-review",
         "PRB-7",
         "--priority",
         "High",

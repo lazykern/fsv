@@ -2095,7 +2095,7 @@ fn props_not_ticket() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"--tag and planned dates are supported only for tickets
+        r#"error: --tag is supported only for tickets
 "#
     );
 }

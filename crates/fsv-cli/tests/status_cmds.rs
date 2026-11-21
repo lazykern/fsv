@@ -43,7 +43,7 @@ const PLAN: &str = "19e0acf527f1540c258c405a57bde7fc9878063fea0f014e6ea7af833cb8
 /// Python tests/test_problem_write_fixes.py::test_problem_update_dry_run_prints_a_plan_hash_bound_on_send
 #[test]
 fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
-    let args = ["problems", "update", "PRB-7", "--priority", "High"];
+    let args = ["problems", "update", "--no-review", "PRB-7", "--priority", "High"];
     let mut env = Env::new(problem_update_routes("Acme outage"));
     let run = |env: &Env, extra: &[&str]| env.run(&[&args[..], extra].concat());
     let r = run(&env, &["--dry-run", "--json"]);

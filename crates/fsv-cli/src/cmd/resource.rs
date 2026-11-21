@@ -1390,6 +1390,20 @@ pub fn reply(
 
 /// Generic `update` (tickets, problems).
 pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
+    if a.no_review {
+        if !a.tag.is_empty()
+            || a.planned_start.is_some()
+            || a.planned_end.is_some()
+            || a.planned_effort.is_some()
+            || a.ack
+        {
+            return Err(usage(
+                "--tag, --planned-start/--planned-end/--planned-effort and --ack have no --no-review path; drop --no-review",
+            ));
+        }
+        no_review_notice(res);
+        return update_resource(res, &a);
+    }
     if res.name == PROBLEMS.name
         && (a.planned_start.is_some() || a.planned_end.is_some() || a.planned_effort.is_some())
     {
@@ -1398,14 +1412,14 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
     if a.planned_effort.is_some() {
         return Err(usage("--planned-effort is supported only for problems"));
     }
-    if a.no_review && res.name == TICKETS.name {
-        if !a.tag.is_empty() || a.planned_start.is_some() || a.planned_end.is_some() || a.ack {
-            return Err(usage(
-                "--tag, --planned-start/--planned-end and --ack have no --no-review path; drop --no-review",
-            ));
+    if res.name == PROBLEMS.name {
+        if !a.tag.is_empty() {
+            return Err(usage("--tag is supported only for tickets"));
         }
-        no_review_notice(res);
-        return update_resource(res, &a);
+        if a.ack {
+            return Err(usage("--ack applies to ticket updates only"));
+        }
+        return problem_reviewed_update(res, &a);
     }
     if res.name == TICKETS.name
         || !a.tag.is_empty()
@@ -1423,6 +1437,156 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
         return Err(usage("--ack applies to ticket updates only"));
     }
     update_resource(res, &a)
+}
+
+/// `_problem_reviewed_update`: problem form fields other than planning, one
+/// reviewed PUT of only the changed keys (`problem_properties.build_update_plan`),
+/// journaled and read back. Status keeps its own reviewed command.
+fn problem_reviewed_update(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
+    if a.status.is_some() {
+        return Err(usage(
+            "problem status changes go through `fsv problems status ID --to STATUS` (a reviewed transition with closure checks); nothing sent",
+        ));
+    }
+    let c = client()?;
+    fsv_api::schema::revalidate_for_write(res, &c).map_err(fail_exc)?;
+    let sch = schema::load(res, &c, false).map_err(fail_exc)?;
+    let stale_warning = if a.dry_run {
+        fsv_api::schema::freshness_warning(res, c.as_ref(), &sch)
+    } else {
+        None
+    };
+    if let Some(w) = &stale_warning {
+        err().print(&format!("[yellow]warning[/yellow]: {w}"));
+    }
+    let (_sch, body) = fsv_api::schema::validate_with_refetch(res, &c, sch, |sch| {
+        update_body(res, &c, sch, None, a)
+    })?;
+    let store = fsv_api::formmeta::DiskStore::current();
+    let pretty = |v: &Value| {
+        fsv_py::Dumps::default()
+            .indent(2)
+            .ensure_ascii(false)
+            .dump(v)
+    };
+    let plan = match fsv_api::problem_properties::build_update_plan(
+        c.as_ref(),
+        &store,
+        &fsv_api::service::DiskJournal,
+        &a.id_,
+        &body,
+    ) {
+        Ok(plan) => plan,
+        Err(fsv_api::problem_properties::UpdateError::NothingToChange(message)) => {
+            if a.expect_plan.is_some() {
+                let said = fsv_core::journal::stale_plan_refusal(
+                    a.expect_plan.as_deref(),
+                    &[fsv_api::problem_properties::UPDATE_ACTION],
+                )
+                .unwrap_or_else(|| {
+                    "nothing to change; the reviewed plan does not exist. Nothing was sent".into()
+                });
+                return Err(plain_fail(&said, 2));
+            }
+            if a.json_out {
+                let target = cid(&a.id_, res)?;
+                fsv_core::output::emit_json(
+                    &json!({"status": "nothing_to_change", "target": target}),
+                );
+            } else {
+                println!("{message}");
+            }
+            return Ok(());
+        }
+        Err(fsv_api::problem_properties::UpdateError::Failed(e)) => {
+            return Err(match e {
+                Error::Value(m) => plain_fail(&m, 2),
+                Error::Exit { code: 2, message } if !message.is_empty() => plain_fail(&message, 2),
+                e @ Error::Api(_) => plain_fail(&e.to_string(), 2),
+                other => uncaught(other),
+            });
+        }
+    };
+    if a.dry_run {
+        let mut out = Map::new();
+        out.insert("status".into(), json!("dry_run"));
+        out.extend(plan.review());
+        if let Some(w) = stale_warning {
+            let mut warnings = out
+                .get("warnings")
+                .and_then(Value::as_array)
+                .cloned()
+                .unwrap_or_default();
+            warnings.push(json!(w));
+            out.insert("warnings".into(), Value::Array(warnings));
+        }
+        println!("{}", pretty(&Value::Object(out)));
+        return Ok(());
+    }
+    let hash = plan.hash();
+    let sent = (|| -> Result<Option<Value>, Error> {
+        if a.expect_plan.as_deref().is_some_and(|e| e != hash) {
+            return Err(refused_exit(
+                fsv_core::journal::stale_plan_refusal(
+                    a.expect_plan.as_deref(),
+                    &[fsv_api::problem_properties::UPDATE_ACTION],
+                )
+                .unwrap_or_else(|| "the problem or the update changed since review (or a partial hash); review again with --dry-run. Nothing was sent".into()),
+            ));
+        }
+        if a.yes {
+            if a.expect_plan.as_deref() != Some(hash.as_str()) {
+                return Err(refused_exit(
+                    "--yes requires the full --expect-plan from a prior --dry-run review".into(),
+                ));
+            }
+        } else if crate::util::no_input(a.no_input) {
+            return Err(refused_exit(
+                "sending requires --yes and --expect-plan in no-input mode".into(),
+            ));
+        } else {
+            eprintln!("{}", pretty(&Value::Object(plan.review())));
+            if !fsv_core::term::confirm("Update these exact problem fields?", Some(false), false)? {
+                println!("Cancelled; no update attempted.");
+                return Ok(None);
+            }
+        }
+        fsv_api::problem_properties::send_update(
+            &plan,
+            c.as_ref(),
+            &store,
+            &fsv_api::service::DiskJournal,
+            Some(&hash),
+        )
+        .map(Some)
+    })();
+    let result = match sent {
+        Ok(Some(result)) => result,
+        Ok(None) => return Ok(()),
+        Err(e) => {
+            let message = match &e {
+                Error::Value(m) => m.clone(),
+                Error::Exit { code: 2, message } if !message.is_empty() => message.clone(),
+                Error::Api(_) => e.to_string(),
+                _ => return Err(uncaught(e)),
+            };
+            if a.json_out {
+                fsv_core::output::emit_json(&json!({
+                    "status": "error", "plan_hash": hash, "verified": false, "error": message,
+                }));
+            }
+            return Err(plain_fail(&message, 2));
+        }
+    };
+    println!("{}", pretty(&result));
+    if !result.get("verified").is_some_and(fsv_py::truthy) {
+        return Err(Error::exit(4, ""));
+    }
+    Ok(())
+}
+
+fn refused_exit(message: String) -> Error {
+    Error::exit(2, message)
 }
 
 /// `_no_review_notice`: one-line deprecation notice for the old body-only

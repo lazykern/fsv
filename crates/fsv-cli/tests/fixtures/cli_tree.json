@@ -15598,7 +15598,7 @@
        "is_flag": true,
        "default": true,
        "hidden": false,
-       "help": "tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release",
+       "help": "--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release",
        "metavar": null,
        "envvar": null
       },
@@ -24529,7 +24529,7 @@
     {
      "path": "fsv problems update",
      "help": "Update problem fields.",
-     "epilog": "[bold]Examples:[/bold]  fsv problems update PRB-1234 --priority High --dry-run  |  fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH",
+     "epilog": "[bold]Note:[/bold] reviewed by default: --dry-run prints the plan_hash and record_state; send with --yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is deprecated (body-only update, removed in the next release).  Problem status: `fsv problems status ID --to STATUS`.  [bold]Examples:[/bold]  fsv problems update PRB-1234 --priority High --dry-run  |  fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH",
      "hidden": false,
      "group": false,
      "params": [
@@ -24744,7 +24744,7 @@
        "is_flag": true,
        "default": true,
        "hidden": false,
-       "help": "tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release",
+       "help": "--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release",
        "metavar": null,
        "envvar": null
       },

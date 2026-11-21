@@ -867,7 +867,7 @@ A	fsv tickets update	--tag	tickets only: replace all tags with these values (rep
 A	fsv tickets update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv tickets update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv tickets update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
-A	fsv tickets update	--reviewed	tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release
+A	fsv tickets update	--reviewed	--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release
 A	fsv tickets update	--ack	tickets: acknowledge blocking rule messages (bound to the review hash)
 A	fsv tickets update	--expect-plan	full reviewed hash (ticket property update, problem update)
 A	fsv tickets update	--dry-run	print resolved payload without updating
@@ -1376,7 +1376,7 @@ A	fsv problems update	--tag	tickets only: replace all tags with these values (re
 A	fsv problems update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv problems update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv problems update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
-A	fsv problems update	--reviewed	tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release
+A	fsv problems update	--reviewed	--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release
 A	fsv problems update	--ack	tickets: acknowledge blocking rule messages (bound to the review hash)
 A	fsv problems update	--expect-plan	full reviewed hash (ticket property update, problem update)
 A	fsv problems update	--dry-run	print resolved payload without updating
