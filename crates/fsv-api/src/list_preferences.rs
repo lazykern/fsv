@@ -248,6 +248,62 @@ pub fn export_source(
     Ok((selected, row))
 }
 
+fn plain_id(v: &Value) -> bool {
+    matches!(v, Value::Number(n) if n.is_i64() || n.is_u64())
+}
+
+/// Port of fsv.list_preferences.export_data_hash: the view's `query_hash`
+/// as the export dialog's `data_hash`. Only strings and lists of strings
+/// were accepted by the server: a ticket view's single integer
+/// `workspace_id` becomes the captured `is "<id>"`, a scalar integer its
+/// string, string values pass unchanged; any other value is refused at
+/// review time naming the condition.
+pub fn export_data_hash(module: &str, query_hash: &[Value]) -> Result<Vec<Value>> {
+    let mut out = Vec::new();
+    let mut unsupported: Vec<String> = Vec::new();
+    for item in query_hash {
+        let Some(name) = item
+            .as_object()
+            .and_then(|m| m.get("condition"))
+            .and_then(Value::as_str)
+        else {
+            unsupported.push(fsv_py::py_repr(item).chars().take(40).collect());
+            continue;
+        };
+        let mut cond = item.as_object().cloned().unwrap_or_default();
+        let value = item.get("value").cloned().unwrap_or(Value::Null);
+        let operator = item.get("operator");
+        if module == "tickets"
+            && name == "workspace_id"
+            && (operator == Some(&json!("is")) || operator == Some(&json!("is_in")))
+            && value
+                .as_array()
+                .is_some_and(|v| v.len() == 1 && plain_id(&v[0]))
+        {
+            cond.insert("operator".into(), json!("is"));
+            cond.insert("value".into(), json!(py_str(&value[0])));
+        } else if plain_id(&value) {
+            cond.insert("value".into(), json!(py_str(&value)));
+        } else if value.is_string()
+            || value
+                .as_array()
+                .is_some_and(|v| !v.is_empty() && v.iter().all(Value::is_string))
+        {
+        } else {
+            unsupported.push(name.to_string());
+            continue;
+        }
+        out.push(Value::Object(cond));
+    }
+    if !unsupported.is_empty() {
+        return Err(refused(format!(
+            "this view has conditions fsv cannot serialise for export yet: {} (the export endpoint takes string values only; nothing was sent)",
+            unsupported.join(", ")
+        )));
+    }
+    Ok(out)
+}
+
 /// Port of fsv.list_preferences.export_plan: one CSV / 30-day / created-at
 /// export request for a saved view.
 pub fn export_plan(
@@ -290,7 +346,7 @@ pub fn export_plan(
     }
     let (selected, row) = export_source(c, module, view)?;
     let mut payload = json!({"format": "csv", "date_filter": 30, "export_fields": export_fields,
-                             "custom_fields": {}, "data_hash": row["query_hash"]});
+                             "custom_fields": {}, "data_hash": export_data_hash(module, row["query_hash"].as_array().map_or(&[], Vec::as_slice))?});
     if module == "tickets" {
         payload["ticket_state_filter"] = json!("created_at");
         payload["advanced_data_hash"] = Value::Null;
@@ -653,5 +709,96 @@ mod export_tests {
         let first = plan(&c, &j, "tickets");
         let (_, other) = api("tickets", json!({"email": "other@example.com"}));
         assert_ne!(plan(&other, &j, "tickets").hash(), first.hash());
+    }
+
+    fn string_values(conds: &Value) -> bool {
+        conds.as_array().unwrap().iter().all(|c| match &c["value"] {
+            Value::String(_) => true,
+            Value::Array(v) => v.iter().all(Value::is_string),
+            _ => false,
+        })
+    }
+
+    #[test]
+    fn export_integer_workspace_view_is_normalised_to_the_captured_string_shape() {
+        for module in ["tickets", "changes", "problems"] {
+            let (world, c) = api(module, agent());
+            let j = MemJournal::default();
+            let query = json!([
+                {"condition": "status", "operator": "is_in", "value": ["2", "3"], "type": "default"},
+                {"condition": "workspace_id", "operator": "is_in", "value": [1], "type": "default"},
+                {"condition": "priority", "operator": "is", "value": 4, "type": "default"}]);
+            world.lock().unwrap().row = view_row(query.clone());
+            if module != "tickets" {
+                let err = export_plan(&c, &j, module, "701", &fields()).unwrap_err();
+                assert!(
+                    err.to_string().contains("export yet: workspace_id"),
+                    "{err}"
+                );
+                continue;
+            }
+            let p = plan(&c, &j, module);
+            let data = p.payload()["data_hash"].clone();
+            assert_eq!(data[0], query[0]);
+            assert_eq!(
+                data[1],
+                json!({"condition": "workspace_id", "operator": "is", "value": "1", "type": "default"})
+            );
+            assert_eq!(data[2]["value"], json!("4"));
+            assert!(string_values(&data));
+            assert!(
+                !string_values(&query),
+                "as read, the fake server answers 400"
+            );
+            assert_eq!(
+                world.lock().unwrap().row["query_hash"][1]["value"],
+                json!([1])
+            );
+            assert_eq!(
+                send_export(&p, &c, &j, Some(&p.hash())).unwrap()["accepted"],
+                json!(true)
+            );
+            assert_eq!(world.lock().unwrap().writes, 1);
+        }
+    }
+
+    #[test]
+    fn export_string_view_body_is_unchanged() {
+        let (world, c) = api("tickets", agent());
+        let p = plan(&c, &MemJournal::default(), "tickets");
+        assert_eq!(
+            p.payload()["data_hash"],
+            world.lock().unwrap().row["query_hash"]
+        );
+        assert!(string_values(&p.payload()["data_hash"]));
+    }
+
+    #[test]
+    fn export_unserialisable_view_is_refused_at_review_naming_the_field() {
+        let values = [
+            json!([0]),
+            json!([0, 1]),
+            json!({"from": "x", "to": "y"}),
+            Value::Null,
+            json!(true),
+            json!([]),
+        ];
+        for module in ["tickets", "changes", "problems"] {
+            for value in &values {
+                let (world, c) = api(module, agent());
+                world.lock().unwrap().row = view_row(json!([
+                    {"condition": "status", "operator": "is_in", "value": ["2"], "type": "default"},
+                    {"condition": "responder_id", "operator": "is_in", "value": value, "type": "default"}]));
+                let err =
+                    export_plan(&c, &MemJournal::default(), module, "701", &fields()).unwrap_err();
+                assert_eq!(err.exit_code(), 2);
+                assert!(
+                    err.to_string()
+                        .contains("cannot serialise for export yet: responder_id"),
+                    "{module} {value}: {err}"
+                );
+                assert_eq!(world.lock().unwrap().writes, 0);
+            }
+        }
     }
 }
