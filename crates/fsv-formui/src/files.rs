@@ -90,7 +90,7 @@ fn split_raw(raw: &Value) -> Vec<String> {
     match raw {
         Value::List(items) => items.iter().map(Value::py_str).collect(),
         Value::Json(Json::Array(items)) => items.iter().map(fsv_py::py_str).collect(),
-        Value::Null => vec![],
+        other if !other.truthy() => vec![],
         other => other
             .py_str()
             .replace('\n', ";")

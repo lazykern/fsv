@@ -253,10 +253,17 @@ fn load_cases() -> Vec<Case> {
                 .as_array()
                 .map(|p| {
                     p.iter()
-                        .map(|a| Step {
-                            args: strings(a),
-                            stdin: String::new(),
-                            routes: None,
+                        .map(|a| match a.get("args") {
+                            Some(args) => Step {
+                                args: strings(args),
+                                stdin: text(&a["stdin"]).unwrap_or_default(),
+                                routes: None,
+                            },
+                            None => Step {
+                                args: strings(a),
+                                stdin: String::new(),
+                                routes: None,
+                            },
                         })
                         .collect()
                 })

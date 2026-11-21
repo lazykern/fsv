@@ -316,6 +316,28 @@ impl ComboBox {
 }
 
 impl Editor for ComboBox {
+    fn observe(&self) -> serde_json::Value {
+        let options: Vec<String> = self
+            .options
+            .iter()
+            .map(|s| {
+                let mut t = String::new();
+                if self.multi {
+                    t.push_str(if s.selected { "[x] " } else { "[ ] " });
+                }
+                t.push_str(&s.label);
+                if !s.detail.is_empty() {
+                    t.push_str("  ");
+                    t.push_str(&s.detail);
+                }
+                t
+            })
+            .collect();
+        serde_json::json!({"text": self.input.value(), "open": self.is_open, "options": options,
+                           "highlighted": self.highlighted, "note": self.note,
+                           "chosen": if !self.multi { String::new() } else if self.chosen.is_empty() {
+                               "nothing selected".to_string() } else { format!("✓ {}", self.chosen) }})
+    }
     fn disabled(&self) -> bool {
         self.input.disabled
     }

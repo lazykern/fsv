@@ -1,0 +1,158 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items/501",
+  "json": {
+   "service_item": {
+    "id": 4500001,
+    "display_id": 501,
+    "name": "Laptop-Anfrage",
+    "short_description": "Neues Gerät",
+    "category_id": 7101,
+    "category_name": "Hardware",
+    "updated_at": "2031-02-01T09:00:00Z",
+    "description": "<p>Bitte Angebot anhängen.</p>",
+    "allow_attachments": false,
+    "allow_quantity": false,
+    "attachment_mandatory": false,
+    "configs": {
+     "attachment_mandatory": false,
+     "subject": "",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "g-why",
+      "name": "begruendung",
+      "type": 1001,
+      "position": 1,
+      "label": "Begründung",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "g-model",
+      "name": "modell",
+      "type": 1003,
+      "position": 2,
+      "label": "Modell",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "m1",
+        "value": "Standard 14 Zoll",
+        "label": "Standard 14 Zoll",
+        "position": 1
+       },
+       {
+        "id": "m2",
+        "value": "Entwickler 16 Zoll",
+        "label": "Entwickler 16 Zoll",
+        "position": 2
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "g-date",
+      "name": "benoetigt_bis",
+      "type": 1007,
+      "position": 3,
+      "label": "Benötigt bis",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "placeholder": "",
+      "field_options": {
+       "date_only": "true"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "g-offer",
+      "name": "angebot",
+      "type": 1014,
+      "position": 4,
+      "label": "Angebot (.pdf)",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "placeholder": "",
+      "field_options": {
+       "allowed_file_types": "[\".pdf\"]",
+       "max_attachment_limit": "1"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/me",
+  "status": 404,
+  "json": {
+   "message": "no route GET /api/_/bootstrap/me"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/workspaces",
+  "status": 404,
+  "json": {
+   "message": "no route GET /api/_/workspaces"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "query": {
+   "cf_name_prefix": "customField.",
+   "ember_api": "true",
+   "form_type": "new_form",
+   "include_workspace": "false",
+   "item_id": "4500001",
+   "module_id": "",
+   "module_type": "service_request",
+   "requested_for": "",
+   "requester": "",
+   "user_type": "null"
+  },
+  "status": 404,
+  "json": {
+   "message": "Not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9000012100,
+    "time_zone": "Berlin",
+    "language": "de"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head><body>app</body></html>"
+ }
+]

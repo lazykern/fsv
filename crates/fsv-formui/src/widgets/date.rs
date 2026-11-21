@@ -139,6 +139,15 @@ impl DateEditor {
 }
 
 impl Editor for DateEditor {
+    fn observe(&self) -> serde_json::Value {
+        let shown = if self.preview.error.is_empty() {
+            &self.preview.preview
+        } else {
+            &self.preview.error
+        };
+        serde_json::json!({"text": self.input.value(), "preview": shown,
+                           "bad": !self.preview.error.is_empty()})
+    }
     fn slots(&self) -> usize {
         2
     }
@@ -153,7 +162,7 @@ impl Editor for DateEditor {
             return true;
         }
         if slot == 1 {
-            return matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) && self.button(cx);
+            return matches!(k.code, KeyCode::Enter) && self.button(cx);
         }
         match self.input.handle_key(k) {
             InputEvent::Changed => {

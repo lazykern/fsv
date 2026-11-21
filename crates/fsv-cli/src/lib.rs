@@ -3,6 +3,8 @@
 mod app;
 mod cmd;
 mod filters;
+#[cfg(test)]
+mod formdiff;
 pub mod generated;
 mod lazy;
 mod lookup;

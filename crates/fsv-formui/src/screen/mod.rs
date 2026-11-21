@@ -65,6 +65,11 @@ pub enum Focus {
     /// Row index, editor slot.
     Field(usize, usize),
     Button(FormButton),
+    /// The scrolling field list (`#form-fields`, a focusable
+    /// `VerticalScroll`): first in Tab order.
+    Fields,
+    /// The help panel (`#form-help`), last in Tab order while it shows.
+    Help,
 }
 
 /// Where a save dialog came from.
@@ -350,6 +355,72 @@ impl FormScreen {
         self.rows[i].editor.as_deref_mut()
     }
 
+    /// Where the focus is: a row key (`key#1` for the second slot, the
+    /// calendar button of a date row) or a button name.
+    pub fn focus_label(&self) -> String {
+        match self.focus {
+            Some(Focus::Field(i, 0)) => self.rows[i].key().to_string(),
+            Some(Focus::Field(i, s)) => format!("{}#{s}", self.rows[i].key()),
+            Some(Focus::Button(FormButton::Review)) => "btn-review".into(),
+            Some(Focus::Button(FormButton::Save)) => "btn-save".into(),
+            Some(Focus::Button(FormButton::Cancel)) => "btn-cancel".into(),
+            Some(Focus::Fields) => "form-fields".into(),
+            Some(Focus::Help) => "form-help".into(),
+            None => String::new(),
+        }
+    }
+
+    /// What the open layer shows, for the replay differential.
+    pub fn observe_layer(&mut self) -> serde_json::Value {
+        use serde_json::json;
+        fn pick(names: &[&'static str], i: usize) -> Option<&'static str> {
+            names.get(i).copied()
+        }
+        let Some(layer) = self.layers.last_mut() else {
+            return serde_json::Value::Null;
+        };
+        match layer {
+            Layer::Review(r) => json!({
+                "banner": r.banner(&self.session).join("\n"),
+                "submit_label": ReviewState::submit_label(&self.session),
+                "submit_disabled": r.submit_disabled(),
+                "command_disabled": r.command_disabled(),
+                "payload": r.show_payload,
+                "ack": r.has_ack,
+                "focus": match r.focus {
+                    review::ReviewFocus::Ack => "rv-ack",
+                    review::ReviewFocus::Submit => "rv-submit",
+                    review::ReviewFocus::Back => "rv-back",
+                    review::ReviewFocus::Save => "rv-save",
+                    review::ReviewFocus::Command => "rv-command",
+                    review::ReviewFocus::Cancel => "rv-cancel",
+                },
+            }),
+            Layer::Confirm(d) => {
+                json!({"question": d.question, "focus": pick(&["dlg-yes", "dlg-no"], d.focus)})
+            }
+            Layer::SavePath(d, _) => json!({"text": d.input.value(), "note": d.note,
+                "focus": pick(&["dlg-path", "dlg-save", "dlg-cancel"], d.focus)}),
+            Layer::Text(d) => {
+                json!({"text": d.text, "focus": pick(&["dlg-copy", "dlg-close"], d.focus)})
+            }
+            Layer::DatePicker(d, _) => {
+                let time = d.time.value();
+                json!({"cursor": d.grid.cursor.to_string(), "time": time, "preview": d.preview})
+            }
+        }
+    }
+
+    /// The notes line under the title (`#form-notes`).
+    pub fn notes_text(&self) -> String {
+        self.notes.join("\n")
+    }
+
+    /// The status line (`#form-status`).
+    pub fn status_text(&self) -> &str {
+        &self.status
+    }
+
     pub fn focused_key(&self) -> Option<&str> {
         match self.focus {
             Some(Focus::Field(i, _)) => Some(self.rows[i].key()),
@@ -517,9 +588,10 @@ impl FormScreen {
                 let next = match f {
                     Focus::Field(i, _) => ring.iter().copied().find(|g| match g {
                         Focus::Field(j, _) => *j > i,
-                        Focus::Button(_) => true,
+                        Focus::Button(_) | Focus::Help => true,
+                        Focus::Fields => false,
                     }),
-                    Focus::Button(_) => {
+                    Focus::Button(_) | Focus::Fields | Focus::Help => {
                         ring.iter().copied().find(|g| matches!(g, Focus::Button(_)))
                     }
                 };
@@ -615,7 +687,7 @@ impl FormScreen {
 
     // -- focus ---------------------------------------------------------------
     fn ring(&self) -> Vec<Focus> {
-        let mut ring = vec![];
+        let mut ring = vec![Focus::Fields];
         for (i, row) in self.rows.iter().enumerate() {
             if row.focusable() {
                 let slots = row.editor.as_ref().map_or(1, |e| e.slots());
@@ -627,6 +699,9 @@ impl FormScreen {
         }
         ring.push(Focus::Button(FormButton::Save));
         ring.push(Focus::Button(FormButton::Cancel));
+        if !self.hide_help {
+            ring.push(Focus::Help);
+        }
         ring
     }
 
@@ -692,25 +767,18 @@ impl FormScreen {
         self.set_focus(Some(next));
     }
 
-    /// A modal opens over the form: the focused editor loses focus (and
-    /// commits), as in Textual.
+    /// A modal opens over the form. The focused editor keeps its focus and
+    /// state (an open list stays open): Textual keeps `screen.focused` and
+    /// sends no blur. Callers that need the typed text commit it first.
     fn push(&mut self, layer: Layer) {
-        if self.layers.is_empty()
-            && let Some(Focus::Field(i, s)) = self.focus
-        {
-            self.with_editor(i, |e, cx| e.blur(s, cx));
-        }
         self.layers.push(layer);
         self.process();
     }
 
-    /// Back on the form: the editor that had focus gets it again.
+    /// Back on the form: no focus event, the editor is as it was left.
     fn pop(&mut self) {
         self.layers.pop();
-        if self.layers.is_empty()
-            && let Some(Focus::Field(i, s)) = self.focus
-        {
-            self.with_editor(i, |e, cx| e.focus(s, cx));
+        if self.layers.is_empty() {
             self.refresh_rows();
         }
         self.process();
@@ -782,7 +850,7 @@ impl FormScreen {
                     return;
                 }
             }
-            Some(Focus::Button(b)) if matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) => {
+            Some(Focus::Button(b)) if matches!(k.code, KeyCode::Enter) => {
                 self.press_button(b);
                 return;
             }
@@ -799,9 +867,6 @@ impl FormScreen {
             KeyCode::Down => self.scroll += 1,
             KeyCode::PageUp => self.scroll = self.scroll.saturating_sub(10),
             KeyCode::PageDown => self.scroll += 10,
-            KeyCode::Left | KeyCode::Right if matches!(self.focus, Some(Focus::Button(_))) => {
-                self.focus_step(if k.code == KeyCode::Left { -1 } else { 1 });
-            }
             _ => {}
         }
     }
@@ -1328,7 +1393,7 @@ impl FormScreen {
             let target = match self.focus {
                 Some(Focus::Field(i, _)) => spans.iter().find(|s| s.0 == i).map(|s| (s.1, s.2)),
                 Some(Focus::Button(_)) => Some((actions_y, 4)),
-                None => None,
+                Some(Focus::Fields | Focus::Help) | None => None,
             };
             if let Some((start, h)) = target {
                 let (start, h) = (usize::from(start), usize::from(h));

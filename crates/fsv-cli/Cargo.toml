@@ -36,3 +36,5 @@ libc.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+ratatui = "0.30"
+crossterm = "0.29"

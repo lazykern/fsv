@@ -1,0 +1,539 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "id": 9000006221,
+     "name": "requester",
+     "label": "Requester",
+     "description": "",
+     "field_type": "default_requester",
+     "required": true,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006222,
+     "name": "subject",
+     "label": "Subject",
+     "description": "",
+     "field_type": "default_subject",
+     "required": true,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "Service: objective",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006224,
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "description": "",
+     "field_type": "custom_dropdown",
+     "required": true,
+     "required_for_closure": false,
+     "position": 4,
+     "default_field": false,
+     "choices": [
+      {
+       "id": 9000002101,
+       "display_id": 9000003101,
+       "value": "Yes",
+       "label": "Yes"
+      },
+      {
+       "id": 9000002102,
+       "display_id": 9000003102,
+       "value": "No",
+       "label": "No"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "Only the cloud team performs this change",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006225,
+     "name": "stage",
+     "label": "Stage",
+     "description": "",
+     "field_type": "custom_dropdown",
+     "required": false,
+     "required_for_closure": false,
+     "position": 5,
+     "default_field": false,
+     "choices": [
+      {
+       "id": 9000002111,
+       "display_id": 9000003111,
+       "value": "Live",
+       "label": "Live"
+      },
+      {
+       "id": 9000002112,
+       "display_id": 9000003112,
+       "value": "Staging",
+       "label": "Staging"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006226,
+     "name": "staging_start",
+     "label": "Staging Start",
+     "description": "",
+     "field_type": "custom_date",
+     "required": false,
+     "required_for_closure": false,
+     "position": 6,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006227,
+     "name": "staging_end",
+     "label": "Staging End",
+     "description": "",
+     "field_type": "custom_date",
+     "required": false,
+     "required_for_closure": false,
+     "position": 7,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006230,
+     "name": "reviewer",
+     "label": "Reviewer",
+     "description": "",
+     "field_type": "custom_lookup",
+     "required": false,
+     "required_for_closure": false,
+     "position": 10,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 5,
+     "lookup_config": {
+      "data_source": 5,
+      "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+     },
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006232,
+     "name": "legacy_flag",
+     "label": "Legacy Flag",
+     "description": "",
+     "field_type": "custom_checkbox",
+     "required": false,
+     "required_for_closure": false,
+     "position": 12,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006233,
+     "name": "description",
+     "label": "Description",
+     "description": "",
+     "field_type": "default_description",
+     "required": true,
+     "required_for_closure": false,
+     "position": 13,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "What and why",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006234,
+     "name": "priority",
+     "label": "Priority",
+     "description": "",
+     "field_type": "default_priority",
+     "required": true,
+     "required_for_closure": false,
+     "position": 14,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      },
+      {
+       "id": 3,
+       "value": "High"
+      },
+      {
+       "id": 4,
+       "value": "Urgent"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006235,
+     "name": "impact",
+     "label": "Impact",
+     "description": "",
+     "field_type": "default_impact",
+     "required": true,
+     "required_for_closure": false,
+     "position": 15,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      },
+      {
+       "id": 3,
+       "value": "High"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000006241,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": true,
+     "required_for_closure": false,
+     "position": 21,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Planning"
+      },
+      {
+       "id": 3,
+       "value": "Closed"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ws/2/business_rules",
+  "query": {
+   "cf_name_prefix": "customFields.",
+   "ember_api": "true",
+   "filter_by_default_form_action": "true",
+   "form_type": "new_form",
+   "include_workspace": "false",
+   "item_id": "null",
+   "module_id": "",
+   "module_type": "ticket",
+   "requested_for": "",
+   "requester": "",
+   "user_type": "null"
+  },
+  "json": {
+   "business_rules": [
+    {
+     "id": 9000004101,
+     "name": "Cloud only: no",
+     "workspace_id": 2,
+     "module_type": "ticket",
+     "item_id": null,
+     "deleted": false,
+     "user_type": "both",
+     "form_type": "both",
+     "state": "active",
+     "rule_type": "client_side",
+     "description": "",
+     "condition_data": {
+      "all": [
+       {
+        "name": "customFields.cloud_only",
+        "operator": "is",
+        "evaluate_on": "change",
+        "value": "No"
+       }
+      ]
+     },
+     "action_data": {
+      "action": [
+       {
+        "name": [
+         "customFields.stage"
+        ],
+        "property": "populate",
+        "values": [
+         9000003112
+        ]
+       },
+       {
+        "name": [
+         "customFields.staging_start",
+         "customFields.staging_end"
+        ],
+        "property": "show"
+       },
+       {
+        "name": [
+         "customFields.staging_start",
+         "customFields.staging_end"
+        ],
+        "property": "mandate"
+       }
+      ]
+     },
+     "is_reversible": false,
+     "is_validation": false,
+     "updated_at": "2030-01-03T00:00:00Z"
+    },
+    {
+     "id": 9000004102,
+     "name": "Cloud only: yes",
+     "workspace_id": 2,
+     "module_type": "ticket",
+     "item_id": null,
+     "deleted": false,
+     "user_type": "both",
+     "form_type": "both",
+     "state": "active",
+     "rule_type": "client_side",
+     "description": "",
+     "condition_data": {
+      "all": [
+       {
+        "name": "customFields.cloud_only",
+        "operator": "is",
+        "evaluate_on": "change",
+        "value": "Yes"
+       }
+      ]
+     },
+     "action_data": {
+      "action": [
+       {
+        "name": [
+         "customFields.stage"
+        ],
+        "property": "populate",
+        "values": [
+         9000003111
+        ]
+       },
+       {
+        "name": [
+         "customFields.staging_start",
+         "customFields.staging_end"
+        ],
+        "property": "hide"
+       }
+      ]
+     },
+     "is_reversible": false,
+     "is_validation": false,
+     "updated_at": "2030-01-03T00:00:00Z"
+    },
+    {
+     "id": 9000004103,
+     "name": "Hide legacy flag",
+     "workspace_id": 2,
+     "module_type": "ticket",
+     "item_id": null,
+     "deleted": false,
+     "user_type": "both",
+     "form_type": "both",
+     "state": "active",
+     "rule_type": "client_side",
+     "description": "",
+     "condition_data": {
+      "all": null
+     },
+     "action_data": {
+      "action": [
+       {
+        "name": [
+         "customFields.legacy_flag"
+        ],
+        "property": "hide"
+       }
+      ]
+     },
+     "is_reversible": false,
+     "is_validation": false,
+     "updated_at": "2030-01-03T00:00:00Z"
+    }
+   ],
+   "user": {
+    "first_name": "Robin",
+    "last_name": "Agent",
+    "email": "robin.agent@example.com",
+    "time_zone": "Tokyo"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "query": {
+   "q": "jane",
+   "qf": "details"
+  },
+  "json": {
+   "results": [
+    {
+     "id": 9000007001,
+     "value": "Jane Doe",
+     "email": "jane.doe@example.com",
+     "details": "Jane Doe <jane.doe@example.com>"
+    },
+    {
+     "id": 9000007002,
+     "value": "Jane Doerr",
+     "email": "jane.doerr@example.com",
+     "details": "Jane Doerr <jane.doerr@example.com>"
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets",
+  "json": {
+   "ticket": {
+    "id": 123
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ }
+]

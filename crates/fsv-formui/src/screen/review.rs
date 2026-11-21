@@ -320,23 +320,15 @@ impl ReviewState {
                 let n = ring.len() as isize;
                 self.focus = ring[(i + if back { -1 } else { 1 }).rem_euclid(n) as usize];
             }
-            KeyCode::Left | KeyCode::Right if self.focus != ReviewFocus::Ack => {
-                let ring: Vec<_> = self
-                    .ring()
-                    .into_iter()
-                    .filter(|f| *f != ReviewFocus::Ack)
-                    .collect();
-                let i = ring.iter().position(|f| *f == self.focus).unwrap_or(0) as isize;
-                let by = if k.code == KeyCode::Left { -1 } else { 1 };
-                self.focus = ring[(i + by).clamp(0, ring.len() as isize - 1) as usize];
-            }
             KeyCode::Up => self.scroll = self.scroll.saturating_sub(1),
             KeyCode::Down => self.scroll += 1,
             KeyCode::PageUp => self.scroll = self.scroll.saturating_sub(10),
             KeyCode::PageDown => self.scroll += 10,
             KeyCode::Home => self.scroll = 0,
             KeyCode::End => self.scroll = usize::MAX / 2,
-            KeyCode::Enter | KeyCode::Char(' ') => {
+            KeyCode::Enter | KeyCode::Char(' ')
+                if k.code == KeyCode::Enter || self.focus == ReviewFocus::Ack =>
+            {
                 return Some(match self.focus {
                     ReviewFocus::Ack => ReviewAction::ToggleAck,
                     ReviewFocus::Submit => self.action_submit(),

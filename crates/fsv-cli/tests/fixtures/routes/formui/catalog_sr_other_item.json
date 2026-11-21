@@ -1,0 +1,169 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items/78",
+  "json": {
+   "service_item": {
+    "id": 4400002,
+    "display_id": 78,
+    "name": "VPN Access",
+    "short_description": "Remote access to the office network",
+    "category_id": 7002,
+    "category_name": "Access",
+    "workspace_id": 3,
+    "updated_at": "2030-01-10T10:00:00+09:00",
+    "description": "",
+    "allow_attachments": false,
+    "allow_quantity": false,
+    "attachment_mandatory": false,
+    "configs": {
+     "attachment_mandatory": false,
+     "subject": "",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "v-reason",
+      "name": "reason_200",
+      "type": 1001,
+      "position": 1,
+      "label": "Reason",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "v-level",
+      "name": "access_level",
+      "type": 1003,
+      "position": 2,
+      "label": "Access level",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "l1",
+        "value": "Read only",
+        "label": "Read only",
+        "position": 1
+       },
+       {
+        "id": "l2",
+        "value": "Read  write",
+        "label": "Read  write",
+        "position": 2
+       },
+       {
+        "id": "l3",
+        "value": "Admin",
+        "label": "Admin",
+        "position": 3
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "v-why",
+      "name": "justification",
+      "type": 1008,
+      "position": 3,
+      "label": "Justification",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ws/3/business_rules",
+  "query": {
+   "cf_name_prefix": "customField.",
+   "ember_api": "true",
+   "form_type": "new_form",
+   "include_workspace": "false",
+   "item_id": "4400002",
+   "module_id": "",
+   "module_type": "service_request",
+   "requested_for": "",
+   "requester": "",
+   "user_type": "null"
+  },
+  "json": {
+   "business_rules": [
+    {
+     "id": 9100001,
+     "name": "Admin needs a justification",
+     "workspace_id": 3,
+     "module_type": "service_request",
+     "item_id": 4400002,
+     "deleted": false,
+     "user_type": "both",
+     "form_type": "both",
+     "state": "active",
+     "rule_type": "client_side",
+     "description": "",
+     "condition_data": {
+      "all": [
+       {
+        "name": "customField.sr_access_level",
+        "operator": "is",
+        "value": [
+         "Admin"
+        ],
+        "evaluate_on": "change"
+       }
+      ]
+     },
+     "action_data": {
+      "action": [
+       {
+        "name": [
+         "customField.sr_justification"
+        ],
+        "property": "show"
+       },
+       {
+        "name": [
+         "customField.sr_justification"
+        ],
+        "property": "mandate"
+       }
+      ]
+     },
+     "is_reversible": true,
+     "is_validation": false
+    }
+   ],
+   "user": {
+    "first_name": "Test",
+    "last_name": "Agent",
+    "time_zone": "Tokyo"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ }
+]
