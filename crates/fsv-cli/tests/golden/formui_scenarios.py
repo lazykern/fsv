@@ -156,3 +156,131 @@ SCENARIOS = [
     {"name": "catalog_sr_other_item", "tenant": "catalog", "kind": "sr", "item": 78, "requester": CJANE,
      "ops": [PLAN]},
 ]
+
+
+def K(*keys):
+    return {"keys": list(keys)}
+
+
+def T(text):
+    return {"type": text}
+
+
+def W(secs):
+    return {"wait": secs}
+
+
+def F(key):
+    return {"focus": key}
+
+
+def PRE(*pairs):
+    return {"pre": [list(p) for p in pairs]}
+
+
+CHANGE_FILLED = [("subject", "Billing: rotate keys"), ("change_type", "Normal"), ("cloud_only", "Yes"),
+                 ("description", "Rotate the **billing** keys."),
+                 ("priority", "High"), ("impact", "Low"), ("risk", "Low"),
+                 ("planned_start_date", {"dt": "2030-11-26T19:00:00+09:00"}),
+                 ("planned_end_date", {"dt": "2030-11-26T22:00:00+09:00"})]
+
+UI_SCENARIOS = [
+    {"name": "tab_walk", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [K("tab")] * 28 + [K("shift+tab")] * 6 + [K("f1"), K("f1")]},
+    {"name": "text_and_choice", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("subject"), T("Rotate keys"), W(0.4), K("tab"), T("emer"), K("down"), K("enter"),
+             K("tab"), T("n"), K("down"), K("down"), K("up"), K("enter"), K("tab"), T("zzz"), K("enter"),
+             K("backspace", "backspace", "backspace"), T("y"), K("enter"), K("escape"), K("tab"),
+             K("shift+tab"), K("shift+tab"), T("Standard"), K("enter"), K("enter"), K("backspace"),
+             W(0.4), K("enter")]},
+    {"name": "button_arrows", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [K("shift+tab"), K("shift+tab"), K("shift+tab"), K("shift+tab"), K("left"), K("left"), K("right"),
+             K("down"), K("pagedown"), K("up"), K("home"), K("end"), K("tab"), K("down"), K("tab"), K("tab"),
+             K("f1"), K("shift+tab"), K("shift+tab")]},
+    {"name": "layer_arrows", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [PRE(*CHANGE_FILLED), K("ctrl+s"), K("left"), K("right"), K("right"), K("tab"), K("left"), K("f4"),
+             K("left"), K("tab"), K("left"), K("right"), K("escape"), K("tab"), K("left"), K("escape"),
+             F("subject"), T("x"), K("escape"), K("left"), K("right"), K("right"), K("left"), K("escape"),
+             K("f6"), K("ctrl+s"), K("f6"), K("ctrl+a"), T("@TMP@/c.yaml"), K("enter"), K("left"), K("tab"),
+             K("left"), K("right")]},
+    {"name": "choice_rules", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("cloud_only"), K("down"), K("enter"), K("tab"), K("down"), K("enter"), F("cloud_only"), K("down"),
+             K("down"), K("enter"), W(0.2), F("stage"), K("down"), K("enter"), F("cloud_only"), T("y"), K("enter"),
+             F("stage"), K("enter"), K("escape"), F("cloud_only"), K("backspace", "backspace", "backspace"),
+             K("enter")]},
+    {"name": "multi_select", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("services"), T("s"), K("enter"), T("bill"), K("enter"), T("ch"), K("enter"), K("down"), K("space"),
+             K("escape"), K("tab"), K("shift+tab"), K("down"), K("enter"), K("enter"), K("enter"), T("zzz"),
+             K("enter"), K("backspace", "backspace", "backspace"), K("escape")]},
+    {"name": "lookup_people", "tenant": "acme", "kind": "change", "requester": None,
+     "ops": [F("requester"), T("jan"), K("enter"), W(0.4), K("down"), K("enter"), K("enter"), W(0.4),
+             F("requester"), K("backspace"), T("zzz"), W(0.4), K("enter"), K("ctrl+a"), T("doe"), W(0.4), K("down"),
+             K("down"), K("enter"), F("reviewer"), T("jane"), W(0.4), K("escape"),
+             F("group"), K("enter"), W(0.1), K("down"), K("enter"), F("agent"), T("al"), W(0.1), K("enter"),
+             K("tab"), K("tab")]},
+    {"name": "lookup_denied", "tenant": "globex", "kind": "change", "requester": None,
+     "ops": [F("requester"), T("erika"), W(0.4), K("enter"), K("enter"), F("requester"), K("ctrl+a"),
+             T("x@y.z"), W(0.4), K("down"), K("enter"), F("group"), K("enter"), W(0.2), K("escape"),
+             F("agent"), T("a@b.c"), W(0.4), K("down"), K("enter"), K("escape")]},
+    {"name": "dates_typed", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("planned_start_date"), T("2030-11-26 19:00"), W(0.1), K("enter"), K("tab", "tab"), T("garbage"),
+             K("enter"), K("tab"), K("shift+tab"), K("shift+tab"), K("ctrl+a"), T("tomorrow"), K("enter"),
+             F("planned_end_date"), T("2030-11-26 25:00"), K("enter"), K("ctrl+a"), T("2030-11-26 22:00+01:00"),
+             K("enter"), K("tab"), K("ctrl+a"), K("backspace"), K("enter"), K("tab"), K("tab")]},
+    {"name": "date_calendar", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [PRE(("planned_start_date", {"dt": "2030-11-26T19:00:00+09:00"}),
+                 ("cloud_only", "No"), ("staging_start", {"dt": "2030-12-02T09:30:00+09:00"})),
+             F("planned_start_date"), K("f2"), K("right"), K("down"), K("pagedown"), K("pageup"), K("left"), K("up"),
+             K("home"), K("end"), K("tab"), K("tab"), K("enter"), K("shift+tab"), K("shift+tab"), K("enter"),
+             K("f2"), K("escape"), F("staging_start"), K("f2"), K("pagedown"), K("enter"), K("enter"),
+             K("f2"), T("x"), K("tab"), K("tab"), K("tab"), K("escape"),
+             F("planned_end_date"), K("tab"), K("enter"), K("escape")]},
+    {"name": "description_editor", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("description"), T("# Title"), K("enter"), K("enter"), T("Some **bold** words"), W(0.4),
+             K("enter"), T("- a"), K("enter"), T("- b"), K("tab"), K("shift+tab"),
+             K("ctrl+a"), K("backspace"), W(0.4), K("tab"), K("tab")]},
+    {"name": "file_editor", "tenant": "acme", "kind": "change", "requester": JANE,
+     "files": {"alpha.pdf": 10, "alphabet.txt": 10, "beta.txt": 4, "empty.bin": 0},
+     "ops": [F("__attachments__"), T("@TMP@/al"), K("right"), K("enter"), K("ctrl+a"), T("@TMP@/b"), K("right"),
+             K("enter"), T("; "), T("@TMP@/alpha.pdf"), K("enter"), K("ctrl+a"), T("@TMP@/empty.bin"), K("enter"),
+             K("ctrl+a"), T("@TMP@/missing"), K("enter"), K("tab"), K("shift+tab"), K("ctrl+a"), K("backspace"),
+             K("enter"), F("planning:Go-Live Checklist"), T("@TMP@/beta.txt"), K("tab")]},
+    {"name": "review_and_actions", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [K("ctrl+s"), K("tab"), K("shift+tab"), K("escape"), PRE(*CHANGE_FILLED), K("ctrl+s"), K("f7"), K("f7"),
+             K("tab"), K("tab"), K("tab"), K("shift+tab"), K("escape"), K("ctrl+s"), K("f6"), T("/nonexistent/x.yaml"),
+             K("enter"), K("ctrl+a"), T("@TMP@/cmd.yaml"), K("enter"), K("escape"), K("ctrl+s"), K("f4"),
+             K("ctrl+a"), T("@TMP@/saved.yaml"), K("enter"), K("enter")]},
+    {"name": "review_submit", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [PRE(*CHANGE_FILLED), K("ctrl+s"), K("enter")]},
+    {"name": "review_blocked", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [PRE(*CHANGE_FILLED, ("priority", "Urgent")), K("ctrl+s"), K("tab"), K("space"), K("shift+tab"),
+             K("enter")]},
+    {"name": "save_draft_dialog", "tenant": "acme", "kind": "change", "requester": JANE,
+     "files": {"exists.yaml": 3},
+     "ops": [PRE(("subject", "Hello")), K("f4"), K("ctrl+a"), T("@TMP@"), K("enter"), K("ctrl+a"),
+             T("@TMP@/nodir/x.yaml"), K("enter"), K("ctrl+a"), K("backspace"), K("enter"), K("ctrl+a"),
+             T("@TMP@/exists.yaml"), K("enter"), K("enter"), ]},
+    {"name": "save_draft_escape", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [K("f4"), K("escape"), K("f4"), K("tab"), K("tab"), K("tab"), K("enter")]},
+    {"name": "cancel_untouched", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [K("escape")]},
+    {"name": "cancel_touched_keep", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("subject"), T("x"), K("escape"), K("tab"), K("enter"), K("escape"), K("shift+tab"), K("enter"),
+             K("escape"), K("y")]},
+    {"name": "cancel_dirty_discard", "tenant": "acme", "kind": "change", "requester": JANE,
+     "ops": [F("subject"), T("x"), K("escape"), K("enter")]},
+    {"name": "sr_form_keys", "tenant": "catalog", "kind": "sr", "item": 77, "requester": CJANE,
+     "files": {"deck.pptx": 10, "brief.pdf": 10},
+     "ops": [K("tab")] * 3 + [F("title_100"), T("Dark mode"), K("enter"), T("Please"), K("tab"), T("x"),
+            K("tab"), T("2030-12-03"), K("enter"), K("tab"), K("down"), K("enter"), K("tab"), T("up"), K("tab"),
+            K("enter"), K("down"), K("enter"), K("tab"), T("@TMP@/brief.pdf"), K("enter"), K("ctrl+a"),
+            T("@TMP@/deck.pptx"), K("enter"), K("ctrl+s"), K("tab"), K("shift+tab"), K("escape")]},
+    {"name": "ticket_form_keys", "tenant": "ticket", "kind": "ticket", "requester": None,
+     "ops": [F("requester"), T("jane"), W(0.4), K("down"), K("enter"), F("subject"), T("Outage"), K("enter"),
+             F("description"), T("Help"), W(0.4), F("cloud_only"), K("down"), K("enter"), K("ctrl+s"),
+             K("escape")]},
+    {"name": "edit_form_keys", "tenant": "acme", "kind": "change", "mode": "edit", "target": 900000501,
+     "ops": [K("tab")] * 4 + [F("subject"), K("ctrl+a"), T("Billing v2"), K("enter"), F("description"), K("ctrl+a"),
+            T("New text"), W(0.4), F("stage"), K("down"), K("enter"), F("cloud_only"), K("down"), K("enter"),
+            K("ctrl+s"), K("tab"), K("escape")]},
+]

@@ -47,6 +47,9 @@ impl TextEditor {
 }
 
 impl Editor for TextEditor {
+    fn observe(&self) -> serde_json::Value {
+        serde_json::json!({"text": self.input.value()})
+    }
     fn disabled(&self) -> bool {
         self.input.disabled
     }
@@ -165,6 +168,9 @@ fn area_commit(area: &TextArea, key: &str, committed: &mut String, cx: &mut EdCx
 }
 
 impl Editor for ParagraphEditor {
+    fn observe(&self) -> serde_json::Value {
+        serde_json::json!({"text": self.area.text()})
+    }
     fn disabled(&self) -> bool {
         self.area.disabled
     }
@@ -265,6 +271,9 @@ impl DescriptionEditor {
 }
 
 impl Editor for DescriptionEditor {
+    fn observe(&self) -> serde_json::Value {
+        serde_json::json!({"text": self.area.text(), "preview": self.preview})
+    }
     fn disabled(&self) -> bool {
         self.area.disabled
     }
@@ -397,6 +406,9 @@ impl CheckEditor {
 }
 
 impl Editor for CheckEditor {
+    fn observe(&self) -> serde_json::Value {
+        serde_json::json!({"checked": self.value})
+    }
     fn disabled(&self) -> bool {
         self.disabled
     }
@@ -507,6 +519,9 @@ impl FileEditor {
 }
 
 impl Editor for FileEditor {
+    fn observe(&self) -> serde_json::Value {
+        serde_json::json!({"text": self.input.value()})
+    }
     fn disabled(&self) -> bool {
         self.input.disabled
     }

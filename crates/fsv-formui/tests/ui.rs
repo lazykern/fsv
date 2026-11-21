@@ -779,19 +779,21 @@ fn form_buttons_and_the_help_toggle() {
     u.key("escape");
 
     u.s.set_focus(Some(Focus::Button(FormButton::Cancel)));
-    u.key(" ");
+    u.key("enter");
     assert_eq!(u.s.done(), Some(Action::Cancel));
 }
 
-/// `ConfirmDialog`: arrows move between the buttons; Discard finishes.
+/// `ConfirmDialog`: Tab moves between the buttons (arrows do not, as in
+/// Textual); Discard finishes.
 #[test]
-fn the_discard_question_takes_arrows() {
+fn the_discard_question_takes_tab() {
     let mut u = ui();
     u.s.focus_key("subject");
     u.typ("hi");
     u.key("escape");
     assert_eq!(u.s.layer(), Some("confirm"));
     u.key("left");
+    u.key("shift+tab");
     u.key("enter");
     assert_eq!(u.s.done(), Some(Action::Cancel));
 }

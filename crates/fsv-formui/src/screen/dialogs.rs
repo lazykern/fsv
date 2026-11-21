@@ -39,7 +39,7 @@ fn step(cur: usize, n: usize, by: isize) -> usize {
 }
 
 fn press(k: &KeyEvent) -> bool {
-    matches!(k.code, KeyCode::Enter | KeyCode::Char(' '))
+    matches!(k.code, KeyCode::Enter)
 }
 
 /// Buttons left to right with a 1-cell gap.
@@ -91,10 +91,6 @@ impl ConfirmDialog {
         match k.code {
             KeyCode::Esc => self.action_no(),
             KeyCode::Char('y') => self.action_yes(),
-            KeyCode::Left | KeyCode::Right => {
-                self.focus = 1 - self.focus;
-                Dlg::Open
-            }
             _ if press(k) => self.pressed(),
             _ => Dlg::Open,
         }
@@ -327,10 +323,6 @@ impl TextDialog {
         }
         match k.code {
             KeyCode::Esc => self.close_btn(),
-            KeyCode::Left | KeyCode::Right => {
-                self.focus = 1 - self.focus;
-                Dlg::Open
-            }
             _ if press(k) && self.focus == 0 => self.copy(),
             _ if press(k) => self.close_btn(),
             _ => Dlg::Open,
@@ -960,7 +952,10 @@ mod tests {
         assert_eq!(c.handle_key(&parse_key("y")), Dlg::Done(true));
         assert_eq!(c.handle_key(&parse_key("escape")), Dlg::Done(false));
         c.handle_key(&parse_key("left"));
-        assert_eq!(c.handle_key(&parse_key("space")), Dlg::Done(true));
+        assert_eq!(c.focus, 1);
+        c.handle_key(&parse_key("shift+tab"));
+        assert_eq!(c.handle_key(&parse_key("space")), Dlg::Open);
+        assert_eq!(c.handle_key(&parse_key("enter")), Dlg::Done(true));
     }
 
     /// `TextDialog`: Copy has focus; Tab then Enter closes, Esc too.

@@ -19616,5 +19616,604 @@
    "tickets/6",
    "--dry-run"
   ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nmaybe\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/bash"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nmaybe\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  },
+  "pre": [
+   {
+    "args": [
+     "setup"
+    ],
+    "stdin": "3\ny\n"
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\nmaybe\ny\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/usr/bin/fish"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\non\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\n\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\nOFF\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\n on \n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\nyes\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\nOn\n\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\nof\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "4\non\n",
+  "tty": true,
+  "pre": [
+   {
+    "args": [
+     "config",
+     "set",
+     "completion.network",
+     "off"
+    ]
+   }
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "0\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "7\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "abc\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "-1\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": " 3 \n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "1.0\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "\uff11\n3\nn\n",
+  "tty": true,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "5\n, ,\nstatus=Open,, priority=High\n\n\n\n\n\n\n\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "5\nx\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "1\n\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "1\nhttps://Globex.freshservice.com/\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "1\nglobex\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "1\nbad domain\n",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "",
+  "tty": true
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\n",
+  "tty": false,
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "setup"
+  ],
+  "tag": "hand",
+  "stdin": "3\ny\n",
+  "tty": true,
+  "pre": [
+   {
+    "args": [
+     "config",
+     "set",
+     "domain",
+     "globex.freshservice.com"
+    ]
+   }
+  ],
+  "env": {
+   "SHELL": "/bin/zsh"
+  }
  }
 ]

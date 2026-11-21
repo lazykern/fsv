@@ -34,6 +34,9 @@ pub struct LineInput {
     /// Selected `(start, end)`: all of the text on focus, so typing
     /// replaces it (Textual's `select_on_focus`).
     selection: Option<(usize, usize)>,
+    /// Textual moves the cursor to the end on the first value change only;
+    /// later programmatic changes keep the cursor column (clamped).
+    edited: bool,
 }
 
 fn is_word(c: char) -> bool {
@@ -81,11 +84,23 @@ impl LineInput {
         self.chars.iter().collect()
     }
 
-    /// Set the text from code (the cursor goes to the end).
+    /// Set the text from code. As in Textual, the cursor goes to the end
+    /// the first time the value changes and keeps its column (clamped to
+    /// the new length) afterwards.
     pub fn set_value(&mut self, v: &str) {
         self.chars = v.chars().collect();
-        self.cursor = self.chars.len();
-        self.selection = None;
+        let len = self.chars.len();
+        if self.edited {
+            self.cursor = self.cursor.min(len);
+            self.selection = self
+                .selection
+                .map(|(a, b)| (a.min(len), b.min(len)))
+                .filter(|(a, b)| a != b);
+        } else {
+            self.cursor = len;
+            self.selection = None;
+        }
+        self.edited = true;
     }
 
     /// Select all of the text, as focusing a Textual `Input` does.
@@ -106,6 +121,7 @@ impl LineInput {
             Some((a, b)) => {
                 self.chars.drain(a..b);
                 self.cursor = a;
+                self.edited = true;
                 true
             }
             None => false,
@@ -127,6 +143,7 @@ impl LineInput {
         self.chars = next;
         self.cursor = a + add.len();
         self.selection = None;
+        self.edited = true;
         true
     }
 
@@ -161,6 +178,14 @@ impl LineInput {
     }
 
     pub fn handle_key(&mut self, k: &KeyEvent) -> InputEvent {
+        let ev = self.handle_key_inner(k);
+        if ev == InputEvent::Changed {
+            self.edited = true;
+        }
+        ev
+    }
+
+    fn handle_key_inner(&mut self, k: &KeyEvent) -> InputEvent {
         if self.disabled {
             return InputEvent::Ignored;
         }

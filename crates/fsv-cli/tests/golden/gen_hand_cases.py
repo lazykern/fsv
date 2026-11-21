@@ -191,6 +191,33 @@ for fx, send, review in (
         case(fx, tail, pre=[sent], hash_from=[*send, "--dry-run"])
     case(fx, sent, pre=[sent], hash_from=[*send, "--dry-run"])
 
+
+# setup wizard (scripted tty): completion install per shell, reinstall, network completion, defaults, menu errors
+for shell in ("/bin/bash", "/bin/zsh", "/usr/bin/fish"):
+    env = {"SHELL": shell}
+    install = ["setup"]
+    case("local", ["setup"], stdin="3\ny\n", tty=True, env=env)
+    case("local", ["setup"], stdin="3\nn\n", tty=True, env=env)
+    case("local", ["setup"], stdin="3\n\n", tty=True, env=env)
+    case("local", ["setup"], stdin="3\nn\n", tty=True, env=env, pre=[{"args": ["setup"], "stdin": "3\ny\n"}])
+    case("local", ["setup"], stdin="3\ny\n", tty=True, env=env, pre=[{"args": ["setup"], "stdin": "3\ny\n"}])
+    case("local", ["setup"], stdin="3\n\n", tty=True, env=env, pre=[{"args": ["setup"], "stdin": "3\ny\n"}])
+    case("local", ["setup"], stdin="3\nmaybe\ny\n", tty=True, env=env)
+for ans in ("on", "", "OFF", " on ", "yes", "On\n", "of"):
+    case("local", ["setup"], stdin=f"4\n{ans}\n", tty=True)
+case("local", ["setup"], stdin="4\non\n", tty=True, pre=[{"args": ["config", "set", "completion.network", "off"]}])
+for choice in ("0", "7", "abc", "-1", " 3 ", "", "1.0", "１"):
+    case("local", ["setup"], stdin=f"{choice}\n3\nn\n", tty=True, env={"SHELL": "/bin/zsh"})
+case("local", ["setup"], stdin="5\n, ,\nstatus=Open,, priority=High\n\n\n\n\n\n\n\n", tty=True)
+case("local", ["setup"], stdin="5\nx\n", tty=True)
+case("local", ["setup"], stdin="1\n\n", tty=True)
+case("local", ["setup"], stdin="1\nhttps://Globex.freshservice.com/\n", tty=True)
+case("local", ["setup"], stdin="1\nglobex\n", tty=True)
+case("local", ["setup"], stdin="1\nbad domain\n", tty=True)
+case("local", ["setup"], stdin="", tty=True)
+case("local", ["setup"], stdin="3\n", tty=False, env={"SHELL": "/bin/zsh"})
+case("local", ["setup"], stdin="3\ny\n", tty=True, pre=[{"args": ["config", "set", "domain", "globex.freshservice.com"]}], env={"SHELL": "/bin/zsh"})
+
 rows = [r for r in json.load(open(PATH)) if r.get("tag") != TAG]
 json.dump(rows + R, open(PATH, "w"), indent=1)
 open(PATH, "a").write("\n")

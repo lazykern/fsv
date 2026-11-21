@@ -113,6 +113,10 @@ pub trait Editor {
     fn hints(&self) -> Vec<(&'static str, &'static str)> {
         vec![]
     }
+    /// What the editor shows now, for the replay differential.
+    fn observe(&self) -> serde_json::Value {
+        serde_json::Value::Null
+    }
     fn as_combo(&mut self) -> Option<&mut ComboBox> {
         None
     }

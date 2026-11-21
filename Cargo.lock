@@ -904,6 +904,7 @@ name = "fsv-cli"
 version = "2026.11.12"
 dependencies = [
  "clap",
+ "crossterm",
  "fsv-api",
  "fsv-app",
  "fsv-completion",
@@ -916,6 +917,7 @@ dependencies = [
  "indexmap",
  "jiff",
  "libc",
+ "ratatui",
  "regex",
  "serde_json",
  "tempfile",

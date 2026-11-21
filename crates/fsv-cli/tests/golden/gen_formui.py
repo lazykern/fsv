@@ -358,6 +358,7 @@ def session_head(s):
 
 def tmp_sub(x, tmp):
     text = json.dumps(x).replace(json.dumps(str(tmp))[1:-1], "@TMP@")
+    text = text.replace(json.dumps(str(tmp).lstrip("/"))[1:-1], "@TMP@")
     return json.loads(re.sub(r"fetched [0-9TZ:+.-]+", "fetched @T@", text))
 
 
@@ -482,6 +483,205 @@ SCENARIOS = []
 from formui_scenarios import SCENARIOS  # noqa: E402,F811
 
 
+
+# ----------------------------------------------------------- key replay (UI)
+import asyncio  # noqa: E402
+
+from textual.widgets import Button, Checkbox, Input, Static, TextArea  # noqa: E402
+
+from fsv.formui.app import FormApp  # noqa: E402
+from fsv.formui import screens as SC  # noqa: E402
+from fsv.formui import widgets as W  # noqa: E402
+
+LAYERS = {"ReviewScreen": "review", "ConfirmDialog": "confirm", "SavePathDialog": "save", "TextDialog": "text",
+          "DatePickerScreen": "calendar"}
+
+
+def plain(widget):
+    c = widget.content
+    from rich.text import Text
+    return c.plain if isinstance(c, Text) else Text.from_markup(str(c)).plain
+
+
+def observe_editor(ed):
+    if isinstance(ed, W.ComboBox):
+        ol = ed.options
+        opts = [o.prompt.plain if hasattr(o.prompt, "plain") else str(o.prompt)
+                for o in (ol.get_option_at_index(i) for i in range(ol.option_count))]
+        note = ed.query_one(".combo-note", Static)
+        chosen = plain(ed.query_one(".combo-chosen", Static)) if ed.multi else ""
+        return {"text": ed.input.value, "open": ed.is_open, "options": opts, "highlighted": ol.highlighted,
+                "note": plain(note) if note.display else "", "chosen": chosen}
+    if isinstance(ed, W.DateEditor):
+        st = ed.query_one(".date-preview", Static)
+        return {"text": ed.input.value, "preview": plain(st), "bad": st.has_class("-bad")}
+    if isinstance(ed, W.DescriptionEditor):
+        return {"text": ed.area.text, "preview": ed.has_class("-preview")}
+    if isinstance(ed, W.ParagraphEditor):
+        return {"text": ed.text}
+    if isinstance(ed, W.CheckEditor):
+        return {"checked": bool(ed.value)}
+    if isinstance(ed, W.FileEditor):
+        return {"text": ed.input.value}
+    if isinstance(ed, W.TextEditor):
+        return {"text": ed.value}
+    return None
+
+
+def focus_label(form):
+    node = form.focused
+    if node is None:
+        return ""
+    if isinstance(node, Button) and node.id and node.id.startswith("btn-"):
+        return node.id
+    if node.id in ("form-help", "form-fields"):
+        return node.id
+    walk = node
+    while walk is not None and not isinstance(walk, W.FieldRow):
+        walk = walk.parent
+    if walk is None:
+        return ""
+    return walk.key + ("#1" if isinstance(node, Button) else "")
+
+
+def observe_layer(app):
+    top = app.screen
+    name = type(top).__name__
+    if name == "ReviewScreen":
+        banner = top.query_one("#rv-banner", Static)
+        sub = top.query_one("#rv-submit", Button)
+        return {"banner": plain(banner) if banner.display else "", "submit_label": str(sub.label),
+                "submit_disabled": sub.disabled, "command_disabled": top.query_one("#rv-command", Button).disabled,
+                "payload": top.has_class("-payload"), "ack": bool(top.query("#rv-ack")),
+                "focus": top.focused.id if top.focused is not None else None}
+    if name == "ConfirmDialog":
+        return {"question": top.question, "focus": top.focused.id if top.focused is not None else None}
+    if name == "SavePathDialog":
+        return {"text": top.query_one(Input).value, "note": plain(top.query_one(".dlg-note", Static)),
+                "focus": top.focused.id if top.focused is not None else None}
+    if name == "TextDialog":
+        return {"text": top.text, "focus": top.focused.id if top.focused is not None else None}
+    if name == "DatePickerScreen":
+        grid = top.query_one(SC.CalendarGrid)
+        t = None if top.date_only else top.query_one("#dp-time", Input).value
+        return {"cursor": grid.cursor.isoformat(), "time": t, "preview": plain(top.query_one(".dp-preview", Static))}
+    return None
+
+
+def ui_observe(app, form, s):
+    if app.result is not None:
+        return {"done": app.result.action}
+    top = app.screen
+    name = type(top).__name__
+    rows = {k: observe_editor(r.editor) for k, r in form.rows.items() if r.display and r.editor is not None}
+    return {"layer": LAYERS.get(name), "focus": focus_label(form), "notes": plain(form.query_one("#form-notes", Static)),
+            "status": plain(form.query_one("#form-status", Static)), "help": plain(form.query_one("#help-text", Static)),
+            "rows": rows, "layer_state": observe_layer(app),
+            "done": None if app.result is None else app.result.action}
+
+
+KEYMAP = {" ": "space"}
+
+
+def run_ui_scenario(sc):
+    tmp = ROOT / f"ui-{sc['name']}"
+    (tmp / "cfg").mkdir(parents=True)
+    (tmp / "files").mkdir()
+    for name, size in sc.get("files", {}).items():
+        (tmp / "files" / name).write_bytes(b"x" * size)
+    tmp_files = tmp / "files"
+    os.environ["FSV_CONFIG_DIR"] = str(tmp / "cfg")
+    os.environ["FSV_CACHE_DIR"] = str(tmp / "cache")
+    os.environ["XDG_STATE_HOME"] = str(tmp / "state")
+    for k, v in sc.get("env", {}).items():
+        os.environ[k] = v
+    (tmp / "cfg" / "config.json").write_text(json.dumps({"domain": HOST, **sc.get("config", {})}))
+    fsv_config.refresh_paths()
+    out = {"steps": []}
+    try:
+        tenant = TENANTS[sc["tenant"]]()
+        rec = Recorder(tenant)
+        c = client_for(rec)
+        who = LookupValue(*sc["requester"]) if sc.get("requester") else None
+        kind = sc["kind"]
+        if kind == "change":
+            s = S.change_session(c, mode=sc.get("mode", "new"), target=sc.get("target"), requester=who,
+                                 dry_run=sc.get("dry_run", False))
+        elif kind == "sr":
+            s = S.sr_session(c, sc["item"], requester=who, dry_run=sc.get("dry_run", False))
+        else:
+            s = S.ticket_session(c, requester=who, dry_run=sc.get("dry_run", False))
+        old_cwd = os.getcwd()
+        os.chdir(tmp_files)
+
+        async def main():
+            app = FormApp(s)
+            async with app.run_test(size=(120, 40)) as pilot:
+                from formui_drive import settle
+                await pilot.pause(0.35)
+                await settle(app, pilot)
+                form = next(x for x in app.screen_stack if isinstance(x, SC.FormScreen))
+                prev = snap(s)
+                out["initial"] = {"obs": ui_observe(app, form, s), "snap": prev, "draft": draft_json(s)}
+                for op in sc["ops"]:
+                    if app.result is not None:
+                        out["steps"].append({"op": op, "skipped": True})
+                        continue
+                    kind = next(iter(op))
+                    if kind == "keys":
+                        await pilot.press(*[KEYMAP.get(k, k) for k in op["keys"]])
+                    elif kind == "type":
+                        await pilot.press(*[KEYMAP.get(ch, ch) for ch in op["type"].replace("@TMP@", str(tmp_files))])
+                    elif kind == "wait":
+                        await pilot.pause(op["wait"])
+                    elif kind == "focus":
+                        form.rows[op["focus"]].focus_editor()
+                    elif kind == "pre":
+                        for key, value in op["pre"]:
+                            raw = dec(value)
+                            if isinstance(raw, str):
+                                raw = raw.replace("@TMP@", str(tmp_files))
+                            s.set(key, raw)
+                        form.refresh_rows()
+                    else:
+                        raise SystemExit(f"unknown ui op {op}")
+                    await pilot.pause(0.35)
+                    await settle(app, pilot)
+                    cur = snap(s)
+                    step = {"obs": ui_observe(app, form, s), "snap": delta(prev, cur), "draft": draft_json(s)}
+                    prev = cur
+                    out["steps"].append(tmp_sub(step, tmp_files))
+            out["initial"] = tmp_sub(out["initial"], tmp_files)
+
+        try:
+            asyncio.run(main())
+        finally:
+            os.chdir(old_cwd)
+        out["requests"] = [r for r in rec.log() if not r["path"].startswith("/a/")]
+        routes = rec.routes()
+        meta = '<meta name="csrf-token" content="tok">'
+        if not any(r["path"] == "/a/dashboard" for r in routes):
+            routes.append({"method": "GET", "path": "/a/dashboard", "text": f"<html><head>{meta}</head></html>"})
+        return out, routes
+    finally:
+        fsv_config.refresh_paths()
+        for k in sc.get("env", {}):
+            os.environ.pop(k, None)
+
+
+from formui_scenarios import UI_SCENARIOS  # noqa: E402
+
+
+def ui_sessions():
+    out = {}
+    (ROUTES / "formui").mkdir(exist_ok=True)
+    for sc in UI_SCENARIOS:
+        res, routes = run_ui_scenario(sc)
+        out[sc["name"]] = {"spec": sc, "want": res}
+        (ROUTES / "formui" / f"ui_{sc['name']}.json").write_text(json.dumps(routes, indent=1, ensure_ascii=False) + "\n")
+    return out
+
+
 def sessions():
     out = {}
     (ROUTES / "formui").mkdir(exist_ok=True)
@@ -493,7 +693,7 @@ def sessions():
 
 
 def generate():
-    out = {"_python": python_rev(), "fuzzy": fuzzy(), "when": when(), "files": files(), "sessions": sessions()}
+    out = {"_python": python_rev(), "fuzzy": fuzzy(), "when": when(), "files": files(), "sessions": sessions(), "ui": ui_sessions()}
     return out
 
 

@@ -1,0 +1,371 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/change_form_fields",
+  "json": {
+   "change_fields": [
+    {
+     "id": 9000010001,
+     "name": "requester",
+     "label": "Antragsteller",
+     "description": "",
+     "field_type": "default_requester",
+     "required": true,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010002,
+     "name": "subject",
+     "label": "Betreff",
+     "description": "",
+     "field_type": "default_subject",
+     "required": true,
+     "position": 2,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "Kurzbeschreibung",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010003,
+     "name": "change_type",
+     "label": "Änderungstyp",
+     "description": "",
+     "field_type": "default_change_type",
+     "required": true,
+     "position": 3,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Normal"
+      },
+      {
+       "id": 2,
+       "value": "Standard"
+      },
+      {
+       "id": 3,
+       "value": "Notfall"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010004,
+     "name": "umgebung",
+     "label": "Umgebung",
+     "description": "",
+     "field_type": "custom_dropdown",
+     "required": false,
+     "position": 4,
+     "default_field": false,
+     "choices": [
+      {
+       "id": 9000011001,
+       "display_id": 1,
+       "value": "Produktion",
+       "label": "Produktion"
+      },
+      {
+       "id": 9000011002,
+       "display_id": 2,
+       "value": "Test",
+       "label": "Test"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "Produktion - Live-System || Test - Testsystem",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010005,
+     "name": "description",
+     "label": "Beschreibung",
+     "description": "",
+     "field_type": "default_description",
+     "required": true,
+     "position": 5,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010006,
+     "name": "priority",
+     "label": "Priorität",
+     "description": "",
+     "field_type": "default_priority",
+     "required": true,
+     "position": 6,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Niedrig"
+      },
+      {
+       "id": 2,
+       "value": "Mittel"
+      },
+      {
+       "id": 3,
+       "value": "Hoch"
+      },
+      {
+       "id": 4,
+       "value": "Dringend"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010007,
+     "name": "group",
+     "label": "Gruppe",
+     "description": "",
+     "field_type": "default_group",
+     "required": false,
+     "position": 7,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010008,
+     "name": "agent",
+     "label": "Bearbeiter",
+     "description": "",
+     "field_type": "default_agent",
+     "required": false,
+     "position": 8,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010009,
+     "name": "planned_start_date",
+     "label": "Geplanter Beginn",
+     "description": "",
+     "field_type": "default_planned_start_date",
+     "required": true,
+     "position": 9,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010010,
+     "name": "planned_end_date",
+     "label": "Geplantes Ende",
+     "description": "",
+     "field_type": "default_planned_end_date",
+     "required": true,
+     "position": 10,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    },
+    {
+     "id": 9000010011,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": true,
+     "position": 11,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Offen"
+      },
+      {
+       "id": 2,
+       "value": "Geschlossen"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "updated_at": "2031-02-03T04:05:06Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/me",
+  "status": 404,
+  "json": {
+   "message": "no route GET /api/_/bootstrap/me"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/workspaces",
+  "status": 404,
+  "json": {
+   "message": "no route GET /api/_/workspaces"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "query": {
+   "cf_name_prefix": "customFields.",
+   "ember_api": "true",
+   "filter_by_default_form_action": "true",
+   "form_type": "new_form",
+   "include_workspace": "false",
+   "item_id": "null",
+   "module_id": "",
+   "module_type": "change",
+   "requested_for": "",
+   "requester": "",
+   "user_type": "null"
+  },
+  "status": 404,
+  "json": {
+   "message": "Not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9000012100,
+    "time_zone": "Berlin",
+    "language": "de"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "query": {
+   "q": "erika",
+   "qf": "details"
+  },
+  "json": {
+   "results": [
+    {
+     "id": 9000012001,
+     "value": "Erika Muster",
+     "email": "erika.muster@example.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "query": {
+   "q": "x@y.zErika Muster <erika.muster@example.com>",
+   "qf": "details"
+  },
+  "json": {
+   "results": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "status": 403,
+  "json": {
+   "message": "You are not authorized to perform this action."
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head><body>app</body></html>"
+ }
+]

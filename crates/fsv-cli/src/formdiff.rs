@@ -9,8 +9,9 @@ use std::sync::LazyLock;
 use fsv_app::{ChangeForm, FormDeps, change_session, sr_session, ticket_session};
 use fsv_forms::pydt::DateTimeValue;
 use fsv_forms::{LookupValue, Value};
+use fsv_formui::kit::{Theme, WorkersMode, parse_key};
 use fsv_formui::screen::review::review_lines;
-use fsv_formui::{FormKind, FormMode, FormSession, Plan};
+use fsv_formui::{FormKind, FormMode, FormScreen, FormSession, Plan};
 use serde_json::{Map, Value as Json, json};
 
 use crate::testkit::{isolated, tenant};
@@ -158,10 +159,56 @@ fn plan_json(p: &Plan, tmp: &str) -> Json {
     sub(v, tmp)
 }
 
+/// The notes line is cleared by an 8 s timer: Python's runs on the wall
+/// clock, Rust's on the replay clock, so only a note both show is compared.
+fn align_notes(want: &mut Json, got: &mut Json) {
+    let walk = |w: &mut Json, g: &mut Json| {
+        let (Some(a), Some(b)) = (w.pointer_mut("/obs/notes"), g.pointer_mut("/obs/notes")) else {
+            return;
+        };
+        if a.as_str() == Some("") || b.as_str() == Some("") {
+            *a = json!("");
+            *b = json!("");
+        }
+    };
+    walk(&mut want["initial"], &mut got["initial"]);
+    if let (Some(ws), Some(gs)) = (want["steps"].as_array_mut(), got["steps"].as_array_mut()) {
+        for (w, g) in ws.iter_mut().zip(gs.iter_mut()) {
+            walk(w, g);
+        }
+    }
+}
+
+fn norm_ui(v: &mut Json) {
+    match v {
+        Json::Object(m) => {
+            if m.contains_key("cursor") {
+                m.remove("preview");
+            }
+            if m.get("open") == Some(&json!(false)) {
+                m.insert("options".into(), json!([]));
+                m.insert("highlighted".into(), Json::Null);
+            }
+            for x in m.values_mut() {
+                norm_ui(x);
+            }
+        }
+        Json::Array(a) => a.iter_mut().for_each(norm_ui),
+        _ => {}
+    }
+}
+
 fn sub(v: Json, tmp: &str) -> Json {
     static FETCHED: LazyLock<regex::Regex> =
         LazyLock::new(|| regex::Regex::new(r"fetched [0-9TZ:+.-]+").unwrap());
-    let text = v.to_string().replace(tmp, "@TMP@");
+    let cwd = std::env::current_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let text = v
+        .to_string()
+        .replace(tmp, "@TMP@")
+        .replace(tmp.trim_start_matches('/'), "@TMP@")
+        .replace(&cwd, "@TMP@");
     serde_json::from_str(&FETCHED.replace_all(&text, "fetched @T@")).unwrap()
 }
 
@@ -306,6 +353,30 @@ fn play(name: &str, sc: &Json) -> (Json, Json) {
     }
     let tmp = dir.to_str().unwrap().to_string();
     let t = tenant(&format!("formui/{name}"));
+    let mut s = build_session(&t, sc);
+    s.paths.cwd = dir.clone();
+    let _ = (FormKind::Change,);
+    let mut prev = snap(&s);
+    let mut out = json!({"head": head(&s), "initial": prev.clone(), "draft": draft_json(&s)});
+    let mut steps = vec![];
+    let mut plan = None;
+    for op in sc["ops"].as_array().unwrap() {
+        let mut res = run_op(&mut s, op, &tmp, &dir, &mut plan);
+        let cur = snap(&s);
+        res["snap"] = delta(&prev, &cur);
+        res["draft"] = draft_json(&s);
+        prev = cur;
+        steps.push(sub(res, &tmp));
+    }
+    out["steps"] = Json::Array(steps);
+    out["requests"] = requests(&t);
+    for (k, _) in &setenv {
+        env.set_env(k, None);
+    }
+    (out, Json::Null)
+}
+
+fn build_session(t: &crate::testkit::Tenant, sc: &Json) -> FormSession {
     let deps = FormDeps::live(t.client.clone()).unwrap();
     let who = sc.get("requester").filter(|r| !r.is_null()).map(|r| {
         match dec(&json!({"lookup": r}), "") {
@@ -313,7 +384,7 @@ fn play(name: &str, sc: &Json) -> (Json, Json) {
             _ => unreachable!(),
         }
     });
-    let mut s = match sc["kind"].as_str().unwrap() {
+    match sc["kind"].as_str().unwrap() {
         "change" => {
             let mode = if sc.get("mode").and_then(Json::as_str) == Some("edit") {
                 FormMode::Edit
@@ -344,26 +415,7 @@ fn play(name: &str, sc: &Json) -> (Json, Json) {
             sc.get("dry_run").and_then(Json::as_bool).unwrap_or(false),
         )
         .expect("ticket"),
-    };
-    let _ = (FormKind::Change,);
-    let mut prev = snap(&s);
-    let mut out = json!({"head": head(&s), "initial": prev.clone(), "draft": draft_json(&s)});
-    let mut steps = vec![];
-    let mut plan = None;
-    for op in sc["ops"].as_array().unwrap() {
-        let mut res = run_op(&mut s, op, &tmp, &dir, &mut plan);
-        let cur = snap(&s);
-        res["snap"] = delta(&prev, &cur);
-        res["draft"] = draft_json(&s);
-        prev = cur;
-        steps.push(sub(res, &tmp));
     }
-    out["steps"] = Json::Array(steps);
-    out["requests"] = requests(&t);
-    for (k, _) in &setenv {
-        env.set_env(k, None);
-    }
-    (out, Json::Null)
 }
 
 fn cut(v: &Json) -> String {
@@ -429,6 +481,155 @@ fn sessions_match_python() {
         let mut diffs = vec![];
         first_diff(&case["want"], &got, name, &mut diffs);
         bad.extend(diffs);
+    }
+    assert!(
+        bad.is_empty(),
+        "{} differences:\n{}",
+        bad.len(),
+        bad.join("\n")
+    );
+}
+
+fn ui_observe(s: &mut FormScreen) -> Json {
+    if let Some(a) = s.done() {
+        return json!({"done": format!("{a:?}").to_lowercase().replace("savedraft", "save_draft")});
+    }
+    let keys: Vec<String> = s.session.items.iter().map(|it| it.key.clone()).collect();
+    let mut rows = Map::new();
+    for k in keys {
+        if !s.session.view(&k).visible {
+            continue;
+        }
+        if let Some(ed) = s.editor_mut(&k) {
+            let o = ed.observe();
+            if !o.is_null() {
+                rows.insert(k, o);
+            }
+        }
+    }
+    let mut layer_state = s.observe_layer();
+    if let Some(l) = layer_state.as_object_mut()
+        && s.layer() == Some("calendar")
+        && !s.date_picker().is_some_and(|d| !d.date_only)
+    {
+        l.insert("time".into(), Json::Null);
+    }
+    json!({"layer": s.layer(), "focus": s.focus_label(), "notes": s.notes_text(), "status": s.status_text(),
+           "help": s.help_text(), "rows": rows, "layer_state": layer_state,
+           "done": s.done().map(|a| format!("{a:?}").to_lowercase().replace("savedraft", "save_draft"))})
+}
+
+fn draw(s: &mut FormScreen) {
+    let mut term = ratatui::Terminal::new(ratatui::backend::TestBackend::new(120, 40)).unwrap();
+    term.draw(|f| {
+        let area = f.area();
+        s.render(area, f.buffer_mut());
+    })
+    .unwrap();
+}
+
+fn play_ui(name: &str, sc: &Json) -> Json {
+    let env = isolated();
+    env.config(sc.get("config").cloned().unwrap_or_else(|| json!({})));
+    env.set_env("TZ", Some("UTC"));
+    let setenv: Vec<(String, String)> = sc
+        .get("env")
+        .and_then(Json::as_object)
+        .map(|m| {
+            m.iter()
+                .map(|(k, v)| (k.clone(), v.as_str().unwrap().to_string()))
+                .collect()
+        })
+        .unwrap_or_default();
+    for (k, v) in &setenv {
+        env.set_env(k, Some(v));
+    }
+    let files = tempfile::tempdir().unwrap();
+    let dir = files.path().canonicalize().unwrap();
+    for (n, size) in sc
+        .get("files")
+        .and_then(Json::as_object)
+        .into_iter()
+        .flatten()
+    {
+        std::fs::write(dir.join(n), vec![b'x'; size.as_u64().unwrap() as usize]).unwrap();
+    }
+    let tmp = dir.to_str().unwrap().to_string();
+    let t = tenant(&format!("formui/ui_{name}"));
+    let session = build_session(&t, sc);
+    let mut session = session;
+    session.paths.cwd = dir.clone();
+    let mut s = FormScreen::with_workers(session, Theme::textual_dark(), WorkersMode::Inline);
+    let t0 = s.now() + std::time::Duration::from_secs_f64(0.35);
+    s.tick(t0);
+    draw(&mut s);
+    let mut prev = snap(&s.session);
+    let obs = ui_observe(&mut s);
+    let mut out = json!({"initial": sub(json!({"obs": obs, "snap": prev.clone(), "draft": draft_json(&s.session)}), &tmp)});
+    let mut steps = vec![];
+    for op in sc["ops"].as_array().unwrap() {
+        if s.done().is_some() {
+            steps.push(json!({"op": op, "skipped": true}));
+            continue;
+        }
+        let kind = op.as_object().unwrap().keys().next().unwrap().as_str();
+        match kind {
+            "keys" => {
+                for k in op["keys"].as_array().unwrap() {
+                    s.handle_key(parse_key(k.as_str().unwrap()));
+                }
+            }
+            "type" => {
+                for ch in op["type"].as_str().unwrap().replace("@TMP@", &tmp).chars() {
+                    s.handle_key(crossterm::event::KeyEvent::from(
+                        crossterm::event::KeyCode::Char(ch),
+                    ));
+                }
+            }
+            "wait" => {
+                let t = s.now() + std::time::Duration::from_secs_f64(op["wait"].as_f64().unwrap());
+                s.tick(t);
+            }
+            "focus" => s.focus_key(op["focus"].as_str().unwrap()),
+            "pre" => {
+                for p in op["pre"].as_array().unwrap() {
+                    s.session.set(p[0].as_str().unwrap(), dec(&p[1], &tmp));
+                }
+                s.refresh_rows();
+            }
+            other => panic!("unknown ui op {other}"),
+        }
+        let t = s.now() + std::time::Duration::from_secs_f64(0.35);
+        s.tick(t);
+        draw(&mut s);
+        let cur = snap(&s.session);
+        let step = json!({"obs": ui_observe(&mut s), "snap": delta(&prev, &cur), "draft": draft_json(&s.session)});
+        prev = cur;
+        steps.push(sub(step, &tmp));
+    }
+    out["steps"] = Json::Array(steps);
+    out["requests"] = requests(&t);
+    for (k, _) in &setenv {
+        env.set_env(k, None);
+    }
+    out
+}
+
+#[test]
+fn key_replays_match_python() {
+    let mut bad = vec![];
+    for (name, case) in GOLDEN["ui"].as_object().unwrap() {
+        let mut got = play_ui(name, &case["spec"]);
+        let mut want = case["want"].clone();
+        if std::env::var_os("FORMDIFF_DUMP").is_some() {
+            std::fs::write(format!("/tmp/ui_got_{name}.json"), got.to_string()).unwrap();
+        }
+        norm_ui(&mut got);
+        norm_ui(&mut want);
+        align_notes(&mut want, &mut got);
+        let mut diffs = vec![];
+        first_diff(&want, &got, name, &mut diffs);
+        bad.extend(diffs.into_iter().take(6));
     }
     assert!(
         bad.is_empty(),

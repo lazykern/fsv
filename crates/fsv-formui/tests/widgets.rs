@@ -257,7 +257,7 @@ fn combo_box_filters_and_picks_choices() {
 
     // an emptied box clears the value
     h.cx(|cx| c.open(cx));
-    h.keys(&mut c, 0, &["ctrl+u"]);
+    h.keys(&mut c, 0, &["ctrl+e", "ctrl+u"]);
     h.keys(&mut c, 0, &["enter"]);
     assert_eq!(h.take().last(), Some(&edited("change_type", Value::Null)));
     assert_eq!(c.shown_text, "");

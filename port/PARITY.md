@@ -539,6 +539,20 @@ CLI divergences:
 - The SR `SAFETY` banner line is a constant in `screen/review.rs`. No Rust crate held that text.
 - Copy depends on OSC 52 in the terminal.
 
+Form UI differential (`tests/golden/gen_formui.py`, `formui_scenarios.py`, replayed by `crates/fsv-cli/src/formdiff.rs` and `tests/formui_diff.rs`; regenerate with `cd <python repo> && uv run python <gen_formui.py>`, about 4 minutes because the Textual pilot runs on the wall clock):
+
+- Pure logic against Python over large corpora: fuzzy filter and scores, typed dates (`parse_when` x 6 zones x date-only, `to_text`, previews, month grids), file checks, path completion, sizes, `shlex.quote`.
+- Session scenarios on the Acme change form (new, edit, rules, lookups, help, effects, dry run, `FSV_TZ`, `forms.max_file_mb`, default requester), the Globex tenant (no workspaces, no rules, 403 lookups, Berlin DST gaps), the catalog SR and the incident form: per step the item views, problems, missing, draft, notes, suggestions, help, plan (errors, hash, review text, payload), saved draft text, command and send, plus every HTTP request with its body, over routes recorded from the Python run.
+- Key replays on the real Textual form (pilot) and the Rust `FormScreen`: tab order, combos (filter, arrows, multi pick, remote lookups, group/agent), typed and calendar dates, description, file editor, review/save/confirm dialogs, cancel, edit and SR/incident forms. Compared after each op: focus, notes, status, help, every editor's text/list state, the open layer and the final action. Each op advances both clocks by 0.35 s (past every debounce) so wall-clock timers match the replay clock; the notes line (8 s timer) is only compared when both sides show one.
+- Setup wizard: 59 scripted-tty differential cases (menu errors, domain, completion install/reinstall per shell, network completion, defaults, no tty); the installed completion files for zsh and fish are byte-identical apart from the launcher path, bash differs only in the documented flag-pair words and launcher path. `setup` choices 2 (login) and 6 (all) need a browser login and are not scripted.
+
+Found and fixed in Rust by this differential: `check_files` treated falsy raw values (`0`, `False`) as a file name; a programmatic `Input` value keeps the cursor column after the first change (Textual) instead of jumping to the end; Space no longer presses a focused button (Textual buttons take Enter only; Space still toggles the review checkbox); Left/Right no longer move focus between the form, review and dialog buttons; Tab order now includes the scrolling field list (first) and the help panel (last, while shown); opening a review/save/confirm layer no longer blurs the focused editor and closing it no longer re-opens its list.
+
+Irreducible differences in the form UI (Python behaviours not copied):
+
+- The date picker preview lags the cursor by one key in Python (it is refreshed before the grid moves); Rust shows the preview of the cursor.
+- F3 (description preview) in Python hides the focused text area, so focus is lost and F3 cannot toggle back; Rust keeps focus and F3 toggles.
+
 ## fsv-flows
 
 | Python | Rust | status |
