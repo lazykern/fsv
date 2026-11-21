@@ -1,192 +1,191 @@
 {
-  "_python": {
-    "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
-    "dirty": false
-  },
-  "cases": [
-    {
-      "name": "ok",
-      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-      "review": {
-        "action": "change_delete",
-        "method": "DELETE",
-        "path": "/api/_/changes/123",
-        "payload": null,
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
-        "change_id": 123,
-        "subject": "Acme rollout"
-      },
-      "payload_json": "null",
-      "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
-      "result": {
-        "status": "submitted",
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "verified": true,
-        "change_id": 123,
-        "fields": {
-          "deleted": "matched"
-        },
-        "readback_attempts": 1
-      },
-      "sleeps": [],
-      "reads_after": 1,
-      "writes": [
-        {
-          "method": "DELETE",
-          "path": "changes/123",
-          "body": ""
-        }
-      ],
-      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
+ "_python": {
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
+  "dirty": false
+ },
+ "cases": [
+  {
+   "name": "ok",
+   "hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+   "review": {
+    "action": "change_delete",
+    "method": "DELETE",
+    "path": "/api/_/changes/123",
+    "payload": null,
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+    "change_id": 123,
+    "subject": "Acme rollout"
+   },
+   "payload_json": "null",
+   "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
+   "result": {
+    "status": "submitted",
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "verified": true,
+    "change_id": 123,
+    "fields": {
+     "deleted": "matched"
     },
+    "readback_attempts": 1
+   },
+   "sleeps": [],
+   "reads_after": 1,
+   "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it",
+   "writes": [
     {
-      "name": "lag2",
-      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-      "review": {
-        "action": "change_delete",
-        "method": "DELETE",
-        "path": "/api/_/changes/123",
-        "payload": null,
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
-        "change_id": 123,
-        "subject": "Acme rollout"
-      },
-      "payload_json": "null",
-      "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
-      "result": {
-        "status": "submitted",
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "verified": true,
-        "change_id": 123,
-        "fields": {
-          "deleted": "matched"
-        },
-        "readback_attempts": 3
-      },
-      "sleeps": [
-        0.5,
-        1.5
-      ],
-      "reads_after": 3,
-      "writes": [
-        {
-          "method": "DELETE",
-          "path": "changes/123",
-          "body": ""
-        }
-      ],
-      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
-    },
-    {
-      "name": "lag100",
-      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-      "review": {
-        "action": "change_delete",
-        "method": "DELETE",
-        "path": "/api/_/changes/123",
-        "payload": null,
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
-        "change_id": 123,
-        "subject": "Acme rollout"
-      },
-      "payload_json": "null",
-      "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
-      "result": {
-        "status": "submitted",
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "verified": false,
-        "change_id": 123,
-        "fields": {
-          "deleted": "mismatched"
-        },
-        "readback_attempts": 4,
-        "warning": "Readback was not fully verified; do not resend."
-      },
-      "sleeps": [
-        0.5,
-        1.5,
-        3.0
-      ],
-      "reads_after": 4,
-      "writes": [
-        {
-          "method": "DELETE",
-          "path": "changes/123",
-          "body": ""
-        }
-      ],
-      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
-    },
-    {
-      "name": "no_confirm",
-      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-      "review": {
-        "action": "change_delete",
-        "method": "DELETE",
-        "path": "/api/_/changes/123",
-        "payload": null,
-        "plan_hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
-        "change_id": 123,
-        "subject": "Acme rollout"
-      },
-      "payload_json": "null",
-      "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
-      "send_err": "change delete requires --confirm-destructive after inspecting the review",
-      "writes": 0
-    },
-    {
-      "name": "deleted_true",
-      "build_err": "change must be readable with deleted:false before deletion",
-      "writes": 0
-    },
-    {
-      "name": "deleted_missing",
-      "build_err": "change must be readable with deleted:false before deletion",
-      "writes": 0
-    },
-    {
-      "name": "deleted_str",
-      "build_err": "change must be readable with deleted:false before deletion",
-      "writes": 0
-    },
-    {
-      "name": "subject_null",
-      "build_err": "exact change subject unavailable",
-      "writes": 0
-    },
-    {
-      "name": "drift",
-      "hash": "5228dcd1b0d7f1445b4c813c546fe5a24f1c6768760fd3734e97210d7c66f8bc",
-      "err": "target or metadata changed since review; review again",
-      "writes": 0
-    },
-    {
-      "name": "403",
-      "err": "write outcome unknown (HTTP 403: synthetic); inspect target and journal before retry",
-      "replay": "write was sent or outcome unknown; inspect target and journal before retry",
-      "writes": 1
-    },
-    {
-      "name": "429",
-      "err": "write outcome unknown (HTTP 429: synthetic); inspect target and journal before retry",
-      "replay": "write was sent or outcome unknown; inspect target and journal before retry",
-      "writes": 1
-    },
-    {
-      "name": "422",
-      "err": "write rejected (HTTP 422): synthetic; no retry",
-      "replay": null,
-      "writes": 1
-    },
-    {
-      "name": "disconnect",
-      "err": "write outcome unknown (ReadError); inspect target and journal before retry",
-      "replay": "write was sent or outcome unknown; inspect target and journal before retry",
-      "writes": 1
+     "method": "DELETE",
+     "path": "changes/123",
+     "body": ""
     }
-  ]
+   ]
+  },
+  {
+   "name": "lag2",
+   "hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+   "review": {
+    "action": "change_delete",
+    "method": "DELETE",
+    "path": "/api/_/changes/123",
+    "payload": null,
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+    "change_id": 123,
+    "subject": "Acme rollout"
+   },
+   "payload_json": "null",
+   "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
+   "result": {
+    "status": "submitted",
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "verified": true,
+    "change_id": 123,
+    "fields": {
+     "deleted": "matched"
+    },
+    "readback_attempts": 3
+   },
+   "sleeps": [
+    0.5,
+    1.5
+   ],
+   "reads_after": 3,
+   "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it",
+   "writes": [
+    {
+     "method": "DELETE",
+     "path": "changes/123",
+     "body": ""
+    }
+   ]
+  },
+  {
+   "name": "lag100",
+   "hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+   "review": {
+    "action": "change_delete",
+    "method": "DELETE",
+    "path": "/api/_/changes/123",
+    "payload": null,
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+    "change_id": 123,
+    "subject": "Acme rollout"
+   },
+   "payload_json": "null",
+   "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
+   "result": {
+    "status": "submitted",
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "verified": false,
+    "change_id": 123,
+    "fields": {
+     "deleted": "mismatched"
+    },
+    "readback_attempts": 4,
+    "warning": "Readback was not fully verified; do not resend."
+   },
+   "sleeps": [
+    0.5,
+    1.5,
+    3.0
+   ],
+   "reads_after": 4,
+   "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it",
+   "writes": [
+    {
+     "method": "DELETE",
+     "path": "changes/123",
+     "body": ""
+    }
+   ]
+  },
+  {
+   "name": "no_confirm",
+   "hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+   "review": {
+    "action": "change_delete",
+    "method": "DELETE",
+    "path": "/api/_/changes/123",
+    "payload": null,
+    "plan_hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+    "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+    "change_id": 123,
+    "subject": "Acme rollout"
+   },
+   "payload_json": "null",
+   "context": "54687c2dfa4482c7c250a51cd939428bd88765761f2973183f138bc02c647b36",
+   "send_err": "change delete requires --confirm-destructive after inspecting the review",
+   "writes": 0
+  },
+  {
+   "name": "deleted_true",
+   "build_err": "change must be readable with deleted:false before deletion",
+   "writes": 0
+  },
+  {
+   "name": "deleted_missing",
+   "build_err": "change must be readable with deleted:false before deletion",
+   "writes": 0
+  },
+  {
+   "name": "deleted_str",
+   "build_err": "change must be readable with deleted:false before deletion",
+   "writes": 0
+  },
+  {
+   "name": "subject_null",
+   "build_err": "exact change subject unavailable",
+   "writes": 0
+  },
+  {
+   "name": "drift",
+   "hash": "a0725d212cfb63614c7926a28e2fed8dcff6ea19f5f36c4fde84e604aef0f2b1",
+   "err": "target or metadata changed since review; review again",
+   "writes": 0
+  },
+  {
+   "name": "403",
+   "err": "write outcome unknown (HTTP 403: synthetic); inspect target and journal before retry",
+   "replay": "write was sent or outcome unknown; inspect target and journal before retry",
+   "writes": 1
+  },
+  {
+   "name": "429",
+   "err": "write outcome unknown (HTTP 429: synthetic); inspect target and journal before retry",
+   "replay": "write was sent or outcome unknown; inspect target and journal before retry",
+   "writes": 1
+  },
+  {
+   "name": "422",
+   "err": "write rejected (HTTP 422): synthetic; no retry",
+   "writes": 1
+  },
+  {
+   "name": "disconnect",
+   "err": "write outcome unknown (ReadError); inspect target and journal before retry",
+   "replay": "write was sent or outcome unknown; inspect target and journal before retry",
+   "writes": 1
+  }
+ ]
 }

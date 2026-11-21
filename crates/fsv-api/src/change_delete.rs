@@ -183,6 +183,7 @@ mod tests {
 
     #[test]
     fn bodyless_delete_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for name in ["ok", "lag2", "lag100"] {
             let want = case(name);
             let state = Arc::new(Mutex::new(world(json!({
@@ -229,6 +230,7 @@ mod tests {
 
     #[test]
     fn confirmation_drift_and_unproven_targets_match_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let state = Arc::new(Mutex::new(world(json!({
             "id": 123, "subject": "Acme rollout", "deleted": false
         }))));
@@ -286,6 +288,7 @@ mod tests {
 
     #[test]
     fn failures_are_never_replayed() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         for name in ["403", "429", "422", "disconnect"] {
             let want = case(name);
             let state = Arc::new(Mutex::new(world(json!({
