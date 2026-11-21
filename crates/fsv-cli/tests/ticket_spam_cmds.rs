@@ -22,8 +22,10 @@ fn tickets_spam_dry_run() {
   "method": "PUT",
   "path": "/api/_/tickets/32/spam",
   "payload": {},
-  "plan_hash": "159c07580a9b9c6d48255cfc60c2ec7a0e5a4a6cd33b18e199fd1a3c2dbbfece",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "e570fb146dda292f78d3c861e886635144c89b33e14c1f7a4f8576e5199f06d0",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -40,7 +42,7 @@ fn tickets_spam_needs_confirm() {
             "32",
             "--yes",
             "--expect-plan",
-            "159c07580a9b9c6d48255cfc60c2ec7a0e5a4a6cd33b18e199fd1a3c2dbbfece",
+            "e570fb146dda292f78d3c861e886635144c89b33e14c1f7a4f8576e5199f06d0",
         ],
         None,
     );
@@ -87,7 +89,7 @@ fn tickets_spam_send() {
             "32",
             "--yes",
             "--expect-plan",
-            "159c07580a9b9c6d48255cfc60c2ec7a0e5a4a6cd33b18e199fd1a3c2dbbfece",
+            "e570fb146dda292f78d3c861e886635144c89b33e14c1f7a4f8576e5199f06d0",
             "--confirm-destructive",
         ],
         None,
@@ -97,10 +99,12 @@ fn tickets_spam_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "159c07580a9b9c6d48255cfc60c2ec7a0e5a4a6cd33b18e199fd1a3c2dbbfece",
+  "plan_hash": "e570fb146dda292f78d3c861e886635144c89b33e14c1f7a4f8576e5199f06d0",
   "verified": true,
   "ticket_id": 32,
-  "spam": true
+  "spam": true,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -118,7 +122,7 @@ fn tickets_spam_send_unverified() {
             "36",
             "--yes",
             "--expect-plan",
-            "e9ea55ed431b681408ac7ec6e6bf1754aef36a311f89ea6c4a2b0666cf8958cb",
+            "b1465032cb93b509892ca7d80319632f99b25471262593fc538055b64358478d",
             "--confirm-destructive",
         ],
         None,
@@ -128,11 +132,13 @@ fn tickets_spam_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "e9ea55ed431b681408ac7ec6e6bf1754aef36a311f89ea6c4a2b0666cf8958cb",
+  "plan_hash": "b1465032cb93b509892ca7d80319632f99b25471262593fc538055b64358478d",
   "verified": false,
   "ticket_id": 36,
   "spam": false,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -150,7 +156,7 @@ fn tickets_spam_rejected() {
             "37",
             "--yes",
             "--expect-plan",
-            "57dbc1cff8ef95049553b7620ec3f39c62b4f32b584f25565d8256a13b449a10",
+            "802d3015fc72ca924b68c33fe9e51dfb3468c8ac51326f0a68ba360d0d818f19",
             "--confirm-destructive",
         ],
         None,
@@ -241,8 +247,10 @@ fn tickets_unspam_dry_run() {
   "method": "PUT",
   "path": "/api/_/tickets/33/unspam",
   "payload": null,
-  "plan_hash": "d3c1e160c6dce39231a4b892a5e4c7694604e534746f7a13ce44f1e2551f0885",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "a48d9d6b9ab50f7580689abd9a02ac2b8a252b21ca0bc61b45fd22470934468c",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -275,7 +283,7 @@ fn tickets_unspam_send() {
             "33",
             "--yes",
             "--expect-plan",
-            "d3c1e160c6dce39231a4b892a5e4c7694604e534746f7a13ce44f1e2551f0885",
+            "a48d9d6b9ab50f7580689abd9a02ac2b8a252b21ca0bc61b45fd22470934468c",
         ],
         None,
     );
@@ -284,10 +292,12 @@ fn tickets_unspam_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d3c1e160c6dce39231a4b892a5e4c7694604e534746f7a13ce44f1e2551f0885",
+  "plan_hash": "a48d9d6b9ab50f7580689abd9a02ac2b8a252b21ca0bc61b45fd22470934468c",
   "verified": true,
   "ticket_id": 33,
-  "spam": false
+  "spam": false,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

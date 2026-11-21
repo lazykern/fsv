@@ -33,7 +33,7 @@ fn problem_note_reviewed_dry_run() {
   "payload": {
     "body": "Acme evidence"
   },
-  "plan_hash": "877fc29c38d1e3bfeb2dccbef2b3222ac2841135186649381a11e0cf446d8c50",
+  "plan_hash": "169c2ee6ad36e8ae519027838d276715359685f57b234dd51928113c8d86605f",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "id": "PRB-12",
   "body": {
@@ -44,7 +44,9 @@ fn problem_note_reviewed_dry_run() {
   },
   "warnings": [
     "visibility: problem notes accept only a body (captured `{body}`; the tenant rejects `private` with HTTP 400): visibility is not controllable and the tenant default applies"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -62,7 +64,7 @@ fn problem_note_reviewed_send_json() {
             "Acme evidence",
             "--yes",
             "--expect-plan",
-            "877fc29c38d1e3bfeb2dccbef2b3222ac2841135186649381a11e0cf446d8c50",
+            "169c2ee6ad36e8ae519027838d276715359685f57b234dd51928113c8d86605f",
             "--json",
         ],
         None,
@@ -72,7 +74,7 @@ fn problem_note_reviewed_send_json() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "877fc29c38d1e3bfeb2dccbef2b3222ac2841135186649381a11e0cf446d8c50",
+  "plan_hash": "169c2ee6ad36e8ae519027838d276715359685f57b234dd51928113c8d86605f",
   "verified": true,
   "note_id": 9000000077,
   "readback": {
@@ -83,7 +85,9 @@ fn problem_note_reviewed_send_json() {
   "readback_complete": true,
   "fields": {
     "body": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -102,7 +106,7 @@ fn problem_note_reviewed_send_human() {
             "Acme evidence",
             "--yes",
             "--expect-plan",
-            "877fc29c38d1e3bfeb2dccbef2b3222ac2841135186649381a11e0cf446d8c50",
+            "169c2ee6ad36e8ae519027838d276715359685f57b234dd51928113c8d86605f",
         ],
         None,
     );
@@ -143,7 +147,7 @@ fn problem_note_wrong_hash() {
             "Acme",
             "--yes",
             "--expect-plan",
-            "0000000000000000000000000000000000000000000000000000000000000000",
+            "54a7a3f299d0d36426d174d70d8e7a217a84eeadadacd2e4c66ad7465bb54746",
         ],
         None,
     );
@@ -249,7 +253,7 @@ fn problem_note_prompt_declined() {
   "payload": {
     "body": "Acme"
   },
-  "plan_hash": "7c6a4c9eb87ad2bcd791a5fab236dc2bef142217be64c740076509a351b4d041",
+  "plan_hash": "ca5dab5f02664118bcf7b7715924796b7164cd6f39077e60ce1d38f885539994",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "id": "PRB-12",
   "body": {
@@ -260,7 +264,9 @@ fn problem_note_prompt_declined() {
   },
   "warnings": [
     "visibility: problem notes accept only a body (captured `{body}`; the tenant rejects `private` with HTTP 400): visibility is not controllable and the tenant default applies"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -293,7 +299,7 @@ fn problem_note_prompt_accepted() {
   "payload": {
     "body": "Acme evidence"
   },
-  "plan_hash": "877fc29c38d1e3bfeb2dccbef2b3222ac2841135186649381a11e0cf446d8c50",
+  "plan_hash": "169c2ee6ad36e8ae519027838d276715359685f57b234dd51928113c8d86605f",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "id": "PRB-12",
   "body": {
@@ -304,7 +310,9 @@ fn problem_note_prompt_accepted() {
   },
   "warnings": [
     "visibility: problem notes accept only a body (captured `{body}`; the tenant rejects `private` with HTTP 400): visibility is not controllable and the tenant default applies"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -334,7 +342,9 @@ fn change_note_dry_run_hash() {
     "body": "Acme change note",
     "private": true
   },
-  "plan_hash": "8bc603b9b1eb949c82f5c7dc44b8c6020d04ee493c346c1c328484f3bd338a9c"
+  "plan_hash": "5fc475abf941a95ac415a091d2d5492d3f9de14aaa5b2d7a8a937215972bd850",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -366,10 +376,12 @@ fn change_public_note_dry_run_hash() {
     "body": "Acme change note",
     "private": false
   },
-  "plan_hash": "dffb44720a319259485eb90f0e8bbffaec5c60ec03ac48e96afe08f90e04da17",
+  "plan_hash": "3fdd859d0dc1c8801bd04bb99b015b08ee8d0c76128764956f9e98a3d8150f97",
   "requires_confirmation": [
     "public note: visible to the requester and may send notifications"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -386,7 +398,7 @@ fn change_note_expect_plan_sends() {
             "CHN-3",
             "Acme change note",
             "--expect-plan",
-            "8bc603b9b1eb949c82f5c7dc44b8c6020d04ee493c346c1c328484f3bd338a9c",
+            "5fc475abf941a95ac415a091d2d5492d3f9de14aaa5b2d7a8a937215972bd850",
         ],
         None,
     );
@@ -410,7 +422,7 @@ fn change_note_expect_plan_uppercase_ok() {
             "CHN-3",
             "Acme change note",
             "--expect-plan",
-            "8BC603B9B1EB949C82F5C7DC44B8C6020D04EE493C346C1C328484F3BD338A9C",
+            "5FC475ABF941A95AC415A091D2D5492D3F9DE14AAA5B2D7A8A937215972BD850",
         ],
         None,
     );
@@ -434,7 +446,7 @@ fn change_note_expect_plan_edited_body() {
             "CHN-3",
             "Acme change note (edited)",
             "--expect-plan",
-            "8bc603b9b1eb949c82f5c7dc44b8c6020d04ee493c346c1c328484f3bd338a9c",
+            "5fc475abf941a95ac415a091d2d5492d3f9de14aaa5b2d7a8a937215972bd850",
         ],
         None,
     );
@@ -459,7 +471,7 @@ fn change_note_expect_plan_visibility() {
             "--public",
             "--yes",
             "--expect-plan",
-            "8bc603b9b1eb949c82f5c7dc44b8c6020d04ee493c346c1c328484f3bd338a9c",
+            "5fc475abf941a95ac415a091d2d5492d3f9de14aaa5b2d7a8a937215972bd850",
         ],
         None,
     );
@@ -482,7 +494,7 @@ fn change_note_expect_plan_prefix() {
             "CHN-3",
             "Acme change note",
             "--expect-plan",
-            "8bc603b9b1eb949c",
+            "5fc475abf941a95a",
         ],
         None,
     );
@@ -584,11 +596,13 @@ fn ticket_update_legacy_dry_run() {
   "body": {
     "priority": 2
   },
-  "plan_hash": "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+  "plan_hash": "31c7920f7d7df04b3d0a6632ca199f0e9ead5ab901ee4a76be0c789fa0de81cf",
   "record_state": {
     "sends": 0,
     "server_version": "2030-01-01T00:00:00Z"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -611,7 +625,7 @@ fn ticket_update_legacy_send_hash() {
             "Medium",
             "--yes",
             "--expect-plan",
-            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+            "31c7920f7d7df04b3d0a6632ca199f0e9ead5ab901ee4a76be0c789fa0de81cf",
             "--json",
         ],
         None,
@@ -624,7 +638,9 @@ fn ticket_update_legacy_send_hash() {
   "human_display_id": "SR-11",
   "subject": "Acme laptop",
   "priority": 2,
-  "updated_at": "2030-01-01T00:00:01Z"
+  "updated_at": "2030-01-01T00:00:01Z",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -689,11 +705,13 @@ fn ticket_update_legacy_hash_body() {
   "body": {
     "priority": 1
   },
-  "plan_hash": "dbde07c5f3d2a2fba5293cb139a696d1a361f319a0ead0640852e0ec883e8ba6",
+  "plan_hash": "3d4d818c507470e99db81b1b6f6618da8097ad948343b0d30cb92098d101fe14",
   "record_state": {
     "sends": 0,
     "server_version": "2030-01-01T00:00:00Z"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -732,11 +750,13 @@ fn ticket_update_legacy_hash_set() {
     "priority": 2,
     "subject": "Acme desk"
   },
-  "plan_hash": "81fa736b5a29f662719ad7086ec97126edf53029b716d87dc15de7beba908e89",
+  "plan_hash": "f6722341837c5534346a6ad58733bee7c42e46fef6d32ddf86dacdb4b0891639",
   "record_state": {
     "sends": 0,
     "server_version": "2030-01-01T00:00:00Z"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -759,7 +779,7 @@ fn ticket_update_legacy_body_changed() {
             "Low",
             "--yes",
             "--expect-plan",
-            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+            "31c7920f7d7df04b3d0a6632ca199f0e9ead5ab901ee4a76be0c789fa0de81cf",
         ],
         None,
     );
@@ -786,7 +806,7 @@ fn ticket_update_legacy_prefix() {
             "Medium",
             "--yes",
             "--expect-plan",
-            "1a4809ff529d1b86",
+            "31c7920f7d7df04b",
         ],
         None,
     );
@@ -813,7 +833,7 @@ fn ticket_update_legacy_record_changed() {
             "Medium",
             "--yes",
             "--expect-plan",
-            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+            "31c7920f7d7df04b3d0a6632ca199f0e9ead5ab901ee4a76be0c789fa0de81cf",
         ],
         None,
     );
@@ -852,7 +872,9 @@ fn ticket_update_legacy_unreadable_dry_run() {
   "id": "SR-11",
   "body": {
     "priority": 2
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -875,7 +897,7 @@ fn ticket_update_legacy_unreadable_expect() {
             "Medium",
             "--yes",
             "--expect-plan",
-            "1a4809ff529d1b868393265a2c85bd9ba12447dfa5048f8a2844b90c7d6667bd",
+            "31c7920f7d7df04b3d0a6632ca199f0e9ead5ab901ee4a76be0c789fa0de81cf",
         ],
         None,
     );
@@ -914,11 +936,13 @@ fn problem_update_dry_run_state() {
   "body": {
     "subject": "Acme renamed"
   },
-  "plan_hash": "bb9a77018f7a349ed8b34f05186d93add6936f3c134be9e738dce89539299c26",
+  "plan_hash": "e231ec06d4208df09eb490f59aa3779171cdcafde33c581cb38cd42dd3c338e3",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -950,13 +974,15 @@ fn ticket_reply_plain_dry_run() {
   "body": {
     "body": "Acme is working on it"
   },
-  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "plan_hash": "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a",
   "record_state": {
     "sends": 0
   },
   "requires_confirmation": [
     "ticket reply: sent to the requester by email"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -974,7 +1000,7 @@ fn ticket_reply_plain_send_json() {
             "Acme is working on it",
             "--yes",
             "--expect-plan",
-            "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+            "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a",
             "--json",
         ],
         None,
@@ -986,7 +1012,7 @@ fn ticket_reply_plain_send_json() {
   "status": "submitted",
   "ticket_id": 123,
   "conversation_id": 501,
-  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "plan_hash": "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a",
   "verified": true,
   "readback": {
     "id": 501,
@@ -995,7 +1021,9 @@ fn ticket_reply_plain_send_json() {
   },
   "fields": {
     "body": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1037,7 +1065,7 @@ fn ticket_reply_plain_wrong_hash() {
             "Acme is working on it",
             "--yes",
             "--expect-plan",
-            "0000000000000000000000000000000000000000000000000000000000000000",
+            "54a7a3f299d0d36426d174d70d8e7a217a84eeadadacd2e4c66ad7465bb54746",
         ],
         None,
     );
@@ -1061,7 +1089,7 @@ fn ticket_reply_plain_other_body() {
             "Globex text",
             "--yes",
             "--expect-plan",
-            "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+            "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a",
         ],
         None,
     );
@@ -1111,7 +1139,7 @@ fn ticket_reply_plain_unverified() {
   "status": "submitted",
   "ticket_id": 123,
   "conversation_id": 501,
-  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "plan_hash": "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a",
   "verified": false,
   "readback": {
     "id": 501,
@@ -1120,7 +1148,9 @@ fn ticket_reply_plain_unverified() {
   "fields": {
     "body": "mismatched"
   },
-  "warning": "Reply sent but conversation read-back did not verify it; do not resend."
+  "warning": "Reply sent but conversation read-back did not verify it; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1197,9 +1227,11 @@ fn ticket_reply_plain_rejected_json() {
         r.out,
         r#"{
   "status": "error",
-  "plan_hash": "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e",
+  "plan_hash": "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a",
   "verified": false,
-  "error": "reply rejected (HTTP 400): Validation failed; no retry"
+  "error": "reply rejected (HTTP 400): Validation failed; no retry",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1263,7 +1295,7 @@ fn ticket_reply_plain_unknown_not_resent() {
     );
 }
 
-const REPLY_HASH: &str = "7ff47626b00f9ba4e20e73b5a9f43270b793ba5d0787bf61bca0855fa63f957e";
+const REPLY_HASH: &str = "302a69ff8f50073170673b78115d4b7d649094c4061082d539fd43185a2c444a";
 const REPLY_BODY: &str = "Acme is working on it";
 
 #[test]
@@ -1320,7 +1352,9 @@ fn planning_text_clear_empty_is_nothing_to_change() {
         r.out,
         r#"{
   "status": "nothing_to_change",
-  "message": "planning section is already empty; nothing to change, no write attempted"
+  "message": "planning section is already empty; nothing to change, no write attempted",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1347,7 +1381,9 @@ fn planning_text_clear_empty_yes_is_nothing_to_change() {
         r.out,
         r#"{
   "status": "nothing_to_change",
-  "message": "planning section is already empty; nothing to change, no write attempted"
+  "message": "planning section is already empty; nothing to change, no write attempted",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1400,7 +1436,9 @@ fn problem_planning_text_clear_empty_is_nothing_to_change() {
         r.out,
         r#"{
   "status": "nothing_to_change",
-  "message": "planning section is already empty; nothing to change, no write attempted"
+  "message": "planning section is already empty; nothing to change, no write attempted",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1429,7 +1467,9 @@ fn change_update_noop_dry_run_json() {
   "target": 12,
   "changed": false,
   "message": "nothing to change: CHN-12 already has these values",
-  "warnings": []
+  "warnings": [],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1464,7 +1504,7 @@ fn change_update_noop_dry_run_expect_plan() {
             "Low",
             "--dry-run",
             "--expect-plan",
-            "0000000000000000000000000000000000000000000000000000000000000000",
+            "54a7a3f299d0d36426d174d70d8e7a217a84eeadadacd2e4c66ad7465bb54746",
         ],
         None,
     );
@@ -1534,7 +1574,7 @@ fn change_update_send_hash() {
             "High",
             "--yes",
             "--expect-plan",
-            "52299dab32322caf5ab36adbcf7eb91122b23ae272111e75017cb675f2644457",
+            "1186920fe65b25acbbe934c2c94ed1aab4bf3aec99ecdf1724e012f50c6a1a5c",
         ],
         None,
     );
@@ -1560,7 +1600,7 @@ fn change_update_stale_hash() {
             "High",
             "--yes",
             "--expect-plan",
-            "0000000000000000000000000000000000000000000000000000000000000000",
+            "54a7a3f299d0d36426d174d70d8e7a217a84eeadadacd2e4c66ad7465bb54746",
         ],
         None,
     );
@@ -1568,7 +1608,7 @@ fn change_update_stale_hash() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: plan changed: expected 0000000000000000000000000000000000000000000000000000000000000000, computed 52299dab32322caf5ab36adbcf7eb91122b23ae272111e75017cb675f2644457. Review again with --dry-run.
+        r#"error: plan changed: expected 54a7a3f299d0d36426d174d70d8e7a217a84eeadadacd2e4c66ad7465bb54746, computed 1186920fe65b25acbbe934c2c94ed1aab4bf3aec99ecdf1724e012f50c6a1a5c. Review again with --dry-run.
 "#
     );
 }
@@ -1592,7 +1632,7 @@ fn change_update_dry_run_binds_the_record_state_token() {
     let doc = r.json();
     assert_eq!(
         doc["plan_hash"],
-        "52299dab32322caf5ab36adbcf7eb91122b23ae272111e75017cb675f2644457"
+        "1186920fe65b25acbbe934c2c94ed1aab4bf3aec99ecdf1724e012f50c6a1a5c"
     );
     assert_eq!(doc["payload"], serde_json::json!({"priority": 3}));
     assert_eq!(

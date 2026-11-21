@@ -423,7 +423,7 @@ def hints(ctree, cli_nodes):
     for n in walk_completion(ctree, []):
         path = " ".join(n["path"])
         cli = by_path[path]
-        opts = [p for p in n["params"] if path == "fsv" or p["flags"] != ["--verbose", "-v"]]
+        opts = [p for p in n["params"] if path == "fsv" or p["flags"] not in (["--verbose", "-v"], ["--quiet"])]
         entries = []
         for p in opts:
             ids = [c["name"] for c in cli["params"] if p["flags"][0] in c["opts"] + c["secondary_opts"]]

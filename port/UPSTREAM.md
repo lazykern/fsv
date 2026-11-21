@@ -3,12 +3,12 @@
 Python commits that landed while the port ran, and what the Rust port still
 needs for each.
 
-- **Last triaged Python commit: `31a9103`** (2026-11-13 22:51 +0700,
-  `docs/coverage.md: regenerate with a separate COVERED (read) status ...`;
-  see "Ledger: `406ca71..31a9103`" at the end). `port/UPSTREAM_BASE` is
-  `31a9103`.
-- Rust state graded: `rust-port` at `3c6cf61` (all eight batches merged).
-- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse 31a9103..main`.
+- **Last triaged Python commit: `84ffb0f`** (docs: regenerate command
+  coverage from the current matrices; the Python main HEAD at this merge).
+  `port/UPSTREAM_BASE` and `port/UPSTREAM_TARGET` are `84ffb0f`; the
+  tenant-visibility work (`port/up-a`) and the up-b/up-c/up-d commands are
+  merged and graded in the sections below.
+- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse 84ffb0f..main`.
 - Older sections below keep their own triage notes (base `92002d7` and
   earlier) for history.
 
@@ -3854,3 +3854,30 @@ scratch copy of 31a9103 with only those commits' module changes applied.
 parameters from a dump of Python `84ffb0f`; the completion fixtures did not.
 `1c06342` is the shared journal-primitives commit (taken from `port/up-b`
 `73c84eb`), not one of these ports.
+## Ledger: `31a9103..main`, batch `port/up-a` (tenant visibility, keychain, error text)
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `ff7b40c` | 11-13 23:16 | update failures name the server's HTTP status and sanitized message; `changes update --json` prints an error object | ported | fsv-core `error.rs` (`http_detail`, `exception_name`, `reviewed_write_error`, `write_answer`); fsv-api `reviewed_write.rs`, `properties.rs`; fsv-flows `change.rs` (`put_change_raw`, `rw_error`); fsv-cli `cmd/changes.rs` (`update_write_failure`); `tests/update_error_cmds.rs`, `status_cmds.rs` |
+| `29e5d01` | 11-13 23:16 | `ls --no-defaults` lists the module's system All view | ported | fsv-api `site/list.rs` (`all_records_view`); fsv-cli `cmd/resource.rs`; `tests/list_no_defaults_cmds.rs` |
+| `5eefaaf` | 11-14 19:01 | tenant banner on stderr, `--quiet` / `FSV_QUIET`, `--tenant DOMAIN`, tenant-bound plan hashes, `tenant`/`config_dir` in write JSON | ported | fsv-core `tenant.rs`, `journal.rs`; fsv-api `form_hash.rs`, `service.rs`; fsv-cli `app.rs`, `cmd/*` print helpers; `tests/tenant_cmds.rs`, `tests/tenant_guard.rs` |
+| `230b348` | 11-14 19:02 | `--yes` refuses an unconfirmed tenant (`tenant.confirmed`, `FSV_ALLOW_TENANT`) | ported | fsv-core `tenant.rs`; fsv-cli `cmd/config.rs`, `app.rs` |
+| `d37d526` | 11-14 19:09 | `fsv whoami`, `fsv config show`, `auth status` names tenant and config dir | ported | fsv-cli `cmd/auth.rs`, `cmd/config.rs`; fixtures `cli_tree.json`, `completion_tree.json`, `completion.*` |
+| `83f9220` | 11-15 19:36 | Keychain item scoped to the config dir (`fsv-session-<sha256(config dir)[:12]>`) | ported | fsv-core `session/mod.rs` (`KeychainStore`, `keychain_account`); fsv-cli `cmd/auth.rs` |
+| `b2bbbc9` | 11-15 22:39 | keychain tests across two config dirs | partial | session-level tests with a fake `KeychainStore` (`session/tests.rs`); no CLI-level fake Keychain (the binary has no test hook for it) |
+| `9b7cfe9` | 11-15 19:36 | forward/reply rejected send names the server answer | ported | fsv-api `conversations.rs` (`rejection_message`); `--sender` help |
+| `02b611f` | 11-15 17:48 | `--where` fail-closed messages | ported | fsv-api `query.rs`, `filter_proof.rs`; fsv-cli `filters.rs` |
+| `ae1f597` | 11-15 17:48 | raw `--query-hash` shapes pass through | ported | behavior already present; `tests/query_hash_raw_cmds.rs` |
+| `0ef949e` | 11-15 17:56 | pyproject description | ported | `crates/fsv-cli/Cargo.toml` description |
+| `bad3046` | 11-15 17:48 | README help-pointer tests | n/a | Python test of Python README wording |
+
+Provenance debt (`5eefaaf`): see the "Golden provenance after `5eefaaf`" item
+in `PARITY.md`. `port/UPSTREAM_BASE` stays `31a9103`; the cli_tree and
+completion fixtures carry only this batch's nodes and flags
+(whoami, config show, `--quiet`, `--tenant`, the `ls --no-defaults`, `forward
+--sender` and `auth logout` help) on top of the `31a9103` dump.
+
+`crates/fsv-cli/tests/differential.rs` (opt-in) now sends `FSV_QUIET` and
+`FSV_ALLOW_TENANT` to both sides, so run it against a Python tree that includes
+`5eefaaf`; against the pinned `31a9103` every `--expect-plan` case differs by
+design (tenant-bound hashes). `FSV_DIFF_VERBOSE=1` prints both stdouts.

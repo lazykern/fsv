@@ -1,7 +1,7 @@
 [
  {"name": "problems_link_incident_dry_run", "fixture": "problem_incidents",
   "args": ["problems", "link-incident", "PRB-7", "INC-123", "--dry-run"]},
- {"name": "problems_link_incident_needs_expect_plan", "fixture": "problem_incidents",
+ {"name": "problems_link_incident_needs_expect_plan", "accept_stderr": {"py": "None\n", "rs": "review with --dry-run, then pass --yes and the full --expect-plan hash\n"}, "fixture": "problem_incidents",
   "args": ["problems", "link-incident", "7", "123", "--yes"]},
  {"name": "problems_link_incident_send", "fixture": "problem_incidents",
   "hash_from": ["problems", "link-incident", "PRB-7", "INC-123", "--dry-run"],

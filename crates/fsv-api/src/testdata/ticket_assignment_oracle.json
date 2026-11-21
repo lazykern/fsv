@@ -28,11 +28,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -41,7 +41,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -60,7 +60,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "verified": true,
      "tickets": {
       "123": {
@@ -131,11 +131,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": 81, \"responder_id\": 71}",
-     "context_hash": "e22911607d3aac3a956507da7c22ba72266ba8c07b0ca627328d3168999b93c7"
+     "context_hash": "210610c95c7e7f6564b0582976ac0544ea8eb8eeb172de21876fe20877a65a0b"
     },
     "intent_json": "{\"agent\": \"agent@example.com\", \"expected\": [{\"group_id\": 81, \"responder_id\": 71}], \"group\": \"Acme Desk\", \"ids\": [123], \"pickup\": false, \"unassign\": false}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "b15530287afedbc8badf8296bee82d6f340a395a25dbf3ab905f18842bd06a7d",
+    "hash": "be901c8166ba9bbf5c8496813370267a502249200fe9df07fd1b178588b02ba8",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -145,7 +145,7 @@
       "group_id": 81,
       "responder_id": 71
      },
-     "plan_hash": "b15530287afedbc8badf8296bee82d6f340a395a25dbf3ab905f18842bd06a7d",
+     "plan_hash": "be901c8166ba9bbf5c8496813370267a502249200fe9df07fd1b178588b02ba8",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -164,7 +164,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "b15530287afedbc8badf8296bee82d6f340a395a25dbf3ab905f18842bd06a7d",
+     "plan_hash": "be901c8166ba9bbf5c8496813370267a502249200fe9df07fd1b178588b02ba8",
      "verified": true,
      "tickets": {
       "123": {
@@ -184,11 +184,11 @@
      "method": "PUT",
      "path": "tickets/pick_up",
      "payload_json": "{\"ids\": [123, 124]}",
-     "context_hash": "af372f5c3404bf16a85284e63d46021cc226db9c739e9194acfbddfef368da50"
+     "context_hash": "d27b4d4fb47c714cc8438b5c5a1df5878a35ce588f40784f7ced96a0c70ce01d"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": 71}, {\"responder_id\": 71}], \"group\": null, \"ids\": [123, 124], \"pickup\": true, \"unassign\": false}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}, {\"group_id\": 81, \"responder_id\": null, \"ticket_id\": 124}]",
-    "hash": "a2dd483ed3de3a91a27e3946fb26674d8e74b6d34e05a79231c6148b7f2ec120",
+    "hash": "018450379686d4afc20bca17ce1dd28d079928e6166b2a5d70a0d9b6499751fe",
     "review": {
      "action": "ticket_pick_up",
      "method": "PUT",
@@ -199,7 +199,7 @@
        124
       ]
      },
-     "plan_hash": "a2dd483ed3de3a91a27e3946fb26674d8e74b6d34e05a79231c6148b7f2ec120",
+     "plan_hash": "018450379686d4afc20bca17ce1dd28d079928e6166b2a5d70a0d9b6499751fe",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -226,7 +226,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "a2dd483ed3de3a91a27e3946fb26674d8e74b6d34e05a79231c6148b7f2ec120",
+     "plan_hash": "018450379686d4afc20bca17ce1dd28d079928e6166b2a5d70a0d9b6499751fe",
      "verified": true,
      "tickets": {
       "123": {
@@ -294,11 +294,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": 82, \"responder_id\": null}",
-     "context_hash": "b13eed6ede7c4fdbdd71882f30ca91829f693d86d51f8381bc29bd31f2218972"
+     "context_hash": "2c8cc1956f8636c516a5a05b7ea7b4a4572f57ec31066f1b3e9cb4e83d72c419"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"group_id\": 82, \"responder_id\": null}], \"group\": \"Globex Desk\", \"ids\": [123], \"pickup\": false, \"unassign\": false}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "f5c68c8546d2d65a268bb928628e69adc94cc45b1f125dc32276a51a82bcfc2b",
+    "hash": "d6530ea3c66da354d5d9636bce42a4fb5fed6a504bdf8b56539a3225380f0d9c",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -308,7 +308,7 @@
       "group_id": 82,
       "responder_id": null
      },
-     "plan_hash": "f5c68c8546d2d65a268bb928628e69adc94cc45b1f125dc32276a51a82bcfc2b",
+     "plan_hash": "d6530ea3c66da354d5d9636bce42a4fb5fed6a504bdf8b56539a3225380f0d9c",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -327,7 +327,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "f5c68c8546d2d65a268bb928628e69adc94cc45b1f125dc32276a51a82bcfc2b",
+     "plan_hash": "d6530ea3c66da354d5d9636bce42a4fb5fed6a504bdf8b56539a3225380f0d9c",
      "verified": true,
      "tickets": {
       "123": {
@@ -380,11 +380,11 @@
      "method": "PUT",
      "path": "tickets/124",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": 71}",
-     "context_hash": "ac921dc5293238ee4996d99121a707525a8e916a281058ae5cb7f1e0117a12a5"
+     "context_hash": "3d6c8a6d7aa87c1dbe4bccc699aa5a159a8aded028e42fe43fa308898426c8ea"
     },
     "intent_json": "{\"agent\": \" ACME agent \", \"expected\": [{\"responder_id\": 71}], \"group\": null, \"ids\": [124], \"pickup\": false, \"unassign\": false}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": null, \"ticket_id\": 124}]",
-    "hash": "c62a6c4fefca11c86f82df0a70d980560ba4d59e3a13b0ad4137de7085a9f337",
+    "hash": "4240a0670c3ab754d3492ab4a2cc8ee4c1b13fd0c77079e399e10bfc304b8537",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -393,7 +393,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": 71
      },
-     "plan_hash": "c62a6c4fefca11c86f82df0a70d980560ba4d59e3a13b0ad4137de7085a9f337",
+     "plan_hash": "4240a0670c3ab754d3492ab4a2cc8ee4c1b13fd0c77079e399e10bfc304b8537",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -412,7 +412,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "c62a6c4fefca11c86f82df0a70d980560ba4d59e3a13b0ad4137de7085a9f337",
+     "plan_hash": "4240a0670c3ab754d3492ab4a2cc8ee4c1b13fd0c77079e399e10bfc304b8537",
      "verified": true,
      "tickets": {
       "124": {
@@ -461,11 +461,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": 81, \"responder_id\": null}",
-     "context_hash": "0d645d9b299699c5f6ff87eeff7414e5a3af58c8812735e0356d190638a48e1f"
+     "context_hash": "a0c435998e5b2655e4438864be548c98c0f83c684f1f35314a39efc44fab852c"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"group_id\": 81, \"responder_id\": null}], \"group\": \"81\", \"ids\": [123], \"pickup\": false, \"unassign\": false}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "2b8304867f220b27c6368fd8040c40fd563ba1583f794d6cb34e84952b0e6674",
+    "hash": "fd973e2b328c291ea58283b34af23c1653852435bf65a4c28a0b2b986702715a",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -475,7 +475,7 @@
       "group_id": 81,
       "responder_id": null
      },
-     "plan_hash": "2b8304867f220b27c6368fd8040c40fd563ba1583f794d6cb34e84952b0e6674",
+     "plan_hash": "fd973e2b328c291ea58283b34af23c1653852435bf65a4c28a0b2b986702715a",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -981,11 +981,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -994,7 +994,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1028,11 +1028,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "be17ccf3988bb26439ad1f2f5b92b51583c43fc61d1bbae47cff0610c82ca282"
+     "context_hash": "1818928347cfa5def4336297660a606f581345d582ffcdd2c3c72f43395c77c5"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "bfe65c4ed652ce301d298f5f6a09f775615d69e84b0e478c41ad407fca36e50c",
+    "hash": "59761739ea7bf2636d5913acdad4cdfa41cdfe3539cb85ea4afcb90bbaa5763e",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -1041,7 +1041,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "bfe65c4ed652ce301d298f5f6a09f775615d69e84b0e478c41ad407fca36e50c",
+     "plan_hash": "59761739ea7bf2636d5913acdad4cdfa41cdfe3539cb85ea4afcb90bbaa5763e",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1063,7 +1063,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "bfe65c4ed652ce301d298f5f6a09f775615d69e84b0e478c41ad407fca36e50c",
+     "plan_hash": "59761739ea7bf2636d5913acdad4cdfa41cdfe3539cb85ea4afcb90bbaa5763e",
      "verified": false,
      "tickets": {
       "123": {
@@ -1131,11 +1131,11 @@
      "method": "PUT",
      "path": "tickets/pick_up",
      "payload_json": "{\"ids\": [123]}",
-     "context_hash": "ce42063e7bad99fd4fd4ba4c6e1696349fb83f011a749d485af61505b6caacf7"
+     "context_hash": "9ff8cac61d0979ded9eb95dfb2f925d2672ed73f383fcf4e8cdf2f2f57bd550c"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": 71}], \"group\": null, \"ids\": [123], \"pickup\": true, \"unassign\": false}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": null, \"ticket_id\": 123}]",
-    "hash": "ce2aa25be8a1426f40269d39620598b8a921c45f9e06d48519aef041106e06e5",
+    "hash": "e4c82f6edfe46f6ad430411e48d77bf15337e5871c3e16b375aa28b27502f4ad",
     "review": {
      "action": "ticket_pick_up",
      "method": "PUT",
@@ -1145,7 +1145,7 @@
        123
       ]
      },
-     "plan_hash": "ce2aa25be8a1426f40269d39620598b8a921c45f9e06d48519aef041106e06e5",
+     "plan_hash": "e4c82f6edfe46f6ad430411e48d77bf15337e5871c3e16b375aa28b27502f4ad",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1167,7 +1167,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "ce2aa25be8a1426f40269d39620598b8a921c45f9e06d48519aef041106e06e5",
+     "plan_hash": "e4c82f6edfe46f6ad430411e48d77bf15337e5871c3e16b375aa28b27502f4ad",
      "verified": false,
      "tickets": {
       "123": {
@@ -1221,11 +1221,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -1234,7 +1234,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1292,11 +1292,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -1305,7 +1305,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1327,7 +1327,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 403: synthetic failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1384,11 +1384,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -1397,7 +1397,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1419,7 +1419,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 429: synthetic failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1476,11 +1476,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -1489,7 +1489,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1511,7 +1511,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 500: synthetic failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1568,11 +1568,11 @@
      "method": "PUT",
      "path": "tickets/123",
      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"responder_id\": null}",
-     "context_hash": "2c357a79900ca2b30b59085f29327dfbb6faf2d5e4b00cd4e56e03e43756dae9"
+     "context_hash": "b77e2c023a112783c561173dc6aa435e53e7b03670e656055150bd0f5b216934"
     },
     "intent_json": "{\"agent\": null, \"expected\": [{\"responder_id\": null}], \"group\": null, \"ids\": [123], \"pickup\": false, \"unassign\": true}",
     "before_json": "[{\"group_id\": 81, \"responder_id\": 71, \"ticket_id\": 123}]",
-    "hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+    "hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
     "review": {
      "action": "ticket_assign",
      "method": "PUT",
@@ -1581,7 +1581,7 @@
       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
       "responder_id": null
      },
-     "plan_hash": "7c97b93199e3075b31f48e73c26965754f3cc32dc0b7af6126410c5abf3c76f8",
+     "plan_hash": "13c38ca3e70ed46c9f15caa311841dd3782be757653899f9a155552ffca04887",
      "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
      "record_state": {
       "sends": 0,
@@ -1603,7 +1603,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (ReadError); inspect target and journal before retry"
     },
     "writes": 1
    },

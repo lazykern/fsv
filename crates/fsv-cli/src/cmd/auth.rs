@@ -206,13 +206,103 @@ pub fn login(a: AuthLoginArgs) -> CmdResult {
         store = Some(choose_store()?);
     }
     let backend = session::save_cookies(&cookies, store)?;
-    let target = if backend == Backend::Keychain {
-        "Keychain".to_string()
-    } else {
-        config::display_path(&config::session_file())
-    };
+    let target = session_target(backend);
     out().print(&format!("saved {} cookies to {target}", cookies.len()));
     report_login();
+    Ok(())
+}
+
+/// `_session_target`: where the session was saved.
+pub fn session_target(backend: Backend) -> String {
+    if backend == Backend::Keychain {
+        format!(
+            "Keychain (service fsv, account {}, for {})",
+            session::keychain_account(),
+            config::display_path(&config::config_dir())
+        )
+    } else {
+        config::display_path(&config::session_file())
+    }
+}
+
+/// The configured domain, or `(none configured)`.
+fn shown_domain() -> String {
+    let d = config::domain();
+    if d.is_empty() {
+        "(none configured)".into()
+    } else {
+        d
+    }
+}
+
+/// `_print_tenant_lines`.
+pub fn print_tenant_lines() {
+    out().print_soft(&format!(
+        "tenant:      [bold]{}[/bold]",
+        term::escape(&shown_domain())
+    ));
+    out().print_soft(&format!(
+        "config dir:  {}",
+        term::escape(&config::display_path(&config::config_dir()))
+    ));
+}
+
+/// `fsv whoami`: the signed-in agent and the tenant/config dir this shell
+/// targets (read-only).
+pub fn whoami(a: crate::generated::WhoamiArgs) -> CmdResult {
+    let c = client()?;
+    let agent = c.check_session().map_err(fail_exc)?;
+    let field = |k: &str| {
+        agent
+            .get(k)
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+            .unwrap_or_default()
+    };
+    let name = format!("{} {}", field("first_name"), field("last_name"));
+    let name = fsv_core::pystr::strip(&name).to_string();
+    let email = field("email");
+    if a.json_out {
+        let mut data = serde_json::Map::new();
+        data.insert(
+            "name".into(),
+            if name.is_empty() {
+                serde_json::Value::Null
+            } else {
+                name.clone().into()
+            },
+        );
+        data.insert(
+            "email".into(),
+            if email.is_empty() {
+                serde_json::Value::Null
+            } else {
+                email.clone().into()
+            },
+        );
+        data.insert("tenant".into(), config::domain().into());
+        data.insert(
+            "config_dir".into(),
+            config::config_dir().to_string_lossy().into_owned().into(),
+        );
+        println!(
+            "{}",
+            fsv_py::Dumps::default().indent(2).ensure_ascii(false).dump(
+                &fsv_core::tenant::annotate(&serde_json::Value::Object(data))
+            )
+        );
+        return Ok(());
+    }
+    if agent.as_object().is_some_and(|m| !m.is_empty()) {
+        out().print(&format!(
+            "[bold]{}[/bold]  <{}>",
+            term::escape(&name),
+            term::escape(&email)
+        ));
+    } else {
+        out().print("identity unavailable (agent profile is not readable)");
+    }
+    print_tenant_lines();
     Ok(())
 }
 
@@ -239,7 +329,11 @@ pub fn logout(a: AuthLogoutArgs) -> CmdResult {
 /// `fsv auth status`.
 pub fn status() -> CmdResult {
     let Some(age) = session::session_age_hours() else {
-        return Err(usage("no session; run `fsv auth login`"));
+        return Err(usage(&format!(
+            "no session for tenant {} (config {}); run `fsv auth login`",
+            shown_domain(),
+            config::display_path(&config::config_dir())
+        )));
     };
     let c = client()?;
     let agent = c.check_session().map_err(fail_exc)?;
@@ -277,6 +371,7 @@ pub fn status() -> CmdResult {
     } else {
         out().print(&format!("[bold]{name}[/bold]  <{email}>"));
     }
+    print_tenant_lines();
     out().print("session:     valid");
     if !dept_display.is_empty() {
         out().print(&format!("department:  {dept_display}"));

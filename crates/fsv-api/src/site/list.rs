@@ -299,6 +299,21 @@ pub fn default_view(views: &[SavedView]) -> Option<&SavedView> {
     views.iter().find(|v| v.marked_default).or(views.first())
 }
 
+/// System views that list every record of a module (`views.ALL_VIEW_IDS`).
+pub const ALL_VIEW_IDS: [(&str, &str); 3] = [
+    ("tickets", "all_tickets"),
+    ("changes", "all"),
+    ("problems", "all"),
+];
+
+/// Port of `views.all_records_view`: the system 'All' view of a module, or
+/// `None` when the tenant has none. Only an exact system id counts: a custom
+/// view named 'All ...' may filter.
+pub fn all_records_view<'a>(views: &'a [SavedView], module: &str) -> Option<&'a SavedView> {
+    let want = ALL_VIEW_IDS.iter().find(|(m, _)| *m == module)?.1;
+    views.iter().find(|v| v.system && v.id == want)
+}
+
 /// Port of `views.find_view`.
 pub fn find_view(views: &[SavedView], text: &str) -> Result<SavedView, QueryError> {
     let want = fold(text);

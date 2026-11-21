@@ -91,11 +91,13 @@ fn reply_set_status_label_is_stripped() {
     "translate_reply": false
   },
   "status_label": " pending ",
-  "plan_hash": "8d8438a497fcf985476b9501a8f1a06671e7935adc1072b9307e600ffb25c216",
+  "plan_hash": "89b0abfa75def9566d1edac0684a0ab70baf8e6d8cbb0138626cb1a91873e757",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -140,14 +142,16 @@ fn note_set_status_closed_label_is_stripped() {
     "private": true
   },
   "status_label": " Closed",
-  "plan_hash": "421b1152ace8bb910dd7a881b49781c285334ebbc191e6a09b8bc6e715baf67d",
+  "plan_hash": "e2f7a0aee34b1904214a70b7c9d3922e2e886cebbdad5265716545b2d3820551",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "record_state": {
     "sends": 0
   },
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

@@ -1,5 +1,5 @@
 {
- "upstream": "31a910336ac8b936d6d5891cb74c21632dd232f9",
+ "upstream": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
  "note": "Module-level counterparts of src/fsv at this upstream commit. A Python file can map to several Rust files when the port split it. This is not a function-by-function proof.",
  "modules": [
   {
@@ -118,6 +118,12 @@
    ]
   },
   {
+   "py": "change_attach.py",
+   "rust": [
+    "crates/fsv-api/src/change_attach.rs"
+   ]
+  },
+  {
    "py": "change_cli.py",
    "rust": [
     "crates/fsv-cli/src/cmd/changes.rs",
@@ -129,6 +135,13 @@
    "py": "change_delete.py",
    "rust": [
     "crates/fsv-api/src/change_delete.rs"
+   ]
+  },
+  {
+   "py": "change_due_by.py",
+   "rust": [
+    "crates/fsv-api/src/change_due_by.rs",
+    "crates/fsv-cli/src/cmd/due_by.rs"
    ]
   },
   {
@@ -485,6 +498,12 @@
    ]
   },
   {
+   "py": "planning_files.py",
+   "rust": [
+    "crates/fsv-api/src/planning_files.rs"
+   ]
+  },
+  {
    "py": "planning_text.py",
    "rust": [
     "crates/fsv-api/src/planning_text.rs"
@@ -520,6 +539,12 @@
    "py": "problem_known_error.py",
    "rust": [
     "crates/fsv-api/src/problem_known_error.rs"
+   ]
+  },
+  {
+   "py": "problem_notes.py",
+   "rust": [
+    "crates/fsv-api/src/problem_notes.rs"
    ]
   },
   {
@@ -728,6 +753,13 @@
    ]
   },
   {
+   "py": "tenant.py",
+   "rust": [
+    "crates/fsv-core/src/tenant.rs",
+    "crates/fsv-cli/src/app.rs"
+   ]
+  },
+  {
    "py": "ticket_assignment.py",
    "rust": [
     "crates/fsv-api/src/ticket_assignment.rs"
@@ -829,6 +861,12 @@
    "rust": [
     "crates/fsv-api/src/notes.rs",
     "crates/fsv-api/src/recipients.rs"
+   ]
+  },
+  {
+   "py": "ticket_plain_reply.py",
+   "rust": [
+    "crates/fsv-api/src/ticket_plain_reply.rs"
    ]
   },
   {

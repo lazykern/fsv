@@ -13,6 +13,7 @@ use std::sync::Arc;
 use indexmap::IndexMap;
 use serde_json::{Map, Value as Json, json};
 
+use crate::form_hash::plan_hash;
 use fsv_core::error::{ApiError, Error, Result};
 use fsv_core::journal::PlanStep;
 use fsv_core::review::{Review, ReviewAttachment, ReviewMessage};
@@ -23,7 +24,7 @@ use fsv_forms::rules::{ChoiceRestriction, EngineOptions, is_empty};
 use fsv_forms::spec::is_content_type;
 use fsv_forms::{
     Conflict, EvaluatedForm, Field, FormSpec, FormState, Kind, LookupResolver, LookupValue,
-    MetadataFingerprint, RulesEngine, StateOptions, metadata_fingerprint, plan_hash,
+    MetadataFingerprint, RulesEngine, StateOptions, metadata_fingerprint,
 };
 use fsv_py::{py_repr, py_repr_str, py_str, truthy};
 
@@ -3355,7 +3356,7 @@ mod tests {
         let old = plan_hash(&Json::Object(hashed), Some(&recipients.plan_files())).unwrap();
         assert_eq!(
             old,
-            "ab09e59e340830bc1e26b2ba6b0f89f1c4360defee3340d4e239bc7b80a5f85e"
+            "e05ce6f2a9de4cc7ad013287d8bfd2b577b2713b5099529015c65914d6a31610"
         );
         assert_ne!(old, recipients.hash);
         let j = MemJournal::default();

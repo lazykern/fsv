@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "01a88d41e82448c1585f0e9f68e9e03e9b471834",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "path": "fsv",
@@ -69,6 +69,44 @@
    "envvar": null
   },
   {
+   "name": "quiet",
+   "kind": "option",
+   "opts": [
+    "--quiet"
+   ],
+   "secondary_opts": [],
+   "type": "boolean",
+   "choices": null,
+   "required": false,
+   "multiple": false,
+   "nargs": 1,
+   "is_flag": true,
+   "default": false,
+   "hidden": false,
+   "help": "do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)",
+   "metavar": null,
+   "envvar": null
+  },
+  {
+   "name": "tenant",
+   "kind": "option",
+   "opts": [
+    "--tenant"
+   ],
+   "secondary_opts": [],
+   "type": "text",
+   "choices": null,
+   "required": false,
+   "multiple": false,
+   "nargs": 1,
+   "is_flag": false,
+   "default": null,
+   "hidden": false,
+   "help": "assert the target tenant; confirms it for --yes writes when it equals the configured domain",
+   "metavar": "DOMAIN",
+   "envvar": null
+  },
+  {
    "name": "refresh",
    "kind": "option",
    "opts": [
@@ -127,6 +165,35 @@
   }
  ],
  "commands": [
+  {
+   "path": "fsv whoami",
+   "help": "Show the signed-in agent and the tenant/config dir this shell targets (read-only).",
+   "epilog": "[bold]Examples:[/bold]  fsv whoami  |  fsv whoami --json",
+   "hidden": false,
+   "group": false,
+   "params": [
+    {
+     "name": "json_out",
+     "kind": "option",
+     "opts": [
+      "--json"
+     ],
+     "secondary_opts": [],
+     "type": "boolean",
+     "choices": null,
+     "required": false,
+     "multiple": false,
+     "nargs": 1,
+     "is_flag": true,
+     "default": false,
+     "hidden": false,
+     "help": "print JSON",
+     "metavar": null,
+     "envvar": null
+    }
+   ],
+   "commands": []
+  },
   {
    "path": "fsv help",
    "help": "Show topic help.",
@@ -486,7 +553,7 @@
     },
     {
      "path": "fsv auth logout",
-     "help": "Wipe stored session (file + Keychain + backend pref).",
+     "help": "Wipe this config dir's stored session (file, its own Keychain item, backend pref).",
      "epilog": "[bold]Examples:[/bold]  fsv auth logout  |  fsv auth logout --yes",
      "hidden": false,
      "group": false,
@@ -1334,6 +1401,35 @@
      "commands": []
     },
     {
+     "path": "fsv config show",
+     "help": "Show the target tenant, config dir, write confirmation and all config values.",
+     "epilog": "[bold]Examples:[/bold]  fsv config show  |  fsv config show --json",
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "print JSON",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
      "path": "fsv config get",
      "help": "Get a single config value.",
      "epilog": "[bold]Examples:[/bold]  fsv config get completion.network",
@@ -2034,7 +2130,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "ignore default --where filters from config",
+       "help": "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
        "metavar": null,
        "envvar": null
       }
@@ -11309,7 +11405,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "ignore default --where filters from config",
+       "help": "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
        "metavar": null,
        "envvar": null
       }
@@ -16774,7 +16870,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "configured support mailbox; not inferred",
+       "help": "configured support mailbox (a tenant support email address); not inferred; any other address is rejected by the server with HTTP 400",
        "metavar": null,
        "envvar": null
       },
@@ -21659,7 +21755,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "ignore default --where filters from config",
+       "help": "ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view",
        "metavar": null,
        "envvar": null
       }

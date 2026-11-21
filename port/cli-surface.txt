@@ -33,7 +33,7 @@ COMMAND: fsv auth login | hidden: False | help: Save Freshservice session cookie
   OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
   OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='save cookies even if they fail validation against the tenant'
 ============================================================
-COMMAND: fsv auth logout | hidden: False | help: Wipe stored session (file + Keychain + backend pref).
+COMMAND: fsv auth logout | hidden: False | help: Wipe this config dir's stored session (file, its own Keychain item, backend pref).
   OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='skip confirmation prompt'
   OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
 ============================================================
@@ -113,7 +113,7 @@ COMMAND: fsv changes ls | hidden: False | help: List changes.
   OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
   OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
   OPT pager ['--pager'] type=BOOL req=False nargs=1 flag=True multi=False default=True sec=['--no-pager'] hidden=False help='page long table output when stdout is a TTY'
-  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='ignore default --where filters from config'
+  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help="ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view"
 ============================================================
 COMMAND: fsv changes get | hidden: False | help: Show one change.
   ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
@@ -477,7 +477,7 @@ COMMAND: fsv tickets ls | hidden: False | help: List tickets.
   OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
   OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
   OPT pager ['--pager'] type=BOOL req=False nargs=1 flag=True multi=False default=True sec=['--no-pager'] hidden=False help='page long table output when stdout is a TTY'
-  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='ignore default --where filters from config'
+  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help="ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view"
 ============================================================
 COMMAND: fsv tickets get | hidden: False | help: Show one ticket.
   ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
@@ -625,7 +625,7 @@ COMMAND: fsv problems ls | hidden: False | help: List problems.
   OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
   OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
   OPT pager ['--pager'] type=BOOL req=False nargs=1 flag=True multi=False default=True sec=['--no-pager'] hidden=False help='page long table output when stdout is a TTY'
-  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='ignore default --where filters from config'
+  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help="ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view"
 ============================================================
 COMMAND: fsv problems get | hidden: False | help: Show one problem.
   ARG id_ ['id_'] type=STRING req=True nargs=1 help=None

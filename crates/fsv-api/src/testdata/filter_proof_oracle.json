@@ -720,7 +720,7 @@
         ]
       },
       "raw": "Case",
-      "err": "no unique runtime choice 'Case' for Type"
+      "err": "no unique runtime choice 'Case' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -745,7 +745,7 @@
         ]
       },
       "raw": "5",
-      "err": "no unique runtime choice '5' for Type"
+      "err": "no unique runtime choice '5' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -770,7 +770,7 @@
         ]
       },
       "raw": "Retired",
-      "err": "no unique runtime choice 'Retired' for Type"
+      "err": "no unique runtime choice 'Retired' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -795,7 +795,7 @@
         ]
       },
       "raw": "9",
-      "err": "no unique runtime choice '9' for Type"
+      "err": "no unique runtime choice '9' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -820,7 +820,7 @@
         ]
       },
       "raw": "",
-      "err": "no unique runtime choice '' for Type"
+      "err": "no unique runtime choice '' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -860,7 +860,7 @@
         ]
       },
       "raw": "Case",
-      "err": "no unique runtime choice 'Case' for Type"
+      "err": "no unique runtime choice 'Case' for Type; this tenant's choices: Incident, Request; nothing was sent"
     },
     {
       "field": {
@@ -880,7 +880,7 @@
         ]
       },
       "raw": "Incident",
-      "err": "no unique runtime choice 'Incident' for Type"
+      "err": "no unique runtime choice 'Incident' for Type; this tenant's choices: Incident, Request; nothing was sent"
     },
     {
       "field": {
@@ -896,7 +896,7 @@
         ]
       },
       "raw": "True",
-      "err": "no unique runtime choice 'True' for Type"
+      "err": "no unique runtime choice 'True' for Type; this tenant's choices: Incident; nothing was sent"
     },
     {
       "field": {
@@ -922,7 +922,7 @@
         ]
       },
       "raw": "3",
-      "err": "no unique runtime choice '3' for Type"
+      "err": "no unique runtime choice '3' for Type; this tenant's choices: none; nothing was sent"
     },
     {
       "field": {
@@ -963,7 +963,7 @@
         ]
       },
       "raw": "Case",
-      "err": "no unique runtime choice 'Case' for ticket_type"
+      "err": "no unique runtime choice 'Case' for ticket_type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -988,7 +988,7 @@
         ]
       },
       "raw": "Case",
-      "err": "no unique runtime choice 'Case' for None"
+      "err": "no unique runtime choice 'Case' for None; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "field": {
@@ -999,7 +999,7 @@
         "choices": null
       },
       "raw": "Incident",
-      "err": "no unique runtime choice 'Incident' for Type"
+      "err": "no unique runtime choice 'Incident' for Type; this tenant's choices: none; nothing was sent"
     },
     {
       "field": {
@@ -1287,19 +1287,19 @@
     },
     {
       "expr": "type=Case",
-      "err": "no unique runtime choice 'Case' for Type"
+      "err": "no unique runtime choice 'Case' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "expr": "type=5",
-      "err": "no unique runtime choice '5' for Type"
+      "err": "no unique runtime choice '5' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "expr": "type=Retired",
-      "err": "no unique runtime choice 'Retired' for Type"
+      "err": "no unique runtime choice 'Retired' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     },
     {
       "expr": "type=9",
-      "err": "no unique runtime choice '9' for Type"
+      "err": "no unique runtime choice '9' for Type; this tenant's choices: Incident, Service Request; nothing was sent"
     }
   ]
 }

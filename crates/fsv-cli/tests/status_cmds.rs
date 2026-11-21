@@ -40,7 +40,7 @@ fn problem_update_routes(subject: &str) -> Vec<Value> {
 /// acme.freshservice.com for subject "Acme outage" (0208fdb).
 /// With the record-state token (`state: {sends: 0, server_version: None}`)
 /// bound since Python 55d3e87.
-const PLAN: &str = "decf0683eabb2c85de82aaa7e15e6b3788a69a35dd7deb305d04fbfa53cdfa58";
+const PLAN: &str = "5fa96e7cd6619021600682a6f5ed02a8b42fb3e8cd6b73ccf2385c3183b47c83";
 
 /// Python tests/test_problem_write_fixes.py::test_problem_update_dry_run_prints_a_plan_hash_bound_on_send
 #[test]
@@ -62,7 +62,7 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     assert_eq!(
         r.out,
         format!(
-            "{{\n  \"dry_run\": true,\n  \"action\": \"update\",\n  \"id\": \"PRB-7\",\n  \"body\": {{\n    \"priority\": 3\n  }},\n  \"plan_hash\": \"{PLAN}\",\n  \"record_state\": {{\n    \"sends\": 0,\n    \"server_version\": null\n  }}\n}}\n"
+            "{{\n  \"dry_run\": true,\n  \"action\": \"update\",\n  \"id\": \"PRB-7\",\n  \"body\": {{\n    \"priority\": 3\n  }},\n  \"plan_hash\": \"{PLAN}\",\n  \"record_state\": {{\n    \"sends\": 0,\n    \"server_version\": null\n  }},\n  \"tenant\": \"acme.freshservice.com\",\n  \"config_dir\": \"<CONFIG_DIR>\"\n}}\n"
         )
     );
     assert!(r.writes().is_empty());
@@ -86,4 +86,52 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
     assert_eq!(r.writes()[0].2, json!({"priority": 3}));
+}
+
+/// Python tests/test_update_error_paths.py::test_problem_update_failure_names_status_and_message
+#[test]
+fn problem_update_failure_names_status_and_message() {
+    let html = "<html><head><style>p{}</style></head><body><h1>Service Unavailable</h1><p>Try later</p></body></html>";
+    let cases = [
+        (
+            500,
+            json!({"description": "Synthetic outage"}),
+            "Synthetic outage",
+        ),
+        (400, Value::String(html.into()), "Service Unavailable"),
+    ];
+    for (status, body, expect) in cases {
+        let mut routes = problem_update_routes("Acme outage");
+        routes.pop();
+        let mut put = route("PUT", "/api/_/problems/7", status, json!(null));
+        if body.is_string() {
+            put = json!({"method": "PUT", "path": "/api/_/problems/7", "status": status, "text": body});
+        } else {
+            put["json"] = body;
+        }
+        routes.push(put);
+        let env = Env::new(routes);
+        let args = [
+            "problems",
+            "update",
+            "--no-review",
+            "PRB-7",
+            "--priority",
+            "High",
+        ];
+        let review = env.run(&[&args[..], &["--dry-run", "--json"]].concat());
+        let hash = review.json()["plan_hash"].as_str().unwrap().to_string();
+        let r = env.run(&[&args[..], &["--yes", "--expect-plan", &hash, "--json"]].concat());
+        assert_ne!(r.code, 0, "{}", r.err);
+        assert_eq!(r.write_paths().len(), 1, "{}", r.err);
+        let flat = format!("{} {}", r.out, r.err)
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        assert!(
+            flat.contains(&format!("HTTP {status}")) && flat.contains(expect),
+            "{flat}"
+        );
+        assert!(!flat.contains("<h1>"), "{flat}");
+    }
 }

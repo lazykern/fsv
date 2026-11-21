@@ -1,7 +1,7 @@
 {
   "default": {
-    "hash": "1a55a52664da9d1e64244dad568551634b9d185ad731358abc2ea0cd3ea76f93",
-    "legacy": "cb664bdffcba59ceb2c43fd1e565e6d2d94cf44f3584d7911198662dbba6cf44",
+    "hash": "ccb62973015e60a71c51c69e1c95ed497178ccca0b3264e2a853b1107efcaec1",
+    "legacy": "cb0db0e0d8eb3fa527d3886c3f9cc25e285bde06e393d89614b83a09a993c6a4",
     "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"Quarterly\", \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"name\": \"Acme release\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"workspace_id\": 3}}",
     "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
     "start": "2030-11-21T10:00-05:00",
@@ -32,7 +32,7 @@
           "workspace_id": 3
         }
       },
-      "plan_hash": "1a55a52664da9d1e64244dad568551634b9d185ad731358abc2ea0cd3ea76f93",
+      "plan_hash": "ccb62973015e60a71c51c69e1c95ed497178ccca0b3264e2a853b1107efcaec1",
       "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
       "time_zone": {
         "input": "America/New_York (tenant time zone)",
@@ -75,8 +75,8 @@
     }
   },
   "allow": {
-    "hash": "824f0aea9465bfd28efb2b55ec08f59bc994616093648bfd9688bca39ca7c3b8",
-    "legacy": "cb664bdffcba59ceb2c43fd1e565e6d2d94cf44f3584d7911198662dbba6cf44",
+    "hash": "4fd91ee0ee34be1b123d9e7e37eafd671421c41a2b06d759ee24249431b90493",
+    "legacy": "cb0db0e0d8eb3fa527d3886c3f9cc25e285bde06e393d89614b83a09a993c6a4",
     "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"Quarterly\", \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"name\": \"Acme release\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"workspace_id\": 3}}",
     "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
     "start": "2030-11-21T10:00-05:00",
@@ -107,7 +107,7 @@
           "workspace_id": 3
         }
       },
-      "plan_hash": "824f0aea9465bfd28efb2b55ec08f59bc994616093648bfd9688bca39ca7c3b8",
+      "plan_hash": "4fd91ee0ee34be1b123d9e7e37eafd671421c41a2b06d759ee24249431b90493",
       "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
       "time_zone": {
         "input": "America/New_York (tenant time zone)",
@@ -151,8 +151,8 @@
     }
   },
   "bangkok": {
-    "hash": "b126a07c70c17aaac4ab113235341e3c0654d158b2c92ae7d3f0781610b1db27",
-    "legacy": "f9073808f8ac5357935bd35057bd50ae2bb4e966d181b4393b85466caf7406f6",
+    "hash": "0ce9a3fc39595e9ae9625348624ce25bba2e80aa65c5433653d72a9a70f8e880",
+    "legacy": "b428751f241e4d1fc2162702828d8b20f836915882d338e468f22365e5b4fad0",
     "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"workspace_id\": 3}}",
     "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
     "start": "2030-11-14T03:00-05:00",
@@ -183,7 +183,7 @@
           "workspace_id": 3
         }
       },
-      "plan_hash": "b126a07c70c17aaac4ab113235341e3c0654d158b2c92ae7d3f0781610b1db27",
+      "plan_hash": "0ce9a3fc39595e9ae9625348624ce25bba2e80aa65c5433653d72a9a70f8e880",
       "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
       "time_zone": {
         "input": "Asia/Bangkok (--timezone)",
@@ -230,8 +230,8 @@
     }
   },
   "env": {
-    "hash": "fa0c70d060f2441c205b2eb8a570fd4f550567ff5029346ab4ef059140bead90",
-    "legacy": "f9073808f8ac5357935bd35057bd50ae2bb4e966d181b4393b85466caf7406f6",
+    "hash": "40ef8dd05979a50203f4d085d6f822ebe07aa0087609b8273f6dbee5bcbfdb39",
+    "legacy": "b428751f241e4d1fc2162702828d8b20f836915882d338e468f22365e5b4fad0",
     "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"workspace_id\": 3}}",
     "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
     "start": "2030-11-14T03:00-05:00",
@@ -262,7 +262,7 @@
           "workspace_id": 3
         }
       },
-      "plan_hash": "fa0c70d060f2441c205b2eb8a570fd4f550567ff5029346ab4ef059140bead90",
+      "plan_hash": "40ef8dd05979a50203f4d085d6f822ebe07aa0087609b8273f6dbee5bcbfdb39",
       "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
       "time_zone": {
         "input": "Asia/Bangkok (FSV_TZ)",
@@ -309,8 +309,8 @@
     }
   },
   "offset": {
-    "hash": "46aa7af58c3695a9d2736b57b870746b2ca66fda5072671c85b1a448219592cf",
-    "legacy": "1f4d0e234969c8dc32886099b1b2d3344a76b08686cea428a37538a50127571d",
+    "hash": "b3bd7c8fa262f4ddb6e35991a3bfee961445a7d5adca82a825a9a650d982bc1f",
+    "legacy": "af13253632eebaf62fc27a67c5661666531db0abed388b52e3b1903006a49a3c",
     "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"4:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"workspace_id\": 3}}",
     "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"4:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
     "start": "2030-11-14T03:00-05:00",
@@ -341,7 +341,7 @@
           "workspace_id": 3
         }
       },
-      "plan_hash": "46aa7af58c3695a9d2736b57b870746b2ca66fda5072671c85b1a448219592cf",
+      "plan_hash": "b3bd7c8fa262f4ddb6e35991a3bfee961445a7d5adca82a825a9a650d982bc1f",
       "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
       "time_zone": {
         "input": "Europe/London (--timezone)",
@@ -387,8 +387,8 @@
     }
   },
   "unknown_allow": {
-    "hash": "e32c6352d07bb08a0cf7b88b1d82d7d49d371a058f167e3f4c96a17729872117",
-    "legacy": "3953f704490db7dcb246afc4b8f3fe2be3448b1b5c660d633a0d88fcdda02c0a",
+    "hash": "544c1435ef87bf33c6dab51677d31b6709511aaff7ccab375dbee6cf63058502",
+    "legacy": "1cb50b08ec743998215a4114d2830b9a14208adb8637f80165bd2c1a7e6cc5ee",
     "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"9:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"8:00am\", \"workspace_id\": 3}}",
     "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"9:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"8:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
     "start": "2030-11-14T08:00-05:00",
@@ -419,7 +419,7 @@
           "workspace_id": 3
         }
       },
-      "plan_hash": "e32c6352d07bb08a0cf7b88b1d82d7d49d371a058f167e3f4c96a17729872117",
+      "plan_hash": "544c1435ef87bf33c6dab51677d31b6709511aaff7ccab375dbee6cf63058502",
       "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
       "time_zone": {
         "input": "America/New_York (tenant time zone)",
@@ -463,13 +463,13 @@
     }
   },
   "delete": {
-    "hash": "601c44dd793a2979822e0229fcc0785519027b26d41b462f8d4764c40afb00dc",
+    "hash": "c6601c0c630e6df7c39b30e9f7a0c72aa196ff97d97e70243fa13b54dbb098f7",
     "review": {
       "action": "change_window_delete",
       "method": "DELETE",
       "path": "/api/_/maintenance_windows/61",
       "payload": null,
-      "plan_hash": "601c44dd793a2979822e0229fcc0785519027b26d41b462f8d4764c40afb00dc",
+      "plan_hash": "c6601c0c630e6df7c39b30e9f7a0c72aa196ff97d97e70243fa13b54dbb098f7",
       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
     }
   }

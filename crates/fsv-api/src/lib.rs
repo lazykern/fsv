@@ -30,6 +30,7 @@ pub mod delete_state;
 pub mod downloads;
 pub mod email_addr;
 pub mod filter_proof;
+pub mod form_hash;
 pub mod formmeta;
 pub mod inline_images;
 pub mod integrated_assets;
@@ -90,8 +91,9 @@ pub use schema::{
 pub use query::{
     DATE_FIELDS, Directory, Explain, TICKET_ONLY_DATES, adv_needed, advanced_date_condition,
     build_query_hash, build_query_hash_from_schema, check_raw_query, configured_workspace,
-    date_condition, load_query_hash, merge_date_ranges, merge_same_conditions, resolve_group,
-    resolve_where, runtime_workspace, serialize, typed_condition, validate_raw_query,
+    date_condition, is_text_field, load_query_hash, merge_date_ranges, merge_same_conditions,
+    resolve_group, resolve_where, runtime_workspace, serialize, text_filter_refusal,
+    typed_condition, validate_raw_query,
 };
 pub use task_status::{active_choices, display, fields_from_payload, resolve};
 

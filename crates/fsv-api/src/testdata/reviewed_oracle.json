@@ -5,7 +5,7 @@
  },
  "bulk_priority": {
   "acme.example.com": {
-   "hash": "fa0b3f05ab131e483898c12e59edcf4354fbea6aad53ed4cad5b555625fd1e56",
+   "hash": "40fa6e41fea01821c0e52bc60d55d0f95d8bf223615b917ec573c773a1b74c08",
    "review": {
     "action": "ticket_bulk_priority",
     "before": [
@@ -28,13 +28,13 @@
      "priority": 87,
      "reply": {}
     },
-    "plan_hash": "fa0b3f05ab131e483898c12e59edcf4354fbea6aad53ed4cad5b555625fd1e56",
+    "plan_hash": "40fa6e41fea01821c0e52bc60d55d0f95d8bf223615b917ec573c773a1b74c08",
     "priority_label": "High",
     "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible."
    }
   },
   "globex.example.com": {
-   "hash": "a111d6e7e70008554d869de3ee0c8ead96f513409b4df402562a3be93ad8acfb",
+   "hash": "cc32383f3680ee312c25a1c36c29f2db033428957fda3271a9fb1699bb0439db",
    "review": {
     "action": "ticket_bulk_priority",
     "before": [
@@ -57,7 +57,7 @@
      "priority": 26,
      "reply": {}
     },
-    "plan_hash": "a111d6e7e70008554d869de3ee0c8ead96f513409b4df402562a3be93ad8acfb",
+    "plan_hash": "cc32383f3680ee312c25a1c36c29f2db033428957fda3271a9fb1699bb0439db",
     "priority_label": "High",
     "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible."
    }
@@ -65,16 +65,16 @@
  },
  "conversation": {
   "forward": {
-   "hash": "d2983e98219542637220ad0740f265b1526a214126210ddcae1493bcabff1d0c",
+   "hash": "a484231b3ed58485bfa66b398b75378c98f22b35407cda4b963e92211614c5c1",
    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"from_email\": \"support@example.com\", \"notify_emails\": [\"person@example.com\"], \"private\": true}"
   },
   "reply": {
-   "hash": "1761014d19e6ffcb0976111d0ab31d12aa5a7a17707903d516f7d5ed9b157b6e",
+   "hash": "5716b9a0af3017175158caa985089f771c039cabc2219c148e01fbe97e317142",
    "payload_json": "{\"bcc_emails\": [\"person@example.com\"], \"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"freddy_message_id\": null, \"from_email\": \"support@example.com\", \"full_text\": \"<div>Acme update</div>\", \"translate_reply\": false}"
   }
  },
  "known_error": {
-  "hash": "c403de15e67d0c563c545467339b6d457dc7defa893ae75844ec0d50472c0faf"
+  "hash": "9c987bb42d19ed9b3a2b40f96d1e95bfe75706b69acd61238afaf39e5ab5f762"
  },
  "merge_same_conditions": {
   "input": [
@@ -187,16 +187,16 @@
  },
  "planning": {
   "acme_plan": {
-   "hash": "17c0b65b9c783cfd451d191103a39b4171eb11272274e548e7670e856f2df6f0"
+   "hash": "af2acae8ce0f548b0046cc98c7c35bfca772d3b04dcb3d4b6e4b8e9d0c874dab"
   },
   "problem_cause": {
-   "hash": "648ef43948a9e57eb5c2637c7be7508d77388a4e22cf3a22dc1392f17e51a637"
+   "hash": "6051d4af1fc68aadb5f0bd9a5826572835a859d5d8d1330cde90934d85a6ddc1"
   },
   "problem_impact": {
-   "hash": "18e0fcb5c7d80e6aa2dc65993567526815c968fefeb13abc570bcb2dbb67d7be"
+   "hash": "7a997e5a3553e16a0812c90c9a453ac034755056a138a1d7ed8d0e683ccf0130"
   },
   "problem_symptom": {
-   "hash": "b711f4393ec481a9bc507b544e945aed755794ea508bf0ff77b8d272502ad5ba"
+   "hash": "4d91c94e0c0560c79721381262a92241f6b7a9419e6f5f3db13ee22211dc2673"
   }
  },
  "properties": {
@@ -208,11 +208,11 @@
    ],
    "answers_json": "{\"Cost Code\": \"new\", \"Priority\": \"High\", \"Subject\": \"Globex\"}",
    "body_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"cost_code\": \"new\"}, \"priority\": 73, \"subject\": \"Globex\"}",
-   "hash": "ce936471c33141497361e293c2424922cf5235051d5d6937bccd113038f5a8cb",
+   "hash": "2a1b5e3449c9259cea82623c90edb9aa46337abbca42510b355e888814beb5c1",
    "metadata_hash": "8a588b86354e0e0693fb3087b9f0fc1911cdbf53447c76f2db812fb0752993db"
   },
   "legacy": {
-   "hash": "22a3eda106ddfa6d5c42775c45e9acd29b7fba24fc28c9d16829cf584ae19ff3",
+   "hash": "07b6b05d5ca457cdd882115655ed0d8241f54e598529502a203fb3a7a76ab224",
    "metadata_hash": ""
   }
  },
@@ -273,25 +273,25 @@
   }
  ],
  "ticket_time": {
-  "create_hash": "8279c317a1ff3b34b48fd2c589ea399f03231ba5a622c70e958b1d9303f57a28",
+  "create_hash": "159c28b9e6d80d1a8b45147cfc0e4dc8d3e84ef9cdb833f603209edc0c23fa98",
   "create_payload_json": "{\"agent_id\": 901, \"billable\": false, \"executed_at\": \"2030-01-02T10:00:00-05:00\", \"note\": \"Acme\", \"time_spent\": \"00:01\", \"timer_running\": false}",
-  "delete_hash": "8883d72c1f6178300008d92bd7bd32a57d7c76ff0ec7f12c2273f8af449b2637",
-  "update_hash": "ecc4377eca1c007c376adef500f4d5e49aa17cbb5ec1142a2c3ff219d4589968"
+  "delete_hash": "c94f8827b24739ce866d2365a6891f7c7cea31c57cbfc6341138b27ad67c408d",
+  "update_hash": "77f2a285ea78675f8ea7c3efebc26c1c821cb4b907a2550279f1a74334bc76f8"
  },
  "watchers": {
   "changes": {
-   "unwatch_hash": "175aa73a67a7e5c5bb6fb97058d8ce8b18aaeb65849becfd65c828f2aefa60a2",
+   "unwatch_hash": "d83306a9dd1e96fca3042a5cb67e61a820de84f72d2e55900c393fa0fc488080",
    "unwatch_payload_json": "null",
-   "watch_hash": "a975b61caefbe0a6b548c05ef975a9d199d467406b087b477638f9034d3702da"
+   "watch_hash": "b0ccd7f5751e7973de9acb4ed5a49fac5b027780f7774149f1ec1ce229fb4243"
   },
   "tickets": {
-   "unwatch_hash": "3e6ec0008847f777b0c141482b475f7ab676d76af01ab8073c7001784f5cd028",
+   "unwatch_hash": "56b5ff63b3051d4f4f2191f332837d19f6d752ab2b82b680fdd228badf2e7632",
    "unwatch_payload_json": "{\"user_id\": 901}",
-   "watch_hash": "ab43ef011d8a95c930601a9e25d77592c0435d04479d778d44b2b341edc0191c"
+   "watch_hash": "4e2e9a8d6c5934e90ad8bf94aa5c2ecef51d5aa7149a5abfdf0188c7ac2de305"
   }
  },
  "write_plan": {
-  "hash": "71d5102617ddfd59c14201c800651d2bd1c82dd3b8abb9b940835377607f694b",
+  "hash": "090a30cb33d1979c2a49728351152a7283e3daa8987ef8841503bf3f484e38cd",
   "review": {
    "action": "tickets_self_watch",
    "method": "POST",
@@ -299,7 +299,7 @@
    "payload": {
     "user_id": 901
    },
-   "plan_hash": "71d5102617ddfd59c14201c800651d2bd1c82dd3b8abb9b940835377607f694b",
+   "plan_hash": "090a30cb33d1979c2a49728351152a7283e3daa8987ef8841503bf3f484e38cd",
    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
   }
  }

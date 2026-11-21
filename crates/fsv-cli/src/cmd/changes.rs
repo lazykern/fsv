@@ -1114,7 +1114,9 @@ fn change_update(
                 ack: a.ack,
                 duplicate: &a.duplicate,
             };
-            s.send_cli(&o, &mut send_confirm)?
+            let reviewed_hash = s.plan.hash.clone();
+            s.send_cli(&o, &mut send_confirm)
+                .map_err(|e| update_write_failure(e, &subject, &reviewed_hash, a.json_out))?
         }
         Reviewed::Flow(p) => {
             let mut plan = *p;
@@ -1165,7 +1167,9 @@ fn change_update(
                 duplicate: &a.duplicate,
                 attach_flow: None,
             };
-            send_plan(plan, &deps, &mut rebuild, &send, "change")?
+            let reviewed_hash = plan.hash.clone();
+            send_plan(plan, &deps, &mut rebuild, &send, "change")
+                .map_err(|e| update_write_failure(e, &subject, &reviewed_hash, a.json_out))?
         }
     };
     let steps = result
@@ -1209,6 +1213,34 @@ fn change_update(
     out().print(&format!("[green]updated[/] {subject}"));
     print_steps(&steps);
     Ok(())
+}
+
+/// `changes update`: a `ReviewedWriteError` from the send always names the
+/// server's status and message (`--json` prints an error object first); any
+/// other error passes through.
+fn update_write_failure(e: Error, subject: &str, plan_hash: &str, as_json: bool) -> Error {
+    let Some(answer) = fsv_core::error::write_answer(&e) else {
+        return e;
+    };
+    if as_json {
+        let mut o = Map::new();
+        o.insert("updated".into(), Value::Null);
+        o.insert("plan_hash".into(), json!(plan_hash));
+        o.insert("verified".into(), json!(false));
+        o.insert("error".into(), json!(answer.message));
+        if let Some(status) = answer.http_status {
+            o.insert("http_status".into(), json!(status));
+            o.insert(
+                "server_message".into(),
+                json!(answer.server_message.clone().unwrap_or_default()),
+            );
+        }
+        println!("{}", formflow::pretty(&Value::Object(o)));
+    }
+    flow_exit(
+        if answer.http_status.is_some() { 5 } else { 1 },
+        format!("{subject}: {}", answer.message),
+    )
 }
 
 fn print_steps(steps: &[Value]) {

@@ -1,7 +1,7 @@
 # upstream 31a910336ac8b936d6d5891cb74c21632dd232f9
 # path<TAB>long options<TAB>positional count
-# --verbose is global in Rust and listed on every command; this file lists it only where Python declares it.
-fsv	--install-completion,--no-input,--refresh,--show-completion,--verbose,--version	0
+# --verbose, --quiet and --tenant are global in Rust and listed on every command; this file lists them only where Python declares them.
+fsv	--install-completion,--no-input,--quiet,--refresh,--show-completion,--tenant,--verbose,--version	0
 fsv assets		0
 fsv assets search	--json,--kind,--page,--per-page	1
 fsv attachments		0
@@ -95,6 +95,7 @@ fsv config defaults show		1
 fsv config get		1
 fsv config list		0
 fsv config set		2
+fsv config show	--json	0
 fsv form		0
 fsv form diff	--against,--output	1
 fsv form dump	--item,--mode	1
@@ -263,4 +264,5 @@ fsv tickets views	--json,--output	0
 fsv tickets watchers		0
 fsv tickets watchers list	--json,--output	1
 fsv tickets watchers set	--dry-run,--expect-plan,--json,--output,--unwatch,--watch,--yes	1
+fsv whoami	--json	0
 fsv tui	--read-only	0

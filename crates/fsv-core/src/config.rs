@@ -105,7 +105,10 @@ static TEST_STATE_HOME: std::sync::RwLock<Option<PathBuf>> = std::sync::RwLock::
 /// under the user's real `$XDG_STATE_HOME`.
 #[doc(hidden)]
 pub fn test_state_home() -> Option<PathBuf> {
-    TEST_STATE_HOME.read().unwrap_or_else(|p| p.into_inner()).clone()
+    TEST_STATE_HOME
+        .read()
+        .unwrap_or_else(|p| p.into_inner())
+        .clone()
 }
 
 /// Current paths.

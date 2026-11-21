@@ -76,7 +76,8 @@ def run(impl):
         os.makedirs(work)
     log = os.path.join(h, "log")
     env = {"HOME": h, "FSV_CONFIG_DIR": cfg, "FSV_CACHE_DIR": os.path.join(h, "cache"),
-           "XDG_STATE_HOME": os.path.join(h, "state"), "FSV_NO_KEYCHAIN": "1", "NO_COLOR": "1",
+           "XDG_STATE_HOME": os.path.join(h, "state"), "FSV_NO_KEYCHAIN": "1", "FSV_QUIET": "1",
+           "FSV_ALLOW_TENANT": "acme.freshservice.com", "NO_COLOR": "1",
            "COLUMNS": "200", "TZ": "UTC", "PATH": "/usr/bin:/bin"}
     env.update(dict(extra_env))
     if tty:
@@ -98,8 +99,8 @@ def run(impl):
         os.remove(log)
     p = subprocess.run(command(args), cwd=work, env=env, input=stdin.encode(), capture_output=True,
                        timeout=timeout)
-    p.stdout = p.stdout.decode("utf-8", "replace")
-    p.stderr = p.stderr.decode("utf-8", "replace")
+    p.stdout = p.stdout.decode("utf-8", "replace").replace(cfg, "<CONFIG_DIR>")
+    p.stderr = p.stderr.decode("utf-8", "replace").replace(cfg, "<CONFIG_DIR>")
     reqs = []
     if os.path.exists(log):
         for line in open(log):
@@ -128,6 +129,11 @@ if py_only:
     print("--- requests", *py["requests"], sep="\n")
     sys.exit(0)
 py, rs = run("py"), run("rs")
+accept = json.loads(os.environ.get("CMP_ACCEPT_STDERR", "null"))
+if accept and raw["py"]["stderr"] == accept["py"] and raw["rs"]["stderr"] == accept["rs"]:
+    print("ACCEPTED: Python's stderr is a known upstream defect; Rust's text is asserted")
+    raw["py"]["stderr"] = raw["rs"]["stderr"]
+    py["stderr"] = rs["stderr"]
 py_raw = raw["py"]
 same = True
 for k in ("exit", "stdout", "stderr", "requests", "files"):

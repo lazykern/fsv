@@ -238,7 +238,7 @@ fn pretty(v: &Value) -> String {
     fsv_py::Dumps::default()
         .indent(2)
         .ensure_ascii(false)
-        .dump(v)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 /// `ValueError`/`NoteError` print plain and exit 2; anything else is uncaught.
@@ -980,7 +980,10 @@ fn ticket_create(
         if let Some(v) = result.get("device_verification") {
             o.insert("device_verification".into(), v.clone());
         }
-        println!("{}", fsv_py::Dumps::default().dump(&Value::Object(o)));
+        println!(
+            "{}",
+            fsv_py::Dumps::default().dump(&fsv_core::tenant::annotate(&Value::Object(o)))
+        );
     } else {
         out().print(&format!(
             "[green]created[/green] incident {}",

@@ -69,14 +69,16 @@ fn note_closed_ack_review() {
     "private": true
   },
   "status_label": "Closed",
-  "plan_hash": "eb159f31e96657963e2201988cf49c0b257e94a2bdcfb0d57ecfb958c064d7e6",
+  "plan_hash": "cc1d96ea2007c39928278586c7c06179764147da6624a1824cb689f71112ef4b",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "record_state": {
     "sends": 0
   },
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -146,14 +148,16 @@ fn reply_closed_ack_review() {
     "translate_reply": false
   },
   "status_label": "Closed",
-  "plan_hash": "6eb726d803230dd0da119f1f1ce6adb42d1bdc9623335d7c81351c4887534d44",
+  "plan_hash": "732d0cbc8fe6ac533e74432f1a1da95b87fc89550de3ee88925768c3a3776c72",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
   "record_state": {
     "sends": 0
   },
   "acknowledged_rule_messages": [
     "Only the requester closes Acme tickets"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );

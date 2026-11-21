@@ -24,7 +24,7 @@ fn closed_dry_run_shows_missing_solution_up_front() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5",
+  "plan_hash": "bf25336807914bfaf93e5be6aa9bea13ac899d9afe48688937d0efd92189d610",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -49,7 +49,9 @@ fn closed_dry_run_shows_missing_solution_up_front() {
   },
   "warnings": [
     "no linked workaround / solution: some tenants reject closure without one (check_workaround_or_solution_added); not blocked because this tenant has not proven that rule (observed on one tenant: only 2 of 62 closed problems had a linked workaround / solution, so this closure rule is tenant configuration, not a platform rule); the server decides"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -74,7 +76,7 @@ fn closed_dry_run_shows_linked_solution_up_front() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "f76a98c4f2f579cf32713c82e7ce33039c9f7ced35bc7a428cd408d606b175ad",
+  "plan_hash": "6fa03c71aa69cc10bc73baec44115b6759cc8d87056cafca5329349c9aed2851",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -96,7 +98,9 @@ fn closed_dry_run_shows_linked_solution_up_front() {
   "closure_check": {
     "analysis": "Root Cause, Impact and Symptoms are filled",
     "linked_solution": "linked (1)"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -128,7 +132,7 @@ fn non_closure_dry_run_has_no_closure_check() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "5dc6829baa5e2f39a39f0f8ea4090daf5a6ffe770c1e48dc36273ca857ddf1b3",
+  "plan_hash": "77f7ddcc73a96ab30cc098b97d3164f1bf0ed2c7975e826134c729835281e5cf",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -146,7 +150,9 @@ fn non_closure_dry_run_has_no_closure_check() {
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -165,7 +171,7 @@ fn closed_rejection_remembers_solution_rule() {
             "Closed",
             "--yes",
             "--expect-plan",
-            "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5",
+            "bf25336807914bfaf93e5be6aa9bea13ac899d9afe48688937d0efd92189d610",
         ],
         None,
     );
@@ -191,7 +197,7 @@ fn remembered_solution_rule_blocks_the_dry_run_up_front() {
             "Closed",
             "--yes",
             "--expect-plan",
-            "2321ee92b18bdb72686e0ae17da297fff9014870e079197dedac0c981d861fa5",
+            "bf25336807914bfaf93e5be6aa9bea13ac899d9afe48688937d0efd92189d610",
         ]],
         &["problems", "status", "12", "--to", "Closed", "--dry-run"],
         None,

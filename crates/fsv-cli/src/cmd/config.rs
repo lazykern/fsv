@@ -54,6 +54,10 @@ pub const CONFIG_KEYS: &[(&str, &str)] = &[
         "ids.problem_prefix",
         "custom problem display-id prefix (default PRB)",
     ),
+    (
+        "tenant.confirmed",
+        "domain whose --yes writes are confirmed from this config dir (must equal the configured domain)",
+    ),
 ];
 
 /// `completion._config_load`: never writes, `{}` when unreadable.
@@ -108,12 +112,75 @@ pub fn set(a: ConfigSetArgs) -> CmdResult {
     if section.is_empty() || !CONFIG_KEYS.iter().any(|(k, _)| *k == a.key) {
         return Err(unknown_key(&a.key));
     }
+    let mut value = a.value.clone();
+    if a.key == "tenant.confirmed" {
+        value = config::normalize_domain(&value, false)
+            .map_err(|e| usage(&format!("tenant.confirmed: {e}")))?;
+        let domain = config::domain();
+        if !domain.is_empty() && value != domain {
+            return Err(usage(&format!(
+                "configured tenant is {domain} (config {}), not {value}; nothing saved. Set FSV_CONFIG_DIR to {value}'s config dir first",
+                config::display_path(&config::config_dir())
+            )));
+        }
+    }
     let mut cfg = config::load_config();
     crate::util::config_section(&mut cfg, section)
         .map_err(crate::util::uncaught)?
-        .insert(prop.to_string(), Value::String(a.value.clone()));
+        .insert(prop.to_string(), Value::String(value.clone()));
     config::save_config(&cfg)?;
-    out().print(&format!("{} = {}", a.key, a.value));
+    out().print(&format!("{} = {}", a.key, value));
+    Ok(())
+}
+
+/// `fsv config show`: the target tenant, config dir, write confirmation and
+/// all config values.
+pub fn show(a: crate::generated::ConfigShowArgs) -> CmdResult {
+    let cfg = read_config();
+    let mut values = Map::new();
+    for (key, _) in CONFIG_KEYS {
+        let (section, prop) = key.split_once('.').unwrap_or((key, ""));
+        let v = cfg
+            .get(section)
+            .filter(|v| fsv_py::truthy(v))
+            .and_then(|s| s.get(prop))
+            .cloned()
+            .unwrap_or(Value::Null);
+        values.insert((*key).to_string(), v);
+    }
+    let source = fsv_core::tenant::confirmation(None);
+    if a.json_out {
+        let mut doc = Map::new();
+        doc.insert("tenant".into(), config::domain().into());
+        doc.insert(
+            "config_dir".into(),
+            config::config_dir().to_string_lossy().into_owned().into(),
+        );
+        doc.insert(
+            "writes_confirmed_by".into(),
+            source.map_or(Value::Null, |s| Value::String(s.into())),
+        );
+        doc.insert("values".into(), Value::Object(values));
+        println!(
+            "{}",
+            fsv_py::Dumps::default()
+                .indent(2)
+                .dump(&fsv_core::tenant::annotate(&Value::Object(doc)))
+        );
+        return Ok(());
+    }
+    crate::cmd::auth::print_tenant_lines();
+    out().print(&match source {
+        Some(s) => format!("writes:      confirmed by {s}"),
+        None => "writes:      not confirmed (pass --tenant DOMAIN with --yes, or `fsv config set tenant.confirmed DOMAIN`)".to_string(),
+    });
+    for (key, desc) in CONFIG_KEYS {
+        let shown = match values.get(*key) {
+            Some(Value::Null) | None => "(unset)".to_string(),
+            Some(v) => fsv_py::py_str(v),
+        };
+        out().print(&format!("{key} = {shown}  [dim]# {desc}[/]"));
+    }
     Ok(())
 }
 

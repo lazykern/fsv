@@ -500,6 +500,7 @@ mod tests {
 
     #[test]
     fn golden_ticket_plans() {
+        let _cfg = crate::testing::config_guard(None);
         for case in ["basic", "cc", "bad_cc", "status_attach"] {
             let (p, g) = golden_plan(case);
             assert_eq!(json!(p.errors), g["errors"], "{case}");

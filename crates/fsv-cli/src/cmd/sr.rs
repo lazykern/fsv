@@ -1127,7 +1127,7 @@ fn print_json(v: &Value) {
         fsv_py::Dumps::default()
             .indent(2)
             .ensure_ascii(false)
-            .dump(v)
+            .dump(&fsv_core::tenant::annotate(v))
     );
 }
 

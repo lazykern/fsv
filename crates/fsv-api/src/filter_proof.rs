@@ -73,6 +73,7 @@ pub fn name_valued_choice(
     let wanted = strip(raw);
     let folded = casefold(wanted);
     let mut found: Vec<&str> = Vec::new();
+    let mut active: Vec<&str> = Vec::new();
     for choice in field
         .get("choices")
         .and_then(Value::as_array)
@@ -94,6 +95,7 @@ pub fn name_valued_choice(
         if strip(value).is_empty() {
             continue;
         }
+        active.push(strip(value));
         let by_id = choice
             .get("id")
             .is_some_and(|id| !id.is_null() && !id.is_boolean() && py_str(id) == wanted);
@@ -107,8 +109,19 @@ pub fn name_valued_choice(
             .get("label")
             .filter(|v| truthy(v))
             .or_else(|| field.get("name"));
+        let mut seen: Vec<&str> = Vec::new();
+        for v in &active {
+            if !seen.contains(v) {
+                seen.push(v);
+            }
+        }
+        let listed = if seen.is_empty() {
+            "none".to_string()
+        } else {
+            seen.join(", ")
+        };
         return Err(QueryError(format!(
-            "no unique runtime choice {} for {}",
+            "no unique runtime choice {} for {}; this tenant's choices: {listed}; nothing was sent",
             fsv_py::py_repr_str(raw),
             match shown {
                 Some(Value::String(s)) => s.clone(),

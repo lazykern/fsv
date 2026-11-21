@@ -20,7 +20,7 @@ fn pretty(v: &Value) -> String {
     fsv_py::Dumps::default()
         .indent(2)
         .ensure_ascii(false)
-        .dump(v)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 pub fn change_due_by_update(cid: i64, due_by: &str, o: DueByOpts<'_>) -> CmdResult {

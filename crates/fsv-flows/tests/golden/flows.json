@@ -903,7 +903,7 @@
   "full": {
    "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
    "ok": true,
-   "hash": "c9c5226931eb5bcd3c2b2c296006574247e2c45856211962d9e0010d19fefc12",
+   "hash": "bff8f63abaf9586fdcbe90078dc01b709a33b448da4b7e23d0c4724d034ac41f",
    "payload": {
     "subject": "Billing: rotate keys",
     "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
@@ -930,7 +930,7 @@
    "errors": [],
    "risks": [],
    "json": {
-    "plan_hash": "c9c5226931eb5bcd3c2b2c296006574247e2c45856211962d9e0010d19fefc12",
+    "plan_hash": "bff8f63abaf9586fdcbe90078dc01b709a33b448da4b7e23d0c4724d034ac41f",
     "action": "create",
     "target": null,
     "payload": {
@@ -1041,7 +1041,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "c9c5226931eb5bcd3c2b2c296006574247e2c45856211962d9e0010d19fefc12"
+     "plan_hash": "bff8f63abaf9586fdcbe90078dc01b709a33b448da4b7e23d0c4724d034ac41f"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -1051,7 +1051,7 @@
     "errors": []
    },
    "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "create plan c9c5226931eb5bcd"
+   "plan_text": "create plan bff8f63abaf9586f"
   },
   "empty": {
    "draft": "",
@@ -1404,7 +1404,7 @@
   "urgent_ack": {
    "draft": "requester: jane.doe@example.com\nanswers:\n  Priority: Urgent\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\nack: [all]\n",
    "ok": true,
-   "hash": "eef2f2130f70f495dafde48b3d1ca694edd84c7159f88ef7abd26ec3635bd72f",
+   "hash": "267cdb5fe635a5c7d3e00489efc2dc3c7f6ee4f66a997e5b8db845ef0bcb75a6",
    "payload": {
     "subject": "Billing: rotate keys",
     "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
@@ -1431,7 +1431,7 @@
    "errors": [],
    "risks": [],
    "json": {
-    "plan_hash": "eef2f2130f70f495dafde48b3d1ca694edd84c7159f88ef7abd26ec3635bd72f",
+    "plan_hash": "267cdb5fe635a5c7d3e00489efc2dc3c7f6ee4f66a997e5b8db845ef0bcb75a6",
     "action": "create",
     "target": null,
     "payload": {
@@ -1549,7 +1549,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "eef2f2130f70f495dafde48b3d1ca694edd84c7159f88ef7abd26ec3635bd72f"
+     "plan_hash": "267cdb5fe635a5c7d3e00489efc2dc3c7f6ee4f66a997e5b8db845ef0bcb75a6"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -1559,12 +1559,12 @@
     "errors": []
    },
    "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Urgent\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n\n# BLOCKING MESSAGE: Urgent changes need the duty lead's approval\n# Acknowledge with: ack: [all]\nack: [all]\n",
-   "plan_text": "create plan eef2f2130f70f495"
+   "plan_text": "create plan 267cdb5fe635a5c7"
   },
   "status": {
    "draft": "requester: jane.doe@example.com\nanswers:\n  Status: Planning\n  Notify Ops Team: Yes\n  Services: [Search, Mail, Docs]\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
    "ok": true,
-   "hash": "af53fcebd84dbc650f1d102235b94e2ebf8abad496d702fd9e8c8af44099aff8",
+   "hash": "32d36f4d17ebd25a3b2d8f0a84938d178f041950129878df1906b64e2317ce99",
    "payload": {
     "subject": "Billing: rotate keys",
     "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
@@ -1594,7 +1594,7 @@
     "status on create -> Planning (not the form default; may start approvals/workflows)"
    ],
    "json": {
-    "plan_hash": "af53fcebd84dbc650f1d102235b94e2ebf8abad496d702fd9e8c8af44099aff8",
+    "plan_hash": "32d36f4d17ebd25a3b2d8f0a84938d178f041950129878df1906b64e2317ce99",
     "action": "create",
     "target": null,
     "payload": {
@@ -1713,7 +1713,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "af53fcebd84dbc650f1d102235b94e2ebf8abad496d702fd9e8c8af44099aff8"
+     "plan_hash": "32d36f4d17ebd25a3b2d8f0a84938d178f041950129878df1906b64e2317ce99"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -1725,7 +1725,7 @@
     "errors": []
    },
    "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: Yes\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "create plan af53fcebd84dbc65"
+   "plan_text": "create plan 32d36f4d17ebd25a"
   },
   "unknown": {
    "draft": "requester: jane.doe@example.com\nanswers:\n  Colour: red\n  Legacy Flag: true\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
@@ -1993,7 +1993,7 @@
   "no_validate": {
    "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate keys.\n",
    "ok": true,
-   "hash": "051e73f57011884326d7444f0c073de8e37c15ad0c388bd3ebfe0728a9ca5e1c",
+   "hash": "7c0b75ee648ac37523f1de72978e498312aa00fd280a41c35b3103ef81f7375c",
    "payload": {
     "subject": "Billing: rotate keys",
     "description": "<p>Rotate keys.</p>",
@@ -2013,7 +2013,7 @@
    "errors": [],
    "risks": [],
    "json": {
-    "plan_hash": "051e73f57011884326d7444f0c073de8e37c15ad0c388bd3ebfe0728a9ca5e1c",
+    "plan_hash": "7c0b75ee648ac37523f1de72978e498312aa00fd280a41c35b3103ef81f7375c",
     "action": "create",
     "target": null,
     "payload": {
@@ -2101,7 +2101,7 @@
       "--no-validate: sending without the client-side required check: Staging Start is required; Staging End is required",
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "051e73f57011884326d7444f0c073de8e37c15ad0c388bd3ebfe0728a9ca5e1c"
+     "plan_hash": "7c0b75ee648ac37523f1de72978e498312aa00fd280a41c35b3103ef81f7375c"
     },
     "warnings": [
      "--no-validate: sending without the client-side required check: Staging Start is required; Staging End is required",
@@ -2112,7 +2112,7 @@
     "errors": []
    },
    "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End:\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services:\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "create plan 051e73f570118843"
+   "plan_text": "create plan 7c0b75ee648ac375"
   },
   "planning": {
    "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\nplanning:\n  Go-Live Checklist:\n    description_md: see *plan*\n  Nope Plan: [x.txt]\n",
@@ -2432,14 +2432,14 @@
     }
    },
    "ok": true,
-   "hash": "a8b4cb6b46379e0876e9c179d8dfcf46bc89383427ab5ce232feb928c2aad066",
+   "hash": "0df642f706ce07abdc37e82e36ca8b47f8c2c3b4983789f7cbd7d3d18d6b0ea4",
    "payload": {
     "subject": "Billing: rotate all keys"
    },
    "errors": [],
    "risks": [],
    "json": {
-    "plan_hash": "a8b4cb6b46379e0876e9c179d8dfcf46bc89383427ab5ce232feb928c2aad066",
+    "plan_hash": "0df642f706ce07abdc37e82e36ca8b47f8c2c3b4983789f7cbd7d3d18d6b0ea4",
     "action": "update",
     "target": 501,
     "payload": {
@@ -2475,7 +2475,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "a8b4cb6b46379e0876e9c179d8dfcf46bc89383427ab5ce232feb928c2aad066"
+     "plan_hash": "0df642f706ce07abdc37e82e36ca8b47f8c2c3b4983789f7cbd7d3d18d6b0ea4"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -2489,7 +2489,7 @@
     }
    },
    "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate all keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "update plan a8b4cb6b46379e08"
+   "plan_text": "update plan 0df642f706ce07ab"
   },
   "status": {
    "answers": {
@@ -2526,7 +2526,7 @@
     }
    },
    "ok": true,
-   "hash": "b9e8f3230202143775886ca096374439a17f7bab5bf087031cc62c4a56cd2c9f",
+   "hash": "b2148688abeb35fe5c36b17dafff28bc0398b8388c0f45ef9eb51332f70daf9a",
    "payload": {
     "status": 2,
     "custom_fields": {
@@ -2538,7 +2538,7 @@
     "change status -> Planning"
    ],
    "json": {
-    "plan_hash": "b9e8f3230202143775886ca096374439a17f7bab5bf087031cc62c4a56cd2c9f",
+    "plan_hash": "b2148688abeb35fe5c36b17dafff28bc0398b8388c0f45ef9eb51332f70daf9a",
     "action": "update",
     "target": 501,
     "payload": {
@@ -2584,7 +2584,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "b9e8f3230202143775886ca096374439a17f7bab5bf087031cc62c4a56cd2c9f"
+     "plan_hash": "b2148688abeb35fe5c36b17dafff28bc0398b8388c0f45ef9eb51332f70daf9a"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -2600,7 +2600,7 @@
     }
    },
    "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: Yes\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "update plan b9e8f32302021437"
+   "plan_text": "update plan b2148688abeb35fe"
   },
   "downtime": {
    "answers": {
@@ -2812,7 +2812,7 @@
     }
    },
    "ok": true,
-   "hash": "b6f170b5a0840a25422c90be5eacbac55d6f2659ca54a23c1c0664a27a843e8f",
+   "hash": "3978de62f3f68b7fa8321bfe24099fc374b7470ebb6a0d33195947474118e9de",
    "payload": {
     "agent_id": 9000007101
    },
@@ -2821,7 +2821,7 @@
     "reassign agent (agent_id=9000007101)"
    ],
    "json": {
-    "plan_hash": "b6f170b5a0840a25422c90be5eacbac55d6f2659ca54a23c1c0664a27a843e8f",
+    "plan_hash": "3978de62f3f68b7fa8321bfe24099fc374b7470ebb6a0d33195947474118e9de",
     "action": "update",
     "target": 501,
     "payload": {
@@ -2859,7 +2859,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "b6f170b5a0840a25422c90be5eacbac55d6f2659ca54a23c1c0664a27a843e8f"
+     "plan_hash": "3978de62f3f68b7fa8321bfe24099fc374b7470ebb6a0d33195947474118e9de"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -2875,7 +2875,7 @@
     }
    },
    "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent: alex.kim@example.com\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T21:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "update plan b6f170b5a0840a25"
+   "plan_text": "update plan 3978de62f3f68b7f"
   }
  },
  "update_lifecycle": {
@@ -3625,7 +3625,7 @@
    },
    "lifecycle_reads": 1,
    "ok": true,
-   "hash": "520114c30aabcb7d73f7e8df12a5b6cc23d34ba077a947329fb4e97e6a6bbd51",
+   "hash": "11853e504cccf5fcf68e686494c6909a751c8fdd3ff646988e0ec805c3fe6b8c",
    "payload": {
     "status": 3
    },
@@ -3634,7 +3634,7 @@
     "change status -> Closed"
    ],
    "json": {
-    "plan_hash": "520114c30aabcb7d73f7e8df12a5b6cc23d34ba077a947329fb4e97e6a6bbd51",
+    "plan_hash": "11853e504cccf5fcf68e686494c6909a751c8fdd3ff646988e0ec805c3fe6b8c",
     "action": "update",
     "target": 501,
     "payload": {
@@ -3672,7 +3672,7 @@
      "warnings": [
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "520114c30aabcb7d73f7e8df12a5b6cc23d34ba077a947329fb4e97e6a6bbd51"
+     "plan_hash": "11853e504cccf5fcf68e686494c6909a751c8fdd3ff646988e0ec805c3fe6b8c"
     },
     "warnings": [
      "hints: unknown field 'Nope Field'"
@@ -3688,7 +3688,7 @@
     }
    },
    "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "update plan 520114c30aabcb7d"
+   "plan_text": "update plan 11853e504cccf5fc"
   },
   "read_failure": {
    "answers": {
@@ -3726,7 +3726,7 @@
    "flow": null,
    "lifecycle_reads": 1,
    "ok": true,
-   "hash": "1415cb9b1496412cdae5b632d19ede21121ce505e1bd429596180e14b17f225a",
+   "hash": "c8fd449b29cf8028a0d8945995d0fdf56359a0e242ffea93d403b3a2f6289924",
    "payload": {
     "status": 2
    },
@@ -3735,7 +3735,7 @@
     "change status -> Planning"
    ],
    "json": {
-    "plan_hash": "1415cb9b1496412cdae5b632d19ede21121ce505e1bd429596180e14b17f225a",
+    "plan_hash": "c8fd449b29cf8028a0d8945995d0fdf56359a0e242ffea93d403b3a2f6289924",
     "action": "update",
     "target": 501,
     "payload": {
@@ -3774,7 +3774,7 @@
       "lifecycle pre-check unavailable (APIError); the server decides edges and criteria",
       "hints: unknown field 'Nope Field'"
      ],
-     "plan_hash": "1415cb9b1496412cdae5b632d19ede21121ce505e1bd429596180e14b17f225a"
+     "plan_hash": "c8fd449b29cf8028a0d8945995d0fdf56359a0e242ffea93d403b3a2f6289924"
     },
     "warnings": [
      "lifecycle pre-check unavailable (APIError); the server decides edges and criteria",
@@ -3791,7 +3791,7 @@
     }
    },
    "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
-   "plan_text": "update plan 1415cb9b1496412c"
+   "plan_text": "update plan c8fd449b29cf8028"
   },
   "nothing": {
    "answers": {
@@ -3889,7 +3889,7 @@
    "cc": [],
    "extra": {},
    "ok": true,
-   "hash": "6aaccaca56d94c8ebad8b61a64619e5f0777cb5521c002760461746f1bf706e0",
+   "hash": "f0936cb2902207a4c44adfcb8d8f6bf94b375ef1f061bff2411614d673f1a3d4",
    "payload": {
     "subject": "Example",
     "description": "<div>Help</div>",
@@ -3909,7 +3909,7 @@
    },
    "errors": [],
    "json": {
-    "plan_hash": "6aaccaca56d94c8ebad8b61a64619e5f0777cb5521c002760461746f1bf706e0",
+    "plan_hash": "f0936cb2902207a4c44adfcb8d8f6bf94b375ef1f061bff2411614d673f1a3d4",
     "action": "create",
     "target": null,
     "payload": {
@@ -3996,7 +3996,7 @@
      "risks": [],
      "errors": [],
      "warnings": [],
-     "plan_hash": "6aaccaca56d94c8ebad8b61a64619e5f0777cb5521c002760461746f1bf706e0"
+     "plan_hash": "f0936cb2902207a4c44adfcb8d8f6bf94b375ef1f061bff2411614d673f1a3d4"
     },
     "warnings": [],
     "risks": [],
@@ -4020,7 +4020,7 @@
    ],
    "extra": {},
    "ok": true,
-   "hash": "024c057b045ab8998cf22d418a618d4dd2911aece4ce0bf3097afb256576355f",
+   "hash": "c7cd48c53adfd5c403e041ba62a27b3b347d4ea437b566799d86631d5955b759",
    "payload": {
     "subject": "Example",
     "description": "<div>Help</div>",
@@ -4044,7 +4044,7 @@
    },
    "errors": [],
    "json": {
-    "plan_hash": "024c057b045ab8998cf22d418a618d4dd2911aece4ce0bf3097afb256576355f",
+    "plan_hash": "c7cd48c53adfd5c403e041ba62a27b3b347d4ea437b566799d86631d5955b759",
     "action": "create",
     "target": null,
     "payload": {
@@ -4139,7 +4139,7 @@
      "risks": [],
      "errors": [],
      "warnings": [],
-     "plan_hash": "024c057b045ab8998cf22d418a618d4dd2911aece4ce0bf3097afb256576355f"
+     "plan_hash": "c7cd48c53adfd5c403e041ba62a27b3b347d4ea437b566799d86631d5955b759"
     },
     "warnings": [],
     "risks": [],

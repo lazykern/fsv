@@ -31,7 +31,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -43,7 +43,7 @@
       "body": "<div>New &amp; text</div>",
       "conversation_from_summary": false
      },
-     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "plan_hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "ticket_id": 123,
      "before": {
@@ -58,7 +58,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "plan_hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
      "verified": true,
      "conversation_id": 99001,
      "history_complete": true,
@@ -119,7 +119,7 @@
      "payload_json": "null",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+    "hash": "9968a3cd4002aca0cf2f20fccd9817f25a9a1e8e442222a7d04bd4f811bbbc40",
     "writes": 0
    },
    {
@@ -128,7 +128,7 @@
      "method": "DELETE",
      "path": "/api/_/conversations/99001",
      "payload": null,
-     "plan_hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+     "plan_hash": "9968a3cd4002aca0cf2f20fccd9817f25a9a1e8e442222a7d04bd4f811bbbc40",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "ticket_id": 123,
      "before": {
@@ -143,7 +143,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+     "plan_hash": "9968a3cd4002aca0cf2f20fccd9817f25a9a1e8e442222a7d04bd4f811bbbc40",
      "verified": true,
      "conversation_id": 99001,
      "history_complete": true
@@ -208,7 +208,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -217,7 +217,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 403: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -275,7 +275,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -284,7 +284,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 429: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -342,7 +342,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -351,7 +351,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 500: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -409,7 +409,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -418,7 +418,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (ReadError); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -476,7 +476,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -560,7 +560,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -644,7 +644,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -653,7 +653,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "plan_hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": false,
@@ -720,7 +720,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -729,7 +729,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "plan_hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": true,
@@ -792,7 +792,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
     "writes": 0
    },
    {
@@ -801,7 +801,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "plan_hash": "4e609c70c0c683611d8cba0a1ffc0bc65dc8f1a41d558e829cfe365f97f07063",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": true,
@@ -856,7 +856,7 @@
      "payload_json": "null",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+    "hash": "9968a3cd4002aca0cf2f20fccd9817f25a9a1e8e442222a7d04bd4f811bbbc40",
     "writes": 0
    },
    {
@@ -865,7 +865,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+     "plan_hash": "9968a3cd4002aca0cf2f20fccd9817f25a9a1e8e442222a7d04bd4f811bbbc40",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": false,
@@ -942,7 +942,7 @@
      "payload_json": "{\"body\": \"<div>New</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "afcca45eb4c5c634d6414788f7d5c7009b50d810b2e6b235c126990197fc7cce",
+    "hash": "62370156b1676af6573384c80c5310ad3781bf42f2d4aaf6a1980b59e3a226be",
     "writes": 0
    },
    {
@@ -1014,7 +1014,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1026,7 +1026,7 @@
       "body": "<div>New &amp; text</div>",
       "conversation_from_summary": false
      },
-     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "plan_hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "ticket_id": 123,
      "before": {
@@ -1041,7 +1041,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "plan_hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
      "verified": true,
      "conversation_id": 99001,
      "history_complete": true,
@@ -1102,7 +1102,7 @@
      "payload_json": "null",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+    "hash": "bf16990d5fcc93ff7f16d1c06ef1dd30708d7a6bd0f41611832c9d38dfd82d66",
     "writes": 0
    },
    {
@@ -1111,7 +1111,7 @@
      "method": "DELETE",
      "path": "/api/_/conversations/99001",
      "payload": null,
-     "plan_hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+     "plan_hash": "bf16990d5fcc93ff7f16d1c06ef1dd30708d7a6bd0f41611832c9d38dfd82d66",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "ticket_id": 123,
      "before": {
@@ -1126,7 +1126,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+     "plan_hash": "bf16990d5fcc93ff7f16d1c06ef1dd30708d7a6bd0f41611832c9d38dfd82d66",
      "verified": true,
      "conversation_id": 99001,
      "history_complete": true
@@ -1191,7 +1191,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1200,7 +1200,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 403: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1258,7 +1258,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1267,7 +1267,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 429: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1325,7 +1325,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1334,7 +1334,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (HTTP 500: failure); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1392,7 +1392,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1401,7 +1401,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write outcome unknown; inspect target and journal before retry"
+     "msg": "write outcome unknown (ReadError); inspect target and journal before retry"
     },
     "writes": 1
    },
@@ -1459,7 +1459,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1543,7 +1543,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1627,7 +1627,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1636,7 +1636,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "plan_hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": false,
@@ -1703,7 +1703,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1712,7 +1712,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "plan_hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": true,
@@ -1775,7 +1775,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
     "writes": 0
    },
    {
@@ -1784,7 +1784,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "plan_hash": "edc15ed9108db1392963e63ffe05d4daf483e208328e555b7fe8ef5ec182828a",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": true,
@@ -1839,7 +1839,7 @@
      "payload_json": "null",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+    "hash": "bf16990d5fcc93ff7f16d1c06ef1dd30708d7a6bd0f41611832c9d38dfd82d66",
     "writes": 0
    },
    {
@@ -1848,7 +1848,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+     "plan_hash": "bf16990d5fcc93ff7f16d1c06ef1dd30708d7a6bd0f41611832c9d38dfd82d66",
      "verified": false,
      "conversation_id": 99001,
      "history_complete": false,
@@ -1925,7 +1925,7 @@
      "payload_json": "{\"body\": \"<div>New</div>\", \"conversation_from_summary\": false}",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "3a6ebac96e7d7f56a4f30e46d41a2ae9aa774841a7497c90cea54ecd94fbf147",
+    "hash": "01afb202178ed9b1da52dc569063e65a6db3764b17a9f7b3d2fe5b6e51a15d0d",
     "writes": 0
    },
    {
@@ -2013,7 +2013,7 @@
      "payload_json": "null",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
     "writes": 0
    },
    {
@@ -2022,7 +2022,7 @@
      "method": "DELETE",
      "path": "/api/_/conversations/99001",
      "payload": null,
-     "plan_hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+     "plan_hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "ticket_id": 123,
      "before": {
@@ -2053,13 +2053,13 @@
      "payload_json": "null",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
     "writes": 0
    },
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+     "plan_hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
      "verified": true,
      "conversation_id": 99001,
      "history_complete": true
@@ -2131,7 +2131,7 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+    "hash": "37025ccd57fe15b42f4276a88830b331cde4d2ca06dfd58525a7ec5ea7592ceb",
     "writes": 0
    },
    {
@@ -2143,7 +2143,7 @@
       "body": "<div>New &amp; text</div>",
       "conversation_from_summary": false
      },
-     "plan_hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+     "plan_hash": "37025ccd57fe15b42f4276a88830b331cde4d2ca06dfd58525a7ec5ea7592ceb",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "ticket_id": 123,
      "before": {
@@ -2174,13 +2174,13 @@
      "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+    "hash": "37025ccd57fe15b42f4276a88830b331cde4d2ca06dfd58525a7ec5ea7592ceb",
     "writes": 0
    },
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+     "plan_hash": "37025ccd57fe15b42f4276a88830b331cde4d2ca06dfd58525a7ec5ea7592ceb",
      "verified": true,
      "conversation_id": 99001,
      "history_complete": true,
@@ -2254,7 +2254,7 @@
      "payload_json": "null",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
     "writes": 0
    },
    {
@@ -2325,7 +2325,7 @@
      "payload_json": "null",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
     "writes": 0
    },
    {
@@ -2396,7 +2396,7 @@
      "payload_json": "null",
      "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
     },
-    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "hash": "00ce26d371c54f4cd507c6031d956145a118266fa7a041ae99dc624ccf56a784",
     "writes": 0
    },
    {
@@ -2567,7 +2567,7 @@
      "payload_json": "null",
      "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
     },
-    "hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+    "hash": "9968a3cd4002aca0cf2f20fccd9817f25a9a1e8e442222a7d04bd4f811bbbc40",
     "writes": 0
    },
    {
@@ -2728,7 +2728,7 @@
      "payload_json": "null",
      "context_hash": "b954f3cfc7a4d18fb41a0c3808254f3a08baa805dc6292a8ccf9520f8b7260a5"
     },
-    "hash": "a1dcd97d6605441627eda9338c89b819c9471c1c0604784f6b6ff494efa3b258",
+    "hash": "6f47f0bdab786b6aacd2a2b7a90d89e6a8bba500042f040765dc67be73c2625f",
     "writes": 0
    },
    {

@@ -107,6 +107,11 @@ pub fn sha256_hex(data: &[u8]) -> String {
     hex::encode(Sha256::digest(data))
 }
 
+/// sha256 hex of the resolved config directory (journal profile, Keychain account).
+pub fn config_dir_digest() -> String {
+    sha256_hex(&path_bytes(&resolve_path(&config::config_dir())))
+}
+
 /// Journal file for the current profile and tenant.
 pub fn journal_path() -> PathBuf {
     let base = config::test_state_home().unwrap_or_else(|| {
@@ -115,7 +120,7 @@ pub fn journal_path() -> PathBuf {
             .map(PathBuf::from)
             .unwrap_or_else(|| config::home_dir().join(".local").join("state"))
     });
-    let profile = sha256_hex(&path_bytes(&resolve_path(&config::config_dir())));
+    let profile = config_dir_digest();
     let domain = config::domain();
     let tenant = if domain.is_empty() {
         "unknown".to_string()
@@ -129,18 +134,27 @@ pub fn journal_path() -> PathBuf {
         .join("journal.jsonl")
 }
 
-/// sha256 of the body as canonical JSON (sorted keys, no whitespace); `None` without a body.
-pub fn plan_hash(body: Option<&Value>) -> Option<String> {
-    body.map(|b| sha256_hex(fsv_py::canonical(b).as_bytes()))
+/// `journal._raw_hash`: sha256 of the body as canonical JSON (sorted keys, no
+/// whitespace), not bound to a tenant.
+fn raw_hash(body: &Value) -> String {
+    sha256_hex(fsv_py::canonical(body).as_bytes())
 }
 
-/// `journal.snapshot_hash`: `plan_hash` of the stable read snapshot.
+/// sha256 of the body as canonical JSON (sorted keys, no whitespace), bound
+/// to the configured tenant: a plan reviewed on one tenant never matches on
+/// another (`tenant::bind_plan`); `None` without a body.
+pub fn plan_hash(body: Option<&Value>) -> Option<String> {
+    body.map(|b| crate::tenant::bind_plan(&raw_hash(&crate::tenant::unbind(b))))
+}
+
+/// `journal.snapshot_hash`: the canonical hash of the stable read snapshot
+/// (read-side state; not tenant-bound).
 ///
 /// `Err` carries the `ValueError` text of a link Python cannot split.
 pub fn snapshot_hash(body: Option<&Value>) -> Result<Option<String>, String> {
     body.map(crate::reviewed_snapshot::stable_snapshot)
         .transpose()
-        .map(|b| plan_hash(b.as_ref()))
+        .map(|b| b.as_ref().map(raw_hash))
 }
 
 /// URL path split into segments; unknown non-numeric segments become `[redacted]`.
@@ -314,6 +328,7 @@ pub fn record(method: &str, url: &str, body: Option<&Value>, outcome: WriteOutco
         "plan_hash".into(),
         plan_hash(body).map_or(Value::Null, Value::String),
     );
+    entry.insert("tenant_bound".into(), json!(true));
     entry.insert(
         "status".into(),
         outcome.status.map_or(Value::Null, |s| json!(s)),
@@ -331,6 +346,25 @@ pub fn record(method: &str, url: &str, body: Option<&Value>, outcome: WriteOutco
     let _ = append(&entry);
 }
 
+/// A row written before plan hashes were tenant-bound: this journal is per
+/// tenant, so bind its hashes to compare with current plans (an unresolved
+/// older submission must still refuse a replay).
+fn rebind_legacy_row(mut row: Value) -> Value {
+    let Value::Object(map) = &mut row else {
+        return row;
+    };
+    if map.get("tenant_bound").is_some_and(truthy) {
+        return row;
+    }
+    for key in ["plan", "plan_hash"] {
+        if let Some(v) = map.get(key) {
+            let bound = crate::tenant::bind_legacy(v);
+            map.insert(key.to_string(), bound);
+        }
+    }
+    row
+}
+
 /// All journal rows (the last `limit` when given and non-zero); bad lines are skipped.
 /// Bytes that are not UTF-8 are decoded lossily so the remaining plan
 /// events still guard against replays (Python raises instead; see PARITY).
@@ -340,7 +374,8 @@ pub fn read(limit: Option<usize>) -> Vec<Value> {
     };
     let rows: Vec<Value> = String::from_utf8_lossy(&bytes)
         .lines()
-        .filter_map(|l| serde_json::from_str(l).ok())
+        .filter_map(|l| serde_json::from_str::<Value>(l).ok())
+        .map(rebind_legacy_row)
         .collect();
     match limit {
         Some(n) if n > 0 && n < rows.len() => rows[rows.len() - n..].to_vec(),
@@ -532,6 +567,7 @@ pub fn try_record_plan(event: &str, plan: &str, action: &str, extra: PlanEvent<'
     entry.insert("kind".into(), json!(format!("plan:{action}")));
     entry.insert("event".into(), json!(event));
     entry.insert("plan".into(), json!(plan));
+    entry.insert("tenant_bound".into(), json!(true));
     entry.insert("target".into(), safe_target(extra.target));
     entry.insert("created_id".into(), safe_id(extra.created_id));
     if let Some(steps) = extra.steps {
@@ -867,8 +903,8 @@ mod tests {
         assert_eq!(
             rows.iter().map(without_time).collect::<Vec<_>>(),
             [
-                json!({"command": null, "kind": "plan:create", "event": "started", "plan": "h1", "target": null, "created_id": null}),
-                json!({"command": null, "kind": "plan:create", "event": "done", "plan": "h1", "target": "catalog-item/3",
+                json!({"command": null, "kind": "plan:create", "event": "started", "plan": "h1", "tenant_bound": true, "target": null, "created_id": null}),
+                json!({"command": null, "kind": "plan:create", "event": "done", "plan": "h1", "tenant_bound": true, "target": "catalog-item/3",
                        "created_id": 77, "steps": [{"step": "create", "ok": true}, {"step": "other", "ok": false}],
                        "error": "details omitted"}),
             ]
@@ -1001,7 +1037,7 @@ mod tests {
         assert_eq!(
             without_time(&rows[0]),
             json!({"command": null, "kind": "create:changes", "target": null, "method": "POST", "path": "/api/_/changes",
-                   "plan_hash": "015abd7f5cc57a2dd94b7590f04ad8084273905ee33ec5cebeae62276a97f862",
+                   "plan_hash": "fb43d8a0090e3de1d731676a78c37276075ac545a0ab0073ebf0fe750f300ba4", "tenant_bound": true,
                    "status": 201, "ok": true, "created_id": 4})
         );
         assert_eq!(rows[1]["created_id"], Value::Null);

@@ -55,7 +55,10 @@ impl UploadPlan for ChangeAttachPlan {
 
 /// `tenant_json(obj, ensure_ascii=False, indent=2)`.
 fn pretty(v: &Value) -> String {
-    Dumps::default().ensure_ascii(false).indent(2).dump(v)
+    Dumps::default()
+        .ensure_ascii(false)
+        .indent(2)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 /// `except (ValueError, ReviewedWriteError)`: a refusal, exit 2.

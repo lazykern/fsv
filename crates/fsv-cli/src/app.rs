@@ -4,6 +4,7 @@ use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{Arg, ArgAction, ArgMatches, Command};
 
 use fsv_core::resource::{self, CHANGES};
+use fsv_core::tenant;
 use fsv_core::term::err;
 
 use crate::cmd;
@@ -11,7 +12,10 @@ use crate::generated::CLICK_USAGE;
 use crate::util::report;
 
 /// `_ROOT_FLAGS_ANYWHERE`.
-pub const ROOT_FLAGS_ANYWHERE: &[&str] = &["-v", "--verbose"];
+pub const ROOT_FLAGS_ANYWHERE: &[&str] = &["-v", "--verbose", "--quiet"];
+
+/// `_ROOT_VALUE_OPTIONS_ANYWHERE`.
+pub const ROOT_VALUE_OPTIONS_ANYWHERE: &[&str] = &["--tenant"];
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -21,6 +25,23 @@ fn global_verbose() -> Arg {
         .short('v')
         .action(ArgAction::SetTrue)
         .help("print debug info to stderr")
+        .help_heading("Global options")
+}
+
+fn global_quiet() -> Arg {
+    Arg::new("fsv_quiet")
+        .long("quiet")
+        .action(ArgAction::SetTrue)
+        .help("do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)")
+        .help_heading("Global options")
+}
+
+fn global_tenant() -> Arg {
+    Arg::new("fsv_tenant")
+        .long("tenant")
+        .value_name("DOMAIN")
+        .num_args(1)
+        .help("assert the target tenant; confirms it for --yes writes when it equals the configured domain")
         .help_heading("Global options")
 }
 
@@ -38,6 +59,9 @@ fn finish(mut cmd: Command, depth: usize) -> Command {
         if depth > 0 {
             cmd = cmd.subcommand_required(true).arg(global_verbose());
         }
+    }
+    if depth > 0 {
+        cmd = cmd.arg(global_quiet()).arg(global_tenant());
     }
     cmd
 }
@@ -96,7 +120,13 @@ pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static
     let mut passthrough = false;
     let mut notice = None;
     let mut legacy_check = false;
+    let mut take_value = false;
     for token in args {
+        if take_value {
+            moved.push(token.clone());
+            take_value = false;
+            continue;
+        }
         if legacy_check && !ROOT_FLAGS_ANYWHERE.contains(&token.as_str()) {
             legacy_check = false;
             if !token.starts_with('-')
@@ -128,6 +158,11 @@ pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static
         }
         if started && ROOT_FLAGS_ANYWHERE.contains(&token.as_str()) {
             moved.push(token.clone());
+            continue;
+        }
+        if started && ROOT_VALUE_OPTIONS_ANYWHERE.contains(&token.split('=').next().unwrap_or("")) {
+            moved.push(token.clone());
+            take_value = !token.contains('=');
             continue;
         }
         if token.starts_with('-') {
@@ -240,7 +275,19 @@ pub fn run(argv: Vec<String>) -> i32 {
     }
     fsv_core::runtime::set_command_path(Some(&format!("{prog} {}", path.join(" "))));
     fsv_core::journal::clear_refusal();
-    let run = || cmd::dispatch(&path.join(" "), m, &prog);
+    let info = tenant_info(&root, &path, m, &matches);
+    let run = || {
+        let entered = tenant::enter_command(&info);
+        let result = match entered {
+            Ok(()) => cmd::dispatch(&path.join(" "), m, &prog),
+            Err(refusal) => {
+                eprintln!("error: {}", refusal.0);
+                Err(fsv_core::Error::exit(2, ""))
+            }
+        };
+        tenant::leave_command();
+        result
+    };
     // Canned routes answer instantly, so an unverified bulk, assignment,
     // merge or priority send must not sleep through the bounded readback
     // (Python's tests patch `readback._sleep` the same way).
@@ -249,6 +296,47 @@ pub fn run(argv: Vec<String>) -> i32 {
         return report(fsv_api::readback::with_readback_sleep(|_| {}, run));
     }
     report(run())
+}
+
+/// What `tenant::enter_command` reads off the leaf: which write flags it
+/// defines, their values and the root `--tenant` / `--quiet`.
+fn tenant_info(
+    root: &Command,
+    path: &[String],
+    m: &ArgMatches,
+    top: &ArgMatches,
+) -> tenant::CommandInfo {
+    let mut leaf_cmd = root;
+    for name in path {
+        match leaf_cmd.find_subcommand(name) {
+            Some(c) => leaf_cmd = c,
+            None => break,
+        }
+    }
+    let id_of = |long: &str| {
+        leaf_cmd
+            .get_arguments()
+            .find(|a| a.get_long() == Some(long))
+            .map(|a| a.get_id().as_str().to_string())
+    };
+    let flag = |long: &str| {
+        id_of(long).is_some_and(|id| matches!(m.try_get_one::<bool>(&id), Ok(Some(true))))
+    };
+    let expect_plan = id_of("expect-plan").and_then(|id| match m.try_get_one::<String>(&id) {
+        Ok(Some(v)) => Some(v.clone()),
+        _ => None,
+    });
+    tenant::CommandInfo {
+        path: path.join(" "),
+        write_capable: ["yes", "dry-run", "expect-plan"]
+            .iter()
+            .any(|l| id_of(l).is_some()),
+        yes: flag("yes"),
+        dry_run: flag("dry-run"),
+        expect_plan,
+        tenant: top.get_one::<String>("tenant").cloned(),
+        quiet: top.get_flag("quiet"),
+    }
 }
 
 fn clap_error(e: clap::Error) -> i32 {

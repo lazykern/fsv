@@ -151,7 +151,10 @@ mod tests {
                 if let Some(status) = fail.as_u64() {
                     return Err(ApiError::new(status as u16, json!({"errors": "synthetic"})).into());
                 }
-                return Err(Error::other("disconnect"));
+                return Err(Error::Http {
+                    kind: "ReadError".into(),
+                    message: "disconnect".into(),
+                });
             }
             s.row.insert("deleted".into(), json!(true));
             s.wrote = true;

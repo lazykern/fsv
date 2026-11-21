@@ -311,7 +311,7 @@ pub fn pretty(v: &Json) -> String {
     fsv_py::Dumps::default()
         .indent(2)
         .ensure_ascii(false)
-        .dump(v)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 /// A `ValueError` from draft loading is a usage exit.

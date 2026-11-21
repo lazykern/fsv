@@ -14,6 +14,8 @@ fn auth_status_shows_identity() {
     assert_eq!(
         r.out,
         r#"Me Agent  <me@acme.test>
+tenant:      acme.freshservice.com
+config dir:  ~/config
 session:     valid
 department:  IT, Ops  (Platform)
 session age: 0.0h
@@ -59,7 +61,7 @@ fn auth_status_after_logout() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: no session; run `fsv auth login`
+        r#"error: no session for tenant acme.freshservice.com (config ~/config); run `fsv auth login`
 "#
     );
 }
@@ -182,6 +184,7 @@ ids.incident_prefix = (unset)  # custom incident display-id prefix (default INC)
 ids.service_request_prefix = (unset)  # custom service-request display-id prefix (default SR)
 ids.change_prefix = (unset)  # custom change display-id prefix (default CHN)
 ids.problem_prefix = (unset)  # custom problem display-id prefix (default PRB)
+tenant.confirmed = (unset)  # domain whose --yes writes are confirmed from this config dir (must equal the configured domain)
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -224,6 +227,7 @@ ids.incident_prefix = (unset)  # custom incident display-id prefix (default INC)
 ids.service_request_prefix = (unset)  # custom service-request display-id prefix (default SR)
 ids.change_prefix = (unset)  # custom change display-id prefix (default CHN)
 ids.problem_prefix = (unset)  # custom problem display-id prefix (default PRB)
+tenant.confirmed = (unset)  # domain whose --yes writes are confirmed from this config dir (must equal the configured domain)
 "#
     );
     assert_eq!(r.err, r#""#);

@@ -39,6 +39,22 @@ fsv tickets ls --where requester=alice@example.com
 
 Commands can output JSON for other tools. The full-screen TUI is being redesigned and is not in this build.
 
+Check which agent, tenant and config dir this shell targets with `fsv whoami` (or `fsv config show`, which also shows how writes are confirmed).
+
+### Know your tenant
+
+The config dir (default `~/.config/fsv`, or `FSV_CONFIG_DIR`) decides which tenant every command talks to. It holds the domain `fsv auth login` configured last.
+
+Each command that talks to a tenant prints `fsv: tenant <domain> (config <dir>)` once on stderr. `--quiet` or `FSV_QUIET=1` hides it, and `--json` stdout stays pure JSON.
+
+`--yes` writes are refused until the tenant is confirmed. Confirm it with one of:
+
+- `fsv config set tenant.confirmed <tenant>`, once per config dir
+- `--tenant <tenant>`, per command
+- `FSV_ALLOW_TENANT=<tenant>`
+
+`--dry-run` never needs confirmation. Plan hashes bind the tenant, and `--json` reviews and results of write commands carry `tenant` and `config_dir`, so a hash reviewed on one tenant is refused on another. With more than one tenant, give each its own `FSV_CONFIG_DIR` and set it explicitly.
+
 ## Fill out a form
 
 Run these in a terminal to open an interactive form:

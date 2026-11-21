@@ -266,9 +266,12 @@ those stay identical.
     (the on-disk `verified.jsonl` for the real client, a settable list in the
     test doubles) instead of a process-global journal call, so unit tests
     stay hermetic. The file name, rows and counting are Python's.
-  - Output of the new reviewed commands is not tenant-annotated: the tenant
-    agent's `tenant_json`/`bind_plan` work is on its own branch and wraps
-    these outputs and hashes when it merges.
+  - The new reviewed commands (problems/changes add-note, plain ticket
+    reply, tickets/problems/changes update, record-state tokens,
+    planning-text, attach, export, private views, due-by) hash through
+    `journal::plan_hash` / `form_hash::plan_hash` (tenant-bound) and print
+    through `tenant::annotate`, so their write JSON carries `tenant` and
+    `config_dir` and `--yes` needs a confirmed tenant, as in Python main.
   - Golden oracles (`fsv-api/src/testdata/{problem_status,problem_incidents,
     ticket_assignment,ticket_lifecycle,ticket_lifecycle_ack,
     closure_conversation,change_task_update}_oracle.json`,
@@ -277,6 +280,44 @@ those stay identical.
     `record_state` changed; their generator scripts no longer exist. The
     CLI-level cases in `up_b_cmds.rs` and `upstream_cmds.rs` come from a
     Python oracle (31a9103 plus the up-b commits) through `cmp.py`.
+- `changes update` form sends PUT through `ChangeWriter::put_change_raw`
+  (the server's `APIError`), as Python's `reviewed_write.execute` does with
+  `client._request`. The earlier Rust port reused `create.put_change_body`,
+  whose `_api_failure` turned a 4xx with a JSON-object body into a
+  `RuntimeError`: the failure read "outcome unknown" and the plan was never
+  journaled `failed`. Now a definite 4xx is `write rejected (HTTP n: ...)` and
+  journals `failed`, as Python.
+- A failed write's "outcome unknown (X)" names the transport error class
+  (`ReadError`, `ConnectError`, ...) for `Error::Http`; other Rust errors map
+  to the nearest Python class (`SessionError`, `ValueError`, `OSError`,
+  else `RuntimeError`). `ReviewedWriteError.http_status` and `server_message`
+  travel in a per-thread record (`fsv_core::error::reviewed_write_error` /
+  `write_answer`) instead of attributes on the error, so every
+  `Error::Exit { code: 2 }` match keeps working.
+- Tenant binding (`5eefaaf`): `fsv_core::tenant` holds the bound-hash maps,
+  the per-command write flag and the plan-tenant registry in process state
+  (Python module globals). fsv-forms stays tenant-free and independent of
+  fsv-core, so form plan hashes bind through `fsv_api::form_hash::plan_hash`
+  (unbind the payload, hash, bind). Rust tests reset the state with
+  `tenant::reset`; library tests that hash with a domain-dependent global
+  config take `fsv_flows::testing::config_guard` / `fsv_api::service::testing::hermetic`.
+- `--tenant DOMAIN` and `--quiet` are root options like `-v`: `app::rewrite`
+  hoists them from anywhere on the command line, and `finish()` adds help-only
+  copies to every command's "Global options" panel (clap needs distinct ids).
+- The banner and the tenant refusals print with plain `eprintln!` (Python
+  `print(..., file=sys.stderr)`), so Rich wrapping and markup never touch them.
+- Golden provenance after `5eefaaf`: the Python-stamped hash goldens in
+  `fsv-api/src/testdata/*.json`, `fsv-flows/tests/golden/flows.json`, the
+  hash literals in `fsv-cli/tests/*.rs`, `golden/ticket_links_cli.json` and the
+  composite hashes were not regenerated from Python. Pure binds are
+  `sha256("fsv-plan-tenant\0<domain>\0<old hash>")` of the old value; hashes
+  whose context hashes a nested plan hash through `snapshot_hash` (not
+  unbound, as in Python) took the value the Rust port computes, checked
+  against Python at `5eefaaf` with `tests/differential.rs` (1100 canned-route
+  cases, only the later commits' messages differ). Stdout and stderr goldens
+  of write commands mask the temp config dir as `<CONFIG_DIR>`.
+- `changes associations add` prints its review on stderr with Rich's
+  `print_json` in Python, which does not carry `config_dir`; Rust matches.
 
 ## fsv-app
 
@@ -572,3 +613,21 @@ Python's.
   `--planning`/`--description`/`--file`/`--duplicate` on tickets|problems
   update, `--planning`/`--all-planning` on downloads); re-dump them with
   `dump_completion.py` at the final Python commit.
+
+## Merge of `port/up-a` onto up-b/up-c/up-d (Python 84ffb0f)
+
+- Hash goldens (`fsv-api/src/testdata/*_oracle.json`, `fsv-flows/tests/golden/flows.json`,
+  inline hash constants) were re-derived by tenant binding only
+  (`sha256("fsv-plan-tenant\0<domain>\0<old hash>")`); composed oracles
+  (`ticket_assignment`, `ticket_bulk_set`) were re-blessed from Rust output
+  after checking that only hex values and up-a's write-error texts differed.
+- `upstream_cmds.rs` is regenerated from Python 84ffb0f (`emit_upstream.py`;
+  `cmp.py` now runs both sides with `FSV_QUIET=1`, `FSV_ALLOW_TENANT` and
+  masks the config dir as `<CONFIG_DIR>`). Eight `--yes` refusal cases carry
+  `accept_stderr`: Python main prints the literal `None` there (operator
+  precedence in `stale_plan_refusal(...) if yes else None or "review ..."`),
+  Rust keeps the intended "review with --dry-run" text.
+- `function_map.json` / `module_map.json` are stamped 84ffb0f; the six Python
+  modules added since 31a9103 are listed, their 59 name matches stay
+  `matched` (not reviewed line by line; `UNREVIEWED_CEILING` is 59).
+  Existing entries keep their old line numbers.

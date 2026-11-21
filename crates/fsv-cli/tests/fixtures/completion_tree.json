@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "01a88d41e82448c1585f0e9f68e9e03e9b471834",
+  "commit": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
   "dirty": false
  },
  "path": [
@@ -36,6 +36,22 @@
   },
   {
    "flags": [
+    "--quiet"
+   ],
+   "kind": "boolean",
+   "completer": null,
+   "resource": null
+  },
+  {
+   "flags": [
+    "--tenant"
+   ],
+   "kind": "freeform",
+   "completer": null,
+   "resource": null
+  },
+  {
+   "flags": [
     "--refresh"
    ],
    "kind": "boolean",
@@ -47,6 +63,41 @@
   {
    "path": [
     "fsv",
+    "whoami"
+   ],
+   "help": "Show the signed-in agent and the tenant/config dir this shell targets (read-only).",
+   "params": [
+    {
+     "flags": [
+      "--verbose",
+      "-v"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    },
+    {
+     "flags": [
+      "--json"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    }
+   ],
+   "subcommands": []
+  },
+  {
+   "path": [
+    "fsv",
     "help"
    ],
    "help": "Show topic help.",
@@ -55,6 +106,14 @@
      "flags": [
       "--verbose",
       "-v"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
      ],
      "kind": "boolean",
      "completer": null,
@@ -74,6 +133,14 @@
      "flags": [
       "--verbose",
       "-v"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
      ],
      "kind": "boolean",
      "completer": null,
@@ -149,6 +216,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": []
@@ -164,6 +239,14 @@
      "flags": [
       "--verbose",
       "-v"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
      ],
      "kind": "boolean",
      "completer": null,
@@ -195,6 +278,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -210,6 +301,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -274,12 +373,20 @@
       "auth",
       "logout"
      ],
-     "help": "Wipe stored session (file + Keychain + backend pref).",
+     "help": "Wipe this config dir's stored session (file, its own Keychain item, backend pref).",
      "params": [
       {
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -321,6 +428,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -338,6 +453,14 @@
      "flags": [
       "--verbose",
       "-v"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
      ],
      "kind": "boolean",
      "completer": null,
@@ -364,6 +487,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--kind"
        ],
        "kind": "freeform",
@@ -373,6 +504,14 @@
       {
        "flags": [
         "--page"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--per-page"
        ],
        "kind": "freeform",
        "completer": null,
@@ -406,6 +545,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -421,6 +568,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -482,6 +637,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -551,6 +714,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -657,6 +828,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -672,6 +851,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -700,6 +887,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -733,6 +928,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -748,6 +951,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -772,6 +983,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -792,6 +1011,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -808,6 +1035,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -833,6 +1068,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -848,6 +1091,50 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "config",
+      "show"
+     ],
+     "help": "Show the target tenant, config dir, write confirmation and all config values.",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
        ],
        "kind": "boolean",
        "completer": null,
@@ -872,6 +1159,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -888,6 +1183,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -912,6 +1215,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -928,6 +1239,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -949,6 +1268,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -983,6 +1310,14 @@
          "kind": "boolean",
          "completer": null,
          "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
         }
        ],
        "subcommands": []
@@ -1006,6 +1341,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -1021,6 +1364,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -1045,6 +1396,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -1061,6 +1420,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -1086,6 +1453,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -1101,6 +1476,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -1153,6 +1536,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--limit",
         "-n"
        ],
@@ -1187,6 +1578,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -1208,6 +1607,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -1223,6 +1630,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -1377,6 +1792,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--tab",
         "-t"
        ],
@@ -1447,6 +1870,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "-l",
         "--limit"
        ],
@@ -1501,6 +1932,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -1531,6 +1970,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -1704,6 +2151,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--name"
        ],
        "kind": "freeform",
@@ -1830,6 +2285,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--model"
        ],
        "kind": "freeform",
@@ -1884,6 +2347,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -1984,6 +2455,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -2053,6 +2532,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -2107,6 +2594,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -2293,6 +2788,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -2346,6 +2849,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--groups"
        ],
        "kind": "boolean",
@@ -2391,6 +2902,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -2421,6 +2940,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -2497,6 +3024,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--kind"
        ],
        "kind": "freeform",
@@ -2566,6 +3101,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--kind"
        ],
        "kind": "freeform",
@@ -2595,6 +3138,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -2642,6 +3193,14 @@
       },
       {
        "flags": [
+        "--confirm-send-to-me"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -2672,6 +3231,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -2733,6 +3300,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -2825,6 +3400,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--default"
        ],
        "kind": "boolean",
@@ -2902,6 +3485,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--refresh"
        ],
        "kind": "boolean",
@@ -2947,6 +3538,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -2977,6 +3576,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -3053,6 +3660,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -3069,6 +3684,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -3197,6 +3820,14 @@
       },
       {
        "flags": [
+        "--max-bytes"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -3282,6 +3913,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--planning"
        ],
        "kind": "dynamic",
@@ -3340,6 +3979,14 @@
       },
       {
        "flags": [
+        "--max-bytes"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--json"
        ],
        "kind": "boolean",
@@ -3361,6 +4008,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -3454,6 +4109,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -3699,6 +4362,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--page",
         "-p"
        ],
@@ -3772,6 +4443,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--public"
        ],
        "kind": "boolean",
@@ -3830,6 +4509,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -3846,6 +4533,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -3875,6 +4570,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -3965,6 +4668,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -3981,6 +4692,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4019,6 +4738,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4129,6 +4856,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--spent"
          ],
          "kind": "freeform",
@@ -4196,6 +4931,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -4212,6 +4955,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4241,6 +4992,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4366,6 +5125,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--dry-run"
          ],
          "kind": "boolean",
@@ -4418,6 +5185,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -4434,6 +5209,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4545,6 +5328,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--output",
           "-o"
          ],
@@ -4583,6 +5374,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--output",
           "-o"
          ],
@@ -4614,6 +5413,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4676,6 +5483,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4745,6 +5560,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--dry-run"
          ],
          "kind": "boolean",
@@ -4805,6 +5628,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -4821,6 +5652,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4865,6 +5704,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -4902,6 +5749,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--search"
          ],
          "kind": "freeform",
@@ -4919,6 +5774,14 @@
         {
          "flags": [
           "--page"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--per-page"
          ],
          "kind": "freeform",
          "completer": null,
@@ -4948,6 +5811,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -4985,6 +5856,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -5062,6 +5941,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -5132,6 +6019,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -5141,6 +6036,14 @@
         {
          "flags": [
           "--page"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--per-page"
          ],
          "kind": "freeform",
          "completer": null,
@@ -5175,6 +6078,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -5191,6 +6102,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -5229,6 +6148,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -5312,6 +6239,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -5328,6 +6263,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -5373,6 +6316,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--output",
           "-o"
          ],
@@ -5411,6 +6362,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--name"
          ],
          "kind": "freeform",
@@ -5438,6 +6397,14 @@
           "--expect-plan"
          ],
          "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--confirm-destructive"
+         ],
+         "kind": "boolean",
          "completer": null,
          "resource": null
         },
@@ -5479,6 +6446,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -5495,6 +6470,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -5533,6 +6516,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -5610,6 +6601,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -5625,6 +6624,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -5779,6 +6786,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--tab",
         "-t"
        ],
@@ -5849,6 +6864,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "-l",
         "--limit"
        ],
@@ -5903,6 +6926,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -5933,6 +6964,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -5980,6 +7019,14 @@
       },
       {
        "flags": [
+        "--confirm-send-to-me"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -6010,6 +7057,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6086,6 +7141,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -6140,6 +7203,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6232,6 +7303,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -6286,6 +7365,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6388,6 +7475,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--note"
        ],
        "kind": "freeform",
@@ -6456,6 +7551,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--set"
        ],
        "kind": "freeform",
@@ -6516,6 +7619,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -6561,6 +7672,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6621,6 +7740,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6690,6 +7817,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6845,6 +7980,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -6891,6 +8034,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -6967,6 +8118,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--confirm-destructive"
        ],
        "kind": "boolean",
@@ -7028,6 +8187,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--confirm-destructive"
        ],
        "kind": "boolean",
@@ -7082,6 +8249,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -7166,6 +8341,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--refresh"
        ],
        "kind": "boolean",
@@ -7211,6 +8394,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -7241,6 +8432,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -7317,6 +8516,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -7333,6 +8540,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -7491,6 +8706,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -7665,6 +8888,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -7702,6 +8933,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -7732,6 +8971,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -7808,6 +9055,48 @@
       {
        "flags": [
         "--planned-effort"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--planning"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--description",
+        "--desc"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--file",
+        "-f"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--duplicate"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--max-bytes"
        ],
        "kind": "freeform",
        "completer": null,
@@ -7893,6 +9182,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--attachments",
         "--main-attachments"
        ],
@@ -7911,6 +9208,22 @@
       {
        "flags": [
         "--description-attachments"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--planning"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--all-planning"
        ],
        "kind": "boolean",
        "completer": null,
@@ -7943,6 +9256,14 @@
       },
       {
        "flags": [
+        "--max-bytes"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--json"
        ],
        "kind": "boolean",
@@ -7964,6 +9285,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -8037,6 +9366,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -8169,6 +9506,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--conversation"
        ],
        "kind": "freeform",
@@ -8251,6 +9596,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -8267,6 +9620,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8311,6 +9672,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -8348,6 +9717,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--search"
          ],
          "kind": "freeform",
@@ -8365,6 +9742,14 @@
         {
          "flags": [
           "--page"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--per-page"
          ],
          "kind": "freeform",
          "completer": null,
@@ -8394,6 +9779,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8471,6 +9864,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -8539,6 +9940,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -8555,6 +9964,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8593,6 +10010,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8676,6 +10101,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -8692,6 +10125,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8730,6 +10171,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8806,6 +10255,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -8822,6 +10279,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8851,6 +10316,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -8951,6 +10424,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--title"
          ],
          "kind": "freeform",
@@ -9028,6 +10509,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--to"
          ],
          "kind": "freeform",
@@ -9089,6 +10578,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--dry-run"
          ],
          "kind": "boolean",
@@ -9140,6 +10637,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -9156,6 +10661,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9201,6 +10714,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--output",
           "-o"
          ],
@@ -9239,6 +10760,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--name"
          ],
          "kind": "freeform",
@@ -9266,6 +10795,14 @@
           "--expect-plan"
          ],
          "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--confirm-destructive"
+         ],
+         "kind": "boolean",
          "completer": null,
          "resource": null
         },
@@ -9307,6 +10844,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -9323,6 +10868,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9361,6 +10914,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9414,6 +10975,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--output",
           "-o"
          ],
@@ -9445,6 +11014,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9536,6 +11113,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -9552,6 +11137,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9597,6 +11190,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--output",
           "-o"
          ],
@@ -9628,6 +11229,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9703,6 +11312,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -9719,6 +11336,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9757,6 +11382,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9856,6 +11489,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -9872,6 +11513,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9909,6 +11558,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -9954,6 +11611,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10016,6 +11681,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10083,6 +11756,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -10099,6 +11780,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10136,6 +11825,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10181,6 +11878,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10243,6 +11948,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10310,6 +12023,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -10326,6 +12047,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10363,6 +12092,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10408,6 +12145,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10477,6 +12222,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -10537,6 +12290,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -10553,6 +12314,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -10604,6 +12373,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -10619,6 +12396,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -10773,6 +12558,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--tab",
         "-t"
        ],
@@ -10843,6 +12636,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "-l",
         "--limit"
        ],
@@ -10897,6 +12698,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -10927,6 +12736,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -10974,6 +12791,14 @@
       },
       {
        "flags": [
+        "--confirm-send-to-me"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -11004,6 +12829,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -11143,6 +12976,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11204,6 +13045,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11258,6 +13107,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -11334,6 +13191,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11395,6 +13260,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11449,6 +13322,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -11532,6 +13413,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--to"
        ],
        "kind": "freeform",
@@ -11585,6 +13474,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -11677,6 +13574,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11731,6 +13636,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -11799,6 +13712,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11860,6 +13781,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--dry-run"
        ],
        "kind": "boolean",
@@ -11914,6 +13843,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -12006,6 +13943,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--default"
        ],
        "kind": "boolean",
@@ -12083,6 +14028,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--refresh"
        ],
        "kind": "boolean",
@@ -12128,6 +14081,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -12158,6 +14119,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -12234,6 +14203,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": []
@@ -12250,6 +14227,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -12326,6 +14311,48 @@
       {
        "flags": [
         "--planned-effort"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--planning"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--description",
+        "--desc"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--file",
+        "-f"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--duplicate"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--max-bytes"
        ],
        "kind": "freeform",
        "completer": null,
@@ -12411,6 +14438,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--attachments",
         "--main-attachments"
        ],
@@ -12429,6 +14464,22 @@
       {
        "flags": [
         "--description-attachments"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--planning"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--all-planning"
        ],
        "kind": "boolean",
        "completer": null,
@@ -12461,6 +14512,14 @@
       },
       {
        "flags": [
+        "--max-bytes"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--json"
        ],
        "kind": "boolean",
@@ -12482,6 +14541,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -12562,6 +14629,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--public"
        ],
        "kind": "boolean",
@@ -12628,6 +14703,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -12644,6 +14727,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -12688,6 +14779,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -12725,6 +14824,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--search"
          ],
          "kind": "freeform",
@@ -12742,6 +14849,14 @@
         {
          "flags": [
           "--page"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--per-page"
          ],
          "kind": "freeform",
          "completer": null,
@@ -12771,6 +14886,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -12848,6 +14971,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -12916,6 +15047,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -12932,6 +15071,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -12970,6 +15117,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -13053,6 +15208,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -13069,6 +15232,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -13107,6 +15278,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -13217,6 +15396,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--spent"
          ],
          "kind": "freeform",
@@ -13285,6 +15472,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -13300,6 +15495,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -13355,6 +15558,14 @@
       },
       {
        "flags": [
+        "--confirm-destructive"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--json"
        ],
        "kind": "boolean",
@@ -13381,6 +15592,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -13396,6 +15615,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -13480,6 +15707,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--choices"
        ],
        "kind": "freeform",
@@ -13525,6 +15760,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--mode"
        ],
        "kind": "freeform",
@@ -13554,6 +15797,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -13596,6 +15847,14 @@
      "kind": "boolean",
      "completer": null,
      "resource": null
+    },
+    {
+     "flags": [
+      "--quiet"
+     ],
+     "kind": "boolean",
+     "completer": null,
+     "resource": null
     }
    ],
    "subcommands": [
@@ -13611,6 +15870,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -13681,6 +15948,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--output",
         "-o"
        ],
@@ -13703,6 +15978,14 @@
        "flags": [
         "--verbose",
         "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
        ],
        "kind": "boolean",
        "completer": null,
@@ -13767,6 +16050,14 @@
       {
        "flags": [
         "--attach"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--max-bytes"
        ],
        "kind": "freeform",
        "completer": null,
@@ -13852,6 +16143,14 @@
       },
       {
        "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
         "--items"
        ],
        "kind": "boolean",
@@ -13910,6 +16209,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -13926,6 +16233,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -13970,6 +16285,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -14007,6 +16330,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--search"
          ],
          "kind": "freeform",
@@ -14024,6 +16355,14 @@
         {
          "flags": [
           "--page"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--per-page"
          ],
          "kind": "freeform",
          "completer": null,
@@ -14053,6 +16392,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -14130,6 +16477,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--kind"
          ],
          "kind": "freeform",
@@ -14198,6 +16553,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -14214,6 +16577,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -14243,6 +16614,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -14344,6 +16723,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--remark"
          ],
          "kind": "freeform",
@@ -14407,6 +16794,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -14484,6 +16879,14 @@
         },
         {
          "flags": [
+          "--quiet"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
           "--remark"
          ],
          "kind": "freeform",
@@ -14547,6 +16950,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -14622,6 +17033,14 @@
        "kind": "boolean",
        "completer": null,
        "resource": null
+      },
+      {
+       "flags": [
+        "--quiet"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
       }
      ],
      "subcommands": [
@@ -14638,6 +17057,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,
@@ -14667,6 +17094,14 @@
          "flags": [
           "--verbose",
           "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--quiet"
          ],
          "kind": "boolean",
          "completer": null,

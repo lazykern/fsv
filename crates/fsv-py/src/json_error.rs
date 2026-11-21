@@ -137,8 +137,8 @@ impl Doc {
                 return Err(Fail("Invalid \\uXXXX escape", next - 1));
             }
             let mut code = 0u32;
-            for k in next..end {
-                let d = self.s[k]
+            for ch in &self.s[next..end] {
+                let d = ch
                     .to_digit(16)
                     .ok_or(Fail("Invalid \\uXXXX escape", end - 5))?;
                 code = code << 4 | d;
@@ -151,8 +151,8 @@ impl Doc {
             {
                 end += 6;
                 let mut low = 0u32;
-                for k in next + 2..end {
-                    let d = self.s[k]
+                for ch in &self.s[next + 2..end] {
+                    let d = ch
                         .to_digit(16)
                         .ok_or(Fail("Invalid \\uXXXX escape", end - 5))?;
                     low = low << 4 | d;

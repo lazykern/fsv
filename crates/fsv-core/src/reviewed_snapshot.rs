@@ -208,13 +208,16 @@ mod tests {
 
     #[test]
     fn snapshots_match_python() {
+        let _env = crate::testenv::isolated().with_domain("acme.example.com");
         let doc = oracle();
         let rows = doc["snapshots"].as_array().unwrap();
         assert!(rows.len() > 50);
         for row in rows {
             let value = &row["value"];
             let body = (!value.is_null()).then_some(value);
-            assert_eq!(json!(plan_hash(body)), row["plan_hash"], "{value}");
+            // Plan hashes bind the tenant on top of the unchanged canonical hash.
+            let bound = row["plan_hash"].as_str().map(crate::tenant::bind_plan);
+            assert_eq!(json!(plan_hash(body)), json!(bound), "{value}");
             match row.get("error") {
                 Some(err) => {
                     assert_eq!(stable_snapshot(value).unwrap_err(), err.as_str().unwrap());

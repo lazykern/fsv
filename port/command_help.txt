@@ -6,8 +6,12 @@ A	fsv	--no-input	fail instead of prompting
 A	fsv	--verbose	print debug info to stderr
 A	fsv	--version	print version and exit
 A	fsv	--refresh	refetch every cached form schema, form rule set and view list once in this run
+A	fsv	--quiet	do not print the `fsv: tenant ...` line on stderr (env FSV_QUIET=1)
+A	fsv	--tenant	assert the target tenant; confirms it for --yes writes when it equals the configured domain
 A	fsv	--install-completion	Install completion for the current shell.
 A	fsv	--show-completion	Show completion for the current shell, to copy it or customize the installation.
+C	fsv whoami	Show the signed-in agent and the tenant/config dir this shell targets (read-only).
+A	fsv whoami	--json	print JSON
 C	fsv help	Show topic help.
 A	fsv help	<topic>	topic: auth|workflow|fields|scripting|comments
 C	fsv search	Global search across all entities (tickets, problems, changes, tasks, assets, solutions).
@@ -29,7 +33,7 @@ A	fsv auth login	--browser	Open an isolated browser, let you finish SSO/MFA, the
 A	fsv auth login	--store	Where to save: 'file' (plain chmod 600), 'argon' (Argon2id + AES-GCM), or 'keychain' (macOS Keychain). Interactive when omitted; default keychain on macOS.
 A	fsv auth login	--no-input	fail instead of prompting
 A	fsv auth login	--force	save cookies even if they fail validation against the tenant
-C	fsv auth logout	Wipe stored session (file + Keychain + backend pref).
+C	fsv auth logout	Wipe this config dir's stored session (file, its own Keychain item, backend pref).
 A	fsv auth logout	--yes	skip confirmation prompt
 A	fsv auth logout	--no-input	fail instead of prompting
 C	fsv auth status	Show current agent identity and session status.
@@ -82,6 +86,8 @@ C	fsv completion refresh	Alias for `fsv cache refresh`.
 C	fsv completion doctor	Show completion install/cache diagnostics.
 C	fsv config	manage fsv settings
 C	fsv config list	List all config keys and current values.
+C	fsv config show	Show the target tenant, config dir, write confirmation and all config values.
+A	fsv config show	--json	print JSON
 C	fsv config get	Get a single config value.
 A	fsv config get	<key>	config key
 C	fsv config set	Set a config value.
@@ -125,7 +131,7 @@ A	fsv changes ls	--npages	fetch exactly N pages
 A	fsv changes ls	--output	output format
 A	fsv changes ls	--json	alias for --output json
 A	fsv changes ls	--pager	page long table output when stdout is a TTY
-A	fsv changes ls	--no-defaults	ignore default --where filters from config
+A	fsv changes ls	--no-defaults	ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view
 C	fsv changes get	Show one change.
 A	fsv changes get	<id_>	
 A	fsv changes get	--tab	show one tab of the page: notes|tasks|approvals|assets|impacted|associations|activity|risk|devops (only tabs the server shows)
@@ -633,7 +639,7 @@ A	fsv tickets ls	--npages	fetch exactly N pages
 A	fsv tickets ls	--output	output format
 A	fsv tickets ls	--json	alias for --output json
 A	fsv tickets ls	--pager	page long table output when stdout is a TTY
-A	fsv tickets ls	--no-defaults	ignore default --where filters from config
+A	fsv tickets ls	--no-defaults	ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view
 C	fsv tickets get	Show one ticket.
 A	fsv tickets get	<id_>	
 A	fsv tickets get	--tab	show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)
@@ -929,7 +935,7 @@ A	fsv tickets forward	<id_>
 A	fsv tickets forward	<body>	
 A	fsv tickets forward	--conversation	exact source conversation ID in this ticket
 A	fsv tickets forward	--to	plain recipient email (repeatable)
-A	fsv tickets forward	--sender	configured support mailbox; not inferred
+A	fsv tickets forward	--sender	configured support mailbox (a tenant support email address); not inferred; any other address is rejected by the server with HTTP 400
 A	fsv tickets forward	--output	output format (JSON only)
 A	fsv tickets forward	--json	alias for --output json
 A	fsv tickets forward	--dry-run	
@@ -1206,7 +1212,7 @@ A	fsv problems ls	--npages	fetch exactly N pages
 A	fsv problems ls	--output	output format
 A	fsv problems ls	--json	alias for --output json
 A	fsv problems ls	--pager	page long table output when stdout is a TTY
-A	fsv problems ls	--no-defaults	ignore default --where filters from config
+A	fsv problems ls	--no-defaults	ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view
 C	fsv problems get	Show one problem.
 A	fsv problems get	<id_>	
 A	fsv problems get	--tab	show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)

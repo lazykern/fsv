@@ -15,7 +15,7 @@
 //! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
-//! Python commit: 7fcdea40050b962d13c70c38328c6d5ea4455ae1
+//! Python commit: 84ffb0ff098009e3580c7ab9154175f8338e1b1f
 
 mod common;
 use common::{run_files, run_fixture};
@@ -118,8 +118,10 @@ fn tickets_watch_dry_run() {
   "payload": {
     "user_id": 9
   },
-  "plan_hash": "3550252fbb8b8eff91ad10123e3af0291e8972d4a3dbb5b734daa9cce18c3a6e",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "a825fa859b245a376620af57e169d3a3fb9d284ac137ee1af6e4890e950e4b32",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -156,7 +158,7 @@ fn tickets_watch_send() {
             "--output=json",
             "--json",
             "--expect-plan",
-            "3550252fbb8b8eff91ad10123e3af0291e8972d4a3dbb5b734daa9cce18c3a6e",
+            "a825fa859b245a376620af57e169d3a3fb9d284ac137ee1af6e4890e950e4b32",
         ],
         None,
     );
@@ -165,12 +167,14 @@ fn tickets_watch_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "3550252fbb8b8eff91ad10123e3af0291e8972d4a3dbb5b734daa9cce18c3a6e",
+  "plan_hash": "a825fa859b245a376620af57e169d3a3fb9d284ac137ee1af6e4890e950e4b32",
   "verified": true,
   "watcher_ids": [
     3,
     9
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -202,8 +206,10 @@ fn changes_unwatch_dry_run() {
   "method": "DELETE",
   "path": "/api/_/changes/12/unwatch?user_id=9",
   "payload": null,
-  "plan_hash": "be559b20226d34837e0affd47ed3b1529cfc13a4f09f29983895d421818bbeb2",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "507f42c4b08ff712034f8c7542e100bc32915906167c8ac205784990694bbc6e",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -222,7 +228,7 @@ fn changes_unwatch_send() {
             "--unwatch",
             "--yes",
             "--expect-plan",
-            "be559b20226d34837e0affd47ed3b1529cfc13a4f09f29983895d421818bbeb2",
+            "507f42c4b08ff712034f8c7542e100bc32915906167c8ac205784990694bbc6e",
         ],
         None,
     );
@@ -231,11 +237,13 @@ fn changes_unwatch_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "be559b20226d34837e0affd47ed3b1529cfc13a4f09f29983895d421818bbeb2",
+  "plan_hash": "507f42c4b08ff712034f8c7542e100bc32915906167c8ac205784990694bbc6e",
   "verified": true,
   "watcher_ids": [
     4
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -255,7 +263,7 @@ fn tickets_watch_already_watching() {
             "--watch",
             "--yes",
             "--expect-plan",
-            "3f67af5e89c7796fcf83001ea60895cb8adb8c42f4ecb184d1cef67fb337cbc3",
+            "01bb7814043fe1fc794c2fbbd712761e5e471d6e5dbc31239ddbcf52b532e312",
         ],
         None,
     );
@@ -265,7 +273,9 @@ fn tickets_watch_already_watching() {
         r#"{
   "status": "already_in_requested_state",
   "verified": true,
-  "plan_hash": "3f67af5e89c7796fcf83001ea60895cb8adb8c42f4ecb184d1cef67fb337cbc3"
+  "plan_hash": "01bb7814043fe1fc794c2fbbd712761e5e471d6e5dbc31239ddbcf52b532e312",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -339,8 +349,10 @@ fn time_create_dry_run() {
     "time_spent": "01:15",
     "timer_running": false
   },
-  "plan_hash": "d3ca3bff6a8b0b8e48f8529ad51750fb66e6959b216ee9667cd994c3f1440a52",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "9116412581801138360bd9688d73a90b35ab0f84b818cbea47959ced366aee41",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -365,7 +377,7 @@ fn time_create_send() {
             "Acme work",
             "--yes",
             "--expect-plan",
-            "d3ca3bff6a8b0b8e48f8529ad51750fb66e6959b216ee9667cd994c3f1440a52",
+            "9116412581801138360bd9688d73a90b35ab0f84b818cbea47959ced366aee41",
         ],
         None,
     );
@@ -374,7 +386,7 @@ fn time_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d3ca3bff6a8b0b8e48f8529ad51750fb66e6959b216ee9667cd994c3f1440a52",
+  "plan_hash": "9116412581801138360bd9688d73a90b35ab0f84b818cbea47959ced366aee41",
   "verified": true,
   "entry_id": 31,
   "fields": {
@@ -384,7 +396,9 @@ fn time_create_send() {
     "note": "matched",
     "time_spent": "matched",
     "timer_running": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -517,8 +531,10 @@ fn time_update_note_keeps_minutes() {
     "note": "Globex",
     "time_spent": "02:05"
   },
-  "plan_hash": "dd042d69b0381cfce9e840d2757039ef73203ba1cbcd367a49fc391fd74210f6",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "915b26ef33d43d8e2ef0570d97bcc6aec8d2c4ede3f63d1c94b0c674c9f28cf9",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -542,7 +558,7 @@ fn time_update_send() {
             "--yes",
             "--json",
             "--expect-plan",
-            "dd042d69b0381cfce9e840d2757039ef73203ba1cbcd367a49fc391fd74210f6",
+            "915b26ef33d43d8e2ef0570d97bcc6aec8d2c4ede3f63d1c94b0c674c9f28cf9",
         ],
         None,
     );
@@ -551,13 +567,15 @@ fn time_update_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "dd042d69b0381cfce9e840d2757039ef73203ba1cbcd367a49fc391fd74210f6",
+  "plan_hash": "915b26ef33d43d8e2ef0570d97bcc6aec8d2c4ede3f63d1c94b0c674c9f28cf9",
   "verified": true,
   "entry_id": 41,
   "fields": {
     "note": "matched",
     "time_spent": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -658,7 +676,7 @@ fn time_delete_send() {
             "51",
             "--yes",
             "--expect-plan",
-            "0d3139b2f9da73285914f8a1556e7f3ba92d618cbd4863393950fdbebc951146",
+            "81da26138267add64b8ad95e701eeee07103ffd7b2a6a58a6f6ab37533431693",
         ],
         None,
     );
@@ -667,9 +685,11 @@ fn time_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "0d3139b2f9da73285914f8a1556e7f3ba92d618cbd4863393950fdbebc951146",
+  "plan_hash": "81da26138267add64b8ad95e701eeee07103ffd7b2a6a58a6f6ab37533431693",
   "verified": true,
-  "entry_id": 51
+  "entry_id": 51,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -731,11 +751,13 @@ fn change_planning_text_dry_run() {
   "payload": {
     "description": "<p>Globex rollout</p>"
   },
-  "plan_hash": "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0",
+  "plan_hash": "c4d4cd168f18a0df604fd88cdcb3c0140a033e0dc0e311b56763857632a318c7",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "create",
   "before": "",
-  "after": "<p>Globex rollout</p>"
+  "after": "<p>Globex rollout</p>",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -756,7 +778,7 @@ fn change_planning_text_send() {
             "<p>Globex rollout</p>",
             "--yes",
             "--expect-plan",
-            "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0",
+            "c4d4cd168f18a0df604fd88cdcb3c0140a033e0dc0e311b56763857632a318c7",
         ],
         None,
     );
@@ -765,10 +787,12 @@ fn change_planning_text_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0",
+  "plan_hash": "c4d4cd168f18a0df604fd88cdcb3c0140a033e0dc0e311b56763857632a318c7",
   "verified": true,
   "section": "acme_plan",
-  "description": "matched"
+  "description": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -853,11 +877,13 @@ fn change_planning_text_existing_refused() {
   "payload": {
     "description": "x"
   },
-  "plan_hash": "a2da8700f9883b0573a9c87ab44e3e1d6c5c5404e88c3725c43e02dd7ecb22d7",
+  "plan_hash": "a066c3852753967edc288f69779650d3ef337409c7893010592b1965c9557e00",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "edit",
   "before": "<p>old</p>",
-  "after": "x"
+  "after": "x",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -941,11 +967,13 @@ fn problem_planning_text_dry_run() {
   "payload": {
     "description": "Acme DNS outage"
   },
-  "plan_hash": "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173",
+  "plan_hash": "881b034a95a1b4d9473fef0ba3b34717b2c23970078364cde5245e8df7190775",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "create",
   "before": "",
-  "after": "Acme DNS outage"
+  "after": "Acme DNS outage",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -966,7 +994,7 @@ fn problem_planning_text_send() {
             "Acme DNS outage",
             "--yes",
             "--expect-plan",
-            "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173",
+            "881b034a95a1b4d9473fef0ba3b34717b2c23970078364cde5245e8df7190775",
         ],
         None,
     );
@@ -975,10 +1003,12 @@ fn problem_planning_text_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173",
+  "plan_hash": "881b034a95a1b4d9473fef0ba3b34717b2c23970078364cde5245e8df7190775",
   "verified": true,
   "section": "problem_cause",
-  "description": "matched"
+  "description": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1087,11 +1117,13 @@ fn change_planning_text_edit_dry_run() {
   "payload": {
     "description": "Acme new"
   },
-  "plan_hash": "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1",
+  "plan_hash": "c8ac68f44b8e044c17a8a59d106b566a804268250af1ce8605f7968fb7b4372b",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "edit",
   "before": "<div>Acme original</div>",
-  "after": "Acme new"
+  "after": "Acme new",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1137,7 +1169,7 @@ fn change_planning_text_edit_send() {
             "Acme new",
             "--yes",
             "--expect-plan",
-            "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1",
+            "c8ac68f44b8e044c17a8a59d106b566a804268250af1ce8605f7968fb7b4372b",
         ],
         None,
     );
@@ -1146,10 +1178,12 @@ fn change_planning_text_edit_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1",
+  "plan_hash": "c8ac68f44b8e044c17a8a59d106b566a804268250af1ce8605f7968fb7b4372b",
   "verified": true,
   "section": "acme_plan",
-  "description": "matched"
+  "description": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1184,11 +1218,13 @@ fn change_planning_text_clear_dry_run() {
   "method": "DELETE",
   "path": "/api/_/changes/124/planning-fields/acme_plan",
   "payload": null,
-  "plan_hash": "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b",
+  "plan_hash": "c274dcc4151a61572517a65c418881f5d66ea69428a2c947da430deed49a3e59",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "clear",
   "before": "<div>Acme original</div>",
-  "after": ""
+  "after": "",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1232,7 +1268,7 @@ fn change_planning_text_clear_send() {
             "--clear",
             "--yes",
             "--expect-plan",
-            "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b",
+            "c274dcc4151a61572517a65c418881f5d66ea69428a2c947da430deed49a3e59",
         ],
         None,
     );
@@ -1241,10 +1277,12 @@ fn change_planning_text_clear_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b",
+  "plan_hash": "c274dcc4151a61572517a65c418881f5d66ea69428a2c947da430deed49a3e59",
   "verified": true,
   "section": "acme_plan",
-  "description": "matched"
+  "description": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1282,11 +1320,13 @@ fn change_planning_text_existing_content_edit_dry_run() {
   "payload": {
     "description": "Acme"
   },
-  "plan_hash": "f15c3d2339b690f4f445b2a51795ebdccc3361bb48fe79f68f81475389f40daa",
+  "plan_hash": "86fe69a0aa249e70668ce06dcb076ad4992ccdb9194709fbfbd6aadf0cacd8da",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "edit",
   "before": "Acme original",
-  "after": "Acme"
+  "after": "Acme",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1347,11 +1387,13 @@ fn problem_planning_text_edit_dry_run() {
   "payload": {
     "description": "Acme new"
   },
-  "plan_hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+  "plan_hash": "22985d135e002d4011b6c1e12acfed092ed1a01dd142475e84a541ecec0ade88",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "edit",
   "before": "<div>Acme original</div>",
-  "after": "Acme new"
+  "after": "Acme new",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1397,7 +1439,7 @@ fn problem_planning_text_edit_send() {
             "Acme new",
             "--yes",
             "--expect-plan",
-            "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+            "22985d135e002d4011b6c1e12acfed092ed1a01dd142475e84a541ecec0ade88",
         ],
         None,
     );
@@ -1406,10 +1448,12 @@ fn problem_planning_text_edit_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+  "plan_hash": "22985d135e002d4011b6c1e12acfed092ed1a01dd142475e84a541ecec0ade88",
   "verified": true,
   "section": "problem_cause",
-  "description": "matched"
+  "description": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1444,11 +1488,13 @@ fn problem_planning_text_clear_dry_run() {
   "method": "DELETE",
   "path": "/api/_/problems/124/planning-fields/problem_cause",
   "payload": null,
-  "plan_hash": "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b",
+  "plan_hash": "0b14e151a8d4efbc608ef606a42ff892efc9da2570bfc9cddb32f33cc070772b",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "clear",
   "before": "<div>Acme original</div>",
-  "after": ""
+  "after": "",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1492,7 +1538,7 @@ fn problem_planning_text_clear_send() {
             "--clear",
             "--yes",
             "--expect-plan",
-            "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b",
+            "0b14e151a8d4efbc608ef606a42ff892efc9da2570bfc9cddb32f33cc070772b",
         ],
         None,
     );
@@ -1501,10 +1547,12 @@ fn problem_planning_text_clear_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b",
+  "plan_hash": "0b14e151a8d4efbc608ef606a42ff892efc9da2570bfc9cddb32f33cc070772b",
   "verified": true,
   "section": "problem_cause",
-  "description": "matched"
+  "description": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1542,11 +1590,13 @@ fn problem_planning_text_existing_content_edit_dry_run() {
   "payload": {
     "description": "Acme"
   },
-  "plan_hash": "5f90b0f07360dfe22c64244bfe70d616c4926518e3f1103f979990f71eaa17f4",
+  "plan_hash": "9dbeb4db9c4441abf48f8fb33a44d797b595271878ef7094bd8683c19a0ac7b2",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "operation": "edit",
   "before": "Acme original",
-  "after": "Acme"
+  "after": "Acme",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1672,8 +1722,10 @@ fn mark_known_error_dry_run() {
   "payload": {
     "known_error": true
   },
-  "plan_hash": "ac51138eacf22a51e00652581c6c4c83cb6f9235611456543550a85c75bd3102",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "efb37468aeb2e628d21801c22b5e16665aec849849a263883e44944426debf1f",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1692,7 +1744,7 @@ fn mark_known_error_send() {
             "-o",
             "json",
             "--expect-plan",
-            "ac51138eacf22a51e00652581c6c4c83cb6f9235611456543550a85c75bd3102",
+            "efb37468aeb2e628d21801c22b5e16665aec849849a263883e44944426debf1f",
         ],
         None,
     );
@@ -1701,9 +1753,11 @@ fn mark_known_error_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "ac51138eacf22a51e00652581c6c4c83cb6f9235611456543550a85c75bd3102",
+  "plan_hash": "efb37468aeb2e628d21801c22b5e16665aec849849a263883e44944426debf1f",
   "verified": true,
-  "problem_id": 7
+  "problem_id": 7,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1721,7 +1775,7 @@ fn mark_known_error_already() {
             "9",
             "--yes",
             "--expect-plan",
-            "76ed54825bfff7204593f9c86373ade92bcc68ee91eae8126df18bc898df7b12",
+            "6269951058b01081df9ecbb7c16fa2fe18544261beeea75d3123c274042c34c3",
         ],
         None,
     );
@@ -1730,7 +1784,9 @@ fn mark_known_error_already() {
         r.out,
         r#"{
   "status": "already_in_requested_state",
-  "verified": true
+  "verified": true,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1790,11 +1846,13 @@ fn reply_bcc_dry_run() {
     "translate_reply": false
   },
   "status_label": null,
-  "plan_hash": "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80",
+  "plan_hash": "390983463def2d14f82f2e09d3a585bda1b574ca566c695a21f6bc86d68127df",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1816,7 +1874,7 @@ fn reply_bcc_send() {
             "support@acme.com",
             "--yes",
             "--expect-plan",
-            "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80",
+            "390983463def2d14f82f2e09d3a585bda1b574ca566c695a21f6bc86d68127df",
         ],
         None,
     );
@@ -1827,13 +1885,15 @@ fn reply_bcc_send() {
   "status": "submitted",
   "conversation_id": 900,
   "ticket_id": 5,
-  "plan_hash": "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80",
+  "plan_hash": "390983463def2d14f82f2e09d3a585bda1b574ca566c695a21f6bc86d68127df",
   "verified": true,
   "fields": {
     "body": "matched",
     "bcc_emails": "matched",
     "from_email": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -1855,11 +1915,13 @@ fn reply_bcc_send() {
     "translate_reply": false
   },
   "status_label": null,
-  "plan_hash": "ade2cf41762d10e5a608995dbf6486185908ca50a877f3fd543f29e0c6687e80",
+  "plan_hash": "390983463def2d14f82f2e09d3a585bda1b574ca566c695a21f6bc86d68127df",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2003,11 +2065,13 @@ fn forward_dry_run() {
     "private": true
   },
   "status_label": null,
-  "plan_hash": "5c24fced7a7b4c77e468569a8fa7cbaa16dbda8cb34d184b3fe5daa0188a8263",
+  "plan_hash": "ca2fc452e44f19c97f2ef33bad1dbfb46d41934cc7d15b022eecb9a04545ea1e",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2030,7 +2094,7 @@ fn forward_send() {
             "--json",
             "--yes",
             "--expect-plan",
-            "5c24fced7a7b4c77e468569a8fa7cbaa16dbda8cb34d184b3fe5daa0188a8263",
+            "ca2fc452e44f19c97f2ef33bad1dbfb46d41934cc7d15b022eecb9a04545ea1e",
         ],
         None,
     );
@@ -2041,14 +2105,16 @@ fn forward_send() {
   "status": "submitted",
   "conversation_id": 901,
   "ticket_id": 5,
-  "plan_hash": "5c24fced7a7b4c77e468569a8fa7cbaa16dbda8cb34d184b3fe5daa0188a8263",
+  "plan_hash": "ca2fc452e44f19c97f2ef33bad1dbfb46d41934cc7d15b022eecb9a04545ea1e",
   "verified": true,
   "fields": {
     "body": "matched",
     "private": "matched",
     "notify_emails": "matched",
     "from_email": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2146,11 +2212,13 @@ fn forward_conversation_dry_run() {
     "private": true
   },
   "status_label": null,
-  "plan_hash": "ea141a6dc6a011baf0ef52b8cdd432752efab0829be7418249e20d3303194278",
+  "plan_hash": "9824a116e379c37e5e2f01f560345a6902e60ed78e302c38b37ff86c9a171067",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2175,7 +2243,7 @@ fn forward_conversation_send() {
             "--json",
             "--yes",
             "--expect-plan",
-            "ea141a6dc6a011baf0ef52b8cdd432752efab0829be7418249e20d3303194278",
+            "9824a116e379c37e5e2f01f560345a6902e60ed78e302c38b37ff86c9a171067",
         ],
         None,
     );
@@ -2186,7 +2254,7 @@ fn forward_conversation_send() {
   "status": "submitted",
   "conversation_id": 901,
   "ticket_id": 5,
-  "plan_hash": "ea141a6dc6a011baf0ef52b8cdd432752efab0829be7418249e20d3303194278",
+  "plan_hash": "9824a116e379c37e5e2f01f560345a6902e60ed78e302c38b37ff86c9a171067",
   "verified": true,
   "fields": {
     "body": "matched",
@@ -2197,7 +2265,9 @@ fn forward_conversation_send() {
   "source_conversation_id": 900,
   "source_link_readback": "unavailable",
   "source_link_verified": false,
-  "verification_scope": "delivery fields; source link is not exposed by independent readback"
+  "verification_scope": "delivery fields; source link is not exposed by independent readback",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2266,12 +2336,14 @@ fn update_reviewed_priority_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "plan_hash": "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2318,12 +2390,14 @@ fn update_reviewed_custom_field_dry_run() {
       "cost_code": "new"
     }
   },
-  "plan_hash": "f451505413b47d11d9206f939a3c3e3f546b317bff991aa754f7c04950bf9cad",
+  "plan_hash": "f07a0b9ed88e7796ed74a63f89ae2110dd931a91cc849609c6bd5446147abe94",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2343,7 +2417,7 @@ fn update_reviewed_send_verifies() {
             "High",
             "--yes",
             "--expect-plan",
-            "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+            "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
         ],
         None,
     );
@@ -2353,11 +2427,13 @@ fn update_reviewed_send_verifies() {
         r#"{
   "status": "submitted",
   "ticket_id": 5,
-  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "plan_hash": "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
   "verified": true,
   "fields": {
     "priority": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2377,12 +2453,14 @@ fn update_reviewed_send_verifies() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "plan_hash": "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2422,12 +2500,14 @@ fn update_reviewed_yes_without_hash() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "plan_hash": "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 --yes requires the full --expect-plan from a prior review
 "#
@@ -2469,12 +2549,14 @@ fn update_reviewed_wrong_hash() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "plan_hash": "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 review hash changed; review again
 "#
@@ -2580,7 +2662,7 @@ fn update_reviewed_set_without_equals() {
 }
 
 #[test]
-fn update_reviewed_flag_on_problems_reviews_the_form_update_and_needs_the_form_route() {
+fn update_reviewed_problems_refused() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
@@ -2604,205 +2686,7 @@ fn update_reviewed_flag_on_problems_reviews_the_form_update_and_needs_the_form_r
 }
 
 #[test]
-fn update_ack_without_reviewed_flag_reviews_the_plan() {
-    let r = run_fixture(
-        "ticket_reviewed",
-        &[
-            "tickets",
-            "update",
-            "5",
-            "--priority",
-            "High",
-            "--ack",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert!(r.out.contains("\"plan_hash\": \"9fcb01d6"), "{}", r.out);
-    assert!(r.out.contains("\"record_state\""), "{}", r.out);
-    assert_eq!(r.err, "");
-}
-
-#[test]
-fn problems_update_ack_is_ticket_only() {
-    let r = run_fixture(
-        "ticket_reviewed",
-        &["problems", "update", "5", "--ack"],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert_eq!(r.err, "error: --ack applies to ticket updates only\n");
-}
-
-#[test]
-fn update_reviewed_ack_without_blocking_keeps_hash() {
-    let r = run_fixture(
-        "ticket_reviewed",
-        &[
-            "tickets",
-            "update",
-            "5",
-            "--reviewed",
-            "--ack",
-            "--priority",
-            "High",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert!(
-        r.out.contains(
-            "\"plan_hash\": \"9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482\""
-        ),
-        "{}",
-        r.out
-    );
-    assert!(!r.out.contains("acknowledged_rule_messages"), "{}", r.out);
-}
-
-#[test]
-fn update_reviewed_blocking_needs_ack() {
-    let r = run_fixture(
-        "ticket_reviewed_ack",
-        &[
-            "tickets",
-            "update",
-            "5",
-            "--reviewed",
-            "--priority",
-            "High",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert_eq!(
-        r.err,
-        "ticket form validation failed: blocked by rule (acknowledge to continue): High priority needs the Acme lead; pass --ack to acknowledge the blocking rule message(s) after reading them\n"
-    );
-}
-
-#[test]
-fn update_reviewed_ack_dry_run() {
-    let r = run_fixture(
-        "ticket_reviewed_ack",
-        &[
-            "tickets",
-            "update",
-            "5",
-            "--reviewed",
-            "--ack",
-            "--priority",
-            "High",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(r.err, "");
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "dry_run",
-  "action": "ticket_properties",
-  "method": "PUT",
-  "path": "/api/_/tickets/5",
-  "before": {
-    "priority": 1
-  },
-  "after": {
-    "priority": 73
-  },
-  "payload": {
-    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
-    "priority": 73
-  },
-  "plan_hash": "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
-  "acknowledged_rule_messages": [
-    "High priority needs the Acme lead"
-  ],
-  "record_state": {
-    "sends": 0,
-    "server_version": null
-  }
-}
-"#
-    );
-}
-
-#[test]
-fn update_reviewed_ack_send() {
-    let r = run_fixture(
-        "ticket_reviewed_ack",
-        &[
-            "tickets",
-            "update",
-            "5",
-            "--reviewed",
-            "--ack",
-            "--priority",
-            "High",
-            "--yes",
-            "--expect-plan",
-            "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "ticket_id": 5,
-  "plan_hash": "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
-  "verified": true,
-  "fields": {
-    "priority": "matched"
-  }
-}
-"#
-    );
-    assert!(
-        r.err.contains("\"acknowledged_rule_messages\""),
-        "{}",
-        r.err
-    );
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/5"]);
-}
-
-#[test]
-fn update_reviewed_acked_hash_without_ack() {
-    let r = run_fixture(
-        "ticket_reviewed_ack",
-        &[
-            "tickets",
-            "update",
-            "5",
-            "--reviewed",
-            "--priority",
-            "High",
-            "--yes",
-            "--expect-plan",
-            "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert_eq!(
-        r.err,
-        "ticket form validation failed: blocked by rule (acknowledge to continue): High priority needs the Acme lead; pass --ack to acknowledge the blocking rule message(s) after reading them\n"
-    );
-    assert!(r.write_paths().is_empty(), "{:?}", r.write_paths());
-}
-
-#[test]
-fn update_expect_plan_is_checked_without_the_reviewed_flag() {
+fn update_expect_plan_needs_reviewed() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
@@ -2817,11 +2701,34 @@ fn update_expect_plan_is_checked_without_the_reviewed_flag() {
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert!(
-        r.err.ends_with("review hash changed; review again\n"),
-        "{}",
-        r.err
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "ticket_properties",
+  "method": "PUT",
+  "path": "/api/_/tickets/5",
+  "before": {
+    "priority": 1
+  },
+  "after": {
+    "priority": 73
+  },
+  "payload": {
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "priority": 73
+  },
+  "plan_hash": "f47fab1ee5b9db9cd1c0df84ecb7bf798ab3e4381897d12b9835cfb282b4f088",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
+review hash changed; review again
+"#
     );
 }
 
@@ -2856,7 +2763,7 @@ fn bulk_priority_dry_run() {
     "priority": 73,
     "reply": {}
   },
-  "plan_hash": "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
+  "plan_hash": "7d2b7d833ad008e3ad2ad62cefa316c1389a4589f7db2472833498b6acfccc0c",
   "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible.",
   "before": [
     {
@@ -2868,7 +2775,9 @@ fn bulk_priority_dry_run() {
       "priority": 1
     }
   ],
-  "priority_label": "High"
+  "priority_label": "High",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2888,7 +2797,7 @@ fn bulk_priority_send_verifies() {
             "High",
             "--yes",
             "--expect-plan",
-            "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
+            "7d2b7d833ad008e3ad2ad62cefa316c1389a4589f7db2472833498b6acfccc0c",
         ],
         None,
     );
@@ -2897,13 +2806,15 @@ fn bulk_priority_send_verifies() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
+  "plan_hash": "7d2b7d833ad008e3ad2ad62cefa316c1389a4589f7db2472833498b6acfccc0c",
   "verified": true,
   "tickets": {
     "5": "matched",
     "6": "matched"
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -2927,7 +2838,7 @@ fn bulk_priority_unverified_exits_1() {
             "High",
             "--yes",
             "--expect-plan",
-            "5937678464cf9dbc2cf84f682e4d86860c5968305ca9cf37c72c1766446e1955",
+            "febac7b50647c8c5c53d5c3aec573740067e500763881eb814bb27c824488039",
         ],
         None,
     );
@@ -2936,14 +2847,16 @@ fn bulk_priority_unverified_exits_1() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "5937678464cf9dbc2cf84f682e4d86860c5968305ca9cf37c72c1766446e1955",
+  "plan_hash": "febac7b50647c8c5c53d5c3aec573740067e500763881eb814bb27c824488039",
   "verified": false,
   "tickets": {
     "5": "matched",
     "7": "mismatched"
   },
   "readback_attempts": 4,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -3078,27 +2991,16 @@ fn sr_send_failure_lists_uploads() {
             "/Users/phusit.somb/lab/work/fsv-rust/crates/fsv-cli/tests/fixtures/files/sr/notes.txt",
             "--yes",
             "--expect-plan",
-            "4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9",
+            "19860090d92948522db5bbd3d75040951dfd4d69ae5020eecbdad4e106289553",
         ],
         None,
     );
-    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.code, 4, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"  uploading deck.pptx... ok (4 B, server name "x" differs)
-  uploading notes.txt... ok (5 B, server name "x" differs)
-uploaded attachment ids (not attached to any request): 901 (deck.pptx), 901 (notes.txt)
-error: place-request failed: HTTP 500; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying
+        r#"error: plan changed: expected 19860090d92948522db5bbd3d75040951dfd4d69ae5020eecbdad4e106289553, computed 4b0d598affb101dfb0f3bad2c06d3df24fe42c1b59dc18f4cf5f70ab4231c2a3. Review again with --dry-run.
 "#
-    );
-    assert_eq!(
-        r.write_paths(),
-        [
-            "POST /api/_/attachments",
-            "POST /api/_/attachments",
-            "POST /api/_/catalog/service-items/77/place-request"
-        ]
     );
 }
 
@@ -3648,7 +3550,7 @@ fn canned_reply_dry_run() {
     "translate_reply": false
   },
   "status_label": null,
-  "plan_hash": "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
+  "plan_hash": "412c1906e85fdc2200975a7392e4d3635c04c6d09a75363828b27a40e79e488f",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
@@ -3657,7 +3559,9 @@ fn canned_reply_dry_run() {
     "id": 701,
     "hash": "f136a71f4682d335d1cff7e3510f7e17a3a3c0be74155646755b18ebedfe2573"
   },
-  "insertion": "Literal selected HTML only; no attachments, signatures or placeholder expansion."
+  "insertion": "Literal selected HTML only; no attachments, signatures or placeholder expansion.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -3681,7 +3585,7 @@ fn canned_reply_send() {
             "support@acme.com",
             "--yes",
             "--expect-plan",
-            "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
+            "412c1906e85fdc2200975a7392e4d3635c04c6d09a75363828b27a40e79e488f",
         ],
         None,
     );
@@ -3692,13 +3596,15 @@ fn canned_reply_send() {
   "status": "submitted",
   "conversation_id": 900,
   "ticket_id": 5,
-  "plan_hash": "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
+  "plan_hash": "412c1906e85fdc2200975a7392e4d3635c04c6d09a75363828b27a40e79e488f",
   "verified": true,
   "fields": {
     "body": "matched",
     "cc_emails": "matched",
     "from_email": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4005,12 +3911,14 @@ fn scenarios_apply_dry_run() {
     ],
     "scenario_id": 703
   },
-  "plan_hash": "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b",
+  "plan_hash": "1f643c49b416a5925f9b19a2e9b38059243d152697a28cb065921126f1ea4497",
   "warning": "Native automation may send mail or change records. No complete side-effect verification contract is captured.",
   "definition": {
     "id": 703,
     "name": "Globex"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4030,7 +3938,7 @@ fn scenarios_apply_send() {
             "703",
             "--yes",
             "--expect-plan",
-            "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b",
+            "1f643c49b416a5925f9b19a2e9b38059243d152697a28cb065921126f1ea4497",
         ],
         None,
     );
@@ -4039,11 +3947,13 @@ fn scenarios_apply_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b",
+  "plan_hash": "1f643c49b416a5925f9b19a2e9b38059243d152697a28cb065921126f1ea4497",
   "verified": false,
   "ticket_id": 5,
   "identity_verified": true,
-  "warning": "Exact ticket was read back; scenario side effects (including mail/workflows) are unverified. Do not resend."
+  "warning": "Exact ticket was read back; scenario side effects (including mail/workflows) are unverified. Do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4227,8 +4137,10 @@ fn pv_create_dry_run() {
     "visibility": 81,
     "workspace_id": 17
   },
-  "plan_hash": "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "5cf7a49d4f362ca8cfb420ef82d8da401e86a14aa5182b07c242fe9d5cef6bf5",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4277,8 +4189,10 @@ fn pv_edit_dry_run() {
     "visibility": 81,
     "workspace_id": 17
   },
-  "plan_hash": "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "72c24fc263ceee0cf5cdb47536553af020e4df41ea586e2ee9baec6fdb9528cc",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4308,8 +4222,10 @@ fn pv_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/ticket_filters/704",
   "payload": null,
-  "plan_hash": "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "397f33d1d0691afdb9e0bbd8d45c48202ea5a0893bc82edecaadc76a25fc0dac",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4358,8 +4274,10 @@ fn pv_object_label_dry_run() {
     "visibility": 81,
     "workspace_id": 17
   },
-  "plan_hash": "e5413d712d79190ed9f407b9e68c6905df579832cab501cbb78a89b4bf14055e",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "d8cacfaf02254cb1efcd721067a17ea443edf887c2317a0ea369a2a7d80a7b31",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4459,8 +4377,10 @@ fn pv_unsupported_action() {
     "visibility": 81,
     "workspace_id": 17
   },
-  "plan_hash": "5c16cc288e892dbbd92783a6a92049f6802032d818b64c9991d1dcec0823ad70",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "728aea34f382c92d845ffa026aeb19449bfc6d6d182bcd6356ad452ebdb86374",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4754,7 +4674,7 @@ fn pv_create_send() {
             "Globex",
             "--yes",
             "--expect-plan",
-            "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010",
+            "5cf7a49d4f362ca8cfb420ef82d8da401e86a14aa5182b07c242fe9d5cef6bf5",
         ],
         None,
     );
@@ -4763,7 +4683,7 @@ fn pv_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010",
+  "plan_hash": "5cf7a49d4f362ca8cfb420ef82d8da401e86a14aa5182b07c242fe9d5cef6bf5",
   "verified": false,
   "view_id": 702,
   "fields": {
@@ -4774,7 +4694,9 @@ fn pv_create_send() {
     "order_type": "matched",
     "conditions": "matched"
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4796,7 +4718,7 @@ fn pv_edit_send() {
             "Globex renamed",
             "--yes",
             "--expect-plan",
-            "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
+            "72c24fc263ceee0cf5cdb47536553af020e4df41ea586e2ee9baec6fdb9528cc",
         ],
         None,
     );
@@ -4805,7 +4727,7 @@ fn pv_edit_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
+  "plan_hash": "72c24fc263ceee0cf5cdb47536553af020e4df41ea586e2ee9baec6fdb9528cc",
   "verified": true,
   "view_id": 703,
   "fields": {
@@ -4815,7 +4737,9 @@ fn pv_edit_send() {
     "order_by": "matched",
     "order_type": "matched",
     "conditions": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4837,7 +4761,7 @@ fn pv_edit_send_mismatch() {
             "Globex_renamed",
             "--yes",
             "--expect-plan",
-            "2c8884374517a2291e001c5ca542943f754217ea5e94e2f9f26d7d5235b661b5",
+            "1b8e57667447246d365618928025db3bf4e880cfce000a226d6f0d6f41683238",
         ],
         None,
     );
@@ -4846,7 +4770,7 @@ fn pv_edit_send_mismatch() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "2c8884374517a2291e001c5ca542943f754217ea5e94e2f9f26d7d5235b661b5",
+  "plan_hash": "1b8e57667447246d365618928025db3bf4e880cfce000a226d6f0d6f41683238",
   "verified": false,
   "view_id": 703,
   "fields": {
@@ -4857,7 +4781,9 @@ fn pv_edit_send_mismatch() {
     "order_type": "matched",
     "conditions": "matched"
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -4877,46 +4803,17 @@ fn pv_delete_send() {
             "delete",
             "--yes",
             "--expect-plan",
-            "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
-            "--confirm-destructive",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
-  "verified": true,
-  "view_id": 704
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["DELETE /api/_/ticket_filters/704"]);
-}
-
-#[test]
-fn pv_delete_yes_without_confirm_destructive_sends_nothing() {
-    let r = run_fixture(
-        "private_views",
-        &[
-            "tickets",
-            "private-views",
-            "write",
-            "704",
-            "delete",
-            "--yes",
-            "--expect-plan",
-            "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+            "397f33d1d0691afdb9e0bbd8d45c48202ea5a0893bc82edecaadc76a25fc0dac",
         ],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
-    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
-    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
-    assert!(r.write_paths().is_empty());
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"deleting a view cannot be undone; pass --confirm-destructive with --yes --expect-plan. Nothing was sent
+"#
+    );
 }
 
 #[test]
@@ -5030,8 +4927,10 @@ fn pv_rename_dry_run() {
     "visibility": 81,
     "workspace_id": 17
   },
-  "plan_hash": "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "72c24fc263ceee0cf5cdb47536553af020e4df41ea586e2ee9baec6fdb9528cc",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5173,8 +5072,10 @@ fn pv_native_create_dry_run() {
     "visibility": 3,
     "workspace_id": 7
   },
-  "plan_hash": "3a8921a0810f9cfc5bd13e64bdcc76b847ef84a45751482cfff300b43524baf7",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "2cc50d7145cb05879b2380bb6463a8ec52e565b92d09ef049423dd302c64c8dc",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5195,7 +5096,7 @@ fn pv_native_create_send() {
             "Acme mine",
             "--yes",
             "--expect-plan",
-            "3a8921a0810f9cfc5bd13e64bdcc76b847ef84a45751482cfff300b43524baf7",
+            "2cc50d7145cb05879b2380bb6463a8ec52e565b92d09ef049423dd302c64c8dc",
         ],
         None,
     );
@@ -5204,7 +5105,7 @@ fn pv_native_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "3a8921a0810f9cfc5bd13e64bdcc76b847ef84a45751482cfff300b43524baf7",
+  "plan_hash": "2cc50d7145cb05879b2380bb6463a8ec52e565b92d09ef049423dd302c64c8dc",
   "verified": true,
   "view_id": 901,
   "fields": {
@@ -5214,7 +5115,9 @@ fn pv_native_create_send() {
     "order_by": "matched",
     "order_type": "matched",
     "conditions": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5442,8 +5345,10 @@ fn cpv_create_dry_run() {
     "visibility": 3,
     "workspace_id": 7
   },
-  "plan_hash": "76226cc21cb86df81dfb7a89b536bab25dc80a8071d7a8a8ccdaedb4a3389592",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "4d7a208879a3091bd65b73325edb73f9f2fbfc71c6c3d3552a47f8b71a91eeee",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5489,7 +5394,7 @@ fn cpv_create_send() {
             "Globex mine",
             "--yes",
             "--expect-plan",
-            "76226cc21cb86df81dfb7a89b536bab25dc80a8071d7a8a8ccdaedb4a3389592",
+            "4d7a208879a3091bd65b73325edb73f9f2fbfc71c6c3d3552a47f8b71a91eeee",
         ],
         None,
     );
@@ -5498,7 +5403,7 @@ fn cpv_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "76226cc21cb86df81dfb7a89b536bab25dc80a8071d7a8a8ccdaedb4a3389592",
+  "plan_hash": "4d7a208879a3091bd65b73325edb73f9f2fbfc71c6c3d3552a47f8b71a91eeee",
   "verified": true,
   "view_id": 900,
   "fields": {
@@ -5508,7 +5413,9 @@ fn cpv_create_send() {
     "order_by": "matched",
     "order_type": "matched",
     "conditions": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5542,7 +5449,7 @@ fn cpv_create_shared_refused() {
 }
 
 #[test]
-fn cpv_delete_dry_run() {
+fn cpv_delete_not_captured() {
     let r = run_fixture(
         "private_views_native",
         &[
@@ -5564,17 +5471,18 @@ fn cpv_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/change-filters/811",
   "payload": null,
-  "plan_hash": "bf01ab37b7ba23ef6d68b60d26eb310e3336003170e601bd68bfb3e4a3064a09",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "0ae41c0fa8ae84e7dd16f052a973cc579c44caaa9b186aa192c5979630b236e7",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
     assert_eq!(r.err, r#""#);
-    assert!(r.write_paths().is_empty());
 }
 
 #[test]
-fn cpv_rename_dry_run() {
+fn cpv_rename_not_captured() {
     let r = run_fixture(
         "private_views_native",
         &[
@@ -5584,67 +5492,51 @@ fn cpv_rename_dry_run() {
             "811",
             "rename",
             "--name",
-            "Globex renamed",
+            "x",
             "--dry-run",
         ],
         None,
     );
     assert_eq!(r.code, 0, "{}", r.err);
-    let out = r.json();
-    assert_eq!(out["action"], "change_private_view_edit");
-    assert_eq!(out["method"], "PUT");
-    assert_eq!(out["path"], "/api/_/change-filters/811");
-    assert_eq!(out["payload"]["name"], "Globex renamed");
     assert_eq!(
-        out["plan_hash"],
-        "9b6dd065907073b9cc15f25c61d1dc3784eb3567c70a42fadac1e20e6017ff7a"
-    );
-    assert!(r.write_paths().is_empty());
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_private_view_edit",
+  "method": "PUT",
+  "path": "/api/_/change-filters/811",
+  "payload": {
+    "advanced_query_hash": {
+      "all": [
+        {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "type": "default",
+          "value": "one_week"
+        },
+        {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": 7
+        }
+      ]
+    },
+    "name": "x",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": null,
+    "visibility": 3,
+    "workspace_id": 7
+  },
+  "plan_hash": "7d6bcb55cf40fe09d628946a4689543b603bda725d6ea1110358f82440327ea9",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
-
-#[test]
-fn cpv_rename_to_the_current_name_is_refused() {
-    let r = run_fixture(
-        "private_views_native",
-        &[
-            "changes",
-            "private-views",
-            "write",
-            "811",
-            "rename",
-            "--name",
-            "Globex changes",
-            "--dry-run",
-        ],
-        None,
+"#
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        "the view is already named 'Globex changes'; nothing to change\n"
-    );
-}
-
-#[test]
-fn cpv_delete_yes_without_confirm_destructive_sends_nothing() {
-    let r = run_fixture(
-        "private_views_native",
-        &[
-            "changes",
-            "private-views",
-            "write",
-            "811",
-            "delete",
-            "--yes",
-            "--expect-plan",
-            "bf01ab37b7ba23ef6d68b60d26eb310e3336003170e601bd68bfb3e4a3064a09",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
-    assert!(r.write_paths().is_empty());
+    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -5754,8 +5646,10 @@ fn tickets_columns_set_dry_run() {
       "display_id"
     ]
   },
-  "plan_hash": "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "0f135ff2bd4853a16ed00f7abfb26b495cec8a3bf24536187685b00b1ce1404c",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5776,7 +5670,7 @@ fn tickets_columns_set_send() {
             "status",
             "--yes",
             "--expect-plan",
-            "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
+            "0f135ff2bd4853a16ed00f7abfb26b495cec8a3bf24536187685b00b1ce1404c",
             "--json",
         ],
         None,
@@ -5786,14 +5680,16 @@ fn tickets_columns_set_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
+  "plan_hash": "0f135ff2bd4853a16ed00f7abfb26b495cec8a3bf24536187685b00b1ce1404c",
   "verified": true,
   "fields": {
     "display_id": "matched",
     "status": "matched",
     "ticket_subject": "matched"
   },
-  "unverified_omissions": []
+  "unverified_omissions": [],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5880,7 +5776,7 @@ fn tickets_export_dry_run() {
     },
     "ticket_state_filter": "created_at"
   },
-  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "plan_hash": "f4883d54c4c1ca579346bd2482264b8603a05f37b7e9f1ee216a5fe006a9fea2",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
@@ -5910,7 +5806,9 @@ fn tickets_export_dry_run() {
   "submit_only": true,
   "delivery": "emailed by the server, not downloadable here",
   "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
-  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -5934,80 +5832,17 @@ fn tickets_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
-            "--confirm-send-to-me",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": 202,
-  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
-  "verified": false,
-  "submitted": true,
-  "accepted": true,
-  "recipient": "agent@example.com",
-  "delivery": "emailed by the server, not downloadable here",
-  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/tickets/export"]);
-}
-
-#[test]
-fn tickets_export_yes_without_confirm_send_to_me_sends_nothing() {
-    let r = run_fixture(
-        "list_prefs",
-        &[
-            "tickets",
-            "export",
-            "--view",
-            "Acme queue",
-            "--field",
-            "subject",
-            "--field",
-            "status_name",
-            "--field",
-            "display_id",
-            "--yes",
-            "--expect-plan",
-            "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+            "f4883d54c4c1ca579346bd2482264b8603a05f37b7e9f1ee216a5fe006a9fea2",
         ],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
-    assert!(r.err.contains("--confirm-send-to-me"), "{}", r.err);
-    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
-    assert!(r.write_paths().is_empty());
-}
-
-#[test]
-fn tickets_export_send_runs_once_and_is_not_replayed() {
-    let args = [
-        "tickets",
-        "export",
-        "--view",
-        "Acme queue",
-        "--field",
-        "subject",
-        "--field",
-        "status_name",
-        "--field",
-        "display_id",
-        "--yes",
-        "--expect-plan",
-        "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
-        "--confirm-send-to-me",
-    ];
-    let first: &[&str] = &args;
-    let r = common::run_steps("list_prefs", &[first], first, None);
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert!(r.write_paths().is_empty(), "{:?}", r.write_paths());
+    assert_eq!(
+        r.err,
+        r#"the server emails this export to your own mailbox; pass --confirm-send-to-me with --yes --expect-plan. Nothing was sent
+"#
+    );
 }
 
 #[test]
@@ -6098,8 +5933,10 @@ fn changes_columns_set_dry_run() {
       "display_id"
     ]
   },
-  "plan_hash": "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "411440d7ecd346284dc9d5149022d32f9a6290caf328b48cff4884efa8da2025",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -6124,7 +5961,7 @@ fn changes_columns_set_send() {
             "requester",
             "--yes",
             "--expect-plan",
-            "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
+            "411440d7ecd346284dc9d5149022d32f9a6290caf328b48cff4884efa8da2025",
             "--json",
         ],
         None,
@@ -6134,7 +5971,7 @@ fn changes_columns_set_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
+  "plan_hash": "411440d7ecd346284dc9d5149022d32f9a6290caf328b48cff4884efa8da2025",
   "verified": true,
   "fields": {
     "display_id": "matched",
@@ -6142,7 +5979,9 @@ fn changes_columns_set_send() {
     "status": "matched",
     "ticket_subject": "matched"
   },
-  "unverified_omissions": []
+  "unverified_omissions": [],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -6228,7 +6067,7 @@ fn changes_export_dry_run() {
     "format": "csv",
     "state_filter": "created_at"
   },
-  "plan_hash": "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+  "plan_hash": "e2953e8a9518977c703900adb5ebbf25eb2723d7c1db656e42ec129508be9004",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
@@ -6257,7 +6096,9 @@ fn changes_export_dry_run() {
   "submit_only": true,
   "delivery": "emailed by the server, not downloadable here",
   "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
-  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -6281,28 +6122,17 @@ fn changes_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
-            "--confirm-send-to-me",
+            "e2953e8a9518977c703900adb5ebbf25eb2723d7c1db656e42ec129508be9004",
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "status": 202,
-  "plan_hash": "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
-  "verified": false,
-  "submitted": true,
-  "accepted": true,
-  "recipient": "agent@example.com",
-  "delivery": "emailed by the server, not downloadable here",
-  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
-}
+        r.err,
+        r#"the server emails this export to your own mailbox; pass --confirm-send-to-me with --yes --expect-plan. Nothing was sent
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/changes/export"]);
 }
 
 #[test]
@@ -6387,8 +6217,10 @@ fn problems_columns_set_dry_run() {
       "display_id"
     ]
   },
-  "plan_hash": "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "4868655e22518c06b7e185538609025d3d6444039a9816f65408ba408616d0fa",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -6409,7 +6241,7 @@ fn problems_columns_set_send() {
             "status",
             "--yes",
             "--expect-plan",
-            "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
+            "4868655e22518c06b7e185538609025d3d6444039a9816f65408ba408616d0fa",
             "--json",
         ],
         None,
@@ -6419,7 +6251,7 @@ fn problems_columns_set_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
+  "plan_hash": "4868655e22518c06b7e185538609025d3d6444039a9816f65408ba408616d0fa",
   "verified": false,
   "fields": {
     "display_id": "mismatched",
@@ -6430,7 +6262,9 @@ fn problems_columns_set_send() {
     "requester",
     "priority"
   ],
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -6511,7 +6345,7 @@ fn problems_export_dry_run() {
     "format": "csv",
     "state_filter": "created_at"
   },
-  "plan_hash": "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+  "plan_hash": "c4135df6d36dfed0ea200334023bc867f7d8aa86ecddcbf3ae775b598b899941",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
@@ -6539,7 +6373,9 @@ fn problems_export_dry_run() {
   "submit_only": true,
   "delivery": "emailed by the server, not downloadable here",
   "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
-  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -6563,28 +6399,17 @@ fn problems_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
-            "--confirm-send-to-me",
+            "c4135df6d36dfed0ea200334023bc867f7d8aa86ecddcbf3ae775b598b899941",
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "status": 202,
-  "plan_hash": "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
-  "verified": false,
-  "submitted": true,
-  "accepted": true,
-  "recipient": "agent@example.com",
-  "delivery": "emailed by the server, not downloadable here",
-  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
-}
+        r.err,
+        r#"the server emails this export to your own mailbox; pass --confirm-send-to-me with --yes --expect-plan. Nothing was sent
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/problems/export"]);
 }
 
 #[test]
@@ -6963,7 +6788,7 @@ fn tickets_export_without_dry_run() {
     },
     "ticket_state_filter": "created_at"
   },
-  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "plan_hash": "f4883d54c4c1ca579346bd2482264b8603a05f37b7e9f1ee216a5fe006a9fea2",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
@@ -6993,7 +6818,9 @@ fn tickets_export_without_dry_run() {
   "submit_only": true,
   "delivery": "emailed by the server, not downloadable here",
   "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
-  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7101,9 +6928,11 @@ fn problem_create_dry_run() {
     "status": 41,
     "subject": "Acme problem"
   },
-  "plan_hash": "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
+  "plan_hash": "8f8f4875eb288c360bf807fe2e2af309513aa2f776748b6cf1572396928980d5",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
-  "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
+  "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7133,7 +6962,7 @@ fn problem_create_send() {
             "Acme count=7",
             "--yes",
             "--expect-plan",
-            "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
+            "8f8f4875eb288c360bf807fe2e2af309513aa2f776748b6cf1572396928980d5",
         ],
         None,
     );
@@ -7142,7 +6971,7 @@ fn problem_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
+  "plan_hash": "8f8f4875eb288c360bf807fe2e2af309513aa2f776748b6cf1572396928980d5",
   "verified": true,
   "problem_id": 456,
   "fields": {
@@ -7153,7 +6982,9 @@ fn problem_create_send() {
     "priority": "matched",
     "status": "matched",
     "subject": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7332,8 +7163,10 @@ fn problem_note_dry_run() {
   "payload": {
     "body": "Acme"
   },
-  "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "f2b27cfbf9fa46d49b8b6e6019f4f8740744528783298d3cccfbb718d499fca0",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7369,8 +7202,10 @@ fn problem_task_dry_run() {
     "status": 51,
     "title": "Acme"
   },
-  "plan_hash": "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "4ced54eee18490c66b45e89833fd2401968316eb5ec096a47708db68e1ed7f14",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7389,7 +7224,7 @@ fn problem_note_send() {
             "Acme",
             "--yes",
             "--expect-plan",
-            "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+            "f2b27cfbf9fa46d49b8b6e6019f4f8740744528783298d3cccfbb718d499fca0",
         ],
         None,
     );
@@ -7398,12 +7233,14 @@ fn problem_note_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+  "plan_hash": "f2b27cfbf9fa46d49b8b6e6019f4f8740744528783298d3cccfbb718d499fca0",
   "verified": true,
   "note_id": 456,
   "fields": {
     "body": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7423,7 +7260,7 @@ fn problem_task_send() {
             "Acme",
             "--yes",
             "--expect-plan",
-            "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
+            "4ced54eee18490c66b45e89833fd2401968316eb5ec096a47708db68e1ed7f14",
             "--json",
         ],
         None,
@@ -7433,7 +7270,7 @@ fn problem_task_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
+  "plan_hash": "4ced54eee18490c66b45e89833fd2401968316eb5ec096a47708db68e1ed7f14",
   "verified": true,
   "task_id": 456,
   "fields": {
@@ -7442,7 +7279,9 @@ fn problem_task_send() {
     "planned_effort": "matched",
     "status": "matched",
     "title": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7462,7 +7301,7 @@ fn problem_note_send_mismatch() {
             "Other",
             "--yes",
             "--expect-plan",
-            "ed23c5dca4c8b43cc57f520bb06b700326f8fcc1d156d90d4b80cb4482f635c9",
+            "c4cbe305baf91b7a0dfaaae0c5afadcae504eca88d85f43751e4fb3c72c70420",
         ],
         None,
     );
@@ -7471,13 +7310,15 @@ fn problem_note_send_mismatch() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "ed23c5dca4c8b43cc57f520bb06b700326f8fcc1d156d90d4b80cb4482f635c9",
+  "plan_hash": "c4cbe305baf91b7a0dfaaae0c5afadcae504eca88d85f43751e4fb3c72c70420",
   "verified": false,
   "note_id": 456,
   "fields": {
     "body": "mismatched"
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7919,7 +7760,9 @@ fn clone_partial_tasks_403_keeps_new_identity() {
     "tasks": "failed: HTTP 403 creating tasks: synthetic denial",
     "assets": "ok",
     "planning": "ok"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -7972,7 +7815,9 @@ fn clone_partial_assets_409_keeps_new_identity() {
     "tasks": "ok",
     "assets": "failed: HTTP 409 updating associate: synthetic denial",
     "planning": "ok"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8025,7 +7870,9 @@ fn clone_partial_planning_429_keeps_new_identity() {
     "tasks": "ok",
     "assets": "ok",
     "planning": "failed: HTTP 429 creating planning-fields: synthetic denial"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8078,7 +7925,9 @@ fn clone_partial_tasks_500_keeps_new_identity() {
     "tasks": "failed: HTTP 500 creating tasks: synthetic denial",
     "assets": "ok",
     "planning": "ok"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8128,7 +7977,9 @@ fn clone_dry_run_counts_side_effects() {
         r.out,
         r#"{
   "subject": "Acme maintenance",
-  "status": 1
+  "status": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8163,7 +8014,10 @@ fn clone_missing_returned_id() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"{}
+        r#"{
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
 "#
     );
     assert_eq!(
@@ -8242,12 +8096,14 @@ fn tickets_resolve_dry_run() {
       }
     }
   ],
-  "plan_hash": "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
+  "plan_hash": "b4117210766e01e05a2ba117ca95d62bbc6e814de1122ee4e58559607227df54",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8300,12 +8156,14 @@ fn tickets_resolve_with_answer_dry_run() {
       }
     }
   ],
-  "plan_hash": "cf0d3ec4b0bcbf1299ca579e0f25bef7b9873b4efbb34007bc7368f06105bc3d",
+  "plan_hash": "b43bb269655edfaaac2515776a565782a584830cf7155fd5fbbd7432874500b1",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8372,7 +8230,7 @@ fn tickets_resolve_send() {
             "Acme fix <safe>",
             "--yes",
             "--expect-plan",
-            "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
+            "b4117210766e01e05a2ba117ca95d62bbc6e814de1122ee4e58559607227df54",
         ],
         None,
     );
@@ -8383,8 +8241,10 @@ fn tickets_resolve_send() {
   "status": "submitted",
   "ticket_id": 123,
   "status_label": "Resolved",
-  "plan_hash": "6f8261fb20e092cdd52b8cc3b51f9d0826b6f969b014ab496ab6cb22470cc6d7",
-  "verified": true
+  "plan_hash": "b4117210766e01e05a2ba117ca95d62bbc6e814de1122ee4e58559607227df54",
+  "verified": true,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8421,12 +8281,14 @@ fn tickets_close_dry_run() {
       }
     }
   ],
-  "plan_hash": "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
+  "plan_hash": "6af55e3443a89c777fc669f581951ffef0ea523fdaf53a4e088e0a40a40bc5d4",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8443,7 +8305,7 @@ fn tickets_close_send() {
             "124",
             "--yes",
             "--expect-plan",
-            "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
+            "6af55e3443a89c777fc669f581951ffef0ea523fdaf53a4e088e0a40a40bc5d4",
         ],
         None,
     );
@@ -8454,41 +8316,10 @@ fn tickets_close_send() {
   "status": "submitted",
   "ticket_id": 124,
   "status_label": "Closed",
-  "plan_hash": "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
-  "verified": true
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
-}
-
-#[test]
-fn tickets_close_verified_with_note() {
-    let r = run_fixture(
-        "ticket_lifecycle_rewrite",
-        &[
-            "tickets",
-            "close",
-            "124",
-            "--yes",
-            "--expect-plan",
-            "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "ticket_id": 124,
-  "status_label": "Closed",
-  "plan_hash": "d0e4d9530cf4bdd6b70b286cfa2ade9cdfc06384ef1a2fb1b1e9f1fe8f171b99",
+  "plan_hash": "6af55e3443a89c777fc669f581951ffef0ea523fdaf53a4e088e0a40a40bc5d4",
   "verified": true,
-  "verified_with_note": [
-    "status rewritten server-side to 13 after the write (workflow)"
-  ]
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8564,12 +8395,14 @@ fn tickets_close_required_field_answered() {
       }
     }
   ],
-  "plan_hash": "501d1e2b34a7ea6b5d5fbe5cf254b81f8ff06eafa2ec24800cf899fcd1ca8b6e",
+  "plan_hash": "8196396de1ded560bc8aeab3e0f5afd6729a2aa7374e6e3e57fdb7a0fabccd84",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8602,12 +8435,14 @@ fn tickets_reopen_dry_run() {
       }
     }
   ],
-  "plan_hash": "fd432d91c7061b5b39151b045e4111ca47f481653f854e510e628ebce9a8bff2",
+  "plan_hash": "abee2114683281e4179b61b94d0f4fb1858f6284b2cccedc521e91a395db95b6",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8624,7 +8459,7 @@ fn tickets_reopen_send() {
             "127",
             "--yes",
             "--expect-plan",
-            "fd432d91c7061b5b39151b045e4111ca47f481653f854e510e628ebce9a8bff2",
+            "abee2114683281e4179b61b94d0f4fb1858f6284b2cccedc521e91a395db95b6",
         ],
         None,
     );
@@ -8635,8 +8470,10 @@ fn tickets_reopen_send() {
   "status": "submitted",
   "ticket_id": 127,
   "status_label": "Open",
-  "plan_hash": "fd432d91c7061b5b39151b045e4111ca47f481653f854e510e628ebce9a8bff2",
-  "verified": true
+  "plan_hash": "abee2114683281e4179b61b94d0f4fb1858f6284b2cccedc521e91a395db95b6",
+  "verified": true,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8681,12 +8518,14 @@ fn tickets_status_pending_dry_run() {
       }
     }
   ],
-  "plan_hash": "0e681d0bbdb7b9d27267e640beef30de44fbde8ee132b20cbe9c4fe574a8a9d8",
+  "plan_hash": "3ed10295fb85b239f29334ab69bf597e068655711dc882397100cbb6fa49c0a6",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8809,7 +8648,7 @@ fn tickets_close_readback_mismatch() {
             "128",
             "--yes",
             "--expect-plan",
-            "5a90a76e7ba296f7c85d04c77e052f466cce8fed48627171b5855e314e8a8780",
+            "743f1b8b0c77da04ffde4e11b2b6061771856aba75193a57e3827ed3aab2a1cf",
         ],
         None,
     );
@@ -8864,13 +8703,15 @@ fn tickets_merge_dry_run() {
       "ticket_id": 123
     }
   },
-  "plan_hash": "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
+  "plan_hash": "e3e050d9ed762970c1ad2ec082f99d4bdf5ef7329f132baab35d60ad2b548361",
   "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
   "surviving_ticket": 123,
   "merged_tickets": [
     124,
     125
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -8919,12 +8760,14 @@ fn tickets_merge_public_notes_dry_run() {
       "ticket_id": 123
     }
   },
-  "plan_hash": "2db45212fa4955847ef3b1d3bf47e6373bafc7a47698bdaead534db60ca9a0f1",
+  "plan_hash": "eff4da966b712ea58c8275e8b6e024d269d630832450b53f949613a16d3206ff",
   "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
   "surviving_ticket": 123,
   "merged_tickets": [
     124
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9001,7 +8844,7 @@ fn tickets_merge_send() {
             "Secondary note",
             "--yes",
             "--expect-plan",
-            "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
+            "e3e050d9ed762970c1ad2ec082f99d4bdf5ef7329f132baab35d60ad2b548361",
         ],
         None,
     );
@@ -9010,7 +8853,7 @@ fn tickets_merge_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
+  "plan_hash": "e3e050d9ed762970c1ad2ec082f99d4bdf5ef7329f132baab35d60ad2b548361",
   "verified": true,
   "surviving_ticket": 123,
   "primary_status_unchanged": true,
@@ -9027,7 +8870,9 @@ fn tickets_merge_send() {
       "source_note": true
     }
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9054,7 +8899,7 @@ fn tickets_merge_readback_unverified() {
             "Secondary note",
             "--yes",
             "--expect-plan",
-            "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
+            "e3e050d9ed762970c1ad2ec082f99d4bdf5ef7329f132baab35d60ad2b548361",
         ],
         None,
     );
@@ -9063,7 +8908,7 @@ fn tickets_merge_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
+  "plan_hash": "e3e050d9ed762970c1ad2ec082f99d4bdf5ef7329f132baab35d60ad2b548361",
   "verified": false,
   "surviving_ticket": 123,
   "primary_status_unchanged": true,
@@ -9081,7 +8926,9 @@ fn tickets_merge_readback_unverified() {
     }
   },
   "readback_attempts": 4,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9108,7 +8955,7 @@ fn tickets_merge_server_error_unknown() {
             "Secondary note",
             "--yes",
             "--expect-plan",
-            "fc348c0966d7a9a9539bfa957f462e7d7e375cda8ff18cc3c5a00477755b31b0",
+            "e3e050d9ed762970c1ad2ec082f99d4bdf5ef7329f132baab35d60ad2b548361",
         ],
         None,
     );
@@ -9116,7 +8963,7 @@ fn tickets_merge_server_error_unknown() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"write outcome unknown; inspect target and journal before retry
+        r#"write outcome unknown (HTTP 500: synthetic failure); inspect target and journal before retry
 "#
     );
     assert_eq!(
@@ -9282,7 +9129,7 @@ fn tickets_assign_unassign_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": null
   },
-  "plan_hash": "cf919ae0bb0975297545e354e93ca53b21911efc4bb69041b6047505e6851263",
+  "plan_hash": "31e0babf19bbd9b314c970901a594c2f98db0c95938fce647c5ca0ce83751a97",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9294,7 +9141,9 @@ fn tickets_assign_unassign_dry_run() {
       "responder_id": 71,
       "ticket_id": 123
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9352,7 +9201,7 @@ fn tickets_assign_unassign_send() {
             "--unassign",
             "--yes",
             "--expect-plan",
-            "cf919ae0bb0975297545e354e93ca53b21911efc4bb69041b6047505e6851263",
+            "31e0babf19bbd9b314c970901a594c2f98db0c95938fce647c5ca0ce83751a97",
         ],
         None,
     );
@@ -9361,14 +9210,16 @@ fn tickets_assign_unassign_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "cf919ae0bb0975297545e354e93ca53b21911efc4bb69041b6047505e6851263",
+  "plan_hash": "31e0babf19bbd9b314c970901a594c2f98db0c95938fce647c5ca0ce83751a97",
   "verified": true,
   "tickets": {
     "123": {
       "responder_id": "matched"
     }
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9402,7 +9253,7 @@ fn tickets_assign_agent_in_group_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": 71
   },
-  "plan_hash": "2e400a741c06bd4266c1b629c4d61c6860d967b10cf510a276412985970d0000",
+  "plan_hash": "63f98b4a0e527acb4d2586fa889c7fd566fab2c599bd9c2006d861acd25bb7c7",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9414,7 +9265,9 @@ fn tickets_assign_agent_in_group_dry_run() {
       "responder_id": null,
       "ticket_id": 124
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9433,7 +9286,7 @@ fn tickets_assign_agent_send() {
             "agent@example.com",
             "--yes",
             "--expect-plan",
-            "2e400a741c06bd4266c1b629c4d61c6860d967b10cf510a276412985970d0000",
+            "63f98b4a0e527acb4d2586fa889c7fd566fab2c599bd9c2006d861acd25bb7c7",
         ],
         None,
     );
@@ -9442,14 +9295,16 @@ fn tickets_assign_agent_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "2e400a741c06bd4266c1b629c4d61c6860d967b10cf510a276412985970d0000",
+  "plan_hash": "63f98b4a0e527acb4d2586fa889c7fd566fab2c599bd9c2006d861acd25bb7c7",
   "verified": true,
   "tickets": {
     "124": {
       "responder_id": "matched"
     }
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9486,7 +9341,7 @@ fn tickets_assign_group_and_agent_dry_run() {
     "group_id": 81,
     "responder_id": 71
   },
-  "plan_hash": "957686e28c75f530b8f3ba38c8a122859304b042e29795185ba8c04534ca6b03",
+  "plan_hash": "51318a40737acbfd1118bdffe6cf16ee65f0e729fb71c4b5e83b16e059971416",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9498,7 +9353,9 @@ fn tickets_assign_group_and_agent_dry_run() {
       "responder_id": 71,
       "ticket_id": 123
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9532,7 +9389,7 @@ fn tickets_assign_group_only_clears_agent_dry_run() {
     "group_id": 82,
     "responder_id": null
   },
-  "plan_hash": "217e75d48b6fe03c2d3fae3ac41a916b2e241ed5568b89f7674fd33517b9feca",
+  "plan_hash": "99b890fa7d517c117bb4947afe8edee05a0df18c838645fa7d22f5b42104a6ac",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9544,7 +9401,9 @@ fn tickets_assign_group_only_clears_agent_dry_run() {
       "responder_id": 71,
       "ticket_id": 123
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9642,7 +9501,7 @@ fn tickets_assign_readback_unverified() {
             "71",
             "--yes",
             "--expect-plan",
-            "71149c4085e833bc053b486c5c37c8e05ce6eb1a9d0594d7fadeb5f6651c3945",
+            "d1e7ac890a83230073750c9d9fac546c8e625f1aae911d408eccd74e1d91892e",
         ],
         None,
     );
@@ -9651,7 +9510,7 @@ fn tickets_assign_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "71149c4085e833bc053b486c5c37c8e05ce6eb1a9d0594d7fadeb5f6651c3945",
+  "plan_hash": "d1e7ac890a83230073750c9d9fac546c8e625f1aae911d408eccd74e1d91892e",
   "verified": false,
   "tickets": {
     "126": {
@@ -9659,7 +9518,9 @@ fn tickets_assign_readback_unverified() {
     }
   },
   "readback_attempts": 4,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9688,7 +9549,7 @@ fn tickets_pick_up_dry_run() {
       125
     ]
   },
-  "plan_hash": "c1a2463070c61592c53b073003270dd90be7df46e194e5d3d3f478570ddf7647",
+  "plan_hash": "60811dd949803fb31a0ed4728de43304124e2357f82b839775ddc14870d49c7a",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9708,7 +9569,9 @@ fn tickets_pick_up_dry_run() {
       "responder_id": null,
       "ticket_id": 125
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9726,7 +9589,7 @@ fn tickets_pick_up_send() {
             "INC-125",
             "--yes",
             "--expect-plan",
-            "c1a2463070c61592c53b073003270dd90be7df46e194e5d3d3f478570ddf7647",
+            "60811dd949803fb31a0ed4728de43304124e2357f82b839775ddc14870d49c7a",
         ],
         None,
     );
@@ -9735,7 +9598,7 @@ fn tickets_pick_up_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "c1a2463070c61592c53b073003270dd90be7df46e194e5d3d3f478570ddf7647",
+  "plan_hash": "60811dd949803fb31a0ed4728de43304124e2357f82b839775ddc14870d49c7a",
   "verified": true,
   "tickets": {
     "124": {
@@ -9745,7 +9608,9 @@ fn tickets_pick_up_send() {
       "responder_id": "matched"
     }
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9831,11 +9696,13 @@ fn reply_set_status_closed_dry_run() {
     "translate_reply": false
   },
   "status_label": "Closed",
-  "plan_hash": "3008ffd57140d8da5e9c140c6f9204a49ec7d7cf566b79af8f8a501e30a974e1",
+  "plan_hash": "214d6636c44bbedf4051fabd724c47f83cd7ef7fd546c375aa1335d5846396b6",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -9952,11 +9819,13 @@ fn note_set_status_closed_dry_run() {
     "private": true
   },
   "status_label": "Closed",
-  "plan_hash": "31bc0b9f81e6c102bdaa423c201ac49cd921958f5b8c64133d4d2008f8f0f701",
+  "plan_hash": "d04342994da1822a2a4ba6eae2325006cb9132bc5e13d7001857e230c3d59fed",
   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
   "record_state": {
     "sends": 0
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10049,7 +9918,7 @@ fn tickets_add_note_send_verified() {
             "Acme fix",
             "--yes",
             "--expect-plan",
-            "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+            "8ff83d4f79c3c87f45b818fc68fd86c4327ec6b1cfbddc9487ad270156cf3aa0",
         ],
         None,
     );
@@ -10075,12 +9944,13 @@ fn tickets_add_note_send_verified() {
     "notify_emails": []
   },
   "body_text": "Acme fix",
-  "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "plan_hash": "8ff83d4f79c3c87f45b818fc68fd86c4327ec6b1cfbddc9487ad270156cf3aa0",
   "record_state": {
     "sends": 0
   },
   "risks": [],
-  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
+  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10099,7 +9969,7 @@ fn tickets_add_note_send_fields_unverified() {
             "Acme fix",
             "--yes",
             "--expect-plan",
-            "cb78404c474288d741d0285b54c6e2425be0feb24cc0c206737f533d5f6f376d",
+            "4ed3ceeaf6d0e449139c4ab21dc237bba1bffd898260aa9fc056cf03c2653a09",
         ],
         None,
     );
@@ -10125,12 +9995,13 @@ fn tickets_add_note_send_fields_unverified() {
     "notify_emails": []
   },
   "body_text": "Acme fix",
-  "plan_hash": "cb78404c474288d741d0285b54c6e2425be0feb24cc0c206737f533d5f6f376d",
+  "plan_hash": "4ed3ceeaf6d0e449139c4ab21dc237bba1bffd898260aa9fc056cf03c2653a09",
   "record_state": {
     "sends": 0
   },
   "risks": [],
-  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
+  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications.",
+  "config_dir": "<CONFIG_DIR>"
 }
 Read-back did not fully verify the note fields and history; do not resend.
 "#
@@ -10151,7 +10022,7 @@ fn tickets_add_note_send_json() {
             "--json",
             "--yes",
             "--expect-plan",
-            "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+            "8ff83d4f79c3c87f45b818fc68fd86c4327ec6b1cfbddc9487ad270156cf3aa0",
         ],
         None,
     );
@@ -10171,7 +10042,7 @@ fn tickets_add_note_send_json() {
     "user_id": 9000001234,
     "created_at": "2030-01-01T00:00:00Z"
   },
-  "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "plan_hash": "8ff83d4f79c3c87f45b818fc68fd86c4327ec6b1cfbddc9487ad270156cf3aa0",
   "verified": true,
   "readback": {
     "id": 601,
@@ -10190,7 +10061,9 @@ fn tickets_add_note_send_json() {
     "body": "matched",
     "private": "matched",
     "notify_emails": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10210,12 +10083,13 @@ fn tickets_add_note_send_json() {
     "notify_emails": []
   },
   "body_text": "Acme fix",
-  "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "plan_hash": "8ff83d4f79c3c87f45b818fc68fd86c4327ec6b1cfbddc9487ad270156cf3aa0",
   "record_state": {
     "sends": 0
   },
   "risks": [],
-  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
+  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications.",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10249,7 +10123,7 @@ fn tickets_note_edit_dry_run() {
     "body": "<div>Globex final</div>",
     "conversation_from_summary": false
   },
-  "plan_hash": "707f83252578e90aa650ea3b33aa094594b8d770801a9df450f5f7fd56ac1342",
+  "plan_hash": "7f212d2e3ebfc8083cd0be6eb6b2203028b09a8360dd32756d2584f4d085bd8e",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "ticket_id": 123,
   "before": {
@@ -10260,7 +10134,9 @@ fn tickets_note_edit_dry_run() {
     "private": true,
     "user_id": 9000001234,
     "created_at": "2030-01-01T00:00:00Z"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10304,7 +10180,7 @@ fn tickets_note_edit_send() {
             "Globex final",
             "--yes",
             "--expect-plan",
-            "707f83252578e90aa650ea3b33aa094594b8d770801a9df450f5f7fd56ac1342",
+            "7f212d2e3ebfc8083cd0be6eb6b2203028b09a8360dd32756d2584f4d085bd8e",
         ],
         None,
     );
@@ -10313,11 +10189,13 @@ fn tickets_note_edit_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "707f83252578e90aa650ea3b33aa094594b8d770801a9df450f5f7fd56ac1342",
+  "plan_hash": "7f212d2e3ebfc8083cd0be6eb6b2203028b09a8360dd32756d2584f4d085bd8e",
   "verified": true,
   "conversation_id": 501,
   "history_complete": true,
-  "body": "matched"
+  "body": "matched",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10338,7 +10216,7 @@ fn tickets_note_edit_readback_unverified() {
             "Globex final",
             "--yes",
             "--expect-plan",
-            "948873906d5e0dc9eaa2d561ddd56bbd8411e491e182f287765479f2420282e8",
+            "b9a34cf3d5e44006c6e0101d3b8c7275fe97b15818e6a4ce3379e8620e2d5287",
         ],
         None,
     );
@@ -10347,12 +10225,14 @@ fn tickets_note_edit_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "948873906d5e0dc9eaa2d561ddd56bbd8411e491e182f287765479f2420282e8",
+  "plan_hash": "b9a34cf3d5e44006c6e0101d3b8c7275fe97b15818e6a4ce3379e8620e2d5287",
   "verified": false,
   "conversation_id": 503,
   "history_complete": true,
   "body": "mismatched",
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10383,7 +10263,7 @@ fn tickets_note_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/conversations/502",
   "payload": null,
-  "plan_hash": "816dcf228d810ace5208834b67d161bbb03529168d3056a4556bc5541497cfdc",
+  "plan_hash": "9aa8b0caf5238ba35d46c39af484ea7baf44673a66076f6c7e9f576166a94648",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "ticket_id": 124,
   "before": {
@@ -10394,7 +10274,9 @@ fn tickets_note_delete_dry_run() {
     "private": true,
     "user_id": 9000001234,
     "created_at": "2030-01-01T00:00:00Z"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10412,7 +10294,7 @@ fn tickets_note_delete_send() {
             "502",
             "--yes",
             "--expect-plan",
-            "816dcf228d810ace5208834b67d161bbb03529168d3056a4556bc5541497cfdc",
+            "9aa8b0caf5238ba35d46c39af484ea7baf44673a66076f6c7e9f576166a94648",
         ],
         None,
     );
@@ -10421,10 +10303,12 @@ fn tickets_note_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "816dcf228d810ace5208834b67d161bbb03529168d3056a4556bc5541497cfdc",
+  "plan_hash": "9aa8b0caf5238ba35d46c39af484ea7baf44673a66076f6c7e9f576166a94648",
   "verified": true,
   "conversation_id": 502,
-  "history_complete": true
+  "history_complete": true,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10540,14 +10424,16 @@ fn problems_link_incident_dry_run() {
       123
     ]
   },
-  "plan_hash": "9fe862ba89258dc07e7513a3605bcf6f87db934a7bd98a0d6fa86655f3a11a98",
+  "plan_hash": "70f59b4ac3d96a5eaa5a367ee16f1af9a1a6b47f8482d0343a242be363358e3e",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
   "problem_id": 7,
-  "incident_id": "INC-123"
+  "incident_id": "INC-123",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10581,7 +10467,7 @@ fn problems_link_incident_send() {
             "INC-123",
             "--yes",
             "--expect-plan",
-            "9fe862ba89258dc07e7513a3605bcf6f87db934a7bd98a0d6fa86655f3a11a98",
+            "70f59b4ac3d96a5eaa5a367ee16f1af9a1a6b47f8482d0343a242be363358e3e",
         ],
         None,
     );
@@ -10590,11 +10476,13 @@ fn problems_link_incident_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "9fe862ba89258dc07e7513a3605bcf6f87db934a7bd98a0d6fa86655f3a11a98",
+  "plan_hash": "70f59b4ac3d96a5eaa5a367ee16f1af9a1a6b47f8482d0343a242be363358e3e",
   "verified": true,
   "problem_id": 7,
   "incident_id": 123,
-  "linked": true
+  "linked": true,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10613,7 +10501,7 @@ fn problems_link_incident_readback_unverified() {
             "123",
             "--yes",
             "--expect-plan",
-            "60d0f9f686830e282c2e709667bc19752a6b4e1a8c33231491075af9ee4433bd",
+            "6b2b2bab39b8460d05e20b9eb0ceb550d096766af8f486de3213dbe238538886",
         ],
         None,
     );
@@ -10622,12 +10510,14 @@ fn problems_link_incident_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "60d0f9f686830e282c2e709667bc19752a6b4e1a8c33231491075af9ee4433bd",
+  "plan_hash": "6b2b2bab39b8460d05e20b9eb0ceb550d096766af8f486de3213dbe238538886",
   "verified": false,
   "problem_id": 9,
   "incident_id": 123,
   "linked": false,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10660,14 +10550,16 @@ fn problems_unlink_incident_dry_run() {
   "payload": {
     "type": "unlink"
   },
-  "plan_hash": "d182267f72473cf4e6a6406b361321a877f1901f05afb441f93d9714538b9761",
+  "plan_hash": "eaf62885632a511a268634126f627dcd07693e2ecfa8e414d67c0e3e9fe848aa",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "record_state": {
     "sends": 0,
     "server_version": null
   },
   "problem_id": 8,
-  "incident_id": "INC-124"
+  "incident_id": "INC-124",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10685,7 +10577,7 @@ fn problems_unlink_incident_send() {
             "INC-124",
             "--yes",
             "--expect-plan",
-            "d182267f72473cf4e6a6406b361321a877f1901f05afb441f93d9714538b9761",
+            "eaf62885632a511a268634126f627dcd07693e2ecfa8e414d67c0e3e9fe848aa",
         ],
         None,
     );
@@ -10694,11 +10586,13 @@ fn problems_unlink_incident_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d182267f72473cf4e6a6406b361321a877f1901f05afb441f93d9714538b9761",
+  "plan_hash": "eaf62885632a511a268634126f627dcd07693e2ecfa8e414d67c0e3e9fe848aa",
   "verified": true,
   "problem_id": 8,
   "incident_id": 124,
-  "linked": false
+  "linked": false,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10811,7 +10705,7 @@ fn problems_status_dry_run() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
+  "plan_hash": "b2f499363bd03c95d0aac9943d6db8ad17beb8c203d2788c2765598bb7489128",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -10829,7 +10723,9 @@ fn problems_status_dry_run() {
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10871,7 +10767,7 @@ fn problems_status_send_reports_planned_dates() {
             "Change Requested",
             "--yes",
             "--expect-plan",
-            "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
+            "b2f499363bd03c95d0aac9943d6db8ad17beb8c203d2788c2765598bb7489128",
         ],
         None,
     );
@@ -10880,7 +10776,7 @@ fn problems_status_send_reports_planned_dates() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
+  "plan_hash": "b2f499363bd03c95d0aac9943d6db8ad17beb8c203d2788c2765598bb7489128",
   "verified": true,
   "problem_id": 7,
   "readback": {
@@ -10888,45 +10784,9 @@ fn problems_status_send_reports_planned_dates() {
     "planned_start_date": "2030-01-02T00:00:00Z",
     "planned_end_date": "2030-01-03T00:00:00Z"
   },
-  "unavailable": []
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
-}
-
-#[test]
-fn problems_status_verified_with_note() {
-    let r = run_fixture(
-        "problem_status_rewrite",
-        &[
-            "problems",
-            "status",
-            "PRB-7",
-            "--to",
-            "Change Requested",
-            "--yes",
-            "--expect-plan",
-            "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 4, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "07b7cc8a9a71706f895b495d98449d5f98090ac7392e7fb70ce1bd86eed244ee",
-  "verified": false,
-  "problem_id": 7,
-  "readback": {
-    "status": 9,
-    "planned_start_date": "2030-01-02T00:00:00Z",
-    "planned_end_date": "2030-01-03T00:00:00Z"
-  },
   "unavailable": [],
-  "warning": "Readback was not fully verified; do not resend."
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10952,7 +10812,7 @@ fn problems_status_close_dry_run() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
+  "plan_hash": "8a86188acbcd704999a7ac0b4c0dd17da2acef8e9776544fa026d3fa82d4e4da",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -10974,7 +10834,9 @@ fn problems_status_close_dry_run() {
   "closure_check": {
     "analysis": "Root Cause, Impact and Symptoms are filled",
     "linked_solution": "linked (1)"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -10993,7 +10855,7 @@ fn problems_status_close_send() {
             "closed",
             "--yes",
             "--expect-plan",
-            "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
+            "8a86188acbcd704999a7ac0b4c0dd17da2acef8e9776544fa026d3fa82d4e4da",
         ],
         None,
     );
@@ -11002,7 +10864,7 @@ fn problems_status_close_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
+  "plan_hash": "8a86188acbcd704999a7ac0b4c0dd17da2acef8e9776544fa026d3fa82d4e4da",
   "verified": true,
   "problem_id": 8,
   "readback": {
@@ -11010,7 +10872,9 @@ fn problems_status_close_send() {
     "planned_start_date": null,
     "planned_end_date": null
   },
-  "unavailable": []
+  "unavailable": [],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11030,7 +10894,7 @@ fn problems_status_close_rejected_by_server() {
             "closed",
             "--yes",
             "--expect-plan",
-            "b6813cbcef1d9f15e72d65ea9834fc1fa9a50c4e419500223c16a67b86de9d1f",
+            "8a86188acbcd704999a7ac0b4c0dd17da2acef8e9776544fa026d3fa82d4e4da",
         ],
         None,
     );
@@ -11104,7 +10968,7 @@ fn problems_status_readback_unverified() {
             "Change Requested",
             "--yes",
             "--expect-plan",
-            "cc9b53f1d6a3e4ad30eef8df9a946788dc5fdddf2723f76d7403732c58385051",
+            "75d781164d08c97a85b6606d23751e4f560a0b9b4a14353707fbb9bb7d24619d",
         ],
         None,
     );
@@ -11113,7 +10977,7 @@ fn problems_status_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "cc9b53f1d6a3e4ad30eef8df9a946788dc5fdddf2723f76d7403732c58385051",
+  "plan_hash": "75d781164d08c97a85b6606d23751e4f560a0b9b4a14353707fbb9bb7d24619d",
   "verified": false,
   "problem_id": 11,
   "readback": {
@@ -11122,7 +10986,9 @@ fn problems_status_readback_unverified() {
     "planned_end_date": null
   },
   "unavailable": [],
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11161,7 +11027,7 @@ fn problems_update_planned_dry_run() {
     "planned_end_date": "2030-01-03T17:00:00+00:00",
     "planned_start_date": "2030-01-02T09:00:00+00:00"
   },
-  "plan_hash": "71915ed44711b5be6fd38f1a94cf20c1102409ff668048a27b3ba9599c5f4128",
+  "plan_hash": "ecb5a82c539c91c2fff9481bf54de5f29abee779960c9130ec029a05759db8d5",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "before": {
     "planned_effort": null,
@@ -11177,7 +11043,9 @@ fn problems_update_planned_dry_run() {
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11200,7 +11068,7 @@ fn problems_update_planned_send() {
             "01:30",
             "--yes",
             "--expect-plan",
-            "71915ed44711b5be6fd38f1a94cf20c1102409ff668048a27b3ba9599c5f4128",
+            "ecb5a82c539c91c2fff9481bf54de5f29abee779960c9130ec029a05759db8d5",
         ],
         None,
     );
@@ -11209,14 +11077,16 @@ fn problems_update_planned_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "71915ed44711b5be6fd38f1a94cf20c1102409ff668048a27b3ba9599c5f4128",
+  "plan_hash": "ecb5a82c539c91c2fff9481bf54de5f29abee779960c9130ec029a05759db8d5",
   "verified": true,
   "problem_id": 71,
   "fields": {
     "planned_effort": "matched",
     "planned_end_date": "matched",
     "planned_start_date": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11236,7 +11106,7 @@ fn problems_update_planned_send_unverified() {
             "2h",
             "--yes",
             "--expect-plan",
-            "c7b277aa26e37ecb052a74b3b6ba7cde2a4e120fc2149e3dbbbf12fd5cdafff3",
+            "9548e490a0f0cc3a45621cba3cd123250ba3948806e06b667cd1ad103b83bc57",
         ],
         None,
     );
@@ -11245,13 +11115,15 @@ fn problems_update_planned_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "c7b277aa26e37ecb052a74b3b6ba7cde2a4e120fc2149e3dbbbf12fd5cdafff3",
+  "plan_hash": "9548e490a0f0cc3a45621cba3cd123250ba3948806e06b667cd1ad103b83bc57",
   "verified": false,
   "problem_id": 76,
   "fields": {
     "planned_effort": "mismatched"
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11380,7 +11252,7 @@ fn problems_update_planned_rules_unavailable() {
   "payload": {
     "planned_effort": "2h 0m"
   },
-  "plan_hash": "7db53549292f1142b2447d58f09b6382dd8c957dd24fb5e4dbce7585d3cf51a6",
+  "plan_hash": "c9b0020f32ba167e51c0e5893a72feb9559abd44d0c7c618d6423cddf91f23f7",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "before": {
     "planned_effort": null
@@ -11395,7 +11267,9 @@ fn problems_update_planned_rules_unavailable() {
   },
   "warnings": [
     "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11432,7 +11306,6 @@ fn problems_update_custom_field_dry_run() {
         &[
             "problems",
             "update",
-            "--no-review",
             "74",
             "--status",
             "Change Requested",
@@ -11442,33 +11315,11 @@ fn problems_update_custom_field_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "dry_run": true,
-  "action": "update",
-  "id": "PRB-74",
-  "body": {
-    "status": 2,
-    "custom_fields": {
-      "cf_owner_note": "Acme new owner"
-    }
-  },
-  "plan_hash": "03c7a17e6de6e8613248b7f50388730832214dce604d9ed07e381c2820ae74b5",
-  "record_state": {
-    "sends": 0,
-    "server_version": null
-  },
-  "requires_confirmation": [
-    "problem status -> Change Requested (status semantics and workflows require confirmation)"
-  ]
-}
-"#
-    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+        r#"error: problem status changes go through `fsv problems status ID --to STATUS` (a reviewed transition with closure checks); nothing sent
 "#
     );
 }
@@ -11480,7 +11331,6 @@ fn problems_update_custom_field_send() {
         &[
             "problems",
             "update",
-            "--no-review",
             "74",
             "--set",
             "Owner Note=Acme new owner",
@@ -11489,53 +11339,38 @@ fn problems_update_custom_field_send() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(
         r.out,
         r#"{
-  "id": 74,
-  "human_display_id": "PRB-74",
-  "subject": "Acme problem 74",
-  "status": 2,
-  "deleted": false,
-  "planned_start_date": null,
-  "planned_end_date": null,
-  "planned_effort": null,
-  "custom_fields": {
-    "cf_owner_note": "Acme new owner"
-  }
+  "status": "error",
+  "plan_hash": "58ac4ed671cec0ec08384728c6801f1a1737c7744539cc2bbd0d5317151e070b",
+  "verified": false,
+  "error": "--yes requires the full --expect-plan from a prior --dry-run review",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
     assert_eq!(
         r.err,
-        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+        r#"--yes requires the full --expect-plan from a prior --dry-run review
 "#
     );
-    assert_eq!(r.write_paths(), ["PUT /api/_/problems/74"]);
 }
 
 #[test]
 fn problems_update_deleted_refused() {
     let r = run_fixture(
         "problem_update",
-        &[
-            "problems",
-            "update",
-            "--no-review",
-            "72",
-            "--status",
-            "Closed",
-            "--yes",
-        ],
+        &["problems", "update", "72", "--status", "Closed", "--yes"],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
-error: PRB-72 is deleted (in trash); restore it before updating
+        r#"error: problem status changes go through `fsv problems status ID --to STATUS` (a reviewed transition with closure checks); nothing sent
 "#
     );
 }
@@ -11547,7 +11382,6 @@ fn problems_update_not_editable_405() {
         &[
             "problems",
             "update",
-            "--no-review",
             "73",
             "--set",
             "cf_owner_note=x",
@@ -11555,15 +11389,13 @@ fn problems_update_not_editable_405() {
         ],
         None,
     );
-    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
-error: HTTP 405 updating problem: PRB-73 is not editable (deleted or in trash?); nothing was changed
+        r#"--yes requires the full --expect-plan from a prior --dry-run review
 "#
     );
-    assert_eq!(r.write_paths(), ["PUT /api/_/problems/73"]);
 }
 
 #[test]
@@ -11610,12 +11442,14 @@ fn problem_create_rules_unavailable_dry_run() {
     "status": 41,
     "subject": "Acme problem"
   },
-  "plan_hash": "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b",
+  "plan_hash": "2f4f1d3ff8be7f63918b108dd1a56748fa5c2b93aff196454e487cb34a2ba5da",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "warnings": [
     "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
   ],
-  "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
+  "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11645,7 +11479,7 @@ fn problem_create_rules_unavailable_send() {
             "Acme count=7",
             "--yes",
             "--expect-plan",
-            "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b",
+            "2f4f1d3ff8be7f63918b108dd1a56748fa5c2b93aff196454e487cb34a2ba5da",
         ],
         None,
     );
@@ -11654,7 +11488,7 @@ fn problem_create_rules_unavailable_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b",
+  "plan_hash": "2f4f1d3ff8be7f63918b108dd1a56748fa5c2b93aff196454e487cb34a2ba5da",
   "verified": true,
   "problem_id": 456,
   "fields": {
@@ -11665,7 +11499,9 @@ fn problem_create_rules_unavailable_send() {
     "priority": "matched",
     "status": "matched",
     "subject": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11698,7 +11534,7 @@ fn problems_status_dry_run_rules_unavailable() {
   "payload": {
     "status": 2
   },
-  "plan_hash": "7ef01c5d8e561a91c0d64b9ef42e5dca889343e86e3c8552b5442ce9cfb80224",
+  "plan_hash": "e6750646b441c58cb20d420edad81fee5edd87167d0050ef0c4aeb4c98afd40d",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Change Requested",
   "before": {
@@ -11719,7 +11555,9 @@ fn problems_status_dry_run_rules_unavailable() {
   },
   "warnings": [
     "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11813,8 +11651,10 @@ fn tickets_tasks_add_dry_run() {
     "status": 1,
     "title": "Acme rollback check"
   },
-  "plan_hash": "1dd665c08f4fe0f2e426028685bf2ff7708eb86c5556004d5beeab83057496c8",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "f8d4869ee62d0e3cf9e2d4c650f1114fb444fdada35b83abfef9d7c79818c0ae",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11860,7 +11700,7 @@ fn tickets_tasks_add_send() {
             "Area=Network",
             "--yes",
             "--expect-plan",
-            "1dd665c08f4fe0f2e426028685bf2ff7708eb86c5556004d5beeab83057496c8",
+            "f8d4869ee62d0e3cf9e2d4c650f1114fb444fdada35b83abfef9d7c79818c0ae",
         ],
         None,
     );
@@ -11869,7 +11709,7 @@ fn tickets_tasks_add_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1dd665c08f4fe0f2e426028685bf2ff7708eb86c5556004d5beeab83057496c8",
+  "plan_hash": "f8d4869ee62d0e3cf9e2d4c650f1114fb444fdada35b83abfef9d7c79818c0ae",
   "verified": true,
   "task_id": 902,
   "fields": {
@@ -11877,7 +11717,9 @@ fn tickets_tasks_add_send() {
     "notify_before": "matched",
     "status": "matched",
     "title": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -11920,8 +11762,10 @@ fn tickets_tasks_add_choice_field_dry_run() {
     "status": 2,
     "title": "Acme tiered"
   },
-  "plan_hash": "5a9cf60ef1a6fe9d64467d3dcfd67c93d8a1f5623cb601c076f22312b76ca493",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "efee13b11510dcc68a24fe674c3b58b04b043696ee42841df407289090a7ca59",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12057,8 +11901,10 @@ fn tickets_tasks_status_dry_run() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "8b7801ca1b5d8dc5c32a09ab5649e049e109b6cabf820b278ffba5022b211053",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "8927b43902641feff3e8b6afbc6df78374ae8468a1a2e67238f5f5f673e77a16",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12079,7 +11925,7 @@ fn tickets_tasks_status_send() {
             "Completed",
             "--yes",
             "--expect-plan",
-            "8b7801ca1b5d8dc5c32a09ab5649e049e109b6cabf820b278ffba5022b211053",
+            "8927b43902641feff3e8b6afbc6df78374ae8468a1a2e67238f5f5f673e77a16",
         ],
         None,
     );
@@ -12088,12 +11934,14 @@ fn tickets_tasks_status_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "8b7801ca1b5d8dc5c32a09ab5649e049e109b6cabf820b278ffba5022b211053",
+  "plan_hash": "8927b43902641feff3e8b6afbc6df78374ae8468a1a2e67238f5f5f673e77a16",
   "verified": true,
   "task_id": 903,
   "fields": {
     "status": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12165,7 +12013,7 @@ fn tickets_tasks_status_readback_unverified() {
             "Completed",
             "--yes",
             "--expect-plan",
-            "71f4b2b9bb701125b126eca4ffe16589fe109e2837872f4ff9e5b8fa90691520",
+            "0717688270993dfe88177a7298a63827a6d42a0f8ba7ee1b7076ffdd3011f8a6",
         ],
         None,
     );
@@ -12174,13 +12022,15 @@ fn tickets_tasks_status_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "71f4b2b9bb701125b126eca4ffe16589fe109e2837872f4ff9e5b8fa90691520",
+  "plan_hash": "0717688270993dfe88177a7298a63827a6d42a0f8ba7ee1b7076ffdd3011f8a6",
   "verified": false,
   "task_id": 906,
   "fields": {
     "status": "mismatched"
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12207,8 +12057,10 @@ fn tickets_tasks_delete_dry_run() {
     "action": "delete",
     "id": "904"
   },
-  "plan_hash": "26affb7e686e7643871d6b0f487e23cf224133be2dad8e2c87981d630983117e",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "ceebc5ce54abf648834720352e87049f2752458d5f1facfd6a862b9c6e570522",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12227,7 +12079,7 @@ fn tickets_tasks_delete_send() {
             "904",
             "--yes",
             "--expect-plan",
-            "26affb7e686e7643871d6b0f487e23cf224133be2dad8e2c87981d630983117e",
+            "ceebc5ce54abf648834720352e87049f2752458d5f1facfd6a862b9c6e570522",
         ],
         None,
     );
@@ -12236,9 +12088,11 @@ fn tickets_tasks_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "26affb7e686e7643871d6b0f487e23cf224133be2dad8e2c87981d630983117e",
+  "plan_hash": "ceebc5ce54abf648834720352e87049f2752458d5f1facfd6a862b9c6e570522",
   "verified": true,
-  "task_id": 904
+  "task_id": 904,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12307,8 +12161,10 @@ fn tickets_tasks_add_owner_group_dry_run() {
     "status": 1,
     "title": "Acme handover"
   },
-  "plan_hash": "cb1435d6e3ed29a07ad18ae5a6ce0bdf3d89acf17a07636002a5dd41b9025f09",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "9de0f2a7ba5e42bc1bee868c875aa4237e34297bcb55c005e306e47f5f41b268",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12332,7 +12188,7 @@ fn tickets_tasks_add_owner_group_send() {
             "DBA",
             "--yes",
             "--expect-plan",
-            "cb1435d6e3ed29a07ad18ae5a6ce0bdf3d89acf17a07636002a5dd41b9025f09",
+            "9de0f2a7ba5e42bc1bee868c875aa4237e34297bcb55c005e306e47f5f41b268",
         ],
         None,
     );
@@ -12341,7 +12197,7 @@ fn tickets_tasks_add_owner_group_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "cb1435d6e3ed29a07ad18ae5a6ce0bdf3d89acf17a07636002a5dd41b9025f09",
+  "plan_hash": "9de0f2a7ba5e42bc1bee868c875aa4237e34297bcb55c005e306e47f5f41b268",
   "verified": true,
   "task_id": 911,
   "fields": {
@@ -12351,7 +12207,9 @@ fn tickets_tasks_add_owner_group_send() {
     "owner_id": "matched",
     "status": "matched",
     "title": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12441,8 +12299,10 @@ fn tickets_tasks_update_dry_run() {
     "owner_id": 133,
     "title": "Acme new"
   },
-  "plan_hash": "8073b6861a37ce2d25a683279e2cc0854b610d66b31929d4b67ea103b96d131d",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "bfbdce41ceff462117f2f641b6c29328a4e7374417b777311a6bbd313c84e6aa",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12465,7 +12325,7 @@ fn tickets_tasks_update_send() {
             "bo@acme.com",
             "--yes",
             "--expect-plan",
-            "8073b6861a37ce2d25a683279e2cc0854b610d66b31929d4b67ea103b96d131d",
+            "bfbdce41ceff462117f2f641b6c29328a4e7374417b777311a6bbd313c84e6aa",
         ],
         None,
     );
@@ -12474,13 +12334,15 @@ fn tickets_tasks_update_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "8073b6861a37ce2d25a683279e2cc0854b610d66b31929d4b67ea103b96d131d",
+  "plan_hash": "bfbdce41ceff462117f2f641b6c29328a4e7374417b777311a6bbd313c84e6aa",
   "verified": true,
   "task_id": 912,
   "fields": {
     "owner_id": "matched",
     "title": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -12637,7 +12499,7 @@ fn where_strict_quoted_operator_value() {
     assert_eq!(
         r.err,
         r#"error: no list filter exists for text field 'Note': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword 
-search
+search; filterable fields on this tenant: Status, Priority, Requester, Agent, Group, Department, Environment, Count, Due Date
 "#
     );
 }
@@ -12899,7 +12761,7 @@ fn ls_type_unknown_never_lists() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: no unique runtime choice 'Case' for Type
+        r#"error: no unique runtime choice 'Case' for Type; this tenant's choices: Incident, Service Request; nothing was sent
 "#
     );
 }
@@ -12915,7 +12777,7 @@ fn ls_type_retired_never_lists() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: no unique runtime choice 'Retired' for Type
+        r#"error: no unique runtime choice 'Retired' for Type; this tenant's choices: Incident, Service Request; nothing was sent
 "#
     );
 }
@@ -12952,7 +12814,6 @@ fn where_changes_search_error() {
     );
 }
 
-/// Python `f081c97`: the raw query hash is checked before any request.
 #[test]
 fn where_tickets_raw_search_error() {
     let r = run_fixture(
@@ -13009,7 +12870,7 @@ fn reply_attach_dry_run() {
     "full_text": "<div>see attached</div>",
     "translate_reply": false
   },
-  "plan_hash": "34994e2af399fea67e7d2834cd8d3385ab3e6bc3bf277ce91d069910e64b8454",
+  "plan_hash": "276c18541db1cb54eb3635b12913c336109f7eb8b6a3f496935158d8bd58d725",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -13027,7 +12888,9 @@ fn reply_attach_dry_run() {
     "total_bytes": 11,
     "applies_to": "total of all files in this submit"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13050,7 +12913,7 @@ fn reply_attach_send() {
             "notes.txt",
             "--yes",
             "--expect-plan",
-            "34994e2af399fea67e7d2834cd8d3385ab3e6bc3bf277ce91d069910e64b8454",
+            "276c18541db1cb54eb3635b12913c336109f7eb8b6a3f496935158d8bd58d725",
         ],
         None,
     );
@@ -13059,7 +12922,7 @@ fn reply_attach_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "34994e2af399fea67e7d2834cd8d3385ab3e6bc3bf277ce91d069910e64b8454",
+  "plan_hash": "276c18541db1cb54eb3635b12913c336109f7eb8b6a3f496935158d8bd58d725",
   "uploaded_ids": [
     11
   ],
@@ -13074,7 +12937,9 @@ fn reply_attach_send() {
     "cc_emails": "unavailable",
     "from_email": "matched"
   },
-  "warning": "Independent owning-record readback not fully verified; do not replay."
+  "warning": "Independent owning-record readback not fully verified; do not replay.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13259,7 +13124,7 @@ fn reply_attach_unpublished_limit_dry_run() {
     "full_text": "<div>see attached</div>",
     "translate_reply": false
   },
-  "plan_hash": "ff74547927b7cb83ed7bb20d450c70b1b7e2844487f2dce138b78930f11f8999",
+  "plan_hash": "5424d23c8851bfced4319326e7f918a1967f44afc1f2ae52a4ce3833e4b3863f",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -13278,7 +13143,9 @@ fn reply_attach_unpublished_limit_dry_run() {
     "applies_to": "total of all files in this submit",
     "note": "the tenant publishes no attachment size limit; pass --max-bytes N to set one before sending"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13301,7 +13168,7 @@ fn reply_attach_unpublished_limit_send_refused() {
             "notes.txt",
             "--yes",
             "--expect-plan",
-            "ff74547927b7cb83ed7bb20d450c70b1b7e2844487f2dce138b78930f11f8999",
+            "5424d23c8851bfced4319326e7f918a1967f44afc1f2ae52a4ce3833e4b3863f",
         ],
         None,
     );
@@ -13351,7 +13218,7 @@ fn reply_attach_max_bytes_override() {
     "full_text": "<div>see attached</div>",
     "translate_reply": false
   },
-  "plan_hash": "d0d4b376bacaacd0588a4f3a664d621f4edfecde32c03d9877242869dcb27070",
+  "plan_hash": "ef1b0ec51836a544cdcd055044a2422e3abd30dae76cd45ccc8059ad96975da9",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -13369,7 +13236,9 @@ fn reply_attach_max_bytes_override() {
     "total_bytes": 11,
     "applies_to": "total of all files in this submit"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13407,7 +13276,7 @@ fn add_note_attach_dry_run() {
     "notify_emails": [],
     "private": true
   },
-  "plan_hash": "50d2e899e389f69d2c04fd7ad1ccac15d9f1ff4d019653980985f27a31ec6802",
+  "plan_hash": "80c14a9737d29c834dd0d7304ba1de828f9799568b7d4d43430a591a44cde732",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -13425,7 +13294,9 @@ fn add_note_attach_dry_run() {
     "total_bytes": 11,
     "applies_to": "total of all files in this submit"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13447,7 +13318,7 @@ fn add_note_attach_send() {
             "notes.txt",
             "--yes",
             "--expect-plan",
-            "50d2e899e389f69d2c04fd7ad1ccac15d9f1ff4d019653980985f27a31ec6802",
+            "80c14a9737d29c834dd0d7304ba1de828f9799568b7d4d43430a591a44cde732",
         ],
         None,
     );
@@ -13456,7 +13327,7 @@ fn add_note_attach_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "50d2e899e389f69d2c04fd7ad1ccac15d9f1ff4d019653980985f27a31ec6802",
+  "plan_hash": "80c14a9737d29c834dd0d7304ba1de828f9799568b7d4d43430a591a44cde732",
   "uploaded_ids": [
     11
   ],
@@ -13471,7 +13342,9 @@ fn add_note_attach_send() {
     "notify_emails": "unavailable",
     "private": "matched"
   },
-  "warning": "Independent owning-record readback not fully verified; do not replay."
+  "warning": "Independent owning-record readback not fully verified; do not replay.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13538,7 +13411,7 @@ fn problem_note_attach_dry_run() {
   "payload": {
     "body": "root cause"
   },
-  "plan_hash": "1d9f7771d1f923614728661b050bd5f73adadc40360182c42880543fa7a0d3f1",
+  "plan_hash": "7cbf29699f065ea78efc933f2ec8ec74b1dfbf65b69751102a038a8491eedb58",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -13556,7 +13429,9 @@ fn problem_note_attach_dry_run() {
     "total_bytes": 11,
     "applies_to": "total of all files in this submit"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13578,7 +13453,7 @@ fn problem_note_attach_send() {
             "notes.txt",
             "--yes",
             "--expect-plan",
-            "1d9f7771d1f923614728661b050bd5f73adadc40360182c42880543fa7a0d3f1",
+            "7cbf29699f065ea78efc933f2ec8ec74b1dfbf65b69751102a038a8491eedb58",
         ],
         None,
     );
@@ -13587,7 +13462,7 @@ fn problem_note_attach_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1d9f7771d1f923614728661b050bd5f73adadc40360182c42880543fa7a0d3f1",
+  "plan_hash": "7cbf29699f065ea78efc933f2ec8ec74b1dfbf65b69751102a038a8491eedb58",
   "uploaded_ids": [
     11
   ],
@@ -13599,7 +13474,9 @@ fn problem_note_attach_send() {
   "attachments_verified": true,
   "fields": {
     "body": "matched"
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13633,12 +13510,14 @@ fn attachments_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/attachments/61",
   "payload": null,
-  "plan_hash": "b94526fc24eee0a097e1471298a40ae8e457df4ce54d8ede1a242a1fad906440",
+  "plan_hash": "682dec3f9be6d9c74700fa23389f19a7e46cd70f8dde4b2568448248a72f4970",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "owner": "tickets/5",
   "child": null,
   "section": null,
-  "requires": "--confirm-destructive"
+  "requires": "--confirm-destructive",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13657,47 +13536,17 @@ fn attachments_delete_send() {
             "tickets/6",
             "--yes",
             "--expect-plan",
-            "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
-            "--confirm-destructive",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
-  "verified": true,
-  "attachment_id": 62
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["DELETE /api/_/attachments/62"]);
-}
-
-#[test]
-fn attachments_delete_yes_without_confirm_destructive_sends_nothing() {
-    let r = run_fixture(
-        "attachments",
-        &[
-            "attachments",
-            "delete",
-            "62",
-            "--owner",
-            "tickets/6",
-            "--yes",
-            "--expect-plan",
-            "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
+            "1e521910273ace5238031f4973c4da33b0279dce0ea3f5247c8ff5ae437345f2",
         ],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
-    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
-    assert!(r.write_paths().is_empty());
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"attachment deletion is permanent; pass --confirm-destructive with --yes --expect-plan FULL_HASH. Nothing was sent
+"#
+    );
 }
 
 #[test]
@@ -13712,25 +13561,17 @@ fn attachments_delete_send_unverified() {
             "tickets/8",
             "--yes",
             "--expect-plan",
-            "b543497e0ec2e43bcdcf810686166714f25a5accfd7f8ee13a4badbdeaa831d4",
-            "--confirm-destructive",
+            "4a5d8b16075dd7506fbf09a73d4bcc9c5c52398adf51abae1874378aa261a8d0",
         ],
         None,
     );
-    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "b543497e0ec2e43bcdcf810686166714f25a5accfd7f8ee13a4badbdeaa831d4",
-  "verified": false,
-  "attachment_id": 63,
-  "warning": "Readback was not fully verified; do not resend."
-}
+        r.err,
+        r#"attachment deletion is permanent; pass --confirm-destructive with --yes --expect-plan FULL_HASH. Nothing was sent
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["DELETE /api/_/attachments/63"]);
 }
 
 #[test]
@@ -13852,12 +13693,14 @@ fn attachments_delete_child_conversation() {
   "method": "DELETE",
   "path": "/api/_/attachments/11",
   "payload": null,
-  "plan_hash": "37ddd3cb976012a5d355d002d938adf14814b46021e43fad797d8e0afe624847",
+  "plan_hash": "e8922f7f921b3e31921471d94cdd614b84d68b803700ff0926370e8c2004f611",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "owner": "tickets/5",
   "child": 950,
   "section": null,
-  "requires": "--confirm-destructive"
+  "requires": "--confirm-destructive",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13905,7 +13748,7 @@ fn change_create_before_create_dry_run() {
     "status": 1,
     "subject": "Hello"
   },
-  "plan_hash": "3b2900d5c89c79c1e08028d062d7e6d0c7fcb8258a6ec0030c8e6652431d2d97",
+  "plan_hash": "7b16c25d0b95b5bcfe7983a624b50557c7387d9a0a151a44db971558d0a4515c",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -13924,7 +13767,9 @@ fn change_create_before_create_dry_run() {
     "total_bytes": 11,
     "applies_to": "total of all files in this submit"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -13950,7 +13795,7 @@ fn change_create_before_create_send() {
             "before-create",
             "--yes",
             "--expect-plan",
-            "3b2900d5c89c79c1e08028d062d7e6d0c7fcb8258a6ec0030c8e6652431d2d97",
+            "7b16c25d0b95b5bcfe7983a624b50557c7387d9a0a151a44db971558d0a4515c",
             "--json",
         ],
         None,
@@ -13960,7 +13805,7 @@ fn change_create_before_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "3b2900d5c89c79c1e08028d062d7e6d0c7fcb8258a6ec0030c8e6652431d2d97",
+  "plan_hash": "7b16c25d0b95b5bcfe7983a624b50557c7387d9a0a151a44db971558d0a4515c",
   "uploaded_ids": [
     11
   ],
@@ -13980,7 +13825,9 @@ fn change_create_before_create_send() {
     "status": "unavailable",
     "subject": "matched"
   },
-  "warning": "Independent owning-record readback not fully verified; do not replay."
+  "warning": "Independent owning-record readback not fully verified; do not replay.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -14071,7 +13918,7 @@ fn change_create_device_send() {
             "702",
             "--yes",
             "--expect-plan",
-            "74211ef8d2058797710625fd916d8b3bcccd351a39bed21e6877b0caadaab170",
+            "8185a9434dbab596cf034b7ebba4376dc554b9fa79e5d07f9c2d186dcc32312f",
             "--json",
         ],
         None,
@@ -14085,7 +13932,7 @@ fn change_create_device_send() {
     "display_id": 900,
     "subject": "Hello"
   },
-  "plan_hash": "74211ef8d2058797710625fd916d8b3bcccd351a39bed21e6877b0caadaab170",
+  "plan_hash": "8185a9434dbab596cf034b7ebba4376dc554b9fa79e5d07f9c2d186dcc32312f",
   "steps": [
     {
       "step": "create",
@@ -14104,7 +13951,9 @@ fn change_create_device_send() {
         "category": "Device"
       }
     ]
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -14128,7 +13977,7 @@ fn change_create_device_send_unverified() {
             "703",
             "--yes",
             "--expect-plan",
-            "448038f3a4c50b28a4639d947ddb390840d7057d1232ff1b9db4c569dbef1983",
+            "cef5340cfc6accc199ca7f98b5953e20fa8c8c016584ae6a4eede489f7b83b8b",
             "--json",
         ],
         None,
@@ -14142,7 +13991,7 @@ fn change_create_device_send_unverified() {
     "display_id": 900,
     "subject": "Hello"
   },
-  "plan_hash": "448038f3a4c50b28a4639d947ddb390840d7057d1232ff1b9db4c569dbef1983",
+  "plan_hash": "cef5340cfc6accc199ca7f98b5953e20fa8c8c016584ae6a4eede489f7b83b8b",
   "steps": [
     {
       "step": "create",
@@ -14162,7 +14011,9 @@ fn change_create_device_send_unverified() {
       }
     ],
     "warning": "Create-time devices not independently verified; do not resend."
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -14222,7 +14073,7 @@ fn ticket_create_attach_dry_run() {
     "priority": 2,
     "subject": "Hello"
   },
-  "plan_hash": "af56502cf00bd624eafd8c819fcae7a448a378b50149ed7f1515f271dfe7e9f2",
+  "plan_hash": "7d4aaf4fe5f1cfb2f4ac4359b625d2415987af685d330e5c5821f821c7f65a1e",
   "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
   "files": [
     {
@@ -14241,7 +14092,9 @@ fn ticket_create_attach_dry_run() {
     "total_bytes": 11,
     "applies_to": "total of all files in this submit"
   },
-  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+  "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -14266,7 +14119,7 @@ fn ticket_create_attach_send() {
             "notes.txt",
             "--yes",
             "--expect-plan",
-            "af56502cf00bd624eafd8c819fcae7a448a378b50149ed7f1515f271dfe7e9f2",
+            "7d4aaf4fe5f1cfb2f4ac4359b625d2415987af685d330e5c5821f821c7f65a1e",
         ],
         None,
     );
@@ -14275,7 +14128,7 @@ fn ticket_create_attach_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "af56502cf00bd624eafd8c819fcae7a448a378b50149ed7f1515f271dfe7e9f2",
+  "plan_hash": "7d4aaf4fe5f1cfb2f4ac4359b625d2415987af685d330e5c5821f821c7f65a1e",
   "uploaded_ids": [
     11
   ],
@@ -14291,7 +14144,9 @@ fn ticket_create_attach_send() {
     "priority": "matched",
     "subject": "matched"
   },
-  "warning": "Independent owning-record readback not fully verified; do not replay."
+  "warning": "Independent owning-record readback not fully verified; do not replay.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -14620,8 +14475,10 @@ fn tickets_assets_add_dry_run() {
       702
     ]
   },
-  "plan_hash": "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "c2e389d771f659f69e132fd6fdea5ab1bb8a8dfb75b91c137735724728c00630",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -14661,6 +14518,52 @@ fn tickets_assets_add_read_only() {
 }
 
 #[test]
+fn tickets_assets_add_send() {
+    let r = run_fixture(
+        "integrated_assets",
+        &[
+            "tickets",
+            "assets",
+            "add",
+            "123",
+            "702",
+            "--yes",
+            "--expect-plan",
+            "c2e389d771f659f69e132fd6fdea5ab1bb8a8dfb75b91c137735724728c00630",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "c2e389d771f659f69e132fd6fdea5ab1bb8a8dfb75b91c137735724728c00630",
+  "verified": true,
+  "readback": [
+    {
+      "item_id": 701,
+      "itam_cmdb_request_id": 9001,
+      "name": "Acme laptop",
+      "category": "Device"
+    },
+    {
+      "item_id": 702,
+      "itam_cmdb_request_id": 9002,
+      "name": "Acme router",
+      "category": "Device"
+    }
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/123/associate-ci"]);
+}
+
+#[test]
 fn tickets_assets_add_present_refused() {
     let r = run_fixture(
         "integrated_assets",
@@ -14694,12 +14597,47 @@ fn problems_assets_remove_dry_run() {
   "payload": {
     "itam_cmdb_request_id": 9001
   },
-  "plan_hash": "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "4231df6ed7a03e8e3f66f1c0c23385e066e0486a5e55c9b20037d8b08b78229d",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
     assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_assets_remove_send() {
+    let r = run_fixture(
+        "integrated_assets",
+        &[
+            "problems",
+            "assets",
+            "remove",
+            "7",
+            "701",
+            "--yes",
+            "--expect-plan",
+            "4231df6ed7a03e8e3f66f1c0c23385e066e0486a5e55c9b20037d8b08b78229d",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "4231df6ed7a03e8e3f66f1c0c23385e066e0486a5e55c9b20037d8b08b78229d",
+  "verified": true,
+  "readback": [],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/7/disassociate-ci"]);
 }
 
 #[test]
@@ -14730,7 +14668,7 @@ fn changes_assets_add_send_unverified() {
             "702",
             "--yes",
             "--expect-plan",
-            "6430186e53f16ea8b10248de884c4e2c0b4f057c79ff6f443e7dc34fa9d82ff9",
+            "5a9859554e9f1c304b4412368d54aaaa03eb63da3bb2ab11a3cf9c7fb5cb7b26",
         ],
         None,
     );
@@ -14739,7 +14677,7 @@ fn changes_assets_add_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "6430186e53f16ea8b10248de884c4e2c0b4f057c79ff6f443e7dc34fa9d82ff9",
+  "plan_hash": "5a9859554e9f1c304b4412368d54aaaa03eb63da3bb2ab11a3cf9c7fb5cb7b26",
   "verified": false,
   "readback": [
     {
@@ -14749,7 +14687,9 @@ fn changes_assets_add_send_unverified() {
       "category": "Device"
     }
   ],
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15013,8 +14953,10 @@ fn tickets_assets_add_legacy_dry_run() {
       3002
     ]
   },
-  "plan_hash": "bc387ef9c51c23eed5bba351a9b635e3287bcc4137ae6d5a2a0be223b1fdc5a8",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "80eb62a873ae3652c72f21bb7c3d8b6aee0e771b8f7a673d7dce983ce22b6f95",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15067,81 +15009,6 @@ fn tickets_assets_remove_legacy_refused() {
         r#"removing a legacy asset association has no captured wire; use the web UI; nothing sent
 "#
     );
-}
-
-#[test]
-fn tickets_assets_add_send() {
-    let r = run_fixture(
-        "integrated_assets",
-        &[
-            "tickets",
-            "assets",
-            "add",
-            "123",
-            "702",
-            "--yes",
-            "--expect-plan",
-            "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
-  "verified": true,
-  "readback": [
-    {
-      "item_id": 701,
-      "itam_cmdb_request_id": 9001,
-      "name": "Acme laptop",
-      "category": "Device"
-    },
-    {
-      "item_id": 702,
-      "itam_cmdb_request_id": 9002,
-      "name": "Acme router",
-      "category": "Device"
-    }
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/123/associate-ci"]);
-}
-
-#[test]
-fn problems_assets_remove_send() {
-    let r = run_fixture(
-        "integrated_assets",
-        &[
-            "problems",
-            "assets",
-            "remove",
-            "7",
-            "701",
-            "--yes",
-            "--expect-plan",
-            "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
-  "verified": true,
-  "readback": []
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/problems/7/disassociate-ci"]);
 }
 
 #[test]
@@ -15239,12 +15106,83 @@ fn sr_approvals_request_dry_run() {
       }
     ]
   },
-  "plan_hash": "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "7a55add406c33962faaf8ca2ac6cdb211f5d2b5b93b6c290cd9bee619db71f02",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
     assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_approvals_request_send() {
+    let r = run_fixture(
+        "sr_approvals",
+        &[
+            "sr",
+            "approvals",
+            "request",
+            "131",
+            "--name",
+            "Acme release",
+            "--message",
+            "Please review",
+            "--approver",
+            "33",
+            "--approver",
+            "bo@acme.com",
+            "--yes",
+            "--expect-plan",
+            "7a55add406c33962faaf8ca2ac6cdb211f5d2b5b93b6c290cd9bee619db71f02",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "7a55add406c33962faaf8ca2ac6cdb211f5d2b5b93b6c290cd9bee619db71f02",
+  "verified": true,
+  "readback": [
+    {
+      "id": 41,
+      "name": "Acme release",
+      "approval_type": 1,
+      "approval_status": 0,
+      "approvals": [
+        {
+          "id": 411,
+          "member_id": 33,
+          "status": {
+            "id": 0,
+            "name": "requested"
+          },
+          "last_reminded_at": null,
+          "remark": []
+        },
+        {
+          "id": 412,
+          "member_id": 34,
+          "status": {
+            "id": 0,
+            "name": "requested"
+          },
+          "last_reminded_at": null,
+          "remark": []
+        }
+      ]
+    }
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/131/approval-groups"]);
 }
 
 #[test]
@@ -15361,12 +15299,63 @@ fn sr_approvals_approve_dry_run() {
     "approval_status": 1,
     "remark": "Acme ok"
   },
-  "plan_hash": "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "e7d8f22922a9eb8a5991ab8a948cc301add6b64e2d3fdc6d9aac66f25686e5e8",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
     assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_approvals_approve_send() {
+    let r = run_fixture(
+        "sr_approvals",
+        &[
+            "sr",
+            "approvals",
+            "approve",
+            "132",
+            "401",
+            "--remark",
+            "Acme ok",
+            "--yes",
+            "--expect-plan",
+            "e7d8f22922a9eb8a5991ab8a948cc301add6b64e2d3fdc6d9aac66f25686e5e8",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "e7d8f22922a9eb8a5991ab8a948cc301add6b64e2d3fdc6d9aac66f25686e5e8",
+  "verified": true,
+  "readback": {
+    "id": 401,
+    "member_id": 31,
+    "status": {
+      "id": 1,
+      "name": "approved"
+    },
+    "last_reminded_at": null,
+    "remark": [
+      {
+        "status": 1,
+        "data": "Acme ok"
+      }
+    ]
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/132/approvals/401"]);
 }
 
 #[test]
@@ -15417,8 +15406,10 @@ fn sr_approvals_cancel_dry_run() {
   "method": "PUT",
   "path": "/api/_/tickets/130/approval-groups/40/cancel",
   "payload": null,
-  "plan_hash": "bb388f5ae1f18bd48fc73381749dd847d8068182379de2f7c9ea3031338d7025",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "a469e0792108f3b84b4593e825cb69a302921c03e4ad1bc56092454996bbaa78",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15437,7 +15428,7 @@ fn sr_approvals_remind_send_unverified() {
             "402",
             "--yes",
             "--expect-plan",
-            "3d6e267ff46e2d5703a73fe6710982d3357f58f0e05388b53963f25163fb61fc",
+            "fb8d49b2a73af87dfc2adfca39f73bde984b9cba7774edc8a762ab4be5b31498",
         ],
         None,
     );
@@ -15446,7 +15437,7 @@ fn sr_approvals_remind_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "3d6e267ff46e2d5703a73fe6710982d3357f58f0e05388b53963f25163fb61fc",
+  "plan_hash": "fb8d49b2a73af87dfc2adfca39f73bde984b9cba7774edc8a762ab4be5b31498",
   "verified": false,
   "readback": {
     "id": 402,
@@ -15458,7 +15449,9 @@ fn sr_approvals_remind_send_unverified() {
     "last_reminded_at": null,
     "remark": []
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15529,7 +15522,7 @@ fn changes_legacy_approval_request_dry_run() {
       9
     ]
   },
-  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "plan_hash": "b39135ab5774b043e76af7058fb148cdd29db591f08092600a2d202e09d09ff9",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
@@ -15539,7 +15532,9 @@ fn changes_legacy_approval_request_dry_run() {
     9
   ],
   "rule": "everyone",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15558,7 +15553,7 @@ fn changes_legacy_approval_request_send() {
             "9",
             "--yes",
             "--expect-plan",
-            "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+            "b39135ab5774b043e76af7058fb148cdd29db591f08092600a2d202e09d09ff9",
         ],
         None,
     );
@@ -15567,7 +15562,7 @@ fn changes_legacy_approval_request_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "plan_hash": "b39135ab5774b043e76af7058fb148cdd29db591f08092600a2d202e09d09ff9",
   "verified": true,
   "approval_ids": [
     503
@@ -15588,7 +15583,9 @@ fn changes_legacy_approval_request_send() {
       "last_reminded_at": null
     }
   ],
-  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15604,7 +15601,7 @@ fn changes_legacy_approval_request_send() {
       9
     ]
   },
-  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "plan_hash": "b39135ab5774b043e76af7058fb148cdd29db591f08092600a2d202e09d09ff9",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
@@ -15614,7 +15611,9 @@ fn changes_legacy_approval_request_send() {
     9
   ],
   "rule": "everyone",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15649,7 +15648,7 @@ fn changes_legacy_approval_request_no_input() {
       9
     ]
   },
-  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "plan_hash": "b39135ab5774b043e76af7058fb148cdd29db591f08092600a2d202e09d09ff9",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
@@ -15659,7 +15658,9 @@ fn changes_legacy_approval_request_no_input() {
     9
   ],
   "rule": "everyone",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 sending requires --yes and --expect-plan in no-input mode
 "#
@@ -15727,7 +15728,7 @@ fn changes_legacy_approval_request_auto_ignores_name() {
       9
     ]
   },
-  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "plan_hash": "b39135ab5774b043e76af7058fb148cdd29db591f08092600a2d202e09d09ff9",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
@@ -15737,7 +15738,9 @@ fn changes_legacy_approval_request_auto_ignores_name() {
     9
   ],
   "rule": "everyone",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15881,13 +15884,15 @@ fn changes_approval_remind_dry_run() {
   "method": "PUT",
   "path": "/api/_/changes/41/approvals/501/resend",
   "payload": null,
-  "plan_hash": "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5",
+  "plan_hash": "d0294fa8acf4d0fbb3cd34020f8031981cd991a67c7d3caef490dc48ba68d3d0",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
   "approval_id": 501,
   "operation": "remind",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -15905,7 +15910,7 @@ fn changes_approval_remind_send() {
             "501",
             "--yes",
             "--expect-plan",
-            "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5",
+            "d0294fa8acf4d0fbb3cd34020f8031981cd991a67c7d3caef490dc48ba68d3d0",
         ],
         None,
     );
@@ -15914,7 +15919,7 @@ fn changes_approval_remind_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5",
+  "plan_hash": "d0294fa8acf4d0fbb3cd34020f8031981cd991a67c7d3caef490dc48ba68d3d0",
   "verified": true,
   "readback": {
     "id": 501,
@@ -15930,7 +15935,9 @@ fn changes_approval_remind_send() {
     },
     "last_reminded_at": "2026-11-01T10:00:00Z"
   },
-  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16043,7 +16050,7 @@ fn sr_legacy_approvals_request_dry_run() {
       34
     ]
   },
-  "plan_hash": "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68",
+  "plan_hash": "bf1e348e7534dedb78308a0748db1f280d67bc6428edcfaf17dcc35f0c36e341",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
@@ -16053,7 +16060,9 @@ fn sr_legacy_approvals_request_dry_run() {
     34
   ],
   "rule": "everyone",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16073,7 +16082,7 @@ fn sr_legacy_approvals_request_send() {
             "cy@acme.com",
             "--yes",
             "--expect-plan",
-            "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68",
+            "bf1e348e7534dedb78308a0748db1f280d67bc6428edcfaf17dcc35f0c36e341",
         ],
         None,
     );
@@ -16082,7 +16091,7 @@ fn sr_legacy_approvals_request_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68",
+  "plan_hash": "bf1e348e7534dedb78308a0748db1f280d67bc6428edcfaf17dcc35f0c36e341",
   "verified": true,
   "approval_ids": [
     602
@@ -16103,7 +16112,9 @@ fn sr_legacy_approvals_request_send() {
       "last_reminded_at": null
     }
   ],
-  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16153,13 +16164,15 @@ fn sr_legacy_approvals_remind_dry_run() {
   "method": "PUT",
   "path": "/api/_/tickets/141/approvals/601/resend",
   "payload": null,
-  "plan_hash": "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763",
+  "plan_hash": "0c5a3036e2183813e07e1dbec89cb5499a3ec8be269fe96b0ed3ca84e790d47b",
   "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
   "driver": "legacy",
   "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
   "approval_id": 601,
   "operation": "remind",
-  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16178,7 +16191,7 @@ fn sr_legacy_approvals_remind_send() {
             "601",
             "--yes",
             "--expect-plan",
-            "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763",
+            "0c5a3036e2183813e07e1dbec89cb5499a3ec8be269fe96b0ed3ca84e790d47b",
         ],
         None,
     );
@@ -16187,7 +16200,7 @@ fn sr_legacy_approvals_remind_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763",
+  "plan_hash": "0c5a3036e2183813e07e1dbec89cb5499a3ec8be269fe96b0ed3ca84e790d47b",
   "verified": true,
   "readback": {
     "id": 601,
@@ -16203,7 +16216,9 @@ fn sr_legacy_approvals_remind_send() {
     },
     "last_reminded_at": "2026-11-02T08:00:00Z"
   },
-  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16228,120 +16243,6 @@ fn sr_legacy_approvals_approve_refused() {
         r#"sr approvals approve refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 400); legacy flat approvals: not yet supported
 "#
     );
-}
-
-#[test]
-fn sr_approvals_request_send() {
-    let r = run_fixture(
-        "sr_approvals",
-        &[
-            "sr",
-            "approvals",
-            "request",
-            "131",
-            "--name",
-            "Acme release",
-            "--message",
-            "Please review",
-            "--approver",
-            "33",
-            "--approver",
-            "bo@acme.com",
-            "--yes",
-            "--expect-plan",
-            "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
-  "verified": true,
-  "readback": [
-    {
-      "id": 41,
-      "name": "Acme release",
-      "approval_type": 1,
-      "approval_status": 0,
-      "approvals": [
-        {
-          "id": 411,
-          "member_id": 33,
-          "status": {
-            "id": 0,
-            "name": "requested"
-          },
-          "last_reminded_at": null,
-          "remark": []
-        },
-        {
-          "id": 412,
-          "member_id": 34,
-          "status": {
-            "id": 0,
-            "name": "requested"
-          },
-          "last_reminded_at": null,
-          "remark": []
-        }
-      ]
-    }
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/tickets/131/approval-groups"]);
-}
-
-#[test]
-fn sr_approvals_approve_send() {
-    let r = run_fixture(
-        "sr_approvals",
-        &[
-            "sr",
-            "approvals",
-            "approve",
-            "132",
-            "401",
-            "--remark",
-            "Acme ok",
-            "--yes",
-            "--expect-plan",
-            "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
-  "verified": true,
-  "readback": {
-    "id": 401,
-    "member_id": 31,
-    "status": {
-      "id": 1,
-      "name": "approved"
-    },
-    "last_reminded_at": null,
-    "remark": [
-      {
-        "status": 1,
-        "data": "Acme ok"
-      }
-    ]
-  }
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/132/approvals/401"]);
 }
 
 #[test]
@@ -16377,8 +16278,10 @@ fn solutions_create_dry_run() {
     "status": 1,
     "title": "Acme VPN workaround"
   },
-  "plan_hash": "ce6bc022fd3be3532758ca1bf35d746d3bb409c40c25237e8f9c876551a85e85",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "958d1db9fa0a12f731924059fd5d820e94b99084479c859b25c95ee03c8ca700",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16400,7 +16303,7 @@ fn solutions_create_send() {
             "workaround",
             "--yes",
             "--expect-plan",
-            "ce6bc022fd3be3532758ca1bf35d746d3bb409c40c25237e8f9c876551a85e85",
+            "958d1db9fa0a12f731924059fd5d820e94b99084479c859b25c95ee03c8ca700",
         ],
         None,
     );
@@ -16409,7 +16312,7 @@ fn solutions_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "ce6bc022fd3be3532758ca1bf35d746d3bb409c40c25237e8f9c876551a85e85",
+  "plan_hash": "958d1db9fa0a12f731924059fd5d820e94b99084479c859b25c95ee03c8ca700",
   "verified": true,
   "article_id": 501,
   "fields": {
@@ -16426,7 +16329,9 @@ fn solutions_create_send() {
     "status": 1,
     "article_type": 2,
     "folder_id": 301
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16471,8 +16376,10 @@ fn solutions_create_named_folder() {
     "status": 1,
     "title": "Acme fix"
   },
-  "plan_hash": "54ed51c5346fe2c31325f3d59f52dbcff45f44a4fe76d81d3b82bf01b95c13d6",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "224027003e694b9503cb11f027c6ff7858ed1a39a73eb9d1432f12e77989d6ca",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16631,8 +16538,10 @@ fn problems_link_solution_dry_run() {
   "payload": {
     "type": "link"
   },
-  "plan_hash": "d9f646dfe17d0790df3f29e696ba7f9d57dc46cdb12c52d654bf2de1382e7dc0",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "46dbc5d6d131b6d15c13989f547a472b2b9f0623b523263d750f784817474f2f",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16650,7 +16559,7 @@ fn problems_link_solution_send() {
             "502",
             "--yes",
             "--expect-plan",
-            "d9f646dfe17d0790df3f29e696ba7f9d57dc46cdb12c52d654bf2de1382e7dc0",
+            "46dbc5d6d131b6d15c13989f547a472b2b9f0623b523263d750f784817474f2f",
         ],
         None,
     );
@@ -16659,14 +16568,16 @@ fn problems_link_solution_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d9f646dfe17d0790df3f29e696ba7f9d57dc46cdb12c52d654bf2de1382e7dc0",
+  "plan_hash": "46dbc5d6d131b6d15c13989f547a472b2b9f0623b523263d750f784817474f2f",
   "verified": true,
   "readback": [
     {
       "id": 502,
       "article_type": 1
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16717,7 +16628,7 @@ fn problems_unlink_solution_send_unverified() {
             "504",
             "--yes",
             "--expect-plan",
-            "57eadafdf38f689f9a03c578b6654af28558a515992969206a66d2959f85c2cf",
+            "50bc76b262c4175ad4438f2ca4e7a5e7cfe934927764aa868b463d97d65dfb30",
         ],
         None,
     );
@@ -16726,7 +16637,7 @@ fn problems_unlink_solution_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "57eadafdf38f689f9a03c578b6654af28558a515992969206a66d2959f85c2cf",
+  "plan_hash": "50bc76b262c4175ad4438f2ca4e7a5e7cfe934927764aa868b463d97d65dfb30",
   "verified": false,
   "readback": [
     {
@@ -16734,7 +16645,9 @@ fn problems_unlink_solution_send_unverified() {
       "article_type": 2
     }
   ],
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16779,7 +16692,7 @@ fn tickets_bulk_spam_dry_run() {
       141
     ]
   },
-  "plan_hash": "fcf5f251d39674b59bd9ad93c1b637730611df92eb13a4e2c1f0bdf8b16f9b4c",
+  "plan_hash": "32a7d9421e0465db821c8c9dda1aead49d6d4235c0d229d8a30c9e0e1235d73d",
   "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
   "ticket_ids": [
     140,
@@ -16810,7 +16723,9 @@ fn tickets_bulk_spam_dry_run() {
       "id": 141,
       "subject": "Acme ticket 141"
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16839,7 +16754,7 @@ fn tickets_bulk_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/tickets/delete_multiple?ids=140%2C141",
   "payload": null,
-  "plan_hash": "722d0b5d90e5c1645a9571562baa4fb99ce4e1e76beaec8ef27179118bdccd4d",
+  "plan_hash": "d476a1270cf51e68cc8eb4fb457eaafb42ad0101ed99611c7308768050b13985",
   "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
   "ticket_ids": [
     140,
@@ -16870,7 +16785,9 @@ fn tickets_bulk_delete_dry_run() {
       "id": 141,
       "subject": "Acme ticket 141"
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -16894,7 +16811,7 @@ fn tickets_bulk_unspam_send() {
             "142",
             "--yes",
             "--expect-plan",
-            "957cac4c29003866bda027ba605d9d42b6773d8f8888bf4d7c9e9d440b0b62c4",
+            "0c8e0610cfe6f9cf48ab7a84db781d83da59dd82806c09cb6a69dfde33dfda9f",
         ],
         None,
     );
@@ -16905,102 +16822,6 @@ fn tickets_bulk_unspam_send() {
         r#"Selected ticket IDs: 142
   142: Acme ticket 142
 bulk selection, metadata or records changed; review again
-"#
-    );
-}
-
-#[test]
-fn tickets_bulk_unspam_stable_dry_run() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &["tickets", "bulk", "unspam", "146", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}\n{}", r.err, r.out);
-    assert_eq!(r.err, "Selected ticket IDs: 146\n  146: Acme ticket 146\n");
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "dry_run",
-  "action": "ticket_bulk_unspam",
-  "method": "POST",
-  "path": "/api/_/tickets/unspam_multiple",
-  "payload": {
-    "ids": [
-      146
-    ]
-  },
-  "plan_hash": "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33",
-  "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
-  "ticket_ids": [
-    146
-  ],
-  "selection": {
-    "action": "unspam",
-    "agent": null,
-    "group": null,
-    "ids": [
-      "146"
-    ],
-    "max_records": null,
-    "note_primary": null,
-    "note_secondary": null,
-    "primary": null,
-    "select_all": false,
-    "status": null,
-    "where": []
-  },
-  "selected_tickets": [
-    {
-      "id": 146,
-      "subject": "Acme ticket 146"
-    }
-  ]
-}
-"#
-    );
-}
-
-#[test]
-fn tickets_bulk_unspam_send_reports_selection() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &[
-            "tickets",
-            "bulk",
-            "unspam",
-            "146",
-            "--yes",
-            "--expect-plan",
-            "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}\n{}", r.err, r.out);
-    assert_eq!(r.err, "Selected ticket IDs: 146\n  146: Acme ticket 146\n");
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33",
-  "verified": true,
-  "ticket_ids": [
-    146
-  ],
-  "tickets": {
-    "146": {
-      "spam": "matched"
-    }
-  },
-  "readback_attempts": 1,
-  "delegated_plan_hash": "4d96c858add3673ca018005931b31266669e47f01bc735ab76cbb0ae0b2b8522",
-  "selected_tickets": [
-    {
-      "id": 146,
-      "subject": "Acme ticket 146"
-    }
-  ]
-}
 "#
     );
 }
@@ -17017,7 +16838,7 @@ fn tickets_bulk_unspam_send_partial() {
             "143",
             "--yes",
             "--expect-plan",
-            "824c00188985d037ce4270dadb70f456dc9ed504d6d4abfc455926278a16dd98",
+            "e3ce213f2c2d83ce627ed0779a4840227be4c8cf371f7f6d0ff5423ffdbc3131",
         ],
         None,
     );
@@ -17044,7 +16865,7 @@ fn tickets_bulk_spam_needs_confirm() {
             "144",
             "--yes",
             "--expect-plan",
-            "0e7b2d024f187c3d8ba57133c5fa23c1597334177cfd98e7db6ef09cce23b6c4",
+            "c5b520702e529b1b42fae51dd817c29b25fd2c18afd471a738b3e7339461d31b",
         ],
         None,
     );
@@ -17071,7 +16892,7 @@ fn tickets_bulk_spam_send() {
             "--confirm-destructive",
             "--yes",
             "--expect-plan",
-            "0e7b2d024f187c3d8ba57133c5fa23c1597334177cfd98e7db6ef09cce23b6c4",
+            "c5b520702e529b1b42fae51dd817c29b25fd2c18afd471a738b3e7339461d31b",
         ],
         None,
     );
@@ -17361,7 +17182,7 @@ fn tickets_bulk_filtered_dry_run() {
       141
     ]
   },
-  "plan_hash": "b1d3d957a7b264afc37f0b7cd54248a58bb5124add62efa98bb8de8fa1e112a3",
+  "plan_hash": "aaa8f565ede7335dfc7243459f41028f40006762f1b3c3c0f1b05b059b873c4d",
   "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
   "ticket_ids": [
     140,
@@ -17391,7 +17212,9 @@ fn tickets_bulk_filtered_dry_run() {
       "id": 141,
       "subject": "Acme ticket 141"
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -17557,7 +17380,7 @@ fn tickets_bulk_subject_filter_acme_status_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17588,7 +17411,7 @@ fn tickets_bulk_subject_filter_acme_status_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17616,7 +17439,7 @@ fn tickets_bulk_subject_filter_acme_spam_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17646,7 +17469,7 @@ fn tickets_bulk_subject_filter_acme_spam_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17674,7 +17497,7 @@ fn tickets_bulk_subject_filter_acme_delete_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17704,7 +17527,7 @@ fn tickets_bulk_subject_filter_acme_delete_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17733,7 +17556,7 @@ fn tickets_bulk_subject_filter_globex_status_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17764,7 +17587,7 @@ fn tickets_bulk_subject_filter_globex_status_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17792,7 +17615,7 @@ fn tickets_bulk_subject_filter_globex_spam_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17822,7 +17645,7 @@ fn tickets_bulk_subject_filter_globex_spam_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17850,7 +17673,7 @@ fn tickets_bulk_subject_filter_globex_delete_dry_run() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -17880,7 +17703,7 @@ fn tickets_bulk_subject_filter_globex_delete_send() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search
+        r#"no list filter exists for text field 'Subject': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword search; filterable fields on this tenant: Status, Type
 "#
     );
 }
@@ -18157,8 +17980,10 @@ fn changes_relationships_add_problem_dry_run() {
     ],
     "module_type": "problem"
   },
-  "plan_hash": "9017bd98ac0c051db0977786c203f5a9b82e517982c9e78693f4107a8e295a58",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "b99e3b3978bcabd85ba7572939409e50ff02b17d7da65c35e1eb008040deb2d4",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18180,7 +18005,7 @@ fn changes_relationships_add_problem_send() {
             "71",
             "--yes",
             "--expect-plan",
-            "9017bd98ac0c051db0977786c203f5a9b82e517982c9e78693f4107a8e295a58",
+            "b99e3b3978bcabd85ba7572939409e50ff02b17d7da65c35e1eb008040deb2d4",
         ],
         None,
     );
@@ -18189,9 +18014,11 @@ fn changes_relationships_add_problem_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "9017bd98ac0c051db0977786c203f5a9b82e517982c9e78693f4107a8e295a58",
+  "plan_hash": "b99e3b3978bcabd85ba7572939409e50ff02b17d7da65c35e1eb008040deb2d4",
   "verified": true,
-  "item_id": 71
+  "item_id": 71,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18295,7 +18122,7 @@ fn changes_relationships_remove_send_unverified() {
             "72",
             "--yes",
             "--expect-plan",
-            "e62edf6bdea38f1a0194c2bfd2bf2f359f226f5c82bc7e27a6365933784b642b",
+            "1947a8d5515a8713a91e0f7f03a2d8cc61858702643cb390c50fd46eba05be16",
         ],
         None,
     );
@@ -18304,10 +18131,12 @@ fn changes_relationships_remove_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "e62edf6bdea38f1a0194c2bfd2bf2f359f226f5c82bc7e27a6365933784b642b",
+  "plan_hash": "1947a8d5515a8713a91e0f7f03a2d8cc61858702643cb390c50fd46eba05be16",
   "verified": false,
   "item_id": 72,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18421,60 +18250,6 @@ fn changes_relationships_project_add_incomplete() {
     );
 }
 
-/// `json.loads` of `--project-json`: Python's `JSONDecodeError` text, and a
-/// decoded non-object still counts as project options (Python runs).
-#[test]
-fn changes_relationships_project_json_is_json_loads() {
-    let r = run_fixture(
-        "change_relationships",
-        &[
-            "changes",
-            "relationships",
-            "write",
-            "52",
-            "project",
-            "add",
-            "--project-json",
-            "{\"name\": \"Acme\"",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(
-        (r.code, r.out.as_str(), r.err.as_str()),
-        (
-            2,
-            "",
-            "Expecting ',' delimiter: line 1 column 16 (char 15)\n"
-        )
-    );
-    let r = run_fixture(
-        "change_relationships",
-        &[
-            "changes",
-            "relationships",
-            "write",
-            "52",
-            "release",
-            "add",
-            "--item",
-            "71",
-            "--project-json",
-            "[1]",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(
-        (r.code, r.out.as_str(), r.err.as_str()),
-        (
-            2,
-            "",
-            "complete, consistent mutation inventory unavailable\n"
-        )
-    );
-}
-
 #[test]
 fn changes_relationships_project_remove_dry_run() {
     let r = run_fixture(
@@ -18510,8 +18285,10 @@ fn changes_relationships_project_remove_dry_run() {
     "remote_resource_id": "52",
     "remote_resource_type": "Change"
   },
-  "plan_hash": "1a2c8f45fff87e611aa4c22a364497342736335252c1a452adfba6143c3043fe",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "349385c9851d41f850bcd21918ccbca8999a1699f1a274a4108150be30ebc1f5",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18594,8 +18371,10 @@ fn changes_relationships_task_add_dry_run() {
     "remote_resource_id": "52",
     "remote_resource_type": "Change"
   },
-  "plan_hash": "b8fadba0aff12fd2769fbe4cf49890000ef850096b9598dd9a67b4ceb9aa2167",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "8bbc81b6fb4322ecb5541a398df6e63583fe071ae432d38383dc2bba93d90090",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18641,8 +18420,10 @@ fn changes_relationships_task_remove_dry_run() {
       "resourceType": "Change"
     }
   },
-  "plan_hash": "fbb245f6355b51da76f47aad1324b88f91b2d4886b1a85fef85d8f2d2840f730",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "a14a0bcb113fb937986e49c64b604155c002acb94e2cc8d40f482ca30e6a443e",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18704,12 +18485,14 @@ fn changes_tasks_update_dry_run() {
     "owner_id": 133,
     "title": "Acme patch v2"
   },
-  "plan_hash": "aaca5586d1955c9cb814c6deb6d9d2708ff4b75ed372c32b4f1a86fdada733cb",
+  "plan_hash": "838520b9e805f359aadfebcf8cf25e17006fa5a08ea982c8707d169184453003",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18733,7 +18516,7 @@ fn changes_tasks_update_send() {
             "DBA",
             "--yes",
             "--expect-plan",
-            "aaca5586d1955c9cb814c6deb6d9d2708ff4b75ed372c32b4f1a86fdada733cb",
+            "838520b9e805f359aadfebcf8cf25e17006fa5a08ea982c8707d169184453003",
         ],
         None,
     );
@@ -18742,7 +18525,7 @@ fn changes_tasks_update_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "aaca5586d1955c9cb814c6deb6d9d2708ff4b75ed372c32b4f1a86fdada733cb",
+  "plan_hash": "838520b9e805f359aadfebcf8cf25e17006fa5a08ea982c8707d169184453003",
   "verified": true,
   "fields_verified": true,
   "fields": {
@@ -18761,7 +18544,9 @@ fn changes_tasks_update_send() {
     "planned_effort": "1h",
     "description": "<div>Acme</div>",
     "custom_fields": {}
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18830,7 +18615,7 @@ fn changes_tasks_update_complete_send_unverified() {
             "Completed",
             "--yes",
             "--expect-plan",
-            "72aabc0e984629fdfbcf55183896689150b9a52b1b0d48b9a7603d4f1f5579fe",
+            "171ef4437f14036963a333ec5edad09061636d46a0c1bf73cb0aa35bcd00c7ab",
         ],
         None,
     );
@@ -18839,7 +18624,7 @@ fn changes_tasks_update_complete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "72aabc0e984629fdfbcf55183896689150b9a52b1b0d48b9a7603d4f1f5579fe",
+  "plan_hash": "171ef4437f14036963a333ec5edad09061636d46a0c1bf73cb0aa35bcd00c7ab",
   "verified": false,
   "fields_verified": false,
   "fields": {
@@ -18859,7 +18644,9 @@ fn changes_tasks_update_complete_send_unverified() {
       "signoff": "Acme ok"
     }
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18893,12 +18680,14 @@ fn changes_tasks_update_reminder_dry_run() {
   "payload": {
     "notify_before": 900
   },
-  "plan_hash": "b5d7d5420b5b53c70bddb66c153b91250cbf5f5a00aaab31ec1539d1e9804e26",
+  "plan_hash": "a5d3a3e1374140782c59b791dd1db00d1e0757d1e4f9e98fc731a3e48383917d",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -18933,12 +18722,14 @@ fn changes_tasks_update_system_dry_run() {
       "system": 10
     }
   },
-  "plan_hash": "7c990d026ccb63a78cf4f8e1cacd1ef2d7a3ebcc6e804ccd2710ad95d311469a",
+  "plan_hash": "0ff01b3f23bfebad4c8379c71860bea11fea3fa46b4b12a0e3866e9b90414073",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "record_state": {
     "sends": 0,
     "server_version": null
-  }
+  },
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19076,8 +18867,10 @@ fn changes_tasks_delete_dry_run() {
     "action": "delete",
     "id": "5"
   },
-  "plan_hash": "f67db594bc5d443c91f2e42203a723659a171395d40fd7f85f8e757c7db3993b",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "247ff75c48b0d6e54254098197d52b519d38016701c98ab0ca09407c9ddfd93e",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19095,7 +18888,7 @@ fn changes_tasks_delete_send() {
             "5",
             "--yes",
             "--expect-plan",
-            "f67db594bc5d443c91f2e42203a723659a171395d40fd7f85f8e757c7db3993b",
+            "247ff75c48b0d6e54254098197d52b519d38016701c98ab0ca09407c9ddfd93e",
         ],
         None,
     );
@@ -19104,7 +18897,7 @@ fn changes_tasks_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "f67db594bc5d443c91f2e42203a723659a171395d40fd7f85f8e757c7db3993b",
+  "plan_hash": "247ff75c48b0d6e54254098197d52b519d38016701c98ab0ca09407c9ddfd93e",
   "verified": true,
   "task_id": 5,
   "readback": [
@@ -19120,7 +18913,9 @@ fn changes_tasks_delete_send() {
       "description": "<div>Acme</div>",
       "custom_fields": {}
     }
-  ]
+  ],
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19139,7 +18934,7 @@ fn changes_tasks_delete_send_unverified() {
             "6",
             "--yes",
             "--expect-plan",
-            "f0f13f08efd1e1e28dfb44b32fa12ee312a58525e2c9e5933e784e69adb1d452",
+            "91615545816adce073ab212d40250e099430e4c8ab62dcc5c165966f634bc589",
         ],
         None,
     );
@@ -19148,7 +18943,7 @@ fn changes_tasks_delete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "f0f13f08efd1e1e28dfb44b32fa12ee312a58525e2c9e5933e784e69adb1d452",
+  "plan_hash": "91615545816adce073ab212d40250e099430e4c8ab62dcc5c165966f634bc589",
   "verified": false,
   "task_id": 6,
   "readback": [
@@ -19165,7 +18960,9 @@ fn changes_tasks_delete_send_unverified() {
       "custom_fields": {}
     }
   ],
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19221,10 +19018,12 @@ fn changes_delete_dry_run() {
   "method": "DELETE",
   "path": "/api/_/changes/21",
   "payload": null,
-  "plan_hash": "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
+  "plan_hash": "9cca997e91937d620cc3621387b5e026f0cd50e3282ff2a51fe8f350dd564002",
   "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
   "change_id": 21,
-  "subject": "Acme firewall rollout"
+  "subject": "Acme firewall rollout",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19242,7 +19041,7 @@ fn changes_delete_send() {
             "--confirm-destructive",
             "--yes",
             "--expect-plan",
-            "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
+            "9cca997e91937d620cc3621387b5e026f0cd50e3282ff2a51fe8f350dd564002",
         ],
         None,
     );
@@ -19251,13 +19050,15 @@ fn changes_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
+  "plan_hash": "9cca997e91937d620cc3621387b5e026f0cd50e3282ff2a51fe8f350dd564002",
   "verified": true,
   "change_id": 21,
   "fields": {
     "deleted": "matched"
   },
-  "readback_attempts": 1
+  "readback_attempts": 1,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19276,7 +19077,7 @@ fn changes_delete_send_unverified() {
             "--confirm-destructive",
             "--yes",
             "--expect-plan",
-            "3d40a78de7476dc411b9d65d744699f80f355c5ecb20427826c2b901c897bf01",
+            "65805d8152bd5d89823a2b18862660a960a0ed816c6b209588e8805fb29e0b1e",
         ],
         None,
     );
@@ -19285,14 +19086,16 @@ fn changes_delete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "3d40a78de7476dc411b9d65d744699f80f355c5ecb20427826c2b901c897bf01",
+  "plan_hash": "65805d8152bd5d89823a2b18862660a960a0ed816c6b209588e8805fb29e0b1e",
   "verified": false,
   "change_id": 22,
   "fields": {
     "deleted": "mismatched"
   },
   "readback_attempts": 4,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19310,7 +19113,7 @@ fn changes_delete_needs_confirm_destructive() {
             "21",
             "--yes",
             "--expect-plan",
-            "dcf6800b8cc153e9260da4b02d90fc82c65378bef6a0c8a3ec43c6703291967a",
+            "9cca997e91937d620cc3621387b5e026f0cd50e3282ff2a51fe8f350dd564002",
         ],
         None,
     );
@@ -19491,8 +19294,10 @@ fn changes_time_create_dry_run() {
     "time_spent": "00:45",
     "timer_running": false
   },
-  "plan_hash": "bf99aee3382ce2e1ad8d921e971a72863b42cdd4f9d216df0e9f37db9eaedfc7",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "28d4b788bf14df27996bfa30b3d6f25be7d848e5ca9610032205d6e15e2e7ce1",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19515,10 +19320,9 @@ fn changes_time_create_send() {
             "2030-01-02T09:00:00+07:00",
             "--note",
             "Acme deploy",
-            "--billable",
             "--yes",
             "--expect-plan",
-            "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
+            "28d4b788bf14df27996bfa30b3d6f25be7d848e5ca9610032205d6e15e2e7ce1",
         ],
         None,
     );
@@ -19527,17 +19331,20 @@ fn changes_time_create_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
-  "verified": true,
+  "plan_hash": "28d4b788bf14df27996bfa30b3d6f25be7d848e5ca9610032205d6e15e2e7ce1",
+  "verified": false,
   "entry_id": 71,
   "fields": {
     "agent_id": "matched",
-    "billable": "matched",
+    "billable": "mismatched",
     "executed_at": "matched",
     "note": "matched",
     "time_spent": "matched",
     "timer_running": "matched"
-  }
+  },
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19656,8 +19463,10 @@ fn changes_time_update_note_dry_run() {
     "note": "Acme review",
     "time_spent": "01:30"
   },
-  "plan_hash": "894075e6f67c2b0de0062c4d8bf4ea750306f53b819a8313d6fcaf675cadc31d",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "5982e812b5c6e9fd1c714ccf9d1c509a107d9a962b1a749650f3f545a704a16c",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19680,7 +19489,7 @@ fn changes_time_update_send_unverified() {
             "Acme review",
             "--yes",
             "--expect-plan",
-            "ab6b6ee293e9c28a0421a030f3fa4a4bf6f05313e85e702816d02b89dd2f301e",
+            "f764c494bcd9611ca9ef8ef07160a5f2fb031a5b7c95de10912c32f964bf3974",
         ],
         None,
     );
@@ -19689,14 +19498,16 @@ fn changes_time_update_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "ab6b6ee293e9c28a0421a030f3fa4a4bf6f05313e85e702816d02b89dd2f301e",
+  "plan_hash": "f764c494bcd9611ca9ef8ef07160a5f2fb031a5b7c95de10912c32f964bf3974",
   "verified": false,
   "entry_id": 72,
   "fields": {
     "note": "mismatched",
     "time_spent": "matched"
   },
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19770,7 +19581,7 @@ fn changes_time_delete_send() {
             "73",
             "--yes",
             "--expect-plan",
-            "7c56146c576256639fef80e94f1999e9d566ec6d4cea4c6442acc3d09a8be45d",
+            "c10701e31bfe149c363b8c3483208ed5df1a72c88e143e9ead1680e57aa4f692",
         ],
         None,
     );
@@ -19779,9 +19590,11 @@ fn changes_time_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "7c56146c576256639fef80e94f1999e9d566ec6d4cea4c6442acc3d09a8be45d",
+  "plan_hash": "c10701e31bfe149c363b8c3483208ed5df1a72c88e143e9ead1680e57aa4f692",
   "verified": true,
-  "entry_id": 73
+  "entry_id": 73,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19867,18 +19680,30 @@ fn problems_time_update_refused() {
             "75",
             "--note",
             "x",
-            "--billable",
             "--dry-run",
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"problem time update covers --spent and --note only; billable is not a captured update field
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problems_time_update",
+  "method": "PUT",
+  "path": "/api/_/problems/63/time_entries/75",
+  "payload": {
+    "note": "x",
+    "time_spent": "01:30"
+  },
+  "plan_hash": "9deb72ebbbd2f8fc7bc15fbcb72e57ba3c482ec75d3d99935dd0168ba888b8b1",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -19895,7 +19720,7 @@ fn problems_time_delete_send() {
             "76",
             "--yes",
             "--expect-plan",
-            "aca7a27a7ae3e4641728942418f981b0f15927bf50b8b91fbc58fbe0376ee0b1",
+            "638dd357aa7ac10c0debcd21d02e6c78e7420efd58a6208b17b55f49a46c4d0a",
         ],
         None,
     );
@@ -19904,9 +19729,11 @@ fn problems_time_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "aca7a27a7ae3e4641728942418f981b0f15927bf50b8b91fbc58fbe0376ee0b1",
+  "plan_hash": "638dd357aa7ac10c0debcd21d02e6c78e7420efd58a6208b17b55f49a46c4d0a",
   "verified": true,
-  "entry_id": 76
+  "entry_id": 76,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19947,9 +19774,11 @@ fn problems_task_update_dry_run() {
     "owner_id": 133,
     "title": "Acme fix v2"
   },
-  "plan_hash": "90ee4c7cfaec0e4f0dd87c6dd130580dbbb528f7d093234908ba8bf3f10042e5",
+  "plan_hash": "2d83e85d864169c280c02bb8b384d51ebf8ffb22157f5de50a5596f156519092",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
-  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible."
+  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -19972,7 +19801,7 @@ fn problems_task_update_send() {
             "bo@acme.com",
             "--yes",
             "--expect-plan",
-            "90ee4c7cfaec0e4f0dd87c6dd130580dbbb528f7d093234908ba8bf3f10042e5",
+            "2d83e85d864169c280c02bb8b384d51ebf8ffb22157f5de50a5596f156519092",
         ],
         None,
     );
@@ -19981,7 +19810,7 @@ fn problems_task_update_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "90ee4c7cfaec0e4f0dd87c6dd130580dbbb528f7d093234908ba8bf3f10042e5",
+  "plan_hash": "2d83e85d864169c280c02bb8b384d51ebf8ffb22157f5de50a5596f156519092",
   "verified": true,
   "fields_verified": true,
   "fields": {
@@ -20003,7 +19832,9 @@ fn problems_task_update_send() {
     "description": "<div>Acme</div>",
     "custom_fields": {}
   },
-  "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend."
+  "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20050,9 +19881,11 @@ fn problems_task_update_note_dates_dry_run() {
     "planned_end_date": "2030-01-01T12:00:00+07:00",
     "planned_start_date": "2030-01-01T10:00:00+07:00"
   },
-  "plan_hash": "1b47a5e4ca3448a12fe48d1131200ba6c11749bbd7877a89895bfad5ab2ce397",
+  "plan_hash": "0b3f55797e8cba824ebd1f55881858269352d9dd558b5eeb2c158629a992cc1f",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
-  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible."
+  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20175,9 +20008,11 @@ fn problems_task_complete_dry_run() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "67b7a68ee8919303da35a9e07eb2a45989bd0f27788167d0406e8e238bcb0f04",
+  "plan_hash": "a201e7faba1248622c9a3c1e13042ede812edea4ac58d41f0fd7cfc9fa376b54",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
-  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible."
+  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20196,7 +20031,7 @@ fn problems_task_complete_send_unverified() {
             "complete",
             "--yes",
             "--expect-plan",
-            "67b7a68ee8919303da35a9e07eb2a45989bd0f27788167d0406e8e238bcb0f04",
+            "a201e7faba1248622c9a3c1e13042ede812edea4ac58d41f0fd7cfc9fa376b54",
         ],
         None,
     );
@@ -20205,7 +20040,7 @@ fn problems_task_complete_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "67b7a68ee8919303da35a9e07eb2a45989bd0f27788167d0406e8e238bcb0f04",
+  "plan_hash": "a201e7faba1248622c9a3c1e13042ede812edea4ac58d41f0fd7cfc9fa376b54",
   "verified": false,
   "fields_verified": false,
   "fields": {
@@ -20226,7 +20061,9 @@ fn problems_task_complete_send_unverified() {
     "description": "<div>Acme</div>",
     "custom_fields": {}
   },
-  "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend."
+  "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20305,9 +20142,11 @@ fn problems_task_delete_dry_run() {
     "action": "delete",
     "id": "821"
   },
-  "plan_hash": "a79cff879815c25fbaa17dd9ad5e80a4aa8a64d108c85a7bdebbc694eaa5fdf9",
+  "plan_hash": "a175f145df003faefed0d77f57fe436dbd5a8525b6a42942063349e9f71eb23a",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
-  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible."
+  "side_effects": "Completion may rewrite planned start/end and stop OLA timers; delete is irreversible.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20326,7 +20165,7 @@ fn problems_task_delete_send() {
             "delete",
             "--yes",
             "--expect-plan",
-            "a79cff879815c25fbaa17dd9ad5e80a4aa8a64d108c85a7bdebbc694eaa5fdf9",
+            "a175f145df003faefed0d77f57fe436dbd5a8525b6a42942063349e9f71eb23a",
         ],
         None,
     );
@@ -20335,9 +20174,11 @@ fn problems_task_delete_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "a79cff879815c25fbaa17dd9ad5e80a4aa8a64d108c85a7bdebbc694eaa5fdf9",
+  "plan_hash": "a175f145df003faefed0d77f57fe436dbd5a8525b6a42942063349e9f71eb23a",
   "verified": true,
-  "task_id": 821
+  "task_id": 821,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20499,8 +20340,10 @@ fn sr_items_stage_dry_run() {
   "payload": {
     "stage": 2
   },
-  "plan_hash": "473b858d16c295019e6a2cdb05c33c6a8244744acff57c0a7285e6033be21248",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "c56dd755464974e0b81f0e059cff7dfb22b68ca30ee66c9dc1b89fca60dcd631",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20523,7 +20366,7 @@ fn sr_items_stage_send() {
             "2",
             "--yes",
             "--expect-plan",
-            "473b858d16c295019e6a2cdb05c33c6a8244744acff57c0a7285e6033be21248",
+            "c56dd755464974e0b81f0e059cff7dfb22b68ca30ee66c9dc1b89fca60dcd631",
         ],
         None,
     );
@@ -20532,9 +20375,11 @@ fn sr_items_stage_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "473b858d16c295019e6a2cdb05c33c6a8244744acff57c0a7285e6033be21248",
+  "plan_hash": "c56dd755464974e0b81f0e059cff7dfb22b68ca30ee66c9dc1b89fca60dcd631",
   "verified": true,
-  "item_id": 1511
+  "item_id": 1511,
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20597,8 +20442,10 @@ fn sr_items_remove_dry_run() {
   "method": "DELETE",
   "path": "/api/_/tickets/152/requested_items/1522",
   "payload": null,
-  "plan_hash": "cd6e3b885a95d84ee6425a5b9aabec6a80f4627141e6a9cc2bc7646d3d3c14a9",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "f4485ed7fc331fe201d7871116a03a85fad5a5a87ff32f852de7731ca1abd66f",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20619,7 +20466,7 @@ fn sr_items_remove_send_unverified() {
             "1522",
             "--yes",
             "--expect-plan",
-            "cd6e3b885a95d84ee6425a5b9aabec6a80f4627141e6a9cc2bc7646d3d3c14a9",
+            "f4485ed7fc331fe201d7871116a03a85fad5a5a87ff32f852de7731ca1abd66f",
         ],
         None,
     );
@@ -20628,10 +20475,12 @@ fn sr_items_remove_send_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "cd6e3b885a95d84ee6425a5b9aabec6a80f4627141e6a9cc2bc7646d3d3c14a9",
+  "plan_hash": "f4485ed7fc331fe201d7871116a03a85fad5a5a87ff32f852de7731ca1abd66f",
   "verified": false,
   "item_id": 1522,
-  "warning": "Readback was not fully verified; do not resend."
+  "warning": "Readback was not fully verified; do not resend.",
+  "tenant": "acme.freshservice.com",
+  "config_dir": "<CONFIG_DIR>"
 }
 "#
     );
@@ -20798,52 +20647,6 @@ fn sr_items_answers_not_object() {
     );
 }
 
-/// `json.loads(answers)`: Python's `JSONDecodeError` text; `null` is no
-/// answers, so the run reaches the requested-item read (a 404 here, exit 1).
-#[test]
-fn sr_items_answers_json_is_json_loads() {
-    let r = run_fixture(
-        "sr_items",
-        &[
-            "sr",
-            "items",
-            "write",
-            "150",
-            "edit",
-            "--item",
-            "1502",
-            "--answers-json",
-            "{\"a\" 1}",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(
-        (r.code, r.out.as_str(), r.err.as_str()),
-        (2, "", "Expecting ':' delimiter: line 1 column 6 (char 5)\n")
-    );
-    let r = run_fixture(
-        "sr_items",
-        &[
-            "sr",
-            "items",
-            "write",
-            "150",
-            "edit",
-            "--item",
-            "1502",
-            "--answers-json",
-            "null",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(
-        (r.code, r.err.as_str()),
-        (1, "error: HTTP 404 fetching requested item: no route\n")
-    );
-}
-
 #[test]
 fn sr_items_needs_expect_plan() {
     let r = run_fixture(
@@ -20858,287 +20661,6 @@ fn sr_items_needs_expect_plan() {
     assert_eq!(
         r.err,
         r#"review with --dry-run, then --yes --expect-plan FULL_HASH
-"#
-    );
-}
-
-#[test]
-fn tickets_bulk_set_not_status() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &[
-            "tickets",
-            "bulk",
-            "spam",
-            "140",
-            "--set",
-            "note=x",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(r.err, "--set is supported by bulk status only\n",);
-}
-
-#[test]
-fn tickets_bulk_set_missing_eq() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &[
-            "tickets",
-            "bulk",
-            "status",
-            "140",
-            "--status",
-            "Open",
-            "--set",
-            "note",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n",);
-}
-
-#[test]
-fn tickets_bulk_set_empty_key() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &[
-            "tickets",
-            "bulk",
-            "status",
-            "140",
-            "--status",
-            "Open",
-            "--set",
-            "=x",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n",);
-}
-
-#[test]
-fn tickets_bulk_set_duplicate() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &[
-            "tickets",
-            "bulk",
-            "status",
-            "140",
-            "--status",
-            "Open",
-            "--set",
-            "note=a",
-            "--set",
-            "note=b",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n",);
-}
-
-#[test]
-fn tickets_bulk_set_status_key() {
-    let r = run_fixture(
-        "ticket_bulk",
-        &[
-            "tickets",
-            "bulk",
-            "status",
-            "140",
-            "--status",
-            "Open",
-            "--set",
-            "status=Closed",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        "use --status for the status; --set is for the fields its rules require\n",
-    );
-}
-
-#[test]
-fn tickets_close_blocking_needs_ack() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &["tickets", "close", "124", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them
-"#
-    );
-}
-
-#[test]
-fn tickets_close_ack_dry_run() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &["tickets", "close", "124", "--ack", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "dry_run",
-  "action": "ticket_transition",
-  "status_label": "Closed",
-  "steps": [
-    {
-      "method": "PUT",
-      "path": "/api/_/tickets/124",
-      "payload": {
-        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
-        "group_id": null,
-        "responder_id": 9000001234,
-        "status": 5
-      }
-    }
-  ],
-  "plan_hash": "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
-  "record_state": {
-    "sends": 0,
-    "server_version": null
-  },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
-  "acknowledged_rule_messages": [
-    "Only the requester closes Acme tickets"
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn tickets_status_blocking_needs_ack() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &["tickets", "status", "124", "Closed", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them
-"#
-    );
-}
-
-#[test]
-fn tickets_status_ack_dry_run() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &["tickets", "status", "124", "Closed", "--ack", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "dry_run",
-  "action": "ticket_transition",
-  "status_label": "Closed",
-  "steps": [
-    {
-      "method": "PUT",
-      "path": "/api/_/tickets/124",
-      "payload": {
-        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
-        "group_id": null,
-        "responder_id": 9000001234,
-        "status": 5
-      }
-    }
-  ],
-  "plan_hash": "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
-  "record_state": {
-    "sends": 0,
-    "server_version": null
-  },
-  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people. Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.",
-  "acknowledged_rule_messages": [
-    "Only the requester closes Acme tickets"
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn tickets_close_ack_send() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &[
-            "tickets",
-            "close",
-            "124",
-            "--ack",
-            "--yes",
-            "--expect-plan",
-            "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "ticket_id": 124,
-  "status_label": "Closed",
-  "plan_hash": "dd2fac5e5193b9fdf3df0486a180d9fe5c511ae5f568778dec7a758737ad046e",
-  "verified": true
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
-}
-
-#[test]
-fn tickets_close_acked_hash_without_ack() {
-    let r = run_fixture(
-        "ticket_lifecycle_ack",
-        &[
-            "tickets",
-            "close",
-            "124",
-            "--yes",
-            "--expect-plan",
-            "6efdbc00d01d671e75dcac8eed266312f502848872a884ee9962df64e08dbab2",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"ticket form validation failed: blocked by rule (acknowledge to continue): Only the requester closes Acme tickets; pass --ack to acknowledge the blocking rule message(s) after reading them
 "#
     );
 }

@@ -34,9 +34,9 @@
      "method": "PUT",
      "path": "tickets/{id} (one per selected ticket)",
      "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"id\": 71, \"status\": 3}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"id\": 72, \"status\": 3}]",
-     "context_hash": "c8c35ab650e9965347f0ad85e52f123b4e335dbf04da045458b939fbdf71ba01"
+     "context_hash": "bfe93dc206cca576882ca965ca64877ad4a6d3047791b427a7963d7019c7e145"
     },
-    "write_hash": "09a3b89f69eb7e4b19754b3b92f8f9714d3beaee3435cc14c349ce0c14305132",
+    "write_hash": "ec48db90dc593b1f301f9b65e3dcbf417cead31b0f070a48a1b6b04dc4b3ab1f",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Waiting on Acme vendor\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
     "ids": [
      71,
@@ -44,7 +44,7 @@
     ],
     "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"status\": 3}, {\"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"status\": 3}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "f19e0a55a99b527c4e362ae6baad01d2240aa64928aba0431d590bbf43e6673c",
+    "hash": "be5bc8b1faf98ab7ff908823aa58ee86cf40bb4da769fc83e08468167a823eb7",
     "review": {
      "action": "ticket_bulk_status_fields",
      "method": "PUT",
@@ -67,7 +67,7 @@
        "status": 3
       }
      ],
-     "plan_hash": "f19e0a55a99b527c4e362ae6baad01d2240aa64928aba0431d590bbf43e6673c",
+     "plan_hash": "be5bc8b1faf98ab7ff908823aa58ee86cf40bb4da769fc83e08468167a823eb7",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,
@@ -108,7 +108,7 @@
     "result": {
      "status": "submitted",
      "verified": true,
-     "plan_hash": "f19e0a55a99b527c4e362ae6baad01d2240aa64928aba0431d590bbf43e6673c",
+     "plan_hash": "be5bc8b1faf98ab7ff908823aa58ee86cf40bb4da769fc83e08468167a823eb7",
      "ticket_ids": [
       71,
       72
@@ -120,7 +120,7 @@
         "custom_fields": "matched",
         "status": "matched"
        },
-       "plan_hash": "e28d5ca499a7e8190cdc77a6c7ecc2f92d1ff25ef563f593dc300d3e88d0b547"
+       "plan_hash": "6ae3630bee16e86233cd7e3a3eccf155a658401bf0862e0dd4d247943aa5905e"
       },
       "72": {
        "verified": true,
@@ -128,7 +128,7 @@
         "custom_fields": "matched",
         "status": "matched"
        },
-       "plan_hash": "621b935e64d241c8b58c2456542d16de81c18ea30bfc92578819495abf845e60"
+       "plan_hash": "21049fff1022d0d5494e469b28d9a0ef5d0b03fa2f9649ecb74f7a53af78f1d9"
       }
      }
     }
@@ -172,9 +172,9 @@
      "method": "PUT",
      "path": "tickets/{id} (one per selected ticket)",
      "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Wartet auf Acme – Δ\"}, \"id\": 71, \"status\": 3}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Wartet auf Acme – Δ\"}, \"id\": 72, \"status\": 3}]",
-     "context_hash": "dbae53e6962ae07bccce8f77680024652f6f3a3bb703b3e68d58a93169f69ea5"
+     "context_hash": "7604c91b0e84c8cf82993effb7faae47e0deea4393bbce7780dfe0e491c1445e"
     },
-    "write_hash": "4edeba8345fca7a670b0f499035d3fd28e7acb6563a0a668cf2a045326941bcf",
+    "write_hash": "b592073f2fdc380d331bf0d9f767f01febb068f9d3ad1a3998df843fa18cecf4",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Wartet auf Acme \\u2013 \\u0394\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
     "ids": [
      71,
@@ -182,7 +182,7 @@
     ],
     "expected_json": "[{\"custom_fields\": {\"reason\": \"Wartet auf Acme \\u2013 \\u0394\"}, \"status\": 3}, {\"custom_fields\": {\"reason\": \"Wartet auf Acme \\u2013 \\u0394\"}, \"status\": 3}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "621188050aba71025b088e4b751151ca62b3d6ad1fd9137c73af3a2fe9966531",
+    "hash": "664b4bab1b3bfac97f83b65244308a98c901261440623bc077533f908ffd8aad",
     "review": {
      "action": "ticket_bulk_status_fields",
      "method": "PUT",
@@ -205,7 +205,7 @@
        "status": 3
       }
      ],
-     "plan_hash": "621188050aba71025b088e4b751151ca62b3d6ad1fd9137c73af3a2fe9966531",
+     "plan_hash": "664b4bab1b3bfac97f83b65244308a98c901261440623bc077533f908ffd8aad",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,
@@ -260,9 +260,9 @@
      "method": "PUT",
      "path": "tickets/{id} (one per selected ticket)",
      "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 71, \"status\": 3}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 72, \"status\": 3}]",
-     "context_hash": "d0d3826635e572f977c618bb8bc49ccfda2a701e00ef3fbbe8615df9413c77da"
+     "context_hash": "9a09a2cf46899bf173251900d47680fb2ad7c48a47d20285bb7d6f0d6b3b36bb"
     },
-    "write_hash": "24d01e36ee2e58de6701b2bf29369cc0896ab324b88d192b299744bf7488c646",
+    "write_hash": "455bda9f7924955076c9a2674fb539ec64cf6d84b4557637944ff0c69b62d89c",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"reason\": \"Waiting\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
     "ids": [
      71,
@@ -270,7 +270,7 @@
     ],
     "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 3}, {\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 3}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "ee85d9149163c30b8710ea27f9d642c79a814f0043ce2d7fac67e0a56f23d1e4",
+    "hash": "2cd0a34c7b311021b291ac0ab90026e47e4fbac05577fba21a2109899ce16317",
     "review": {
      "action": "ticket_bulk_status_fields",
      "method": "PUT",
@@ -293,7 +293,7 @@
        "status": 3
       }
      ],
-     "plan_hash": "ee85d9149163c30b8710ea27f9d642c79a814f0043ce2d7fac67e0a56f23d1e4",
+     "plan_hash": "2cd0a34c7b311021b291ac0ab90026e47e4fbac05577fba21a2109899ce16317",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,
@@ -348,9 +348,9 @@
      "method": "PUT",
      "path": "tickets/{id} (one per selected ticket)",
      "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 71, \"status\": 3}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 72, \"status\": 3}]",
-     "context_hash": "d0d3826635e572f977c618bb8bc49ccfda2a701e00ef3fbbe8615df9413c77da"
+     "context_hash": "9a09a2cf46899bf173251900d47680fb2ad7c48a47d20285bb7d6f0d6b3b36bb"
     },
-    "write_hash": "24d01e36ee2e58de6701b2bf29369cc0896ab324b88d192b299744bf7488c646",
+    "write_hash": "455bda9f7924955076c9a2674fb539ec64cf6d84b4557637944ff0c69b62d89c",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Waiting\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
     "ids": [
      71,
@@ -358,7 +358,7 @@
     ],
     "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 3}, {\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 3}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "dd2b2877531d14e5f21f371f67a472b666cf70b0e265690fd892849b4a097445",
+    "hash": "a3309f01140b5f6595ea120f37df2190b7ad28a78d2eea757a0bd78620a8de28",
     "review": {
      "action": "ticket_bulk_status_fields",
      "method": "PUT",
@@ -381,7 +381,7 @@
        "status": 3
       }
      ],
-     "plan_hash": "dd2b2877531d14e5f21f371f67a472b666cf70b0e265690fd892849b4a097445",
+     "plan_hash": "a3309f01140b5f6595ea120f37df2190b7ad28a78d2eea757a0bd78620a8de28",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,
@@ -422,7 +422,7 @@
     "result": {
      "status": "partial",
      "verified": false,
-     "plan_hash": "dd2b2877531d14e5f21f371f67a472b666cf70b0e265690fd892849b4a097445",
+     "plan_hash": "a3309f01140b5f6595ea120f37df2190b7ad28a78d2eea757a0bd78620a8de28",
      "ticket_ids": [
       71,
       72
@@ -430,7 +430,7 @@
      "tickets": {
       "71": {
        "verified": false,
-       "error": "update rejected (HTTP 400); no retry"
+       "error": "update rejected (HTTP 400: status: Synthetic rejection); no retry"
       }
      },
      "stopped_at": 71,
@@ -473,9 +473,9 @@
      "method": "PUT",
      "path": "tickets/{id} (one per selected ticket)",
      "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 71, \"status\": 3}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 72, \"status\": 3}]",
-     "context_hash": "d0d3826635e572f977c618bb8bc49ccfda2a701e00ef3fbbe8615df9413c77da"
+     "context_hash": "9a09a2cf46899bf173251900d47680fb2ad7c48a47d20285bb7d6f0d6b3b36bb"
     },
-    "write_hash": "24d01e36ee2e58de6701b2bf29369cc0896ab324b88d192b299744bf7488c646",
+    "write_hash": "455bda9f7924955076c9a2674fb539ec64cf6d84b4557637944ff0c69b62d89c",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Waiting\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
     "ids": [
      71,
@@ -483,7 +483,7 @@
     ],
     "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 3}, {\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 3}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "dd2b2877531d14e5f21f371f67a472b666cf70b0e265690fd892849b4a097445",
+    "hash": "a3309f01140b5f6595ea120f37df2190b7ad28a78d2eea757a0bd78620a8de28",
     "review": {
      "action": "ticket_bulk_status_fields",
      "method": "PUT",
@@ -506,7 +506,7 @@
        "status": 3
       }
      ],
-     "plan_hash": "dd2b2877531d14e5f21f371f67a472b666cf70b0e265690fd892849b4a097445",
+     "plan_hash": "a3309f01140b5f6595ea120f37df2190b7ad28a78d2eea757a0bd78620a8de28",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,
@@ -547,7 +547,7 @@
     "result": {
      "status": "partial",
      "verified": false,
-     "plan_hash": "dd2b2877531d14e5f21f371f67a472b666cf70b0e265690fd892849b4a097445",
+     "plan_hash": "a3309f01140b5f6595ea120f37df2190b7ad28a78d2eea757a0bd78620a8de28",
      "ticket_ids": [
       71,
       72
@@ -559,11 +559,11 @@
         "custom_fields": "matched",
         "status": "matched"
        },
-       "plan_hash": "5456fed8a2a22865601d8cbc6a4037267fc684b785483c17ac97e7510dfc1602"
+       "plan_hash": "d81ac34ac9ce5112b6665875de2098a5edad9aa32838470bc9eea9867c87ea5a"
       },
       "72": {
        "verified": false,
-       "error": "update rejected (HTTP 400); no retry"
+       "error": "update rejected (HTTP 400: status: Synthetic rejection); no retry"
       }
      },
      "stopped_at": 72,
@@ -639,9 +639,9 @@
      "method": "PUT",
      "path": "bulk_ticket_actions/update_multiple",
      "payload_json": "{\"ids\": [71, 72], \"reply\": {}, \"status\": 2}",
-     "context_hash": "cc38d65724adf739da3e219d3389560fb7659382f0d1f148989ee8bbf6f03bd7"
+     "context_hash": "9d81f86ee065a8d14ff02e419ed4acf594c55e0958b1b3ec0477279e1139d0ed"
     },
-    "write_hash": "e54456bd3c819c12d104032458e5b4e470a0132854a48d8914d9b8b66e1c44b7",
+    "write_hash": "c770999270dabd2b795ab5d9c16d2049edaa04d57a982d8fd260b1e0d005a65f",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Open\", \"where\": []}",
     "ids": [
      71,
@@ -649,7 +649,7 @@
     ],
     "expected_json": "[{\"status\": 2}, {\"status\": 2}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "63cae030575281555365d36b4c39de8835605181a701de3c5d2868b1d5deea53",
+    "hash": "c08b6c72787c114f8d9df11ae1df2de5ae90bd13fd5eecf3a23446d6dafa87b3",
     "review": {
      "action": "ticket_bulk_status",
      "method": "PUT",
@@ -662,7 +662,7 @@
       "reply": {},
       "status": 2
      },
-     "plan_hash": "63cae030575281555365d36b4c39de8835605181a701de3c5d2868b1d5deea53",
+     "plan_hash": "c08b6c72787c114f8d9df11ae1df2de5ae90bd13fd5eecf3a23446d6dafa87b3",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,
@@ -712,9 +712,9 @@
      "method": "PUT",
      "path": "bulk_ticket_actions/update_multiple",
      "payload_json": "{\"ids\": [71, 72], \"reply\": {}, \"status\": 2}",
-     "context_hash": "cc38d65724adf739da3e219d3389560fb7659382f0d1f148989ee8bbf6f03bd7"
+     "context_hash": "9d81f86ee065a8d14ff02e419ed4acf594c55e0958b1b3ec0477279e1139d0ed"
     },
-    "write_hash": "e54456bd3c819c12d104032458e5b4e470a0132854a48d8914d9b8b66e1c44b7",
+    "write_hash": "c770999270dabd2b795ab5d9c16d2049edaa04d57a982d8fd260b1e0d005a65f",
     "intent_json": "{\"action\": \"status\", \"agent\": null, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Open\", \"where\": []}",
     "ids": [
      71,
@@ -722,7 +722,7 @@
     ],
     "expected_json": "[{\"status\": 2}, {\"status\": 2}]",
     "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
-    "hash": "63cae030575281555365d36b4c39de8835605181a701de3c5d2868b1d5deea53",
+    "hash": "c08b6c72787c114f8d9df11ae1df2de5ae90bd13fd5eecf3a23446d6dafa87b3",
     "review": {
      "action": "ticket_bulk_status",
      "method": "PUT",
@@ -735,7 +735,7 @@
       "reply": {},
       "status": 2
      },
-     "plan_hash": "63cae030575281555365d36b4c39de8835605181a701de3c5d2868b1d5deea53",
+     "plan_hash": "c08b6c72787c114f8d9df11ae1df2de5ae90bd13fd5eecf3a23446d6dafa87b3",
      "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
      "ticket_ids": [
       71,

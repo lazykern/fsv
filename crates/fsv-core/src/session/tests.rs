@@ -61,23 +61,32 @@ fn keychain_available_on_macos_unless_disabled() {
     assert!(!keychain_available());
 }
 
+struct Panicking;
+
+impl KeychainStore for Panicking {
+    fn write(&self, _: &str, _: &str) -> bool {
+        panic!("security must not run")
+    }
+    fn read(&self, _: &str) -> Option<String> {
+        panic!("security must not run")
+    }
+    fn delete(&self, _: &str) {
+        panic!("security must not run")
+    }
+}
+
 #[test]
 fn keychain_disabled_never_runs_security() {
     let _env = isolated();
-    let mut ran = false;
-    let mut run = |_: &[&str], _: Option<&str>| -> std::io::Result<(i32, String)> {
-        ran = true;
-        Ok((0, String::new()))
-    };
+    testenv::set("FSV_NO_KEYCHAIN", "1");
     assert_eq!(
-        keychain_write_with("x", &mut run).unwrap_err().to_string(),
+        keychain_write_to("x", &Panicking).unwrap_err().to_string(),
         "keychain backend is macOS only"
     );
     assert_eq!(
-        keychain_read_with(&mut run).unwrap_err().to_string(),
+        keychain_read_from(&Panicking).unwrap_err().to_string(),
         "keychain backend is macOS only"
     );
-    assert!(!ran);
     assert_eq!(
         keychain_write("x").unwrap_err().to_string(),
         "keychain backend is macOS only"
@@ -89,11 +98,8 @@ fn keychain_disabled_never_runs_security() {
     keychain_delete();
 }
 
-#[cfg(target_os = "macos")]
 #[test]
-fn keychain_write_and_read_through_security_cli() {
-    let _env = isolated();
-    testenv::unset("FSV_NO_KEYCHAIN");
+fn security_cli_argv_shapes() {
     let mut calls: Vec<(Vec<String>, Option<String>)> = Vec::new();
     let mut run = |args: &[&str], input: Option<&str>| -> std::io::Result<(i32, String)> {
         calls.push((
@@ -102,34 +108,50 @@ fn keychain_write_and_read_through_security_cli() {
         ));
         Ok((0, "eyJhIjogMX0=\n".into()))
     };
-    keychain_write_with("{\"a\": 1}", &mut run).unwrap();
-    assert_eq!(keychain_read_with(&mut run).unwrap(), "{\"a\": 1}");
+    assert!(security_write("fsv-session-abc", "eyJhIjogMX0=", &mut run));
+    assert_eq!(
+        security_read("fsv-session-abc", &mut run).as_deref(),
+        Some("eyJhIjogMX0=\n")
+    );
+    security_delete("fsv-session-abc", &mut run);
     let mut fail =
         |_: &[&str], _: Option<&str>| -> std::io::Result<(i32, String)> { Ok((44, String::new())) };
-    let write_err = keychain_write_with("x", &mut fail).unwrap_err().to_string();
-    let read_err = keychain_read_with(&mut fail).unwrap_err().to_string();
-    testenv::set("FSV_NO_KEYCHAIN", "1");
+    assert!(!security_write("a", "b", &mut fail));
+    assert_eq!(security_read("a", &mut fail), None);
     assert_eq!(
         calls[0],
         (
             vec!["-i".to_string()],
-            Some("add-generic-password -U -a fsv-session -s fsv -w eyJhIjogMX0=\n".to_string())
+            Some("add-generic-password -U -a fsv-session-abc -s fsv -w eyJhIjogMX0=\n".to_string())
         )
     );
     assert_eq!(
-        calls[1].0,
+        calls[1],
+        (
+            [
+                "find-generic-password",
+                "-a",
+                "fsv-session-abc",
+                "-s",
+                "fsv",
+                "-w"
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>(),
+            None
+        )
+    );
+    assert_eq!(
+        calls[2].0,
         [
-            "find-generic-password",
+            "delete-generic-password",
             "-a",
-            "fsv-session",
+            "fsv-session-abc",
             "-s",
-            "fsv",
-            "-w"
+            "fsv"
         ]
     );
-    assert_eq!(calls[1].1, None);
-    assert_eq!(write_err, "could not write session to Keychain");
-    assert_eq!(read_err, "no session in Keychain; run `fsv auth login`");
 }
 
 #[test]
@@ -144,7 +166,7 @@ fn keychain_decode_base64_or_legacy_json() {
         assert_eq!(keychain_decode(raw), want, "{raw:?}");
     }
     assert_eq!(
-        keychain_write_line("{\"a\": 1}"),
+        keychain_write_line("fsv-session", "eyJhIjogMX0="),
         "add-generic-password -U -a fsv-session -s fsv -w eyJhIjogMX0=\n"
     );
 }
@@ -598,4 +620,188 @@ fn login_interactive_parses_and_validates_paste() {
     );
     let aborted = login_interactive_with(&mut |_: &str| Err(Error::Aborted));
     assert!(matches!(aborted, Err(Error::Aborted)));
+}
+
+#[derive(Default)]
+struct FakeKeychain {
+    items: Mutex<std::collections::BTreeMap<String, String>>,
+}
+
+impl KeychainStore for FakeKeychain {
+    fn write(&self, account: &str, encoded: &str) -> bool {
+        self.items
+            .lock()
+            .unwrap()
+            .insert(account.to_string(), encoded.to_string());
+        true
+    }
+    fn read(&self, account: &str) -> Option<String> {
+        self.items.lock().unwrap().get(account).cloned()
+    }
+    fn delete(&self, account: &str) {
+        self.items.lock().unwrap().remove(account);
+    }
+}
+
+impl FakeKeychain {
+    fn accounts(&self) -> Vec<String> {
+        self.items.lock().unwrap().keys().cloned().collect()
+    }
+}
+
+struct Fake {
+    keychain: std::sync::Arc<FakeKeychain>,
+    home: Option<std::ffi::OsString>,
+}
+
+impl Drop for Fake {
+    fn drop(&mut self) {
+        set_keychain_store(None);
+        match &self.home {
+            Some(h) => testenv::set("HOME", h),
+            None => testenv::unset("HOME"),
+        }
+    }
+}
+
+fn fake_keychain(env: &testenv::Isolated) -> Fake {
+    let keychain = std::sync::Arc::new(FakeKeychain::default());
+    set_keychain_store(Some(keychain.clone()));
+    let home = std::env::var_os("HOME");
+    testenv::set("HOME", env.root().join("home"));
+    Fake { keychain, home }
+}
+
+fn use_dir(path: &std::path::Path) {
+    std::fs::create_dir_all(path).unwrap();
+    std::fs::write(
+        path.join("config.json"),
+        "{\"domain\": \"acme.freshservice.com\"}",
+    )
+    .unwrap();
+    testenv::set("FSV_CONFIG_DIR", path);
+    config::reload();
+    clear_cache();
+}
+
+fn with_id(id: &str) -> Cookies {
+    let mut c = full();
+    c.insert("fw-session-id".into(), id.into());
+    c
+}
+
+fn legacy_item(fake: &Fake) -> String {
+    let legacy = serde_json::to_string(&json!({
+        "saved_at": 1, "domain": ACME,
+        "cookies": {"_x_m": "m", "_x_d": "d", "_x_w": "w", "fw-session-id": "f"}
+    }))
+    .unwrap();
+    let enc = B64.encode(legacy.as_bytes());
+    fake.keychain
+        .items
+        .lock()
+        .unwrap()
+        .insert(KEYCHAIN_ACCOUNT.into(), enc.clone());
+    enc
+}
+
+#[test]
+fn account_is_scoped_to_the_resolved_config_dir() {
+    let env = isolated();
+    let _fake = fake_keychain(&env);
+    use_dir(&env.root().join("a"));
+    let digest = sha256_hex_of(&crate::journal::resolve_path(&env.root().join("a")));
+    assert_eq!(keychain_account(), format!("fsv-session-{}", &digest[..12]));
+    let first = keychain_account();
+    use_dir(&env.root().join("b"));
+    assert_ne!(keychain_account(), first);
+}
+
+fn sha256_hex_of(p: &std::path::Path) -> String {
+    use std::os::unix::ffi::OsStrExt;
+    crate::journal::sha256_hex(p.as_os_str().as_bytes())
+}
+
+#[test]
+fn logout_of_one_config_dir_leaves_the_other() {
+    let env = isolated();
+    let fake = fake_keychain(&env);
+    use_dir(&env.root().join("a"));
+    save_cookies(&full(), Some(Backend::Keychain)).unwrap();
+    let account_a = keychain_account();
+    use_dir(&env.root().join("b"));
+    save_cookies(&with_id("other"), Some(Backend::Keychain)).unwrap();
+    assert_eq!(fake.keychain.accounts().len(), 2);
+    logout();
+    assert_eq!(fake.keychain.accounts(), vec![account_a]);
+    use_dir(&env.root().join("b"));
+    std::fs::write(config::config_dir().join("store"), "keychain").unwrap();
+    assert!(load_cookies().is_err());
+    use_dir(&env.root().join("a"));
+    assert_eq!(load_cookies().unwrap()["fw-session-id"], "f");
+}
+
+#[test]
+fn file_save_in_a_scratch_dir_keeps_other_keychain_items() {
+    let env = isolated();
+    let fake = fake_keychain(&env);
+    use_dir(&env.root().join("real"));
+    save_cookies(&full(), Some(Backend::Keychain)).unwrap();
+    use_dir(&env.root().join("scratch"));
+    save_cookies(&full(), Some(Backend::File)).unwrap();
+    assert_eq!(fake.keychain.accounts().len(), 1);
+    assert_eq!(current_backend(), Backend::File);
+    logout();
+    assert_eq!(fake.keychain.accounts().len(), 1);
+    assert!(load_cookies().is_err());
+}
+
+#[test]
+fn legacy_unscoped_item_only_for_the_default_config_dir() {
+    let env = isolated();
+    let fake = fake_keychain(&env);
+    legacy_item(&fake);
+    use_dir(&env.root().join("scratch"));
+    std::fs::write(config::config_dir().join("store"), "keychain").unwrap();
+    assert!(load_cookies().is_err());
+    logout();
+    assert!(
+        fake.keychain
+            .accounts()
+            .contains(&KEYCHAIN_ACCOUNT.to_string())
+    );
+    let default = env.root().join("home").join(".config").join("fsv");
+    use_dir(&default);
+    std::fs::write(default.join("store"), "keychain").unwrap();
+    assert_eq!(load_cookies().unwrap(), full());
+    save_cookies(&with_id("new"), Some(Backend::Keychain)).unwrap();
+    assert_eq!(load_cookies().unwrap()["fw-session-id"], "new");
+    logout();
+    assert!(fake.keychain.accounts().is_empty());
+}
+
+#[test]
+fn default_dir_without_env_override_falls_back_to_the_legacy_item() {
+    let env = isolated();
+    let fake = fake_keychain(&env);
+    let legacy = legacy_item(&fake);
+    use_dir(&env.root().join("scratch"));
+    let scratch = keychain_account();
+    save_cookies(&with_id("scratch"), Some(Backend::Keychain)).unwrap();
+    let default = env.root().join("home").join(".config").join("fsv");
+    std::fs::create_dir_all(&default).unwrap();
+    std::fs::write(
+        default.join("config.json"),
+        "{\"domain\": \"acme.freshservice.com\"}",
+    )
+    .unwrap();
+    std::fs::write(default.join("store"), "keychain").unwrap();
+    testenv::unset("FSV_CONFIG_DIR");
+    config::reload();
+    clear_cache();
+    assert!(!fake.keychain.accounts().contains(&keychain_account()));
+    assert_eq!(load_cookies().unwrap(), full());
+    logout();
+    assert_eq!(fake.keychain.accounts(), vec![scratch]);
+    assert_ne!(legacy, "");
 }

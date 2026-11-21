@@ -28,7 +28,9 @@ use crate::util::{CmdResult, client, plain_fail, uncaught};
 
 /// `json.dumps(value, indent=2)`.
 pub(crate) fn dumps(v: &Value) -> String {
-    fsv_py::Dumps::default().indent(2).dump(v)
+    fsv_py::Dumps::default()
+        .indent(2)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 /// `{"status": "dry_run", **review}`, indented.
@@ -122,7 +124,8 @@ pub fn watchers_list(res: &'static Resource, a: ReviewedListArgs) -> CmdResult {
         Ok(ids) => {
             println!(
                 "{}",
-                fsv_py::Dumps::default().dump(&json!({"watcher_ids": ids}))
+                fsv_py::Dumps::default()
+                    .dump(&fsv_core::tenant::annotate(&json!({"watcher_ids": ids})))
             );
             Ok(())
         }
@@ -267,7 +270,7 @@ fn dumps_unicode(v: &Value) -> String {
     fsv_py::Dumps::default()
         .ensure_ascii(false)
         .indent(2)
-        .dump(v)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 /// Reviewed `problems add-note` (`problem_notes.add_note`).
@@ -503,7 +506,7 @@ pub fn merge(a: TicketsMergeArgs) -> CmdResult {
         fsv_py::Dumps::default()
             .indent(2)
             .ensure_ascii(false)
-            .dump(v)
+            .dump(&fsv_core::tenant::annotate(v))
     };
     let run = || -> Result<()> {
         let c = client()?;
@@ -597,7 +600,7 @@ fn dumps_utf8(v: &Value) -> String {
     fsv_py::Dumps::default()
         .indent(2)
         .ensure_ascii(false)
-        .dump(v)
+        .dump(&fsv_core::tenant::annotate(v))
 }
 
 /// [`refusal`] that also catches `APIError` (its text, exit 2).

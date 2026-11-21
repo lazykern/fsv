@@ -1,5 +1,5 @@
 {
- "upstream": "31a910336ac8b936d6d5891cb74c21632dd232f9",
+ "upstream": "84ffb0ff098009e3580c7ab9154175f8338e1b1f",
  "scope": "every top-level def and every method/class of a top-level class in src/fsv/**/*.py",
  "statuses": {
   "matched": "a Rust item with the same name (leading underscores stripped) exists in the Rust counterpart; name match only, not yet reviewed line by line",
@@ -20189,6 +20189,565 @@
    "rust": "crates/fsv-core/src/yaml.rs",
    "rust_item": "block",
    "note": "Compared an indented block map or list, preserving key order."
+  },
+  {
+   "module": "change_attach.py",
+   "name": "_attachments",
+   "line": 31,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "attachments"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "ChangeAttachPlan",
+   "line": 44,
+   "kind": "class",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "ChangeAttachPlan"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "path",
+   "line": 61,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "path"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "noop",
+   "line": 65,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "noop"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "hash",
+   "line": 69,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "hash"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "payload",
+   "line": 77,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "payload"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "review",
+   "line": 80,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "review"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "build_plan",
+   "line": 102,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "build_plan"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "readback",
+   "line": 157,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "readback"
+  },
+  {
+   "module": "change_attach.py",
+   "name": "send",
+   "line": 168,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_attach.rs",
+   "rust_item": "send"
+  },
+  {
+   "module": "change_due_by.py",
+   "name": "NothingToChange",
+   "line": 27,
+   "kind": "class",
+   "status": "idiom",
+   "note": "Rust variant `DueByError::NothingToChange` of the plan-building error enum.",
+   "rust": "crates/fsv-api/src/change_due_by.rs",
+   "rust_item": "DueByError"
+  },
+  {
+   "module": "change_due_by.py",
+   "name": "_tenant_zone",
+   "line": 31,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_due_by.rs",
+   "rust_item": "tenant_zone"
+  },
+  {
+   "module": "change_due_by.py",
+   "name": "parse_due_by",
+   "line": 40,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_due_by.rs",
+   "rust_item": "parse_due_by"
+  },
+  {
+   "module": "change_due_by.py",
+   "name": "build_plan",
+   "line": 58,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_due_by.rs",
+   "rust_item": "build_plan"
+  },
+  {
+   "module": "change_due_by.py",
+   "name": "review",
+   "line": 72,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_due_by.rs",
+   "rust_item": "review"
+  },
+  {
+   "module": "change_due_by.py",
+   "name": "send",
+   "line": 79,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/change_due_by.rs",
+   "rust_item": "send"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "_resolve_section",
+   "line": 45,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "resolve_section"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "_att_name",
+   "line": 57,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "att_name"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "_att_size",
+   "line": 61,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "att_size"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "_existing_attachments",
+   "line": 65,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "existing_attachments"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "_ask_duplicate",
+   "line": 79,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "ask_duplicate"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "PlanningUpdatePlan",
+   "line": 89,
+   "kind": "class",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "PlanningUpdatePlan"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "action",
+   "line": 111,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "action"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "noop",
+   "line": 115,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "noop"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "hash",
+   "line": 120,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "hash"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "payload",
+   "line": 129,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "payload"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "review",
+   "line": 139,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "review"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "build_plan",
+   "line": 166,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "build_plan"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "readback",
+   "line": 234,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "readback"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "upload_files",
+   "line": 256,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "upload_files"
+  },
+  {
+   "module": "planning_files.py",
+   "name": "send",
+   "line": 280,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/planning_files.rs",
+   "rust_item": "send"
+  },
+  {
+   "module": "problem_notes.py",
+   "name": "build_plan",
+   "line": 28,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/problem_notes.rs",
+   "rust_item": "build_plan"
+  },
+  {
+   "module": "problem_notes.py",
+   "name": "review",
+   "line": 45,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/problem_notes.rs",
+   "rust_item": "review"
+  },
+  {
+   "module": "problem_notes.py",
+   "name": "_returned_id",
+   "line": 51,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/problem_notes.rs",
+   "rust_item": "returned_id"
+  },
+  {
+   "module": "problem_notes.py",
+   "name": "send",
+   "line": 61,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/problem_notes.rs",
+   "rust_item": "send"
+  },
+  {
+   "module": "problem_notes.py",
+   "name": "add_note",
+   "line": 94,
+   "status": "idiom",
+   "note": "The `problems add-note` command body lives in the CLI resource module; the plan and send are `problem_notes::build_plan`/`send`."
+  },
+  {
+   "module": "tenant.py",
+   "name": "TenantRefusal",
+   "line": 43,
+   "kind": "class",
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "TenantRefusal"
+  },
+  {
+   "module": "tenant.py",
+   "name": "_norm",
+   "line": 47,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "norm"
+  },
+  {
+   "module": "tenant.py",
+   "name": "config_dir",
+   "line": 55,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "config_dir"
+  },
+  {
+   "module": "tenant.py",
+   "name": "banner",
+   "line": 59,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "banner"
+  },
+  {
+   "module": "tenant.py",
+   "name": "is_local",
+   "line": 63,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "is_local"
+  },
+  {
+   "module": "tenant.py",
+   "name": "quiet",
+   "line": 67,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "quiet"
+  },
+  {
+   "module": "tenant.py",
+   "name": "confirmed_tenant",
+   "line": 71,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "confirmed_tenant"
+  },
+  {
+   "module": "tenant.py",
+   "name": "confirmation",
+   "line": 77,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "confirmation"
+  },
+  {
+   "module": "tenant.py",
+   "name": "refusal",
+   "line": 91,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "refusal"
+  },
+  {
+   "module": "tenant.py",
+   "name": "_command_path",
+   "line": 107,
+   "status": "idiom",
+   "note": "The clap match path is joined in `tenant_info` (app.rs), which builds `tenant::CommandInfo`.",
+   "rust": "crates/fsv-cli/src/app.rs",
+   "rust_item": "tenant_info"
+  },
+  {
+   "module": "tenant.py",
+   "name": "_option_values",
+   "line": 115,
+   "status": "idiom",
+   "note": "Option values are read from the clap matches in `tenant_info`.",
+   "rust": "crates/fsv-cli/src/app.rs",
+   "rust_item": "tenant_info"
+  },
+  {
+   "module": "tenant.py",
+   "name": "write_capable",
+   "line": 123,
+   "status": "idiom",
+   "note": "Computed in `tenant_info` from the command's declared --yes/--dry-run/--expect-plan flags.",
+   "rust": "crates/fsv-cli/src/app.rs",
+   "rust_item": "tenant_info"
+  },
+  {
+   "module": "tenant.py",
+   "name": "check",
+   "line": 127,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "check"
+  },
+  {
+   "module": "tenant.py",
+   "name": "enter_command",
+   "line": 149,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "enter_command"
+  },
+  {
+   "module": "tenant.py",
+   "name": "leave_command",
+   "line": 173,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "leave_command"
+  },
+  {
+   "module": "tenant.py",
+   "name": "annotate",
+   "line": 187,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "annotate"
+  },
+  {
+   "module": "tenant.py",
+   "name": "tenant_json",
+   "line": 197,
+   "status": "idiom",
+   "note": "Rust prints through `tenant::annotate` plus `fsv_py::Dumps` at each output site.",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "annotate"
+  },
+  {
+   "module": "tenant.py",
+   "name": "bind_plan",
+   "line": 206,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "bind_plan"
+  },
+  {
+   "module": "tenant.py",
+   "name": "unbind",
+   "line": 217,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "unbind"
+  },
+  {
+   "module": "tenant.py",
+   "name": "bind_legacy",
+   "line": 230,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "bind_legacy"
+  },
+  {
+   "module": "tenant.py",
+   "name": "_registry",
+   "line": 237,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "registry"
+  },
+  {
+   "module": "tenant.py",
+   "name": "_remember",
+   "line": 242,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "remember"
+  },
+  {
+   "module": "tenant.py",
+   "name": "reviewed_elsewhere",
+   "line": 261,
+   "status": "matched",
+   "rust": "crates/fsv-core/src/tenant.rs",
+   "rust_item": "reviewed_elsewhere"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "PlainReplyError",
+   "line": 23,
+   "kind": "class",
+   "status": "idiom",
+   "note": "`PlainReplyError` is the `refused` constructor (exit 2).",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "refused"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "PlainReplyPlan",
+   "line": 28,
+   "kind": "class",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "PlainReplyPlan"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "path",
+   "line": 37,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "path"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "payload",
+   "line": 41,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "payload"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "hash",
+   "line": 45,
+   "kind": "method",
+   "status": "matched",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "hash"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "build_plan",
+   "line": 54,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "build_plan"
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "_conversation_id",
+   "line": 62,
+   "status": "idiom",
+   "note": "Inlined where the conversation id is read from the created reply."
+  },
+  {
+   "module": "ticket_plain_reply.py",
+   "name": "send",
+   "line": 68,
+   "status": "matched",
+   "rust": "crates/fsv-api/src/ticket_plain_reply.rs",
+   "rust_item": "send"
   }
  ],
  "no_defs": [

@@ -129,8 +129,6 @@ pub fn prior_guards(plan: &WritePlan, prior_context: &str) -> Vec<String> {
     vec![older.hash()]
 }
 
-const UNKNOWN: &str = "write outcome unknown; inspect target and journal before retry";
-
 /// Port of fsv.reviewed_write.execute: guards, one request, then `verify` on
 /// the response. `reviewed_hash` `None` cancels. `rebuild` re-derives the
 /// plan from current server state; `verify` reads back independently and
@@ -255,24 +253,40 @@ pub fn execute_guarded(
     let response = match c.send_once(&plan.method, &plan.path, body, None, &csrf) {
         Ok(r) => r,
         Err(e) => {
-            if let Some(status) = definite_rejection(&e) {
+            let Some(api) = e.as_api() else {
+                return Err(refused(format!(
+                    "write outcome unknown ({}); inspect target and journal before retry",
+                    fsv_core::error::exception_name(&e)
+                )));
+            };
+            let (detail, reason) = fsv_core::error::http_detail(api);
+            let status = Some(api.status);
+            if definite_rejection(&e).is_some() {
                 journal.record_plan("failed", &hash, &plan.action, Some(&target), None);
-                return Err(refused(match (rejection, e.as_api()) {
-                    (Some(word), Some(api)) => word(api),
-                    (_, api) => {
-                        let reason = api.map_or_else(String::new, |a| {
-                            fsv_core::error::server_message(&a.body, 240)
-                        });
-                        let reason = if reason.is_empty() {
-                            reason
+                let text = match rejection {
+                    Some(word) => word(api),
+                    None => {
+                        let tail = if reason.is_empty() {
+                            String::new()
                         } else {
                             format!(": {reason}")
                         };
-                        format!("write rejected (HTTP {status}){reason}; no retry")
+                        format!("write rejected (HTTP {}){tail}; no retry", api.status)
                     }
-                }));
+                };
+                return Err(fsv_core::error::reviewed_write_error(
+                    text,
+                    status,
+                    Some(reason),
+                ));
             }
-            return Err(refused(UNKNOWN));
+            return Err(fsv_core::error::reviewed_write_error(
+                format!(
+                    "write outcome unknown ({detail}); inspect target and journal before retry"
+                ),
+                status,
+                Some(reason),
+            ));
         }
     };
     journal.record_plan("done", &hash, &plan.action, Some(&target), None);
@@ -395,7 +409,9 @@ mod tests {
             let j = MemJournal::default();
             assert_eq!(
                 err(execute(&p, &c, &j, Some(&h), &same, &unverified)),
-                UNKNOWN
+                format!(
+                    "write outcome unknown (HTTP {status}: nope); inspect target and journal before retry"
+                )
             );
             assert_eq!(j.events(), ["started"]);
         }
@@ -427,6 +443,79 @@ mod tests {
         assert_eq!(
             (w[0].path.as_str(), &w[0].body, &w[0].raw),
             ("changes/1/unwatch?user_id=9", &None, &None)
+        );
+    }
+
+    /// `test_update_error_paths.test_execute_names_status_and_message`.
+    #[test]
+    fn execute_names_status_and_message() {
+        let p = plan(r#"{"priority": 3}"#);
+        let h = p.hash();
+        let same = || Ok(p.clone());
+        let verify =
+            |_: &Value| -> Result<Map<String, Value>> { Ok(obj(json!({"verified": true}))) };
+        let html = Value::String(
+            "<html><head><style>p{}</style></head><body><h1>Service Unavailable</h1><p>Try later</p></body></html>"
+                .into(),
+        );
+        let cases = [
+            (
+                422,
+                json!({"description": "Validation failed", "errors": [{"field": "priority", "message": "Synthetic invalid"}]}),
+                "rejected",
+                "priority: Synthetic invalid",
+            ),
+            (
+                500,
+                json!({"message": "Synthetic server error"}),
+                "outcome unknown",
+                "Synthetic server error",
+            ),
+            (
+                503,
+                html,
+                "outcome unknown",
+                "Service Unavailable Try later",
+            ),
+            (
+                429,
+                json!({"message": "Synthetic rate limit"}),
+                "outcome unknown",
+                "Synthetic rate limit",
+            ),
+            (403, json!(""), "outcome unknown", ""),
+        ];
+        for (status, body, kind, message) in cases {
+            let c = FakeApi::new().on("POST tickets/123/watch", Reply::Fail(status, body));
+            let e = execute(&p, &c, &MemJournal::default(), Some(&h), &same, &verify).unwrap_err();
+            let text = e.to_string();
+            assert!(
+                text.contains(kind) && text.contains(&format!("HTTP {status}")),
+                "{text}"
+            );
+            assert_eq!(c.writes().len(), 1);
+            assert!(!text.contains('<') && !text.contains("style"), "{text}");
+            if message.is_empty() {
+                assert!(text.contains("empty response body"), "{text}");
+            } else {
+                assert!(text.contains(message), "{text}");
+            }
+            let answer = fsv_core::error::write_answer(&e).expect("answer");
+            assert_eq!(answer.http_status, Some(status));
+            assert_eq!(answer.message, text);
+            assert!(answer.server_message.as_deref().unwrap().contains(message));
+        }
+        let c = FakeApi::new().on("POST tickets/123/watch", Reply::Session);
+        assert!(
+            err(execute(
+                &p,
+                &c,
+                &MemJournal::default(),
+                Some(&h),
+                &same,
+                &verify
+            ))
+            .contains("outcome unknown (SessionError)")
         );
     }
 }

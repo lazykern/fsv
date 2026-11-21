@@ -516,7 +516,10 @@ fn problem_no_op_says_nothing_to_change() {
     ]);
     let out: Value = serde_json::from_str(&r.out).unwrap();
     assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(out, json!({"status": "nothing_to_change", "target": 123}));
+    assert_eq!(
+        out,
+        json!({"status": "nothing_to_change", "target": 123, "tenant": "acme.freshservice.com", "config_dir": "<CONFIG_DIR>"})
+    );
     let r = env.run(&[
         "problems",
         "update",
@@ -773,7 +776,7 @@ fn due_by_same_instant_is_nothing_to_change() {
     ]);
     assert_eq!(
         r.json(),
-        json!({"status": "nothing_to_change", "target": 123})
+        json!({"status": "nothing_to_change", "target": 123, "tenant": "acme.freshservice.com", "config_dir": "<CONFIG_DIR>"})
     );
 }
 

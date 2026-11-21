@@ -5,7 +5,9 @@
 //! - `argon`: the same payload encrypted with AES-256-GCM (domain as AAD)
 //!   under an Argon2id key (t=3, m=65536 KiB, p=4), stored as a JSON envelope;
 //! - `keychain`: macOS login Keychain via the `security` CLI (service `fsv`,
-//!   account `fsv-session`), payload base64-encoded.
+//!   account `fsv-session-<sha256(config dir)[:12]>`, the unscoped
+//!   `fsv-session` read as a fallback only for the default config dir),
+//!   payload base64-encoded.
 //!
 //! The backend choice is persisted in `<config>/store`.
 
@@ -135,8 +137,33 @@ pub fn set_backend(backend: Backend) -> Result<()> {
 
 // ---------- keychain (macOS) ----------
 
+/// The macOS Keychain operations the session store needs, keyed by account
+/// (tests substitute a fake with [`set_keychain_store`]).
+pub trait KeychainStore: Send + Sync {
+    fn write(&self, account: &str, encoded: &str) -> bool;
+    fn read(&self, account: &str) -> Option<String>;
+    fn delete(&self, account: &str);
+}
+
+static KEYCHAIN: std::sync::RwLock<Option<std::sync::Arc<dyn KeychainStore>>> =
+    std::sync::RwLock::new(None);
+
+/// Tests: replace the `security` CLI with `store` (and make the Keychain
+/// count as available on any platform); `None` restores the real tool.
+#[doc(hidden)]
+pub fn set_keychain_store(store: Option<std::sync::Arc<dyn KeychainStore>>) {
+    *KEYCHAIN.write().unwrap_or_else(|p| p.into_inner()) = store;
+}
+
+fn keychain_store() -> Option<std::sync::Arc<dyn KeychainStore>> {
+    KEYCHAIN.read().unwrap_or_else(|p| p.into_inner()).clone()
+}
+
 /// `FSV_NO_KEYCHAIN` unset and running on macOS.
 pub fn keychain_available() -> bool {
+    if keychain_store().is_some() {
+        return true;
+    }
     if std::env::var_os("FSV_NO_KEYCHAIN").is_some_and(|v| !v.is_empty()) {
         return false;
     }
@@ -169,27 +196,105 @@ fn run_security(args: &[&str], input: Option<&str>) -> std::io::Result<(i32, Str
     ))
 }
 
-/// The `security -i` stdin line that stores `value` (base64, so no quoting).
-pub(crate) fn keychain_write_line(value: &str) -> String {
-    format!(
-        "add-generic-password -U -a {KEYCHAIN_ACCOUNT} -s {KEYCHAIN_SERVICE} -w {}\n",
-        B64.encode(value.as_bytes())
+/// The `security -i` stdin line that stores `encoded` (base64, so no quoting).
+pub(crate) fn keychain_write_line(account: &str, encoded: &str) -> String {
+    format!("add-generic-password -U -a {account} -s {KEYCHAIN_SERVICE} -w {encoded}\n")
+}
+
+pub(crate) fn security_write(account: &str, encoded: &str, run: SecurityRunner<'_>) -> bool {
+    matches!(
+        run(&["-i"], Some(&keychain_write_line(account, encoded))),
+        Ok((0, _))
     )
 }
 
-/// Store `value` without exposing it in argv (`security -i` reads the command from stdin).
-pub(crate) fn keychain_write_with(value: &str, run: SecurityRunner<'_>) -> Result<()> {
+pub(crate) fn security_read(account: &str, run: SecurityRunner<'_>) -> Option<String> {
+    match run(
+        &[
+            "find-generic-password",
+            "-a",
+            account,
+            "-s",
+            KEYCHAIN_SERVICE,
+            "-w",
+        ],
+        None,
+    ) {
+        Ok((0, out)) => Some(out),
+        _ => None,
+    }
+}
+
+pub(crate) fn security_delete(account: &str, run: SecurityRunner<'_>) {
+    let _ = run(
+        &[
+            "delete-generic-password",
+            "-a",
+            account,
+            "-s",
+            KEYCHAIN_SERVICE,
+        ],
+        None,
+    );
+}
+
+/// The macOS `security` tool.
+struct SecurityCli;
+
+impl KeychainStore for SecurityCli {
+    fn write(&self, account: &str, encoded: &str) -> bool {
+        security_write(account, encoded, &mut run_security)
+    }
+    fn read(&self, account: &str) -> Option<String> {
+        security_read(account, &mut run_security)
+    }
+    fn delete(&self, account: &str) {
+        security_delete(account, &mut run_security)
+    }
+}
+
+fn store() -> std::sync::Arc<dyn KeychainStore> {
+    keychain_store().unwrap_or_else(|| std::sync::Arc::new(SecurityCli))
+}
+
+/// `Path.home() / ".config" / "fsv"` resolved equals the config dir.
+fn is_default_config_dir() -> bool {
+    crate::journal::resolve_path(&config::config_dir())
+        == crate::journal::resolve_path(&config::home_dir().join(".config").join("fsv"))
+}
+
+/// Keychain account of this config dir's session: `fsv-session-` plus the
+/// first 12 hex chars of the sha256 of the resolved config dir, so a scratch
+/// or trial `FSV_CONFIG_DIR` never reads, overwrites or deletes another
+/// config dir's session. The unscoped legacy `fsv-session` item is read (and
+/// removed on logout) only for the default config dir.
+pub fn keychain_account() -> String {
+    let digest = crate::journal::config_dir_digest();
+    format!("{KEYCHAIN_ACCOUNT}-{}", &digest[..12])
+}
+
+/// This config dir's accounts, scoped first; legacy only for the default dir.
+fn keychain_accounts() -> Vec<String> {
+    let mut out = vec![keychain_account()];
+    if is_default_config_dir() {
+        out.push(KEYCHAIN_ACCOUNT.to_string());
+    }
+    out
+}
+
+fn keychain_write_to(value: &str, store: &dyn KeychainStore) -> Result<()> {
     if !keychain_available() {
         return Err(Error::session("keychain backend is macOS only"));
     }
-    match run(&["-i"], Some(&keychain_write_line(value))) {
-        Ok((0, _)) => Ok(()),
-        _ => Err(Error::session("could not write session to Keychain")),
+    if store.write(&keychain_account(), &B64.encode(value.as_bytes())) {
+        Ok(())
+    } else {
+        Err(Error::session("could not write session to Keychain"))
     }
 }
 
 fn keychain_write(value: &str) -> Result<()> {
-    keychain_write_with(value, &mut run_security)
+    keychain_write_to(value, store().as_ref())
 }
 
 /// Decode a stored Keychain value (base64; legacy entries are raw JSON).
@@ -204,44 +309,31 @@ pub fn keychain_decode(raw: &str) -> String {
         .unwrap_or_else(|| raw.to_string())
 }
 
-pub(crate) fn keychain_read_with(run: SecurityRunner<'_>) -> Result<String> {
+fn keychain_read_from(store: &dyn KeychainStore) -> Result<String> {
     if !keychain_available() {
         return Err(Error::session("keychain backend is macOS only"));
     }
-    match run(
-        &[
-            "find-generic-password",
-            "-a",
-            KEYCHAIN_ACCOUNT,
-            "-s",
-            KEYCHAIN_SERVICE,
-            "-w",
-        ],
-        None,
-    ) {
-        Ok((0, out)) => Ok(keychain_decode(&out)),
-        _ => Err(Error::session(
-            "no session in Keychain; run `fsv auth login`",
-        )),
+    for account in keychain_accounts() {
+        if let Some(raw) = store.read(&account) {
+            return Ok(keychain_decode(&raw));
+        }
     }
+    Err(Error::session(
+        "no session in Keychain; run `fsv auth login`",
+    ))
 }
 
 fn keychain_read() -> Result<String> {
-    keychain_read_with(&mut run_security)
+    keychain_read_from(store().as_ref())
 }
 
+/// Delete only this config dir's Keychain item(s).
 fn keychain_delete() {
     if keychain_available() {
-        let _ = run_security(
-            &[
-                "delete-generic-password",
-                "-a",
-                KEYCHAIN_ACCOUNT,
-                "-s",
-                KEYCHAIN_SERVICE,
-            ],
-            None,
-        );
+        let store = store();
+        for account in keychain_accounts() {
+            store.delete(&account);
+        }
     }
 }
 

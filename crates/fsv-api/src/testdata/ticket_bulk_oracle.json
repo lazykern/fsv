@@ -4,8 +4,8 @@
     "dirty": false
   },
   "spam": {
-    "hash": "68f7f2993d20e2dc0c4741221ce042fb62a3c1e56c9e9f5f14d4322e526f0fad",
-    "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+    "hash": "28160296af4d2d25cb402ee74b6b32fc3cc65b6debd3a063800e252735740032",
+    "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
     "action": "ticket_bulk_spam",
     "method": "POST",
     "path": "tickets/spam_multiple",
@@ -15,7 +15,7 @@
     "context": "b219ac39ad471fe860ab6097d7e54804427dde6ac251fcd67e189b213b940354"
   },
   "unspam": {
-    "hash": "1e2fd4126ba8145175d3fabeac599ceda608a7852c93b8ac3f386a1d4aca2d54",
+    "hash": "daec862afa08135aaa6aa5517ee73fa032f92afc9628be2e8aa1e131fdc36cd6",
     "write_hash": "f599a744b4fb81fb278ca3839d64f7d5758ff67408b54ef03c27344669ecdb64",
     "action": "ticket_bulk_unspam",
     "method": "POST",
@@ -26,8 +26,8 @@
     "context": "68780678d5e0dd09fd94ba12b5bade2363ebb21b23232724e811a6942a60cee1"
   },
   "delete": {
-    "hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
-    "write_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b",
+    "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+    "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
     "action": "ticket_bulk_delete",
     "method": "DELETE",
     "path": "tickets/delete_multiple?ids=71%2C72",

@@ -34,7 +34,8 @@ def py_hash(fixture, args, files=None):
                "cookies": {"_x_m": "m", "_x_d": "d", "_x_w": "w", "fw-session-id": "s"}},
               open(os.path.join(cfg, "session.json"), "w"))
     env = {"HOME": h, "FSV_CONFIG_DIR": cfg, "FSV_CACHE_DIR": os.path.join(h, "cache"),
-           "XDG_STATE_HOME": os.path.join(h, "state"), "FSV_NO_KEYCHAIN": "1", "NO_COLOR": "1",
+           "XDG_STATE_HOME": os.path.join(h, "state"), "FSV_NO_KEYCHAIN": "1", "FSV_QUIET": "1",
+           "FSV_ALLOW_TENANT": "acme.freshservice.com", "NO_COLOR": "1",
            "COLUMNS": "200", "TZ": "UTC", "PATH": "/usr/bin:/bin"}
     if os.environ.get("FSV_PY_SRC"):
         env["PYTHONPATH"] = os.environ["FSV_PY_SRC"]
@@ -64,7 +65,10 @@ def run(case_file, emit_to, only=()):
             args = [a.replace("{HASH}", hsh) for a in args]
         cmd = [sys.executable, os.path.join(GOLDEN, "cmp.py"), os.path.join(ROUTES, c["fixture"] + ".json"),
                *opts, "--emit", c["name"], "--", *args]
-        p = subprocess.run(cmd, env={**os.environ, "EMIT_TO": emit_to}, capture_output=True, text=True)
+        env = {**os.environ, "EMIT_TO": emit_to}
+        if "accept_stderr" in c:
+            env["CMP_ACCEPT_STDERR"] = json.dumps(c["accept_stderr"])
+        p = subprocess.run(cmd, env=env, capture_output=True, text=True)
         first = p.stdout.splitlines()[0] if p.stdout else p.stderr
         print(f"{c['name']}: {first}")
         if not p.stdout.startswith("IDENTICAL") or "NOT EMITTED" in p.stdout or "WARNING" in p.stdout:

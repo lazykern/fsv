@@ -34,6 +34,8 @@ fn command_tree_matches_python_flags() {
         }
         if path != "fsv" {
             longs.remove("--verbose");
+            longs.remove("--quiet");
+            longs.remove("--tenant");
         }
         out.insert((path.clone(), longs, positionals));
         for sub in cmd.get_subcommands() {

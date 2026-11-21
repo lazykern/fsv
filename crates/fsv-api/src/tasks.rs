@@ -911,7 +911,7 @@ mod tests {
     const GROUP_ERR: &str =
         "group must resolve to exactly one exact name or be a positive ID; no POST attempted";
     const DATE_ERR: &str = "planned dates require ISO-8601 date/time with explicit offset, whole seconds (no host timezone inferred)";
-    const DEFAULT_HASH: &str = "113e30a9864bcbe701be0b7a7aba721aaf2cea3fe91c6a31d08fcf410d29a6cc";
+    const DEFAULT_HASH: &str = "54715acf07f25f75de3594e4be3462eeeaea7ba48ada52caff1a619c982b4525";
 
     fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
         r.unwrap_err().to_string()
@@ -1125,7 +1125,7 @@ mod tests {
                              "planned_effort": "1h 30m", "owner_id": 7});
         assert_eq!(p.path(), "changes/12/tasks");
         assert_eq!(Value::Object(p.payload()), payload);
-        let h = "b40c9b1a1e7e411c6048ef2180832f205633ec0b7a8422b671dcef69d0d149d7";
+        let h = "46895abd9d12ee986fa3b941acd14f414fabfdbe66e5da8cfff40499fdfa57f5";
         assert_eq!(p.hash(), h);
         assert_eq!(
             Value::Object(p.review()),

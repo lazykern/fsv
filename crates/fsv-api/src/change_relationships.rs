@@ -887,15 +887,15 @@ mod tests {
         for (name, hash) in [
             (
                 json!(null),
-                "5a017c2c9825205d223f45b8862580facc517e1712431499ee2ba5e06b64c387",
+                "48f3ca61a957b94e30720c066d227d553814d8b5ceb1b4b08f47c0819c4dab99",
             ),
             (
                 json!(""),
-                "7d25e6a2b02162e970accf55ea87c6937d3d0c5244bef2964e1c74b955136872",
+                "695fafc74fb64a8eb90ea195de91cd95e2e21f017a7e3d44f3948439e52d126e",
             ),
             (
                 json!(0),
-                "ea07749d1484172c6b0abf31316c9fd2aafbd5670cf9c371c29a10477658455b",
+                "c60fc21813fbb3fc2aae1b18ae7bb1fc16f74695c2d1a3ca314ab5c2ae5efb40",
             ),
         ] {
             let mut world = seed("project-task", "remove");
@@ -933,11 +933,11 @@ mod tests {
         for (project, hash) in [
             (
                 json!([1]),
-                "7b0e130627ffcf9c5a570ea616b2c2c2bde6ddaf6ad53c111d722e92f6186dc5",
+                "d5bf250a8240ff88428e5f3706dc004f77beb6bec4026f1a37339d14f95f1bbe",
             ),
             (
                 json!({"a": 1}),
-                "606e2935d6444aae21b6eee819759d5634b241724f420c109d2e977bf0678e58",
+                "f2c0c30f1a6af80083ef263dbceb72a51124031eaa447d950f0854b7b6bd29a2",
             ),
         ] {
             let c = api(Arc::new(Mutex::new(seed("project", "remove"))));

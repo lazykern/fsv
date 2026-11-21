@@ -7,11 +7,11 @@
     {
       "action": "spam",
       "lag": 0,
-      "hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
-      "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+      "hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
+      "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
       "result": {
         "status": "submitted",
-        "plan_hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+        "plan_hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
         "verified": true,
         "ticket_ids": [
           71,
@@ -26,7 +26,7 @@
           }
         },
         "readback_attempts": 1,
-        "delegated_plan_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f"
+        "delegated_plan_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6"
       },
       "sleeps": [],
       "post_reads": 2,
@@ -36,11 +36,11 @@
     {
       "action": "spam",
       "lag": 2,
-      "hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
-      "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+      "hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
+      "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
       "result": {
         "status": "submitted",
-        "plan_hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+        "plan_hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
         "verified": true,
         "ticket_ids": [
           71,
@@ -55,7 +55,7 @@
           }
         },
         "readback_attempts": 2,
-        "delegated_plan_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f"
+        "delegated_plan_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6"
       },
       "sleeps": [
         0.5
@@ -67,11 +67,11 @@
     {
       "action": "spam",
       "lag": 100,
-      "hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
-      "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+      "hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
+      "write_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6",
       "result": {
         "status": "submitted",
-        "plan_hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+        "plan_hash": "20542195c688835ab8f88f95e495d7bdb66f03903fb6dab90c9b372465329f5d",
         "verified": false,
         "ticket_ids": [
           71,
@@ -87,7 +87,7 @@
         },
         "readback_attempts": 4,
         "warning": "Readback was not fully verified; do not resend.",
-        "delegated_plan_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f"
+        "delegated_plan_hash": "67af76deacae15278b4bd1d650f068777bd24266c610022cd1a5fe1c72a916c6"
       },
       "sleeps": [
         0.5,
@@ -101,11 +101,11 @@
     {
       "action": "delete",
       "lag": 0,
-      "hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
-      "write_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b",
+      "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+      "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
       "result": {
         "status": "submitted",
-        "plan_hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
+        "plan_hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
         "verified": true,
         "ticket_ids": [
           71,
@@ -120,7 +120,7 @@
           }
         },
         "readback_attempts": 1,
-        "delegated_plan_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b"
+        "delegated_plan_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453"
       },
       "sleeps": [],
       "post_reads": 2,
@@ -130,11 +130,11 @@
     {
       "action": "delete",
       "lag": 2,
-      "hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
-      "write_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b",
+      "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+      "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
       "result": {
         "status": "submitted",
-        "plan_hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
+        "plan_hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
         "verified": true,
         "ticket_ids": [
           71,
@@ -149,7 +149,7 @@
           }
         },
         "readback_attempts": 2,
-        "delegated_plan_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b"
+        "delegated_plan_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453"
       },
       "sleeps": [
         0.5
@@ -161,11 +161,11 @@
     {
       "action": "delete",
       "lag": 100,
-      "hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
-      "write_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b",
+      "hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
+      "write_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453",
       "result": {
         "status": "submitted",
-        "plan_hash": "1f43464b78af80908073acdcaf431836f8cbad9569c21db051ade5c550930967",
+        "plan_hash": "1578d7505796d3e5cddde45bd4c57878198dfb9549878e806a1a3c5687f5e2fa",
         "verified": false,
         "ticket_ids": [
           71,
@@ -181,7 +181,7 @@
         },
         "readback_attempts": 4,
         "warning": "Readback was not fully verified; do not resend.",
-        "delegated_plan_hash": "1f02c4fb228dcaceb7ed1c291b83df84837bc18f891746d53e203a3f8d27487b"
+        "delegated_plan_hash": "e7ce5f6bcb5c5744d2da728993376d22b500ab1ebd8379645d3933ed177de453"
       },
       "sleeps": [
         0.5,

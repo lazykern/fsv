@@ -364,11 +364,7 @@ fn setup_auth() -> CmdResult {
     crate::cmd::auth::validate_new_cookies(&cookies)?;
     let store = crate::cmd::auth::choose_store()?;
     let backend = session::save_cookies(&cookies, Some(store))?;
-    let target = if backend == session::Backend::Keychain {
-        "Keychain".to_string()
-    } else {
-        config::display_path(&config::session_file())
-    };
+    let target = crate::cmd::auth::session_target(backend);
     out().print(&format!("saved {} cookies to {target}", cookies.len()));
     session::clear_cache();
     fsv_core::client::reset_client();

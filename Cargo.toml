@@ -20,13 +20,11 @@ fsv-formui = { path = "crates/fsv-formui" }
 fsv-completion = { path = "crates/fsv-completion" }
 fsv-app = { path = "crates/fsv-app" }
 
-serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 indexmap = { version = "2", features = ["serde"] }
 thiserror = "2"
 regex = "1"
 fancy-regex = "0.20"
-once_cell = "1"
 sha2 = "0.10"
 md-5 = "0.10"
 hex = "0.4"
@@ -49,9 +47,7 @@ crossterm = "0.29"
 ratatui = "0.30"
 clap = { version = "4", features = ["derive", "env", "wrap_help", "string"] }
 yaml-rust2 = "0.13"
-csv = "1"
 dirs = "6"
-dunce = "1"
 which = "8"
 mime_guess = "2"
 proptest = "1"

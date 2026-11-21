@@ -212,15 +212,57 @@ pub fn is_text_field(field: &Value) -> bool {
     TEXT_FIELD_TYPES.contains(&ftype.as_str()) || matches!(name.as_str(), "subject" | "description")
 }
 
+/// `filterable_labels`: labels of the schema fields a list filter can take
+/// (choice, people, number and date fields); text fields are never listed.
+pub fn filterable_labels(schema: Option<&Value>, limit: usize) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    let fields = schema
+        .and_then(|s| s.get("fields"))
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten();
+    for f in fields {
+        if !f.is_object() || is_text_field(f) {
+            continue;
+        }
+        let label = ["label", "name"]
+            .iter()
+            .find_map(|k| f.get(*k).filter(|v| fsv_py::truthy(v)))
+            .map(py_str)
+            .unwrap_or_default();
+        let label = pystr::strip(&label).to_string();
+        if label.is_empty() || out.contains(&label) {
+            continue;
+        }
+        if !DATE_FIELDS.contains(&py_or_empty(f.get("name")).as_str())
+            && crate::filter_proof::require_filterable_field(f).is_err()
+        {
+            continue;
+        }
+        out.push(label);
+    }
+    if out.len() > limit {
+        out.truncate(limit);
+        out.push("...".into());
+    }
+    out
+}
+
 /// `text_filter_refusal`.
-pub fn text_filter_refusal(resource: &str, field: &Value) -> QueryError {
+pub fn text_filter_refusal(resource: &str, field: &Value, schema: Option<&Value>) -> QueryError {
     let label = field
         .get("label")
         .filter(|v| fsv_py::truthy(v))
         .or_else(|| field.get("name"))
         .map_or_else(|| "None".to_string(), py_repr);
+    let fields = filterable_labels(schema, 15);
+    let hint = if fields.is_empty() {
+        "; filter on a choice, status, priority, group, agent, requester, ID, number or date field instead".to_string()
+    } else {
+        format!("; filterable fields on this tenant: {}", fields.join(", "))
+    };
     QueryError(format!(
-        "no list filter exists for text field {label}: the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv {resource} search TEXT` for a keyword search"
+        "no list filter exists for text field {label}: the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv {resource} search TEXT` for a keyword search{hint}"
     ))
 }
 
@@ -422,7 +464,7 @@ pub fn typed_condition(
         .filter(|v| fsv_py::truthy(v))
         .map_or_else(|| py_repr_str(&name), py_repr);
     if is_text_field(field) {
-        return Err(text_filter_refusal(resource, field));
+        return Err(text_filter_refusal(resource, field, None));
     }
     if ftype == "custom_number" {
         let Some(operator) = lookup(NUMBER_OPERATORS, op) else {
@@ -770,6 +812,9 @@ pub fn resolve_where(
             date_condition(resource, &name, &op, &raw, explain, &field_text)?,
             (),
         ));
+    }
+    if is_text_field(&field) {
+        return Err(text_filter_refusal(resource, &field, Some(schema)));
     }
     if let Some(typed) = typed_condition(resource, &field, &op, &raw, explain, &field_text)? {
         return Ok((typed, ()));
@@ -1821,5 +1866,132 @@ mod tests {
                 "{expr}"
             );
         }
+    }
+}
+
+/// `tests/test_where_type_text_fail_closed.py`: `type=NAME/ID` comes from the
+/// tenant's form metadata, and text fields fail closed (the web has no list
+/// filter for them).
+#[cfg(test)]
+mod fail_closed_tests {
+    use super::*;
+
+    fn schema(choices: Value) -> Value {
+        json!({"fields": [
+            {"name": "subject", "label": "Subject", "field_type": "default_subject", "default_field": true},
+            {"name": "status", "label": "Status", "field_type": "default_status", "default_field": true,
+             "choices": [{"id": 2, "value": "Open"}]},
+            {"name": "ticket_type", "label": "Type", "field_type": "default_ticket_type", "default_field": true,
+             "choices": choices},
+            {"name": "custom_notes", "label": "Notes", "field_type": "custom_paragraph"},
+        ]})
+    }
+
+    fn acme() -> Value {
+        schema(json!([{"id": 4, "value": "Service Request"}, {"id": 3, "value": "Incident"}]))
+    }
+
+    fn globex() -> Value {
+        schema(
+            json!([{"id": 11, "value": "Service Request"}, {"id": 12, "value": "Change Request"},
+                      {"id": 13, "value": "Outage"}, {"id": 14, "value": "Incident", "deleted": true}]),
+        )
+    }
+
+    fn built(resource: &str, sch: &Value, expr: &str) -> Result<Value, QueryError> {
+        build_query_hash_from_schema(None, resource, sch, &[expr.to_string()])
+            .map(|q| serde_json::from_str(&q.unwrap()).unwrap())
+    }
+
+    #[test]
+    fn type_name_and_id_resolve_from_each_tenants_metadata() {
+        for (sch, id) in [(acme(), "4"), (globex(), "11")] {
+            for expr in ["type=Service Request".to_string(), format!("type={id}")] {
+                assert_eq!(
+                    built("tickets", &sch, &expr).unwrap(),
+                    json!([{"condition": "ticket_type", "operator": "is_in", "type": "default",
+                            "value": ["Service Request"]}]),
+                    "{expr}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn an_id_from_another_tenant_is_not_accepted() {
+        let e = built("tickets", &acme(), "type=11").unwrap_err().0;
+        assert!(e.contains("no unique runtime choice '11'"), "{e}");
+        assert_eq!(
+            built("tickets", &globex(), "type=Outage").unwrap()[0]["value"],
+            json!(["Outage"])
+        );
+    }
+
+    #[test]
+    fn unknown_type_lists_this_tenants_active_choices() {
+        for (sch, expected, absent) in [
+            (acme(), "Service Request, Incident", "Outage"),
+            (
+                globex(),
+                "Service Request, Change Request, Outage",
+                "Incident",
+            ),
+        ] {
+            let msg = built("tickets", &sch, "type=Case").unwrap_err().0;
+            assert!(
+                msg.contains(&format!("this tenant's choices: {expected}")),
+                "{msg}"
+            );
+            assert!(msg.contains("nothing was sent"), "{msg}");
+            assert!(
+                !msg.split("choices:").nth(1).unwrap().contains(absent),
+                "{msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn text_field_refusal_points_at_the_filterable_fields() {
+        for expr in [
+            "Subject=Acme",
+            "subject!=Acme",
+            "Notes=example",
+            "custom_notes=example",
+        ] {
+            let msg = built("tickets", &acme(), expr).unwrap_err().0;
+            assert!(
+                msg.starts_with("no list filter exists for text field"),
+                "{msg}"
+            );
+            assert!(msg.contains("nothing was sent"), "{msg}");
+            assert!(
+                msg.contains("filterable fields on this tenant: Status, Type"),
+                "{msg}"
+            );
+            let tail = msg.split("filterable fields").nth(1).unwrap();
+            assert!(
+                !tail.contains("Subject") && !tail.contains("Notes"),
+                "{msg}"
+            );
+            assert!(msg.contains("`fsv tickets search TEXT`"), "{msg}");
+        }
+    }
+
+    #[test]
+    fn text_refusal_without_a_schema_names_the_field_kinds() {
+        let f = json!({"name": "subject", "label": "Subject"});
+        let msg = text_filter_refusal("changes", &f, None).0;
+        assert!(
+            msg.contains(
+                "choice, status, priority, group, agent, requester, ID, number or date field"
+            ),
+            "{msg}"
+        );
+    }
+
+    #[test]
+    fn changes_use_the_same_fail_closed_builder() {
+        let e = built("changes", &acme(), "Subject=Acme").unwrap_err().0;
+        assert!(e.contains("no list filter exists"), "{e}");
     }
 }

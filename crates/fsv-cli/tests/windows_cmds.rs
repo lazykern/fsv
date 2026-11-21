@@ -411,7 +411,7 @@ fn windows_create_dry_run_send_and_allow_overlap() {
     // Plan hashes from the Python CLI dry-run on the same routes.
     assert_eq!(
         doc["plan_hash"],
-        "edf7333c8c77daa4b935168a015ec06a60599dec24e7164dd7037ad305313187"
+        "08ffdabd269138ce89f3cff20127891436e7b3a16fbd3b036231a2de121d69eb"
     );
     assert_eq!(
         doc["end"],
@@ -437,11 +437,11 @@ fn windows_create_dry_run_send_and_allow_overlap() {
     .json();
     assert_eq!(
         plain["plan_hash"],
-        "a44a756d708a1e2b64260099282adce0827ea3acf569642c42409fd60d604d13"
+        "23956145d9a4c20a454d9326fb28d1a61ba1c2dd8cc0aec074601abae6fa4d82"
     );
     assert_eq!(
         allowed["plan_hash"],
-        "810e45410cc40db30fafc182fddae7615e5512028b19b4adfeeeb9dc503a4a94"
+        "1086b8da2bc7ae7d4f070c0706b82e56412e22456d19ba945ac578cd3df3c41b"
     );
     assert_eq!(
         (&plain["allow_overlap"], &allowed["allow_overlap"]),

@@ -16,6 +16,7 @@ use std::sync::Arc;
 use indexmap::IndexMap;
 use serde_json::{Map, Value as Json, json};
 
+use fsv_api::form_hash::plan_hash;
 use fsv_api::service::{Journal, PlanEvent};
 use fsv_core::error::{Error, Result};
 use fsv_core::journal::PlanStep;
@@ -26,7 +27,7 @@ use fsv_forms::plan::PlanFiles;
 use fsv_forms::rules::ChoiceRestriction;
 use fsv_forms::{
     Choice, Conflict, EvaluatedForm, Field, FormError, FormSpec, FormState, Kind, LookupValue,
-    ModuleOptions, Value, build_change_payload, plan_hash, plan_matches,
+    ModuleOptions, Value, build_change_payload, plan_matches,
 };
 use fsv_py::truthy;
 
@@ -1541,6 +1542,11 @@ pub trait ChangeWriter {
     /// `POST /api/_/changes`; the created change.
     fn post_change_body(&self, body: &Map<String, Json>) -> Result<Json>;
     fn put_change_body(&self, change_id: &Json, body: &Map<String, Json>) -> Result<Json>;
+    /// The PUT of `reviewed_write.execute` (`client._request`): a failure is
+    /// the server's `APIError`, never `create._api_failure`'s `RuntimeError`.
+    fn put_change_raw(&self, change_id: &Json, body: &Map<String, Json>) -> Result<Json> {
+        self.put_change_body(change_id, body)
+    }
     fn attach_files_to_change(
         &self,
         change_id: &Json,
@@ -1631,6 +1637,12 @@ fn form_journal_hit(journal: &dyn Journal, hash: &str) -> Option<String> {
         .map(str::to_string)
 }
 
+/// A `ReviewedWriteError` without a server answer (exit 2 where a command
+/// catches it; `changes update` reads it back with `write_answer`).
+fn rw_error(message: impl Into<String>) -> Error {
+    fsv_core::error::reviewed_write_error(message, None, None)
+}
+
 fn change_row(writer: &dyn ChangeWriter, target: i64) -> Result<Map<String, Json>> {
     let row = writer.get_change(target)?;
     let mut identities: Vec<String> = ["id", "display_id"]
@@ -1643,7 +1655,7 @@ fn change_row(writer: &dyn ChangeWriter, target: i64) -> Result<Map<String, Json
         identities.push(rest.to_string());
     }
     if !identities.iter().any(|value| value == &target.to_string()) {
-        return Err(flow_exit(2, "Exact change readback unavailable"));
+        return Err(rw_error("Exact change readback unavailable"));
     }
     Ok(row)
 }
@@ -1657,8 +1669,7 @@ fn send_form_update(
 ) -> Result<Json> {
     let any_files = source.files.values().any(|v| !v.is_empty());
     if any_files || !source.planning.is_empty() {
-        return Err(flow_exit(
-            2,
+        return Err(rw_error(
             "Combined change property/files/planning sends are disabled; use separate reviewed operations",
         ));
     }
@@ -1670,32 +1681,30 @@ fn send_form_update(
         source.target,
     )?;
     if source.legacy_hash != legacy || source.state_token.is_none() {
-        return Err(flow_exit(
-            2,
+        return Err(rw_error(
             "Change tenant or exact reviewed payload changed; review again",
         ));
     }
     let expected = update_hash(source);
     let domain = fsv_core::config::domain();
     if source.tenant.is_empty() || source.tenant != domain || source.hash != expected {
-        return Err(flow_exit(
-            2,
+        return Err(rw_error(
             "Change tenant or exact reviewed payload changed; review again",
         ));
     }
     if !source.ok() || body.is_empty() || source.record_hash.is_empty() || source.hash.is_empty() {
-        return Err(flow_exit(2, "Complete hash-bound property plan required"));
+        return Err(rw_error("Complete hash-bound property plan required"));
     }
     let target = source
         .target
-        .ok_or_else(|| flow_exit(2, "Complete hash-bound property plan required"))?;
+        .ok_or_else(|| rw_error("Complete hash-bound property plan required"))?;
     if let Some(refusal) = journal_refusal(
         journal,
         "plan:update",
         &source.hash,
         "Change update was sent or outcome unknown; do not replay",
     ) {
-        return Err(flow_exit(2, &refusal));
+        return Err(rw_error(&refusal));
     }
     // Older journal formats (payload-only hash; hash without the record-state
     // token): an unresolved submission still refuses. An answered one does
@@ -1705,12 +1714,9 @@ fn send_form_update(
         ("plan:change_form_update", &source.prior_hash),
     ] {
         if journal_last_event(journal, kind, value).as_deref() == Some("started") {
-            return Err(flow_exit(
-                2,
-                fsv_core::journal::note_refusal(
-                    "Change update was sent or outcome unknown; do not replay",
-                ),
-            ));
+            return Err(rw_error(fsv_core::journal::note_refusal(
+                "Change update was sent or outcome unknown; do not replay",
+            )));
         }
     }
     if let Some(refusal) = journal_refusal(
@@ -1719,7 +1725,7 @@ fn send_form_update(
         &source.hash,
         "write was sent or outcome unknown; inspect target and journal before retry",
     ) {
-        return Err(flow_exit(2, &refusal));
+        return Err(rw_error(&refusal));
     }
     // `rebuild`: the record first, then fresh metadata.
     let current =
@@ -1727,11 +1733,11 @@ fn send_form_update(
             .map_err(Error::value)?
             .unwrap_or_default();
     if current != source.record_hash {
-        return Err(flow_exit(2, "Change record changed since review"));
+        return Err(rw_error("Change record changed since review"));
     }
     let fresh = writer.edit_fingerprint(&source.meta.module_id, &source.meta.record_workspace)?;
     if fresh != source.meta.fingerprint().hash {
-        return Err(flow_exit(2, "Change metadata changed since review"));
+        return Err(rw_error("Change metadata changed since review"));
     }
     let target_json = json!(target);
     journal.record_plan(
@@ -1742,15 +1748,21 @@ fn send_form_update(
         None,
     );
     if form_journal_hit(journal, &source.hash).as_deref() != Some("started") {
-        return Err(flow_exit(
-            2,
+        return Err(rw_error(
             "could not persist ambiguity journal; no write attempted",
         ));
     }
-    let response = match writer.put_change_body(&target_json, &body) {
+    let response = match writer.put_change_raw(&target_json, &body) {
         Ok(row) => row,
         Err(e) => {
-            if let Some(status) = fsv_api::service::definite_rejection(&e) {
+            let Some(api) = e.as_api() else {
+                return Err(rw_error(format!(
+                    "write outcome unknown ({}); inspect target and journal before retry",
+                    fsv_core::error::exception_name(&e)
+                )));
+            };
+            let (detail, reason) = fsv_core::error::http_detail(api);
+            if fsv_api::service::definite_rejection(&e).is_some() {
                 journal.record_plan(
                     "failed",
                     &source.hash,
@@ -1758,14 +1770,23 @@ fn send_form_update(
                     Some(&target_json),
                     None,
                 );
-                return Err(flow_exit(
-                    2,
-                    format!("write rejected (HTTP {status}); no retry"),
+                let tail = if reason.is_empty() {
+                    String::new()
+                } else {
+                    format!(": {reason}")
+                };
+                return Err(fsv_core::error::reviewed_write_error(
+                    format!("write rejected (HTTP {}){tail}; no retry", api.status),
+                    Some(api.status),
+                    Some(reason),
                 ));
             }
-            return Err(flow_exit(
-                2,
-                "write outcome unknown; inspect target and journal before retry",
+            return Err(fsv_core::error::reviewed_write_error(
+                format!(
+                    "write outcome unknown ({detail}); inspect target and journal before retry"
+                ),
+                Some(api.status),
+                Some(reason),
             ));
         }
     };
