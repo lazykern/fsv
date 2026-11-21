@@ -129,11 +129,6 @@ if py_only:
     print("--- requests", *py["requests"], sep="\n")
     sys.exit(0)
 py, rs = run("py"), run("rs")
-accept = json.loads(os.environ.get("CMP_ACCEPT_STDERR", "null"))
-if accept and raw["py"]["stderr"] == accept["py"] and raw["rs"]["stderr"] == accept["rs"]:
-    print("ACCEPTED: Python's stderr is a known upstream defect; Rust's text is asserted")
-    raw["py"]["stderr"] = raw["rs"]["stderr"]
-    py["stderr"] = rs["stderr"]
 py_raw = raw["py"]
 same = True
 for k in ("exit", "stdout", "stderr", "requests", "files"):

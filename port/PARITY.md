@@ -256,8 +256,9 @@ those stay identical.
     `reopen` and `tickets assign`/`pick-up` with `--yes` and a hash that
     names no earlier send: Python's `raise ReviewedWriteError(stale if yes
     else None or "review with ...")` parses as `(stale if yes) else
-    ("review with ...")`, so the message is the string `None` (exit 2). Rust
-    prints the generic review hint (exit 2).
+    ("review with ...")`, so the message is the string `None` (exit 2).
+    Rust matches (1:1 goal; not a crash): `None` on stderr, exit 2. Without
+    `--yes` both print the review hint.
   - The refusal flag behind "every journal replay refusal exits 2" is a
     thread-local in `fsv_core::journal` (Python: a module global). Only the
     shared command exit (`util::report`) reads it, and only for `Exit` codes
@@ -623,10 +624,8 @@ Python's.
   after checking that only hex values and up-a's write-error texts differed.
 - `upstream_cmds.rs` is regenerated from Python 84ffb0f (`emit_upstream.py`;
   `cmp.py` now runs both sides with `FSV_QUIET=1`, `FSV_ALLOW_TENANT` and
-  masks the config dir as `<CONFIG_DIR>`). Eight `--yes` refusal cases carry
-  `accept_stderr`: Python main prints the literal `None` there (operator
-  precedence in `stale_plan_refusal(...) if yes else None or "review ..."`),
-  Rust keeps the intended "review with --dry-run" text.
+  masks the config dir as `<CONFIG_DIR>`). The eight `--yes` refusal cases that print Python's literal `None` are asserted
+  as `None` (matched, see Up-B above).
 - `function_map.json` / `module_map.json` are stamped 84ffb0f; the six Python
   modules added since 31a9103 are listed, their 59 name matches stay
   `matched` (not reviewed line by line; `UNREVIEWED_CEILING` is 59).

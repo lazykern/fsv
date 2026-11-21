@@ -1,9 +1,9 @@
 [
  {"name": "tickets_assign_unassign_dry_run", "fixture": "ticket_assign",
   "args": ["tickets", "assign", "INC-123", "--unassign", "--dry-run", "--json"]},
- {"name": "tickets_assign_unassign_needs_expect_plan", "accept_stderr": {"py": "None\n", "rs": "review with --dry-run, then pass --yes and the full --expect-plan hash\n"}, "fixture": "ticket_assign",
+ {"name": "tickets_assign_unassign_needs_expect_plan", "fixture": "ticket_assign",
   "args": ["tickets", "assign", "INC-123", "--unassign", "--yes"]},
- {"name": "tickets_assign_unassign_short_hash_refused", "accept_stderr": {"py": "None\n", "rs": "review with --dry-run, then pass --yes and the full --expect-plan hash\n"}, "fixture": "ticket_assign",
+ {"name": "tickets_assign_unassign_short_hash_refused", "fixture": "ticket_assign",
   "args": ["tickets", "assign", "INC-123", "--unassign", "--yes", "--expect-plan", "0000000000000000"]},
  {"name": "tickets_assign_unassign_send", "fixture": "ticket_assign",
   "hash_from": ["tickets", "assign", "INC-123", "--unassign", "--dry-run"],

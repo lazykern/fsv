@@ -8188,7 +8188,7 @@ fn tickets_resolve_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+        r#"None
 "#
     );
 }
@@ -8213,7 +8213,7 @@ fn tickets_resolve_wrong_hash() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+        r#"None
 "#
     );
 }
@@ -9161,7 +9161,7 @@ fn tickets_assign_unassign_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+        r#"None
 "#
     );
 }
@@ -9185,7 +9185,7 @@ fn tickets_assign_unassign_short_hash_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+        r#"None
 "#
     );
 }
@@ -10451,7 +10451,7 @@ fn problems_link_incident_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+        r#"None
 "#
     );
 }
@@ -10750,7 +10750,7 @@ fn problems_status_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+        r#"None
 "#
     );
 }
@@ -11149,7 +11149,7 @@ fn problems_update_planned_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+        r#"None
 "#
     );
 }
@@ -11582,7 +11582,7 @@ fn problems_status_needs_expect_plan_rules_unavailable() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+        r#"None
 "#
     );
 }

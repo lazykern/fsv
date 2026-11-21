@@ -66,8 +66,6 @@ def run(case_file, emit_to, only=()):
         cmd = [sys.executable, os.path.join(GOLDEN, "cmp.py"), os.path.join(ROUTES, c["fixture"] + ".json"),
                *opts, "--emit", c["name"], "--", *args]
         env = {**os.environ, "EMIT_TO": emit_to}
-        if "accept_stderr" in c:
-            env["CMP_ACCEPT_STDERR"] = json.dumps(c["accept_stderr"])
         p = subprocess.run(cmd, env=env, capture_output=True, text=True)
         first = p.stdout.splitlines()[0] if p.stdout else p.stderr
         print(f"{c['name']}: {first}")

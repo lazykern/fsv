@@ -63,12 +63,14 @@ pub(crate) fn require_review_stale(
     default: &str,
 ) -> Result<()> {
     if !yes || expect != Some(hash) {
-        let stale = if yes {
-            DiskJournal.stale_plan_refusal(expect, actions)
+        let message = if yes {
+            DiskJournal
+                .stale_plan_refusal(expect, actions)
+                .unwrap_or_else(|| "None".into())
         } else {
-            None
+            default.into()
         };
-        return Err(Error::exit(2, stale.unwrap_or_else(|| default.into())));
+        return Err(Error::exit(2, message));
     }
     Ok(())
 }
