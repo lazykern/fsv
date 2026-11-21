@@ -53,6 +53,10 @@ fn respond(route: &Value) -> Response {
             resp = resp.with_header(k, v.as_str().unwrap_or_default());
         }
     }
+    if resp.header("content-length").is_none() {
+        let length = resp.body.len().to_string();
+        resp = resp.with_header("content-length", &length);
+    }
     resp
 }
 
