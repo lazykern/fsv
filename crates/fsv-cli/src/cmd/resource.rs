@@ -187,7 +187,8 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
             err().print(&escape(&format!("note: {} {}", x.field, x.value)));
         }
     }
-    let unfiltered = a.filter_name.as_deref().is_none_or(str::is_empty) && where_.is_empty() && raw.is_none();
+    let unfiltered =
+        a.filter_name.as_deref().is_none_or(str::is_empty) && where_.is_empty() && raw.is_none();
     let view = if a.no_defaults && unfiltered {
         // The list endpoint applies the server's default view (for example
         // "New & My Open") when no filter is sent, so dropping fsv's config

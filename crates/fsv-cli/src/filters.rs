@@ -328,6 +328,11 @@ pub fn resolve_where(
     if PSEUDO_DATES.contains(&name.as_str()) {
         return date_condition(&name, &op, &raw, explain, &field_text, res.name);
     }
+    if fsv_api::is_text_field(&f) {
+        return Err(usage(
+            &fsv_api::text_filter_refusal(res.name, &f, Some(sch)).0,
+        ));
+    }
     if let Some(typed) = fsv_api::typed_condition(res.name, &f, &op, &raw, explain, &field_text)
         .map_err(|e| usage(&e.0))?
     {
@@ -648,8 +653,7 @@ mod tests {
     #[test]
     fn load_query_hash_always_unquotes() {
         assert_eq!(
-            load_query_hash(r#"[{"condition":"v","operator":"is","value":"50%25 off"}]"#)
-                .unwrap(),
+            load_query_hash(r#"[{"condition":"v","operator":"is","value":"50%25 off"}]"#).unwrap(),
             vec![json!({"condition": "v", "operator": "is", "value": "50% off"})]
         );
     }

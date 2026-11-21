@@ -421,7 +421,7 @@ fn where_text_field_refused() {
     assert_eq!(
         r.err,
         r#"error: no list filter exists for text field 'Note': the web's filter panels and builders offer no subject/description/text condition, so nothing was sent; use `fsv tickets search TEXT` for a keyword 
-search
+search; filterable fields on this tenant: Status, Priority, Requester, Agent, Group, Department, Environment, Count, Due Date
 "#
     );
     assert!(

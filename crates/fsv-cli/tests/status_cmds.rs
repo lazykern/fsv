@@ -104,7 +104,11 @@ fn ticket_update_expect_plan_still_requires_reviewed() {
 fn problem_update_failure_names_status_and_message() {
     let html = "<html><head><style>p{}</style></head><body><h1>Service Unavailable</h1><p>Try later</p></body></html>";
     let cases = [
-        (500, json!({"description": "Synthetic outage"}), "Synthetic outage"),
+        (
+            500,
+            json!({"description": "Synthetic outage"}),
+            "Synthetic outage",
+        ),
         (400, Value::String(html.into()), "Service Unavailable"),
     ];
     for (status, body, expect) in cases {
@@ -128,7 +132,10 @@ fn problem_update_failure_names_status_and_message() {
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" ");
-        assert!(flat.contains(&format!("HTTP {status}")) && flat.contains(expect), "{flat}");
+        assert!(
+            flat.contains(&format!("HTTP {status}")) && flat.contains(expect),
+            "{flat}"
+        );
         assert!(!flat.contains("<h1>"), "{flat}");
     }
 }

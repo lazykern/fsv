@@ -62,7 +62,8 @@ fn without_all_view_the_default_view_is_named() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(list_filters(&r, "tickets"), ["new_and_my_open"]);
     assert!(
-        r.err.contains("Open in my groups (new_and_my_open) still filters this list"),
+        r.err
+            .contains("Open in my groups (new_and_my_open) still filters this list"),
         "{}",
         r.err
     );

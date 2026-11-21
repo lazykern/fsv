@@ -1695,13 +1695,28 @@ mod tests {
             json!({"errors": [{"field": "from_email", "message": "<b>is invalid</b>"}]}),
         );
         let text = rejection_message(&e, &json!({"from_email": "someone@example.org"}));
-        assert!(text.contains("HTTP 400") && text.contains("from_email: is invalid"), "{text}");
+        assert!(
+            text.contains("HTTP 400") && text.contains("from_email: is invalid"),
+            "{text}"
+        );
         assert!(!text.contains("<b>"), "{text}");
-        assert!(text.contains("sender must be a configured support mailbox"), "{text}");
+        assert!(
+            text.contains("sender must be a configured support mailbox"),
+            "{text}"
+        );
         assert!(text.contains("'someone@example.org'"), "{text}");
-        assert!(text.ends_with("; nothing was delivered, no retry"), "{text}");
-        let text = rejection_message(&fsv_core::ApiError::new(422, Value::Null), &json!({"body": "x"}));
-        assert!(text.contains("HTTP 422") && text.contains("empty response body"), "{text}");
+        assert!(
+            text.ends_with("; nothing was delivered, no retry"),
+            "{text}"
+        );
+        let text = rejection_message(
+            &fsv_core::ApiError::new(422, Value::Null),
+            &json!({"body": "x"}),
+        );
+        assert!(
+            text.contains("HTTP 422") && text.contains("empty response body"),
+            "{text}"
+        );
         assert!(!text.contains("sender"), "{text}");
     }
 

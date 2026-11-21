@@ -37,7 +37,14 @@ fn routes(put: Value) -> Vec<Value> {
 
 fn run(put: Value, json_flag: bool) -> common::Run {
     let env = Env::new(routes(put));
-    let mut args = vec!["changes", "update", "12", "--set", "Subject=Patched", "--yes"];
+    let mut args = vec![
+        "changes",
+        "update",
+        "12",
+        "--set",
+        "Subject=Patched",
+        "--yes",
+    ];
     if json_flag {
         args.push("--json");
     }
@@ -54,13 +61,19 @@ fn changes_update_failure_prints_status_and_body() {
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" ");
-        assert!(flat.contains("HTTP 503") && flat.contains("Service Unavailable"), "{flat}");
+        assert!(
+            flat.contains("HTTP 503") && flat.contains("Service Unavailable"),
+            "{flat}"
+        );
         assert!(!flat.contains("<h1>"), "{flat}");
         if json_flag {
             let doc = r.json();
             assert_eq!(doc["verified"], json!(false));
             assert_eq!(doc["http_status"], json!(503));
-            assert_eq!(doc["server_message"], json!("Service Unavailable Try later"));
+            assert_eq!(
+                doc["server_message"],
+                json!("Service Unavailable Try later")
+            );
             assert_eq!(doc["plan_hash"].as_str().unwrap().len(), 64);
             assert_eq!(doc["updated"], Value::Null);
         }
@@ -77,6 +90,9 @@ fn changes_update_rejection_names_the_field() {
         .split_whitespace()
         .collect::<Vec<_>>()
         .join(" ");
-    assert!(flat.contains("HTTP 422") && flat.contains("subject: Synthetic too long"), "{flat}");
+    assert!(
+        flat.contains("HTTP 422") && flat.contains("subject: Synthetic too long"),
+        "{flat}"
+    );
     let _ = DOMAIN;
 }
