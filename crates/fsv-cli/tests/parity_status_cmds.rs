@@ -93,7 +93,7 @@ fn property_readback_uses_python_equality() {
         "High",
         "--yes",
         "--expect-plan",
-        "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
+        "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
     ]);
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(r.json()["fields"], json!({"priority": "matched"}));

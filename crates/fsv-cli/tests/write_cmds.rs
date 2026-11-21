@@ -8,14 +8,15 @@ use common::run_fixture;
 fn update_bad_status() {
     let r = run_fixture(
         "ticket_update",
-        &["tickets", "update", "5", "--status", "bogus"],
+        &["tickets", "update", "--no-review", "5", "--status", "bogus"],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: unknown status: 'bogus'; choices: Open, Resolved, Closed
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: unknown status: 'bogus'; choices: Open, Resolved, Closed
 "#
     );
 }
@@ -27,6 +28,7 @@ fn update_set_fields_dry_run() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "5",
             "--set",
             "env=uat",
@@ -58,14 +60,26 @@ fn update_set_fields_dry_run() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
 }
 
 #[test]
 fn update_ambiguous_group() {
     let r = run_fixture(
         "ticket_update",
-        &["tickets", "update", "5", "--group", "ops", "--dry-run"],
+        &[
+            "tickets",
+            "update",
+            "--no-review",
+            "5",
+            "--group",
+            "ops",
+            "--dry-run",
+        ],
         None,
     );
     assert_eq!(r.code, 0, "{}", r.err);
@@ -81,14 +95,26 @@ fn update_ambiguous_group() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
 }
 
 #[test]
 fn update_status_yes() {
     let r = run_fixture(
         "ticket_update",
-        &["tickets", "update", "5", "--status", "4", "--yes"],
+        &[
+            "tickets",
+            "update",
+            "--no-review",
+            "5",
+            "--status",
+            "4",
+            "--yes",
+        ],
         None,
     );
     assert_eq!(r.code, 0, "{}", r.err);
@@ -97,7 +123,11 @@ fn update_status_yes() {
         r#"updated SR-5
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/5"]);
 }
 
@@ -108,6 +138,7 @@ fn update_priority_json() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "5",
             "--priority",
             "low",
@@ -126,7 +157,11 @@ fn update_priority_json() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/5"]);
 }
 
@@ -134,26 +169,32 @@ fn update_priority_json() {
 fn update_unknown_set_field() {
     let r = run_fixture(
         "ticket_update",
-        &["tickets", "update", "5", "--set", "nope=1"],
+        &["tickets", "update", "--no-review", "5", "--set", "nope=1"],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: field not found: 'nope'; run `fsv changes fields`
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: field not found: 'nope'; run `fsv changes fields`
 "#
     );
 }
 
 #[test]
 fn update_nothing() {
-    let r = run_fixture("ticket_update", &["tickets", "update", "5"], None);
+    let r = run_fixture(
+        "ticket_update",
+        &["tickets", "update", "--no-review", "5"],
+        None,
+    );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)
 "#
     );
 }

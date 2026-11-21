@@ -15383,7 +15383,7 @@
     {
      "path": "fsv tickets update",
      "help": "Update ticket fields.",
-     "epilog": "[bold]Examples:[/bold]  fsv tickets update INC-1234 --status 'In Progress'  |  fsv tickets update INC-1234 --priority High --dry-run  |  fsv tickets update INC-1234 --status Closed --yes",
+     "epilog": "[bold]Note:[/bold] reviewed by default: --dry-run prints the plan_hash and record_state; send with --yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is deprecated (body-only update, removed in the next release).  [bold]Examples:[/bold]  fsv tickets update INC-1234 --priority High --dry-run  |  fsv tickets update INC-1234 --priority High --yes --expect-plan FULL_HASH",
      "hidden": false,
      "group": false,
      "params": [
@@ -15587,16 +15587,18 @@
        "opts": [
         "--reviewed"
        ],
-       "secondary_opts": [],
+       "secondary_opts": [
+        "--no-review"
+       ],
        "type": "boolean",
        "choices": null,
        "required": false,
        "multiple": false,
        "nargs": 1,
        "is_flag": true,
-       "default": false,
+       "default": true,
        "hidden": false,
-       "help": "tickets only: evaluate --set and core flags as a hash-bound property plan",
+       "help": "tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release",
        "metavar": null,
        "envvar": null
       },
@@ -15615,7 +15617,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
+       "help": "tickets: acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       },
@@ -24527,7 +24529,7 @@
     {
      "path": "fsv problems update",
      "help": "Update problem fields.",
-     "epilog": "[bold]Examples:[/bold]  fsv problems update PRB-1234 --status 'In Progress'  |  fsv problems update PRB-1234 --priority High --dry-run  |  fsv problems update PRB-1234 --status Closed --yes",
+     "epilog": "[bold]Examples:[/bold]  fsv problems update PRB-1234 --priority High --dry-run  |  fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH",
      "hidden": false,
      "group": false,
      "params": [
@@ -24731,16 +24733,18 @@
        "opts": [
         "--reviewed"
        ],
-       "secondary_opts": [],
+       "secondary_opts": [
+        "--no-review"
+       ],
        "type": "boolean",
        "choices": null,
        "required": false,
        "multiple": false,
        "nargs": 1,
        "is_flag": true,
-       "default": false,
+       "default": true,
        "hidden": false,
-       "help": "tickets only: evaluate --set and core flags as a hash-bound property plan",
+       "help": "tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release",
        "metavar": null,
        "envvar": null
       },
@@ -24759,7 +24763,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
+       "help": "tickets: acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       },

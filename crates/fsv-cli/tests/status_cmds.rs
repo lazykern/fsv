@@ -78,23 +78,3 @@ fn problem_update_dry_run_prints_a_plan_hash_bound_on_send() {
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
     assert_eq!(r.writes()[0].2, json!({"priority": 3}));
 }
-
-#[test]
-fn ticket_update_expect_plan_still_requires_reviewed() {
-    let env = Env::new(vec![]);
-    let r = env.run(&[
-        "tickets",
-        "update",
-        "5",
-        "--priority",
-        "High",
-        "--expect-plan",
-        "abc",
-    ]);
-    assert_eq!(r.code, 2);
-    assert!(
-        r.err.contains("--expect-plan requires --reviewed"),
-        "{}",
-        r.err
-    );
-}

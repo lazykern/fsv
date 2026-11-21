@@ -3248,12 +3248,15 @@ pub struct ResUpdateArgs {
     )]
     pub planned_effort: Option<String>,
     #[arg(
-        help = "tickets only: evaluate --set and core flags as a hash-bound property plan",
-        long = "reviewed"
+        help = "tickets: --reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound property plan; --no-review is deprecated: the old body-only update, kept for one release",
+        long = "reviewed",
+        overrides_with = "no_review"
     )]
     pub reviewed: bool,
+    #[arg(long = "no-review", overrides_with = "reviewed")]
+    pub no_review: bool,
     #[arg(
-        help = "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
+        help = "tickets: acknowledge blocking rule messages (bound to the review hash)",
         long = "ack"
     )]
     pub ack: bool,
@@ -5676,7 +5679,7 @@ pub fn build() -> Command {
             .subcommand(TicketsCreateArgs::augment_args(Command::new("create") .about("Create an incident using the ticket form and business rules.").arg(global_verbose())))
             .subcommand(TicketsApprovalsArgs::augment_args(Command::new("approvals") .about("List ticket approvals for approval-capable tickets; some INC tickets may return 404.") .after_help("Examples: fsv tickets approvals SR-1234 | fsv tickets approvals SR-1234 --json").arg(global_verbose())))
             .subcommand(TicketsAssociationsArgs::augment_args(Command::new("associations") .about("List ticket associations.") .after_help("Examples: fsv tickets associations INC-1234 | fsv tickets associations INC-1234 --json").arg(global_verbose())))
-            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update ticket fields.") .after_help("Examples: fsv tickets update INC-1234 --status 'In Progress' | fsv tickets update INC-1234 --priority High --dry-run | fsv tickets update INC-1234 --status Closed --yes").arg(global_verbose())))
+            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update ticket fields.") .after_help("Note: reviewed by default: --dry-run prints the plan_hash and record_state; send with --yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is deprecated (body-only update, removed in the next release). Examples: fsv tickets update INC-1234 --priority High --dry-run | fsv tickets update INC-1234 --priority High --yes --expect-plan FULL_HASH").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download ticket attachments.") .after_help("Examples: fsv tickets download INC-1234 | fsv tickets download INC-1234 --all --dir ./evidence").arg(global_verbose())))
             .subcommand(TicketsConversationsArgs::augment_args(Command::new("conversations") .about("List ticket conversations/replies.") .after_help("Examples: fsv tickets conversations INC-1234 | fsv tickets conversations INC-1234 --json").arg(global_verbose())))
             .subcommand(TicketsReplyArgs::augment_args(Command::new("reply") .about("Add a ticket reply.") .after_help("Note: Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md). Examples: fsv tickets reply INC-1234 'Working on this'").arg(global_verbose())))
@@ -5756,7 +5759,7 @@ pub fn build() -> Command {
             .subcommand(ResViewsArgs::augment_args(Command::new("views") .about("List saved view names.") .after_help("Examples: fsv problems views | fsv problems ls --view all").arg(global_verbose())))
             .subcommand(ResSearchArgs::augment_args(Command::new("search") .about("Full-text keyword search problems.") .after_help("Examples: fsv problems search 'AcmeApp' | fsv problems search 'AcmeApp' --npages 3 | fsv problems search 'AcmeApp' --all | fsv problems search 'data migration' --json").arg(global_verbose())))
             .subcommand(ResUrlArgs::augment_args(Command::new("url") .about("Print problem browser URL.") .after_help("Examples: fsv problems url PRB-1234").arg(global_verbose())))
-            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Examples: fsv problems update PRB-1234 --status 'In Progress' | fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --status Closed --yes").arg(global_verbose())))
+            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Examples: fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download problem attachments.") .after_help("Examples: fsv problems download PRB-1234 | fsv problems download PRB-1234 --all --dir ./evidence").arg(global_verbose())).mut_arg("threads", |a| a.help("download attachments from notes").long("notes").alias(None).short(None).short_alias(None)))
             .subcommand(ResNotesArgs::augment_args(Command::new("notes") .about("List problem notes.") .after_help("Examples: fsv problems notes PRB-1234 | fsv problems notes PRB-1234 --json").arg(global_verbose())))
             .subcommand(ResAddNoteArgs::augment_args(Command::new("add-note") .about("Add problem note.") .after_help("Note: Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md). Examples: fsv problems add-note PRB-1234 'Checked deployment evidence' (problem notes have no visibility key: the tenant default applies)").arg(global_verbose())))
@@ -12113,7 +12116,7 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
             OptionHint {
                 id: "reviewed",
-                flags: &["--reviewed"],
+                flags: &["--reviewed", "--no-review"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -14956,7 +14959,7 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
             OptionHint {
                 id: "reviewed",
-                flags: &["--reviewed"],
+                flags: &["--reviewed", "--no-review"],
                 completer: None,
                 resource: None,
                 value_flag: false,

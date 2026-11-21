@@ -83,6 +83,10 @@ pub struct PropertyPlan {
     pub body_json: String,
     pub before_json: String,
     pub record_hash: String,
+    /// Record-state token (`journal.repeat_token`): the server `updated_at`
+    /// at review and the verified sends of this action on this ticket, so an
+    /// A/B/A/B alternation plans fresh hashes. Empty only for pre-token plans.
+    pub state_json: String,
 }
 
 impl PropertyPlan {
@@ -94,14 +98,36 @@ impl PropertyPlan {
         serde_json::from_str(&self.before_json).unwrap_or(Value::Null)
     }
 
+    /// The stored record-state token (`json.loads(state_json)`), when bound.
+    pub fn state(&self) -> Option<Value> {
+        (!self.state_json.is_empty())
+            .then(|| serde_json::from_str(&self.state_json).ok())
+            .flatten()
+    }
+
+    /// The same plan without its record-state token (journals written before
+    /// the token was bound): an unresolved send still refuses. Empty when no
+    /// token is bound.
+    pub fn prior_hash(&self) -> String {
+        match self.state() {
+            Some(_) => self.hash_with("", &[], None),
+            None => String::new(),
+        }
+    }
+
     /// The tag/date hash (no answers, so no `metadata_hash`).
     pub fn hash(&self) -> String {
-        self.hash_with("", &[])
+        self.hash_with("", &[], self.state().as_ref())
     }
 
     /// `build_plan` has already checked the baseline snapshots, so a
     /// hand-built plan whose baseline `urlsplit` rejects hashes it unprojected.
-    fn hash_with(&self, metadata_hash: &str, acknowledged: &[String]) -> String {
+    fn hash_with(
+        &self,
+        metadata_hash: &str,
+        acknowledged: &[String],
+        state: Option<&Value>,
+    ) -> String {
         let before = self.before();
         let before = stable_snapshot(&before).unwrap_or(before);
         let mut intent = json!({"tenant": self.tenant, "ticket_id": self.ticket_id, "payload": self.payload(),
@@ -113,11 +139,18 @@ impl PropertyPlan {
         if !acknowledged.is_empty() {
             intent["acknowledged"] = json!(acknowledged);
         }
+        if let Some(state) = state {
+            intent["state"] = state.clone();
+        }
         plan_hash(&intent)
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        self.review_with(self.hash())
+        let mut out = self.review_with(self.hash());
+        if let Some(state) = self.state() {
+            out.insert("record_state".into(), state);
+        }
+        out
     }
 
     fn review_with(&self, hash: String) -> Map<String, Value> {
@@ -174,10 +207,30 @@ impl AnsweredPropertyPlan {
         serde_json::from_str(&self.acknowledged_json).unwrap_or_default()
     }
 
+    /// The stored record-state token (`json.loads(state_json)`), when bound.
+    pub fn state(&self) -> Option<Value> {
+        self.plan.state()
+    }
+
     /// `metadata_hash` joins the intent only when answers were given.
     pub fn hash(&self) -> String {
-        self.plan
-            .hash_with(&self.metadata_hash, &self.acknowledged())
+        self.plan.hash_with(
+            &self.metadata_hash,
+            &self.acknowledged(),
+            self.state().as_ref(),
+        )
+    }
+
+    /// The same plan without its record-state token (journals written before
+    /// the token was bound): an unresolved send still refuses. Empty when no
+    /// token is bound.
+    pub fn prior_hash(&self) -> String {
+        match self.state() {
+            Some(_) => self
+                .plan
+                .hash_with(&self.metadata_hash, &self.acknowledged(), None),
+            None => String::new(),
+        }
     }
 
     pub fn review(&self) -> Map<String, Value> {
@@ -185,6 +238,9 @@ impl AnsweredPropertyPlan {
         let acknowledged = self.acknowledged();
         if !acknowledged.is_empty() {
             out.insert("acknowledged_rule_messages".into(), json!(acknowledged));
+        }
+        if let Some(state) = self.state() {
+            out.insert("record_state".into(), state);
         }
         let notes: Vec<String> = serde_json::from_str(&self.form_notes_json).unwrap_or_default();
         if !notes.is_empty() {
@@ -226,6 +282,7 @@ fn evaluate(
     answers: &Map<String, Value>,
     resolver: Option<Arc<dyn LookupResolver>>,
     ack: bool,
+    fresh: bool,
 ) -> Result<(String, String, Vec<String>, Vec<String>)> {
     let other = |e: fsv_forms::FormError| match e {
         fsv_forms::FormError::UnknownField { name, suggestions } => {
@@ -244,7 +301,7 @@ fn evaluate(
     };
     let rec_ws = crate::formmeta::record_workspace_in(row);
     let meta =
-        crate::formmeta::load_meta_in(c, store, "ticket", "edit", true, &json!(cid), &rec_ws)?;
+        crate::formmeta::load_meta_in(c, store, "ticket", "edit", fresh, &json!(cid), &rec_ws)?;
     if meta
         .rules
         .get(RULES_UNAVAILABLE_KEY)
@@ -472,6 +529,79 @@ pub fn build_plan_ack(
     resolver: Option<Arc<dyn LookupResolver>>,
     ack: bool,
 ) -> Result<AnsweredPropertyPlan> {
+    build_plan_in(
+        c,
+        store,
+        &crate::service::DiskJournal,
+        ticket_id,
+        args,
+        resolver,
+        ack,
+    )
+}
+
+/// [`build_plan_ack`] reading the record-state token (`journal.repeat_token`)
+/// from `journal`. The edit form's fields and rules come from the form cache
+/// (15-minute TTL): a review inside the TTL sends no metadata GET. A refusal a
+/// newer schema could lift (unknown field, value not offered, required field)
+/// refetches the metadata ONCE and reviews again.
+pub fn build_plan_in(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+    ticket_id: &str,
+    args: &PropertyArgs<'_>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    ack: bool,
+) -> Result<AnsweredPropertyPlan> {
+    let cached = store.cached("ticket-fields").is_some();
+    match build_plan_core(
+        c,
+        store,
+        journal,
+        ticket_id,
+        args,
+        resolver.clone(),
+        ack,
+        false,
+    ) {
+        Err(Error::Exit { code: 2, message })
+            if cached && crate::schema::looks_like_schema_refusal(&message) =>
+        {
+            eprintln!("note: {message}; refetching the ticket form once and validating again");
+        }
+        other => return other,
+    }
+    build_plan_core(c, store, journal, ticket_id, args, resolver, ack, true)
+}
+
+/// `build_plan(..., fresh=True)`: the send's own rebuild always refetches the
+/// form metadata, so a form edited since the review changes the hash and is
+/// refused.
+pub fn build_plan_fresh(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+    ticket_id: &str,
+    args: &PropertyArgs<'_>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    ack: bool,
+) -> Result<AnsweredPropertyPlan> {
+    build_plan_core(c, store, journal, ticket_id, args, resolver, ack, true)
+}
+
+/// `_build_plan`.
+#[allow(clippy::too_many_arguments)]
+fn build_plan_core(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+    ticket_id: &str,
+    args: &PropertyArgs<'_>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    ack: bool,
+    fresh: bool,
+) -> Result<AnsweredPropertyPlan> {
     let cid = parse_id(ticket_id, &TICKETS)?;
     if cid <= 0 {
         return Err(Error::value("ticket ID must be positive"));
@@ -513,7 +643,7 @@ pub fn build_plan_ack(
     let row = record(c, cid)?;
     missing_keys(&body, &row)?;
     let (token, metadata_hash, acknowledged, form_notes) =
-        match evaluate(c, store, cid, &row, &mut body, answers, resolver, ack) {
+        match evaluate(c, store, cid, &row, &mut body, answers, resolver, ack, fresh) {
             Ok(t) => t,
             Err(e @ Error::Exit { .. }) => return Err(e),
             Err(_) => {
@@ -524,6 +654,7 @@ pub fn build_plan_ack(
         };
     let before = values_of(&body, &row);
     body.insert("br_validation_excludes".into(), json!(token));
+    let state = journal.repeat_token(&[ACTION], &json!(cid), Some(&Value::Object(row.clone())));
     Ok(AnsweredPropertyPlan {
         plan: PropertyPlan {
             ticket_id: cid,
@@ -531,6 +662,7 @@ pub fn build_plan_ack(
             body_json: dumps_sorted(&Value::Object(body)),
             before_json: dumps_sorted(&Value::Object(before)),
             record_hash: snapshot_hash(&Value::Object(row))?,
+            state_json: dumps_sorted(&Value::Object(state)),
         },
         answers_json: dumps_sorted(&Value::Object(answers.clone())),
         metadata_hash,
@@ -580,9 +712,15 @@ pub fn send_with(
         last_event(journal, ACTION, &hash).as_deref(),
         Some("started" | "done")
     ) {
-        return Err(refused(
+        return Err(refused(fsv_core::journal::note_refusal(
             "update was sent or its outcome is unknown; inspect the ticket and journal before retry",
-        ));
+        )));
+    }
+    let prior = answered.prior_hash();
+    if !prior.is_empty() && last_event(journal, ACTION, &prior).as_deref() == Some("started") {
+        return Err(refused(fsv_core::journal::note_refusal(
+            "update outcome unknown; inspect the ticket and journal before retry",
+        )));
     }
     let payload = plan.payload();
     let tags = strings(payload.get("tags"));
@@ -594,7 +732,15 @@ pub fn send_with(
         answers: Some(&answers),
     };
     let ack = !answered.acknowledged().is_empty();
-    let fresh = build_plan_ack(c, store, &plan.ticket_id.to_string(), &args, resolver, ack)?;
+    let fresh = build_plan_fresh(
+        c,
+        store,
+        journal,
+        &plan.ticket_id.to_string(),
+        &args,
+        resolver,
+        ack,
+    )?;
     if fresh.hash() != hash {
         return Err(refused("ticket or form changed since review; review again"));
     }
@@ -658,6 +804,9 @@ pub fn send_with(
         result.insert("fields".into(), Value::Object(fields));
         result.insert("verified".into(), json!(verified));
     }
+    if result["verified"] == Value::Bool(true) {
+        journal.record_verified(&hash, ACTION, Some(&target));
+    }
     if result["verified"] != Value::Bool(true) {
         result.insert(
             "warning".into(),
@@ -677,7 +826,7 @@ mod tests {
     use crate::service::testing::*;
 
     const TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
-    const HASH: &str = "8d4a9b0683a1e5313139a37cb19d4b6f4e9fc917ee7891bd836574a744b03ffc";
+    const HASH: &str = "f63f74712cf1eb669799aeadb25da84efafd854a81e1f99b2250b3c2a9c8f913";
     const UNVERIFIED: &str = "Ticket fields not fully verified on read-back; do not resend.";
 
     #[test]
@@ -690,6 +839,7 @@ mod tests {
             body_json: r#"{"status": 2, "custom_fields": {"a": null}}"#.into(),
             before_json: "{}".into(),
             record_hash: "h".into(),
+            state_json: String::new(),
         };
         assert_eq!(plan.payload(), oracle["misc"]["property_payload"]);
     }
@@ -764,7 +914,18 @@ mod tests {
             json!({"action": "ticket_properties", "method": "PUT", "path": "/api/_/tickets/123",
             "before": {"planned_start_date": null, "tags": ["old"]}, "after": {"planned_start_date": "2030-01-01T09:00:00+07:00", "tags": ["a", "b"]},
             "payload": {"br_validation_excludes": TOKEN, "planned_start_date": "2030-01-01T09:00:00+07:00", "tags": ["a", "b"]},
-            "plan_hash": HASH, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."})
+            "plan_hash": HASH, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+            "record_state": {"sends": 0, "server_version": null}})
+        );
+        assert_eq!(
+            (p.prior_hash(), p.state_json.as_str()),
+            (
+                plan_hash(&json!({
+                    "tenant": p.tenant, "ticket_id": 123, "payload": p.payload(),
+                    "before": p.before(), "record_hash": p.record_hash,
+                })),
+                r#"{"sends": 0, "server_version": null}"#
+            )
         );
     }
 
@@ -1081,14 +1242,13 @@ mod tests {
         );
         assert_eq!(full.hash(), p.hash());
         assert_eq!(p.hash(), oracle["properties"]["legacy"]["hash"]);
-        assert_eq!(
-            p.hash(),
-            plan_hash(
-                &json!({"tenant": p.tenant, "ticket_id": p.ticket_id, "payload": p.payload(),
-                              "before": serde_json::from_str::<Value>(&p.before_json).unwrap(),
-                              "record_hash": p.record_hash})
-            )
-        );
+        let intent = json!({"tenant": p.tenant, "ticket_id": p.ticket_id, "payload": p.payload(),
+                            "before": serde_json::from_str::<Value>(&p.before_json).unwrap(),
+                            "record_hash": p.record_hash});
+        assert_eq!(p.prior_hash(), plan_hash(&intent));
+        let mut stated = intent;
+        stated["state"] = json!({"sends": 0, "server_version": null});
+        assert_eq!(p.hash(), plan_hash(&stated));
     }
 
     /// `test_tui_ticket_properties.py::test_requested_for_update_is_property_only_and_resolves_current_user`.

@@ -2254,8 +2254,12 @@ fn update_reviewed_priority_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2302,8 +2306,12 @@ fn update_reviewed_custom_field_dry_run() {
       "cost_code": "new"
     }
   },
-  "plan_hash": "ee8614676d5f0a6d50b10744d54aa188a2f1eda2dcdcd142084de187b903c63d",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "f451505413b47d11d9206f939a3c3e3f546b317bff991aa754f7c04950bf9cad",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2323,7 +2331,7 @@ fn update_reviewed_send_verifies() {
             "High",
             "--yes",
             "--expect-plan",
-            "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
+            "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
         ],
         None,
     );
@@ -2333,7 +2341,7 @@ fn update_reviewed_send_verifies() {
         r#"{
   "status": "submitted",
   "ticket_id": 5,
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
   "verified": true,
   "fields": {
     "priority": "matched"
@@ -2357,8 +2365,12 @@ fn update_reviewed_send_verifies() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2398,8 +2410,12 @@ fn update_reviewed_yes_without_hash() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 --yes requires the full --expect-plan from a prior review
 "#
@@ -2441,8 +2457,12 @@ fn update_reviewed_wrong_hash() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 review hash changed; review again
 "#
@@ -2548,7 +2568,7 @@ fn update_reviewed_set_without_equals() {
 }
 
 #[test]
-fn update_reviewed_problems_refused() {
+fn update_reviewed_on_problems_takes_the_plain_update_path() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
@@ -2562,29 +2582,38 @@ fn update_reviewed_problems_refused() {
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.code, 5, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"--tag and planned dates are supported only for tickets
+        r#"error: HTTP 404 listing problem form fields: no route
 "#
     );
 }
 
 #[test]
-fn update_ack_requires_reviewed() {
+fn update_ack_without_reviewed_flag_reviews_the_plan() {
     let r = run_fixture(
         "ticket_reviewed",
-        &["tickets", "update", "5", "--priority", "High", "--ack"],
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--priority",
+            "High",
+            "--ack",
+            "--dry-run",
+        ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert_eq!(r.err, "error: --ack requires tickets --reviewed\n");
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert!(r.out.contains("\"plan_hash\": \"9fcb01d6"), "{}", r.out);
+    assert!(r.out.contains("\"record_state\""), "{}", r.out);
+    assert_eq!(r.err, "");
 }
 
 #[test]
-fn problems_update_ack_requires_reviewed() {
+fn problems_update_ack_is_ticket_only() {
     let r = run_fixture(
         "ticket_reviewed",
         &["problems", "update", "5", "--ack"],
@@ -2592,7 +2621,7 @@ fn problems_update_ack_requires_reviewed() {
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, "");
-    assert_eq!(r.err, "error: --ack requires tickets --reviewed\n");
+    assert_eq!(r.err, "error: --ack applies to ticket updates only\n");
 }
 
 #[test]
@@ -2614,7 +2643,7 @@ fn update_reviewed_ack_without_blocking_keeps_hash() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert!(
         r.out.contains(
-            "\"plan_hash\": \"3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7\""
+            "\"plan_hash\": \"9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482\""
         ),
         "{}",
         r.out
@@ -2680,11 +2709,15 @@ fn update_reviewed_ack_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+  "plan_hash": "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "acknowledged_rule_messages": [
     "High priority needs the Acme lead"
-  ]
+  ],
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2704,7 +2737,7 @@ fn update_reviewed_ack_send() {
             "High",
             "--yes",
             "--expect-plan",
-            "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+            "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
         ],
         None,
     );
@@ -2714,7 +2747,7 @@ fn update_reviewed_ack_send() {
         r#"{
   "status": "submitted",
   "ticket_id": 5,
-  "plan_hash": "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+  "plan_hash": "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
   "verified": true,
   "fields": {
     "priority": "matched"
@@ -2743,7 +2776,7 @@ fn update_reviewed_acked_hash_without_ack() {
             "High",
             "--yes",
             "--expect-plan",
-            "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+            "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
         ],
         None,
     );
@@ -2757,7 +2790,7 @@ fn update_reviewed_acked_hash_without_ack() {
 }
 
 #[test]
-fn update_expect_plan_needs_reviewed() {
+fn update_expect_plan_is_checked_without_the_reviewed_flag() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
@@ -2772,11 +2805,11 @@ fn update_expect_plan_needs_reviewed() {
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: --expect-plan requires --reviewed, --tag, --planned-start or --planned-end
-"#
+    assert_eq!(r.out, "");
+    assert!(
+        r.err.ends_with("review hash changed; review again\n"),
+        "{}",
+        r.err
     );
 }
 
@@ -2811,7 +2844,7 @@ fn bulk_priority_dry_run() {
     "priority": 73,
     "reply": {}
   },
-  "plan_hash": "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6",
+  "plan_hash": "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
   "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible.",
   "before": [
     {
@@ -2843,7 +2876,7 @@ fn bulk_priority_send_verifies() {
             "High",
             "--yes",
             "--expect-plan",
-            "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6",
+            "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
         ],
         None,
     );
@@ -2852,7 +2885,7 @@ fn bulk_priority_send_verifies() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6",
+  "plan_hash": "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
   "verified": true,
   "tickets": {
     "5": "matched",
@@ -2882,7 +2915,7 @@ fn bulk_priority_unverified_exits_1() {
             "High",
             "--yes",
             "--expect-plan",
-            "2d1b32c2ff8fff0541e21780bcefc8817ff4150c6a4a7b498d524f09215514ff",
+            "5937678464cf9dbc2cf84f682e4d86860c5968305ca9cf37c72c1766446e1955",
         ],
         None,
     );
@@ -2891,7 +2924,7 @@ fn bulk_priority_unverified_exits_1() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "2d1b32c2ff8fff0541e21780bcefc8817ff4150c6a4a7b498d524f09215514ff",
+  "plan_hash": "5937678464cf9dbc2cf84f682e4d86860c5968305ca9cf37c72c1766446e1955",
   "verified": false,
   "tickets": {
     "5": "matched",
@@ -8996,7 +9029,7 @@ fn tickets_assign_unassign_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": null
   },
-  "plan_hash": "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+  "plan_hash": "3b3b1001b1e0612160b502f1699f0c47618dedcf34cd185ed3d6142a71567447",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "before": [
     {
@@ -9062,7 +9095,7 @@ fn tickets_assign_unassign_send() {
             "--unassign",
             "--yes",
             "--expect-plan",
-            "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+            "3b3b1001b1e0612160b502f1699f0c47618dedcf34cd185ed3d6142a71567447",
         ],
         None,
     );
@@ -9071,7 +9104,7 @@ fn tickets_assign_unassign_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+  "plan_hash": "3b3b1001b1e0612160b502f1699f0c47618dedcf34cd185ed3d6142a71567447",
   "verified": true,
   "tickets": {
     "123": {
@@ -9112,7 +9145,7 @@ fn tickets_assign_agent_in_group_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": 71
   },
-  "plan_hash": "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+  "plan_hash": "0637caf14efe8c2cc38986bd7d4e605661128b652960bcd8218cc9dc971e9433",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "before": [
     {
@@ -9139,7 +9172,7 @@ fn tickets_assign_agent_send() {
             "agent@example.com",
             "--yes",
             "--expect-plan",
-            "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+            "0637caf14efe8c2cc38986bd7d4e605661128b652960bcd8218cc9dc971e9433",
         ],
         None,
     );
@@ -9148,7 +9181,7 @@ fn tickets_assign_agent_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+  "plan_hash": "0637caf14efe8c2cc38986bd7d4e605661128b652960bcd8218cc9dc971e9433",
   "verified": true,
   "tickets": {
     "124": {
@@ -9192,7 +9225,7 @@ fn tickets_assign_group_and_agent_dry_run() {
     "group_id": 81,
     "responder_id": 71
   },
-  "plan_hash": "71a03c4d518b01765c2b0bd514c68a98847059282ac9e77c191d01b0796f2472",
+  "plan_hash": "4cc2c8f116cebde86661d5d52cc2506a57503fecbec5ca44c7ae2ec8b7081ec5",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "before": [
     {
@@ -9234,7 +9267,7 @@ fn tickets_assign_group_only_clears_agent_dry_run() {
     "group_id": 82,
     "responder_id": null
   },
-  "plan_hash": "97c00714dc0acfb737760f7eb5720c989b3f8562a68c1fbb3a326a7cacf1a69f",
+  "plan_hash": "9ec2dcafa85b5da73aa5e16abf2067d7ab0e8b5bbd09a6b2b927187ab3d65e86",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "before": [
     {
@@ -9340,7 +9373,7 @@ fn tickets_assign_readback_unverified() {
             "71",
             "--yes",
             "--expect-plan",
-            "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007",
+            "8bf0be76ff67c5954ba212b11c068d6919f1c8983b12389851775987acca6048",
         ],
         None,
     );
@@ -9349,7 +9382,7 @@ fn tickets_assign_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007",
+  "plan_hash": "8bf0be76ff67c5954ba212b11c068d6919f1c8983b12389851775987acca6048",
   "verified": false,
   "tickets": {
     "126": {
@@ -9386,7 +9419,7 @@ fn tickets_pick_up_dry_run() {
       125
     ]
   },
-  "plan_hash": "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+  "plan_hash": "d2a0e74f4593f61e8c712206722e2d6561320d2472f60f3f1f57c6f5be522804",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "before": [
     {
@@ -9417,7 +9450,7 @@ fn tickets_pick_up_send() {
             "INC-125",
             "--yes",
             "--expect-plan",
-            "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+            "d2a0e74f4593f61e8c712206722e2d6561320d2472f60f3f1f57c6f5be522804",
         ],
         None,
     );
@@ -9426,7 +9459,7 @@ fn tickets_pick_up_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+  "plan_hash": "d2a0e74f4593f61e8c712206722e2d6561320d2472f60f3f1f57c6f5be522804",
   "verified": true,
   "tickets": {
     "124": {

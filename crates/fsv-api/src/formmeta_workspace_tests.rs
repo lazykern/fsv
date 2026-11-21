@@ -216,6 +216,7 @@ fn ticket_property_form_notes_are_display_only() {
         body_json: r#"{"tags": ["acme"]}"#.into(),
         before_json: r#"{"tags": []}"#.into(),
         record_hash: "abc".into(),
+        state_json: String::new(),
     };
     let plain = crate::properties::AnsweredPropertyPlan::from(base);
     assert!(!plain.review().contains_key("form_notes"));

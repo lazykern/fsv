@@ -1398,22 +1398,40 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
     if a.planned_effort.is_some() {
         return Err(usage("--planned-effort is supported only for problems"));
     }
-    if a.reviewed || !a.tag.is_empty() || a.planned_start.is_some() || a.planned_end.is_some() {
+    if a.no_review && res.name == TICKETS.name {
+        if !a.tag.is_empty() || a.planned_start.is_some() || a.planned_end.is_some() || a.ack {
+            return Err(usage(
+                "--tag, --planned-start/--planned-end and --ack have no --no-review path; drop --no-review",
+            ));
+        }
+        no_review_notice(res);
+        return update_resource(res, &a);
+    }
+    if res.name == TICKETS.name
+        || !a.tag.is_empty()
+        || a.planned_start.is_some()
+        || a.planned_end.is_some()
+    {
         return ticket_properties(res, &a).map_err(|e| match e {
             Error::Value(m) => plain_fail(&m, 2),
             Error::Exit { code: 2, message } if !message.is_empty() => plain_fail(&message, 2),
+            e @ Error::Exit { code: 4, .. } => e,
             other => uncaught(other),
         });
     }
-    if a.expect_plan.as_deref().is_some_and(|s| !s.is_empty()) && res.name != PROBLEMS.name {
-        return Err(usage(
-            "--expect-plan requires --reviewed, --tag, --planned-start or --planned-end",
-        ));
-    }
     if a.ack {
-        return Err(usage("--ack requires tickets --reviewed"));
+        return Err(usage("--ack applies to ticket updates only"));
     }
     update_resource(res, &a)
+}
+
+/// `_no_review_notice`: one-line deprecation notice for the old body-only
+/// update (stderr only, so `--json` stdout stays pure).
+fn no_review_notice(res: &Resource) {
+    eprintln!(
+        "warning: {} update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default",
+        res.name
+    );
 }
 
 /// `_problem_planning_update`: one reviewed PUT of only the planned keys.
@@ -1425,7 +1443,7 @@ fn problem_planning_update(a: &ResUpdateArgs) -> CmdResult {
         || given(&a.group_id)
         || !a.set_.is_empty()
         || !a.tag.is_empty()
-        || a.reviewed;
+        || a.ack;
     if others {
         return Err(usage(
             "problem planned dates/effort are reviewed on their own; send other fields separately",
@@ -1551,7 +1569,11 @@ fn ticket_properties(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
     eprintln!("{}", pretty(&Value::Object(review)));
     let hash = plan.hash();
     if a.expect_plan.as_deref().is_some_and(|e| e != hash) {
-        return Err(Error::exit(2, "review hash changed; review again"));
+        return Err(Error::exit(
+            2,
+            fsv_core::journal::stale_plan_refusal(a.expect_plan.as_deref(), &["ticket_properties"])
+                .unwrap_or_else(|| "review hash changed; review again".into()),
+        ));
     }
     if a.yes {
         if a.expect_plan.as_deref() != Some(hash.as_str()) {
@@ -1579,6 +1601,11 @@ fn ticket_properties(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         resolver(),
     )?;
     println!("{}", pretty(&result));
+    if result.get("status") == Some(&json!("submitted"))
+        && !result.get("verified").is_some_and(fsv_py::truthy)
+    {
+        return Err(Error::exit(4, ""));
+    }
     Ok(())
 }
 
