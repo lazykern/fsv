@@ -37,6 +37,7 @@ C	fsv assets search
 A	fsv assets search	<query>	
 A	fsv assets search	--kind	
 A	fsv assets search	--page	
+A	fsv assets search	--per-page	rows per page, 1 to 100 (default 50)
 A	fsv assets search	--json	
 C	fsv solutions	Draft knowledge solutions.
 C	fsv solutions delete	Move one knowledge article to the trash (reviewed; --confirm-destructive).
@@ -360,6 +361,7 @@ A	fsv changes download	--description-attachments	download attachment links found
 A	fsv changes download	--all	download planning, main, and description attachments
 A	fsv changes download	--dir	output directory (default: ./downloads/CHN-<id>)
 A	fsv changes download	--force	overwrite existing files
+A	fsv changes download	--max-bytes	refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)
 A	fsv changes download	--json	emit JSON manifest
 C	fsv changes clone	Clone a change.
 A	fsv changes clone	<id_>	change ID to clone (pre-fills form)
@@ -539,6 +541,7 @@ A	fsv changes assets candidates	<target>
 A	fsv changes assets candidates	--search	integrated search text
 A	fsv changes assets candidates	--kind	
 A	fsv changes assets candidates	--page	
+A	fsv changes assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv changes assets candidates	--json	
 C	fsv changes assets legacy	
 A	fsv changes assets legacy	<target>	
@@ -566,6 +569,7 @@ C	fsv changes assets search
 A	fsv changes assets search	<query>	
 A	fsv changes assets search	--kind	
 A	fsv changes assets search	--page	
+A	fsv changes assets search	--per-page	rows per page, 1 to 100 (default 50)
 A	fsv changes assets search	--json	
 C	fsv changes columns	Inspect/set native list columns (shared account preferences may be affected).
 C	fsv changes columns list	
@@ -594,6 +598,7 @@ A	fsv changes private-views write	--name
 A	fsv changes private-views write	--dry-run	
 A	fsv changes private-views write	--yes	
 A	fsv changes private-views write	--expect-plan	
+A	fsv changes private-views write	--confirm-destructive	required with --yes for delete
 A	fsv changes private-views write	--output	
 A	fsv changes private-views write	--json	
 C	fsv changes watchers	Read watcher membership and review self-only watch changes.
@@ -883,6 +888,7 @@ A	fsv tickets download	--description-attachments	download attachment links found
 A	fsv tickets download	--all	download all attachments from all sources
 A	fsv tickets download	--dir	output directory (default: ./downloads/<ID>)
 A	fsv tickets download	--force	overwrite existing files
+A	fsv tickets download	--max-bytes	refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)
 A	fsv tickets download	--json	emit JSON manifest
 C	fsv tickets conversations	List ticket conversations/replies.
 A	fsv tickets conversations	<id_>	
@@ -933,6 +939,7 @@ A	fsv tickets assets candidates	<target>
 A	fsv tickets assets candidates	--search	integrated search text
 A	fsv tickets assets candidates	--kind	
 A	fsv tickets assets candidates	--page	
+A	fsv tickets assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv tickets assets candidates	--json	
 C	fsv tickets assets add	
 A	fsv tickets assets add	<target>	
@@ -1032,6 +1039,7 @@ A	fsv tickets private-views write	--name
 A	fsv tickets private-views write	--dry-run	
 A	fsv tickets private-views write	--yes	
 A	fsv tickets private-views write	--expect-plan	
+A	fsv tickets private-views write	--confirm-destructive	required with --yes for delete
 A	fsv tickets private-views write	--output	
 A	fsv tickets private-views write	--json	
 C	fsv tickets canned	Read canned responses and insert selected literal HTML into a reviewed reply.
@@ -1393,6 +1401,7 @@ A	fsv problems download	--description-attachments	download attachment links foun
 A	fsv problems download	--all	download all attachments from all sources
 A	fsv problems download	--dir	output directory (default: ./downloads/<ID>)
 A	fsv problems download	--force	overwrite existing files
+A	fsv problems download	--max-bytes	refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)
 A	fsv problems download	--json	emit JSON manifest
 C	fsv problems notes	List problem notes.
 A	fsv problems notes	<id_>	
@@ -1423,6 +1432,7 @@ A	fsv problems assets candidates	<target>
 A	fsv problems assets candidates	--search	integrated search text
 A	fsv problems assets candidates	--kind	
 A	fsv problems assets candidates	--page	
+A	fsv problems assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv problems assets candidates	--json	
 C	fsv problems assets add	
 A	fsv problems assets add	<target>	
@@ -1490,6 +1500,7 @@ A	fsv attachments delete	--section	exact native planning section key
 A	fsv attachments delete	--dry-run	
 A	fsv attachments delete	--yes	
 A	fsv attachments delete	--expect-plan	
+A	fsv attachments delete	--confirm-destructive	required with --yes: the delete is permanent (no restore wire)
 A	fsv attachments delete	--json	
 C	fsv form	inspect form fields and business rules (explain, fields, dump, diff)
 C	fsv form explain	Why each field is visible, required or hidden, by rule.
@@ -1562,6 +1573,7 @@ A	fsv sr assets candidates	<target>
 A	fsv sr assets candidates	--search	integrated search text
 A	fsv sr assets candidates	--kind	
 A	fsv sr assets candidates	--page	
+A	fsv sr assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv sr assets candidates	--json	
 C	fsv sr assets add	
 A	fsv sr assets add	<target>	

@@ -600,6 +600,27 @@
        "max": null
       },
       {
+       "name": "per_page",
+       "kind": "option",
+       "opts": [
+        "--per-page"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "rows per page, 1 to 100 (default 50)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": 100
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -6358,6 +6379,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -9594,6 +9636,27 @@
          "max": null
         },
         {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
+        },
+        {
          "name": "json_out",
          "kind": "option",
          "opts": [
@@ -10073,6 +10136,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",
@@ -10556,6 +10640,25 @@
          "default": null,
          "hidden": false,
          "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "confirm_destructive",
+         "kind": "option",
+         "opts": [
+          "--confirm-destructive"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "required with --yes for delete",
          "metavar": null,
          "envvar": null
         },
@@ -15880,6 +15983,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -16783,6 +16907,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",
@@ -18526,6 +18671,25 @@
          "default": null,
          "hidden": false,
          "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "confirm_destructive",
+         "kind": "option",
+         "opts": [
+          "--confirm-destructive"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "required with --yes for delete",
          "metavar": null,
          "envvar": null
         },
@@ -25043,6 +25207,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -25568,6 +25753,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",
@@ -26761,6 +26967,25 @@
        "default": null,
        "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the delete is permanent (no restore wire)",
        "metavar": null,
        "envvar": null
       },
@@ -28015,6 +28240,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",
