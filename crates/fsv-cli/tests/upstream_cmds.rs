@@ -5832,8 +5832,8 @@ fn tickets_export_dry_run() {
     },
     "ticket_state_filter": "created_at"
   },
-  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -5849,8 +5849,20 @@ fn tickets_export_dry_run() {
     "selected_filter_view",
     "ticket_state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -5874,17 +5886,80 @@ fn tickets_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
+            "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+            "--confirm-send-to-me",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": 202,
+  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "verified": false,
+  "submitted": true,
+  "accepted": true,
+  "recipient": "agent@example.com",
+  "delivery": "emailed by the server, not downloadable here",
+  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/export"]);
+}
+
+#[test]
+fn tickets_export_yes_without_confirm_send_to_me_sends_nothing() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--yes",
+            "--expect-plan",
+            "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
         ],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
-"#
-    );
+    assert!(r.err.contains("--confirm-send-to-me"), "{}", r.err);
+    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
+fn tickets_export_send_runs_once_and_is_not_replayed() {
+    let args = [
+        "tickets",
+        "export",
+        "--view",
+        "Acme queue",
+        "--field",
+        "subject",
+        "--field",
+        "status_name",
+        "--field",
+        "display_id",
+        "--yes",
+        "--expect-plan",
+        "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+        "--confirm-send-to-me",
+    ];
+    let first: &[&str] = &args;
+    let r = common::run_steps("list_prefs", &[first], first, None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.write_paths().is_empty(), "{:?}", r.write_paths());
 }
 
 #[test]
@@ -6105,8 +6180,8 @@ fn changes_export_dry_run() {
     "format": "csv",
     "state_filter": "created_at"
   },
-  "plan_hash": "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -6121,8 +6196,20 @@ fn changes_export_dry_run() {
     "format",
     "state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -6146,17 +6233,28 @@ fn changes_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
+            "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+            "--confirm-send-to-me",
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r.out,
+        r#"{
+  "status": 202,
+  "plan_hash": "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+  "verified": false,
+  "submitted": true,
+  "accepted": true,
+  "recipient": "agent@example.com",
+  "delivery": "emailed by the server, not downloadable here",
+  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/changes/export"]);
 }
 
 #[test]
@@ -6365,8 +6463,8 @@ fn problems_export_dry_run() {
     "format": "csv",
     "state_filter": "created_at"
   },
-  "plan_hash": "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -6380,8 +6478,20 @@ fn problems_export_dry_run() {
     "format",
     "state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -6405,17 +6515,28 @@ fn problems_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
+            "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+            "--confirm-send-to-me",
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r.out,
+        r#"{
+  "status": 202,
+  "plan_hash": "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+  "verified": false,
+  "submitted": true,
+  "accepted": true,
+  "recipient": "agent@example.com",
+  "delivery": "emailed by the server, not downloadable here",
+  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/export"]);
 }
 
 #[test]
@@ -6794,8 +6915,8 @@ fn tickets_export_without_dry_run() {
     },
     "ticket_state_filter": "created_at"
   },
-  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -6811,8 +6932,20 @@ fn tickets_export_without_dry_run() {
     "selected_filter_view",
     "ticket_state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -6842,7 +6975,7 @@ fn changes_export_yes_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r#"review first, then pass --yes with the full --expect-plan hash; nothing was sent
 "#
     );
 }
@@ -6871,7 +7004,7 @@ fn problems_export_expect_plan_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r#"--expect-plan sends only with --yes --confirm-send-to-me; nothing was sent
 "#
     );
 }

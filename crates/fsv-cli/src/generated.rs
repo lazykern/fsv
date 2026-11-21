@@ -1157,15 +1157,15 @@ pub struct ResExportArgs {
     pub field: Vec<String>,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
-    #[arg(hide = true, long = "yes")]
+    #[arg(long = "yes")]
     pub yes: bool,
-    #[arg(
-        hide = true,
-        long = "expect-plan",
-        allow_hyphen_values = true,
-        value_name = "TEXT"
-    )]
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "required with --yes: the server emails the export to your own mailbox",
+        long = "confirm-send-to-me"
+    )]
+    pub confirm_send_to_me: bool,
     #[arg(
         long = "output",
         short = 'o',
@@ -5657,7 +5657,7 @@ pub fn build() -> Command {
             .subcommand(ChangesCiAddArgs::augment_args(Command::new("ci-add") .hide(true).arg(global_verbose())))
             .subcommand(ChangesCiRemoveArgs::augment_args(Command::new("ci-remove") .hide(true).arg(global_verbose())))
             .subcommand(ChangesCiListArgs::augment_args(Command::new("ci-list") .hide(true).arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.").arg(global_verbose())))
             .subcommand(ChangesAssetPickerArgs::augment_args(Command::new("asset-picker") .about("Search/select a change asset candidate without associating it (read-only).").arg(global_verbose())))
             .subcommand(PlanningTextArgs::augment_args(Command::new("planning-text") .about("Review a native planning/analysis text section; no files.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable change fields.") .after_help("Examples: fsv changes fields | fsv changes fields --required | fsv changes fields --choices status | fsv changes fields --custom").arg(global_verbose())))
@@ -5717,7 +5717,7 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one ticket.") .after_help("Examples: fsv tickets get INC-1234 | fsv tickets get INC-1234 --tab activity | fsv tickets get INC-1234 --all-tabs | fsv tickets get INC-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List ticket activity.") .after_help("Examples: fsv tickets activity INC-1234 | fsv tickets activity INC-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks-legacy") .hide(true) .about("List ticket tasks.") .after_help("Examples: fsv tickets tasks INC-1234 | fsv tickets tasks INC-1234 --json").arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.").arg(global_verbose())))
             .subcommand(TicketsNoteEditArgs::augment_args(Command::new("note-edit") .about("Review an edit to an exact ticket note.").arg(global_verbose())))
             .subcommand(TicketsNoteDeleteArgs::augment_args(Command::new("note-delete") .about("Review deletion of an exact ticket note.").arg(global_verbose())))
             .subcommand(TicketsAssignArgs::augment_args(Command::new("assign") .about("Review ticket assignment, group assignment, or agent unassignment.").arg(global_verbose())))
@@ -5802,7 +5802,7 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one problem.") .after_help("Examples: fsv problems get PRB-1234 | fsv problems get PRB-1234 --tab activity | fsv problems get PRB-1234 --all-tabs | fsv problems get PRB-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List problem activity.") .after_help("Examples: fsv problems activity PRB-1234 | fsv problems activity PRB-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks") .about("List problem tasks.") .after_help("Examples: fsv problems tasks PRB-1234 | fsv problems tasks PRB-1234 --json").arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.").arg(global_verbose())))
             .subcommand(ProblemsTaskWriteArgs::augment_args(Command::new("task-write") .about("Review a problem task update, complete or delete; completion may rewrite planned dates.").arg(global_verbose())))
             .subcommand(ProblemsDeleteArgs::augment_args(Command::new("delete") .about("Move one exact problem to the trash (reviewed; restorable).").arg(global_verbose())))
             .subcommand(ProblemsRestoreArgs::augment_args(Command::new("restore") .about("Restore one exact problem from the trash (reviewed).").arg(global_verbose())))

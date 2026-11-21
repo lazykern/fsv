@@ -2458,8 +2458,8 @@
      },
      "ticket_state_filter": "created_at"
     },
-    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "67519a5e78b94a45cc3e1b6fdc5d068640705e722ac7da82b46e094bf1d9964c",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "agent@example.com",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -2475,10 +2475,20 @@
      "selected_filter_view",
      "ticket_state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "hash": "67519a5e78b94a45cc3e1b6fdc5d068640705e722ac7da82b46e094bf1d9964c",
    "recipient_json": "{\"mailbox\": \"agent@example.com\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back\", \"source\": \"signed-in agent profile (GET /api/v2/agents/me)\"}"
   },
   {
@@ -2513,8 +2523,8 @@
      },
      "ticket_state_filter": "created_at"
     },
-    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2530,10 +2540,20 @@
      "selected_filter_view",
      "ticket_state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2570,8 +2590,8 @@
      },
      "ticket_state_filter": "created_at"
     },
-    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2587,10 +2607,20 @@
      "selected_filter_view",
      "ticket_state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2627,8 +2657,8 @@
      },
      "ticket_state_filter": "created_at"
     },
-    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2644,10 +2674,20 @@
      "selected_filter_view",
      "ticket_state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2684,8 +2724,8 @@
      },
      "ticket_state_filter": "created_at"
     },
-    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2701,10 +2741,20 @@
      "selected_filter_view",
      "ticket_state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2739,8 +2789,8 @@
      },
      "ticket_state_filter": "created_at"
     },
-    "plan_hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2756,10 +2806,20 @@
      "selected_filter_view",
      "ticket_state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "9e176bcb075f518aae9611c32a0fa450c0bea6c2bdfac83887abae7e01c22182",
+   "hash": "8eb6aa20ee54baf244fceab5cca20d63c86d1433f52c059bbd64fe6afac0a3d4",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2792,8 +2852,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "8b6c908297add37fa3e5f2555adffbe31bea18b1d837dc6a397daccef7a667a9",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "agent@example.com",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -2808,10 +2868,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "hash": "8b6c908297add37fa3e5f2555adffbe31bea18b1d837dc6a397daccef7a667a9",
    "recipient_json": "{\"mailbox\": \"agent@example.com\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back\", \"source\": \"signed-in agent profile (GET /api/v2/agents/me)\"}"
   },
   {
@@ -2841,8 +2911,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2857,10 +2927,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2892,8 +2972,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2908,10 +2988,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2943,8 +3033,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2959,10 +3049,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -2994,8 +3094,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3010,10 +3110,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -3043,8 +3153,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3059,10 +3169,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "eba7ad50275ce06225abb16dfe54b38dc84b1bb7dfcf38c9592fdaa5a2450130",
+   "hash": "af4d50170b3626d0e2eb7ad0cc059795c9ed3439352c060d0cb8914efa798fc8",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -3094,8 +3214,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "76e917e010ba903e7f3c53984c99a9056f5278b0bffb1a6e57c10cee967b3a9d",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "agent@example.com",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -3109,10 +3229,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "hash": "76e917e010ba903e7f3c53984c99a9056f5278b0bffb1a6e57c10cee967b3a9d",
    "recipient_json": "{\"mailbox\": \"agent@example.com\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back\", \"source\": \"signed-in agent profile (GET /api/v2/agents/me)\"}"
   },
   {
@@ -3141,8 +3271,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3156,10 +3286,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -3190,8 +3330,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3205,10 +3345,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -3239,8 +3389,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3254,10 +3404,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -3288,8 +3448,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3303,10 +3463,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   },
   {
@@ -3335,8 +3505,8 @@
      "format": "csv",
      "state_filter": "created_at"
     },
-    "plan_hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
-    "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+    "plan_hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
     "recipient": {
      "mailbox": "unavailable",
      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3350,10 +3520,20 @@
      "format",
      "state_filter"
     ],
-    "review_only": true,
-    "delivery": "unknown"
+    "view": {
+     "id": "701",
+     "name": "Acme queue"
+    },
+    "format": "csv",
+    "fields": {
+     "subject": "Acme subject"
+    },
+    "submit_only": true,
+    "delivery": "emailed by the server, not downloadable here",
+    "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+    "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
    },
-   "hash": "3336d0e603af5fefeecde3506ffb0915cdb04aa6706a83c41e3d99fdf3a49aa9",
+   "hash": "823c98d856274eae2077a428734618bb1f91fd02c328784d651ea92b8a801e2c",
    "recipient_json": "{\"mailbox\": \"unavailable\", \"note\": \"the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to\", \"source\": \"signed-in agent profile could not be read\"}"
   }
  ]

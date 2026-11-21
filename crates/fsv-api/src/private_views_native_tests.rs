@@ -522,8 +522,14 @@ fn export_review_shows_the_recipient_mailbox() {
         let module = case["module"].as_str().unwrap();
         let ctx = format!("{module} {}", case["me"]);
         let api = list_api(case["me"].clone());
-        let p =
-            list_preferences::export_plan(&api, module, "701", &["subject".to_string()]).unwrap();
+        let p = list_preferences::export_plan(
+            &api,
+            &MemJournal::default(),
+            module,
+            "701",
+            &["subject".to_string()],
+        )
+        .unwrap();
         assert_eq!(Value::Object(p.review()), case["review"], "{ctx}");
         assert_eq!(p.hash(), case["hash"], "{ctx}");
         assert_eq!(p.recipient_json, case["recipient_json"], "{ctx}");

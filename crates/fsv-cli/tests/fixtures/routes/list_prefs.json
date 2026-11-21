@@ -156,7 +156,10 @@
  {
   "method": "POST",
   "path": "/api/_/tickets/export",
-  "status": 204
+  "status": 202,
+  "json": {
+   "success": true
+  }
  },
  {
   "method": "GET",
@@ -383,7 +386,10 @@
  {
   "method": "POST",
   "path": "/api/_/changes/export",
-  "status": 204
+  "status": 202,
+  "json": {
+   "success": true
+  }
  },
  {
   "method": "GET",
@@ -610,7 +616,10 @@
  {
   "method": "POST",
   "path": "/api/_/problems/export",
-  "status": 204
+  "status": 202,
+  "json": {
+   "success": true
+  }
  },
  {
   "method": "GET",

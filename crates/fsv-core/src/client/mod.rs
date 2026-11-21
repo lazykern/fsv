@@ -99,6 +99,7 @@ struct State {
     rl_rem: Option<i64>,
     rl_tot: Option<i64>,
     probe_ok_until: Option<Instant>,
+    last_status: Option<u16>,
 }
 
 enum SendErr {
@@ -403,6 +404,12 @@ impl Client {
         }
     }
 
+    /// `_last_status`: the HTTP status of the last write, `None` before one
+    /// was answered.
+    pub fn last_status(&self) -> Option<u16> {
+        self.state().last_status
+    }
+
     /// GET for downloads: no retry, no journal, no status mapping, no log.
     pub fn fetch_raw(&self, url: &str, follow: bool) -> Result<Response> {
         match self.exchange("GET", url, &RequestOpts::default().follow(follow)) {
@@ -473,10 +480,15 @@ impl Client {
     /// `application/json` bodies are parsed. Anything else is text.
     pub fn request(&self, method: &str, url: &str, opts: RequestOpts) -> Result<Value> {
         let upper = method.to_uppercase();
+        let write = upper != "GET" && upper != "HEAD";
+        if write {
+            self.state().last_status = None;
+        }
         let (status, result) = self.request_inner(method, url, &opts);
-        if upper == "GET" || upper == "HEAD" {
+        if !write {
             return result;
         }
+        self.state().last_status = status;
         let json = match &opts.body {
             Body::Json(v) => Some(v),
             _ => None,

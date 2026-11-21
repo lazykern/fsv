@@ -4742,7 +4742,7 @@
     },
     {
      "path": "fsv changes export",
-     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
+     "help": "Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -4818,7 +4818,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": true,
+       "hidden": false,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -4837,8 +4837,27 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": true,
+       "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_send_to_me",
+       "kind": "option",
+       "opts": [
+        "--confirm-send-to-me"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the server emails the export to your own mailbox",
        "metavar": null,
        "envvar": null
       },
@@ -11472,7 +11491,7 @@
     },
     {
      "path": "fsv tickets export",
-     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
+     "help": "Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -11548,7 +11567,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": true,
+       "hidden": false,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -11567,8 +11586,27 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": true,
+       "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_send_to_me",
+       "kind": "option",
+       "opts": [
+        "--confirm-send-to-me"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the server emails the export to your own mailbox",
        "metavar": null,
        "envvar": null
       },
@@ -21603,7 +21641,7 @@
     },
     {
      "path": "fsv problems export",
-     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
+     "help": "Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -21679,7 +21717,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": true,
+       "hidden": false,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -21698,8 +21736,27 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": true,
+       "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_send_to_me",
+       "kind": "option",
+       "opts": [
+        "--confirm-send-to-me"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the server emails the export to your own mailbox",
        "metavar": null,
        "envvar": null
       },

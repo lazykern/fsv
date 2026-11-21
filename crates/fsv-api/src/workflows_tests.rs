@@ -658,7 +658,7 @@ fn list_preferences_columns_export_and_refusals() {
 
         let w = list_wire(module);
         let fields = owned(&["subject", "status_name", "display_id"]);
-        let p = list_preferences::export_plan(&w.api, module, "701", &fields).unwrap();
+        let p = list_preferences::export_plan(&w.api, &w.journal, module, "701", &fields).unwrap();
         assert_eq!(
             Value::Array(w.log()),
             want["export"]["plan_calls"],
@@ -685,7 +685,7 @@ fn list_preferences_columns_export_and_refusals() {
         check(&list_send(&w, &p), &want["columns_drift"], module);
 
         let w = list_wire(module);
-        let p = list_preferences::export_plan(&w.api, module, "701", &owned(&["subject"])).unwrap();
+        let p = list_preferences::export_plan(&w.api, &w.journal, module, "701", &owned(&["subject"])).unwrap();
         w.set(|s| s["failure"] = json!(429));
         check(&list_send(&w, &p), &want["export_fail_429"], module);
 
@@ -702,6 +702,7 @@ fn list_preferences_columns_export_and_refusals() {
                 ),
                 "export" => list_preferences::export_plan(
                     &w.api,
+                    &w.journal,
                     module,
                     args[0].as_str().unwrap(),
                     &strings(&args[1]),
@@ -721,7 +722,7 @@ fn list_preferences_columns_export_and_refusals() {
                             .unwrap()
                             .push(json!({"label": "x"})),
                     });
-                    list_preferences::export_plan(&w.api, module, "701", &owned(&["display_id"]))
+                    list_preferences::export_plan(&w.api, &w.journal, module, "701", &owned(&["display_id"]))
                 }
             };
             let got = attempt(got.map(|p| list_plan(&p)));

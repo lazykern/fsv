@@ -78,6 +78,10 @@ pub trait Api: Sync {
     fn page(&self, path: &str) -> Result<Response> {
         Err(Error::other(format!("tenant page {path} is unavailable")))
     }
+    /// `_last_status`: the HTTP status of the last write; the default has none.
+    fn last_status(&self) -> Option<u16> {
+        None
+    }
     /// Tenant host (`config.DOMAIN`).
     fn domain(&self) -> String;
     /// Values of session cookies whose name contains `workspace`.
@@ -106,6 +110,9 @@ pub trait Api: Sync {
 }
 
 impl Api for fsv_core::Client {
+    fn last_status(&self) -> Option<u16> {
+        fsv_core::Client::last_status(self)
+    }
     fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
         fsv_core::Client::int_get(self, path, params)
     }
