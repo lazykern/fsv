@@ -18251,6 +18251,636 @@
   ]
  },
  {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "nope=1",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "Bogus",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "cache",
+   "clear",
+   "forms"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--set",
+   "nope=1",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "Bogus",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "cache",
+   "clear",
+   "forms"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "tickets",
+    "update",
+    "5",
+    "--priority",
+    "High",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "nope=1",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--priority",
+   "Bogus",
+   "--dry-run"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "cache",
+   "status"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "cache",
+   "clear",
+   "forms"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--dry-run"
+   ]
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--yes",
+   "--expect-plan",
+   "@HASH@"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_update",
+  "args": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--yes",
+   "--expect-plan",
+   "@HASH@",
+   "--json"
+  ],
+  "tag": "hand",
+  "pre": [
+   [
+    "problems",
+    "update",
+    "74",
+    "--set",
+    "Owner Note=Acme new owner",
+    "--yes",
+    "--expect-plan",
+    "@HASH@"
+   ]
+  ],
+  "hash_from": [
+   "problems",
+   "update",
+   "74",
+   "--set",
+   "Owner Note=Acme new owner",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1h",
+   "--billable",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1h",
+   "--non-billable",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1h",
+   "--no-billable",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "problems",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1h",
+   "--billable",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "problems",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1h",
+   "--non-billable",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "problems",
+   "time",
+   "write",
+   "5",
+   "create",
+   "--spent",
+   "1h",
+   "--no-billable",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "create",
+   "-O",
+   "--set",
+   "Subject=x",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "create",
+   "--optional",
+   "--set",
+   "Subject=x",
+   "--dry-run"
+  ],
+  "tag": "hand"
+ },
+ {
   "fixture": "problem_add_note",
   "args": [
    "journal",

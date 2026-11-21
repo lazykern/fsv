@@ -155,6 +155,28 @@ for target in ("schema", "forms"):
     case("auth", ["cache", "clear", target], pre=[["cache", "refresh"]])
     case("auth", ["cache", "status"], pre=[["cache", "refresh"], ["cache", "clear", target]])
 
+# schema cache inside the TTL, refetch on refusal, replay of a sent plan
+for fx in ("ticket_reviewed", "ticket_update", "problem_update"):
+    mod = "problems" if fx == "problem_update" else "tickets"
+    pid = "74" if fx == "problem_update" else "5"
+    extra = ["--set", "Owner Note=Acme new owner"] if fx == "problem_update" else ["--priority", "High"]
+    dry = [mod, "update", pid, *extra, "--dry-run"]
+    case(fx, dry, pre=[dry])
+    case(fx, [mod, "update", pid, "--set", "nope=1", "--dry-run"], pre=[dry])
+    case(fx, [mod, "update", pid, "--priority", "Bogus", "--dry-run"], pre=[dry])
+    case(fx, ["cache", "status"], pre=[dry])
+    case(fx, ["cache", "clear", "forms"], pre=[dry])
+    send = [mod, "update", pid, *extra, "--yes", "--expect-plan", "@HASH@"]
+    case(fx, send, pre=[send], hash_from=dry)
+    case(fx, [*send, "--json"], pre=[send], hash_from=dry)
+
+# boolean flag pairs and hidden aliases
+for module in ("changes", "problems"):
+    for flag in ("--billable", "--non-billable", "--no-billable"):
+        case("module_time", [module, "time", "write", "5", "create", "--spent", "1h", flag, "--dry-run"])
+case("change_create", ["changes", "create", "-O", "--set", "Subject=x", "--dry-run"])
+case("change_create", ["changes", "create", "--optional", "--set", "Subject=x", "--dry-run"])
+
 # journal kinds after reviewed sends
 for fx, send, review in (
         ("problem_add_note", ["problems", "add-note", "12", "Acme evidence"], None),
