@@ -205,6 +205,7 @@ fn oracle() -> Value {
 
 #[test]
 fn hashes_and_reviews_match_python() {
+    fsv_core::config::use_domain_on_thread("acme.freshservice.com");
     let o = oracle();
     let (c, s) = wapi();
     let check = |name: &str, p: &WindowPlan| {
