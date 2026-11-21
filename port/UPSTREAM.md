@@ -3838,7 +3838,7 @@ the remaining commits of the range in sibling branches.
 | `6327af5` | export `data_hash` takes string values only | ported | fsv-api `list_preferences.rs` (`export_data_hash`) |
 | `8e51091` | changes update --attach (attach-only) reviewed | ported | fsv-api `change_attach.rs`; fsv-cli `cmd/upload_update.rs` |
 | `838c9eb` | --max-bytes for changes update --attach and sr create --attach | ported (form UI binds the limit in `fsv-app/src/form.rs`; its hash constant is Rust-derived) | fsv-api `catalog.rs`, fsv-flows `change.rs`, fsv-cli `cmd/sr.rs`, `cmd/changes.rs` |
-| `8465498` | downloads --max-bytes | ported, buffered body (see PARITY) | fsv-api `create.rs`, fsv-cli `cmd/download.rs` |
+| `8465498` | downloads --max-bytes | ported, capped body read (see PARITY) | fsv-api `create.rs`, fsv-cli `cmd/download.rs` |
 | `4e44315` | attachments delete --confirm-destructive | ported | fsv-cli `cmd/attachments.rs` |
 | `7abd5a0` | assets search / candidates --per-page | ported | fsv-api `integrated_assets.rs`, fsv-cli `cmd/inventory.rs` |
 | `a427f9a` | docs only | n/a | no `docs/freshservice/` in the Rust tree |

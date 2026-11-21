@@ -212,10 +212,12 @@ impl Transport for ReqwestTransport {
         match req.body_limit.filter(|_| status < 400) {
             Some(limit) if declared.is_some_and(|n| n > limit) => {}
             Some(limit) => {
-                resp.by_ref()
-                    .take(limit.saturating_add(1))
-                    .read_to_end(&mut body)
-                    .map_err(map_read)?;
+                let chunked = resp
+                    .headers()
+                    .get("transfer-encoding")
+                    .and_then(|v| v.to_str().ok())
+                    .is_some_and(|v| v.to_ascii_lowercase().contains("chunked"));
+                read_chunks_to_limit(&mut resp, limit, chunked, &mut body).map_err(map_read)?;
             }
             None => {
                 resp.read_to_end(&mut body).map_err(map_read)?;
@@ -227,6 +229,41 @@ impl Transport for ReqwestTransport {
             headers,
             body,
         })
+    }
+}
+
+/// Python reads `Response.iter_bytes()` chunk by chunk (httpcore reads the
+/// socket 64 KiB at a time; a chunked body arrives one HTTP chunk at a time)
+/// and stops after the chunk that takes the total past `limit`, so the size it
+/// reports is the bytes read up to the end of that chunk. A close-delimited
+/// body is read here in the same 64 KiB steps; a chunked one a read at a time.
+fn read_chunks_to_limit(
+    resp: &mut impl Read,
+    limit: u64,
+    chunked: bool,
+    body: &mut Vec<u8>,
+) -> std::io::Result<()> {
+    const CHUNK: usize = 64 * 1024;
+    let mut buf = vec![0u8; CHUNK];
+    loop {
+        let mut got = 0;
+        while got < CHUNK {
+            let n = resp.read(&mut buf[got..])?;
+            if n == 0 {
+                break;
+            }
+            got += n;
+            if chunked {
+                break;
+            }
+        }
+        if got == 0 {
+            return Ok(());
+        }
+        body.extend_from_slice(&buf[..got]);
+        if body.len() as u64 > limit {
+            return Ok(());
+        }
     }
 }
 
@@ -314,9 +351,29 @@ mod body_limit_tests {
     }
 
     #[test]
-    fn an_unknown_length_stops_one_byte_past_the_limit() {
+    fn an_unknown_length_reports_the_chunk_that_crossed_the_limit() {
         let url = serve("200 OK", "", vec![b'x'; 5000]);
-        assert_eq!(get(&url, Some(100)).body.len(), 101);
+        assert_eq!(get(&url, Some(100)).body.len(), 5000);
+        let url = serve("200 OK", "", vec![b'x'; 200_000]);
+        assert_eq!(get(&url, Some(100)).body.len(), 65_536);
+        let url = serve("200 OK", "", vec![b'x'; 200_000]);
+        assert_eq!(get(&url, Some(70_000)).body.len(), 131_072);
+        let url = serve("200 OK", "", vec![b'x'; 5000]);
+        assert_eq!(get(&url, Some(5000)).body.len(), 5000);
+    }
+
+    #[test]
+    fn a_chunked_body_stops_after_the_http_chunk_that_crossed_the_limit() {
+        let mut body = Vec::new();
+        for _ in 0..4 {
+            body.extend_from_slice(b"2000\r\n");
+            body.extend_from_slice(&[b'x'; 8192]);
+            body.extend_from_slice(b"\r\n");
+        }
+        body.extend_from_slice(b"0\r\n\r\n");
+        let url = serve("200 OK", "Transfer-Encoding: chunked\r\n", body);
+        let n = get(&url, Some(100)).body.len();
+        assert!((101..=8192).contains(&n), "{n}");
     }
 
     #[test]

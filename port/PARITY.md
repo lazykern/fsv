@@ -577,8 +577,8 @@ Python's.
   refused after the body arrived (still before anything is written). The
   `.part` file is written and renamed from the buffered body. When the
   response has no `Content-Length`, the number in `streamed size over N bytes`
-  is the full body length; Python reports the bytes read up to the first chunk
-  that crossed the limit.
+  is the bytes read up to the end of the chunk that crossed the limit, like
+  Python's `iter_bytes()` (see the downloads entry under "Not verified").
 - **Failed send carries its HTTP status in `planning_files::Failure`
   (9056d44).** Python's `ReviewedWriteError(http_status=...)` and `as_dict()`
   come from the update-failure commit ff7b40c, which is not in this branch.
@@ -683,12 +683,19 @@ Fixed in Rust by this review:
 
 Not verified / known differences left:
 
-- `downloads --max-bytes` (fixed, see above) reads headers first and stops one
-  byte past the limit on a real connection, but the refused row's `size` for a
-  body without `Content-Length` is `limit + 1` in Rust and the bytes read up to
-  the chunk that crossed the limit in Python (chunk-size dependent). Mock
-  responses carry `Content-Length`, so the differential cannot see that case;
-  `fsv-core` has local-socket tests for the reader.
+- `downloads --max-bytes` without `Content-Length`: Python's `iter_bytes()`
+  yields what each socket read returns (httpcore reads 64 KiB at a time; a
+  chunked body arrives one HTTP chunk at a time) and breaks after the chunk
+  that crosses the limit, reporting the running total. Rust reads a
+  close-delimited body in 64 KiB fills and stops after the fill that crosses
+  the limit, and a chunked body one read at a time. A body under 64 KiB is one
+  chunk in both (the whole body, verified against Python on a local socket).
+  Larger bodies are not reproducible even in Python (probe: 200000 bytes,
+  limit 100 gave 65498, 16332 and 65536 on repeated runs), and a chunked body
+  reaches Rust's reads split by hyper's 8 KiB buffer (8186 vs Python's 8192),
+  so those sizes only agree within the chunk. Mock responses carry
+  `Content-Length`, so the differential cannot see that case; `fsv-core` has
+  local-socket tests for the reader.
 - The unit oracles (`fsv-api/src/testdata/*_oracle.json`, `fsv-flows` goldens)
   were not regenerated: `port/golden/gen_*.py` is not in the tree. The
   composed ones re-blessed from Rust output (`ticket_assignment`,
