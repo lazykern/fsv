@@ -47,7 +47,7 @@ fsv changes columns list	--json,--output	0
 fsv changes columns set	--column,--dry-run,--expect-plan,--freeze,--json,--output,--yes	0
 fsv changes create	--ack,--agent,--agent-id,--all,--allow-duplicate,--attach,--attach-flow,--desc,--description,--device,--dry-run,--edit,--expect-plan,--from,--group,--group-id,--json,--max-bytes,--no-input,--no-validate,--optional,--output,--preset,--priority,--requester,--set,--status,--subject,--yes	0
 fsv changes delete	--confirm-destructive,--dry-run,--expect-plan,--json,--yes	1
-fsv changes download	--all,--all-planning,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--out,--planning	1
+fsv changes download	--all,--all-planning,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--max-bytes,--out,--planning	1
 fsv changes export	--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
 fsv changes fields	--choices,--custom,--default,--json,--output,--refresh,--required	1
 fsv changes get	--all-conversations,--all-tabs,--json,--output,--stats,--tab	1
@@ -120,7 +120,7 @@ fsv problems columns set	--column,--dry-run,--expect-plan,--freeze,--json,--outp
 fsv problems create	--dry-run,--expect-plan,--from,--json,--output,--requester,--set,--yes	0
 fsv problems delete	--confirm-destructive,--dry-run,--expect-plan,--json,--yes	1
 fsv problems delete-forever	--confirm-destructive,--dry-run,--expect-plan,--json,--max-records,--yes	1
-fsv problems download	--all,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--notes,--out	1
+fsv problems download	--all,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--max-bytes,--notes,--out	1
 fsv problems export	--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
 fsv problems fields	--choices,--custom,--default,--json,--output,--refresh,--required	1
 fsv problems get	--all-conversations,--all-tabs,--json,--output,--stats,--tab	1
@@ -213,7 +213,7 @@ fsv tickets columns set	--column,--dry-run,--expect-plan,--freeze,--json,--outpu
 fsv tickets conversations	--all,--json,--npages,--output,--page,--per-page	1
 fsv tickets create	--ack,--allow-duplicate,--attach,--cc,--device,--dry-run,--edit,--expect-plan,--from,--json,--max-bytes,--no-input,--output,--preset,--requester,--set,--template,--yes	0
 fsv tickets delete-forever	--confirm-destructive,--dry-run,--expect-plan,--json,--max-records,--yes	1
-fsv tickets download	--all,--attachments,--conversations,--description-attachments,--dir,--force,--json,--main-attachments,--out	1
+fsv tickets download	--all,--attachments,--conversations,--description-attachments,--dir,--force,--json,--main-attachments,--max-bytes,--out	1
 fsv tickets export	--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
 fsv tickets fields	--choices,--custom,--default,--json,--output,--refresh,--required	1
 fsv tickets forward	--conversation,--dry-run,--expect-plan,--json,--output,--sender,--to,--yes	2

@@ -47,15 +47,62 @@ pub fn py_path(p: &Path) -> PathBuf {
     })
 }
 
-fn fetch_one(c: &Client, att: &Value, dir: &Path, force: bool, source: &str) -> Result<Value> {
-    let mut r = download_attachment(c, att, dir, force)?;
-    if let Value::Object(m) = &mut r {
-        m.insert("source".into(), json!(source));
-        let skipped = m.get("skipped").is_some_and(fsv_py::truthy);
-        m.insert(
-            "status".into(),
-            json!(if skipped { "skipped" } else { "downloaded" }),
+/// `_download_limit`: `--max-bytes`, else the tenant's published attachment
+/// limit, else no limit (with a note on stderr).
+fn download_limit(c: &Client, max_bytes: Option<i64>) -> Option<i64> {
+    if max_bytes.is_some() {
+        return max_bytes;
+    }
+    let limit = fsv_api::attachments::page_limit(c).ok().flatten();
+    if limit.is_none() {
+        err().print(
+            "note: the tenant attachment size limit is unknown; downloading without a size limit \
+             (pass --max-bytes N to set one)",
         );
+    }
+    limit
+}
+
+/// `_download_status`: a refused file is announced on stderr.
+fn download_status(item: &Value) -> &'static str {
+    if item.get("refused").is_some_and(fsv_py::truthy) {
+        err().print(&format!(
+            "[yellow]refused[/yellow] {}: {}",
+            escape(&item.get("name").map(fsv_py::py_str).unwrap_or_else(|| "None".into())),
+            escape(&fsv_py::py_str(&item["refused"]))
+        ));
+        return "refused";
+    }
+    if item.get("skipped").is_some_and(fsv_py::truthy) {
+        "skipped"
+    } else {
+        "downloaded"
+    }
+}
+
+/// `_exit_if_refused`: exit 1 after the manifest when the size limit refused a file.
+fn exit_if_refused(results: &[Value]) -> Result<()> {
+    if results
+        .iter()
+        .any(|item| item.get("status") == Some(&json!("refused")))
+    {
+        return Err(Error::exit(1, ""));
+    }
+    Ok(())
+}
+
+fn fetch_one(
+    c: &Client,
+    att: &Value,
+    dir: &Path,
+    force: bool,
+    limit: Option<i64>,
+    source: &str,
+) -> Result<Value> {
+    let mut r = download_attachment(c, att, dir, force, limit)?;
+    if r.is_object() {
+        r["source"] = json!(source);
+        r["status"] = json!(download_status(&r));
     }
     Ok(r)
 }
@@ -73,10 +120,10 @@ fn description_att(url: &str) -> Value {
     json!({"canonical_url": url, "name": format!("attachment-{id}")})
 }
 
-fn report(results: &[Value], label: &str, dir: &Path, json_out: bool) {
+fn report(results: &[Value], label: &str, dir: &Path, json_out: bool) -> Result<()> {
     if json_out {
         fsv_core::output::emit_json(&Value::Array(results.to_vec()));
-        return;
+        return exit_if_refused(results);
     }
     let mut t = Table::new().title(format!("Downloaded attachments for {label}"));
     t.add_column(Column::new("Status").style("cyan"));
@@ -94,6 +141,7 @@ fn report(results: &[Value], label: &str, dir: &Path, json_out: bool) {
     }
     out().print_table(&t);
     out().print(&format!("[green]output[/] {}", dir.display()));
+    exit_if_refused(results)
 }
 
 /// `download_generic`: only Session/API errors are reported; the rest are uncaught.
@@ -104,6 +152,7 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
     };
     let id = cid(&a.id_, res)?;
     let c = client()?;
+    let limit = download_limit(&c, a.max_bytes);
     let (mut main, mut threads, mut description) =
         (a.main_attachments, a.threads, a.description_attachments);
     if a.all_ {
@@ -127,7 +176,7 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
             .into_iter()
             .flatten()
         {
-            results.push(fetch_one(&c, att, &dir, a.force, "attachments").map_err(caught)?);
+            results.push(fetch_one(&c, att, &dir, a.force, limit, "attachments").map_err(caught)?);
         }
     }
     if threads {
@@ -161,7 +210,7 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
                 .into_iter()
                 .flatten()
             {
-                results.push(fetch_one(&c, att, &dir, a.force, key).map_err(caught)?);
+                results.push(fetch_one(&c, att, &dir, a.force, limit, key).map_err(caught)?);
             }
         }
     }
@@ -173,14 +222,13 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
         for url in service::extract_description_attachment_urls(html.as_deref(), &c.tenant().domain)
         {
             results.push(
-                fetch_one(&c, &description_att(&url), &dir, a.force, "description")
+                fetch_one(&c, &description_att(&url), &dir, a.force, limit, "description")
                     .map_err(caught)?,
             );
         }
     }
     let _ = TICKETS;
-    report(&results, &format!("{pfx}-{id}"), &dir, a.json_out);
-    Ok(())
+    report(&results, &format!("{pfx}-{id}"), &dir, a.json_out)
 }
 
 /// `changes download`: every error goes through `_err_exc`.
@@ -202,6 +250,7 @@ fn changes_inner(a: &ChangesDownloadArgs, id: i64, c: &std::sync::Arc<Client>) -
     if a.planning.is_empty() && !all_planning && !main && !description {
         all_planning = true;
     }
+    let limit = download_limit(c, a.max_bytes);
     let dir = download_dir(a.out.as_deref(), &format!("CHN-{id}"));
     let mut results = Vec::new();
     let mut evidence: Option<Value> = None;
@@ -255,7 +304,7 @@ fn changes_inner(a: &ChangesDownloadArgs, id: i64, c: &std::sync::Arc<Client>) -
                 continue;
             }
             for att in &atts {
-                results.push(fetch_one(c, att, &dir, a.force, &source)?);
+                results.push(fetch_one(c, att, &dir, a.force, limit, &source)?);
             }
         }
         evidence = Some(ev);
@@ -271,7 +320,7 @@ fn changes_inner(a: &ChangesDownloadArgs, id: i64, c: &std::sync::Arc<Client>) -
             .into_iter()
             .flatten()
         {
-            results.push(fetch_one(c, att, &dir, a.force, "attachments")?);
+            results.push(fetch_one(c, att, &dir, a.force, limit, "attachments")?);
         }
     }
     if description {
@@ -287,12 +336,12 @@ fn changes_inner(a: &ChangesDownloadArgs, id: i64, c: &std::sync::Arc<Client>) -
                 &description_att(&url),
                 &dir,
                 a.force,
+                limit,
                 "description",
             )?);
         }
     }
-    report(&results, &format!("CHN-{id}"), &dir, a.json_out);
-    Ok(())
+    report(&results, &format!("CHN-{id}"), &dir, a.json_out)
 }
 
 #[cfg(test)]

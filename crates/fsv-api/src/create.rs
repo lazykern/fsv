@@ -584,8 +584,45 @@ fn skipped_result(name: &str, path: &Path) -> Value {
     json!({"name": name, "path": path.to_string_lossy(), "size": size, "skipped": true})
 }
 
-/// `download_attachment`: one file into `out_dir` (kept unless `force`).
-pub fn download_attachment(c: &dyn Api, att: &Value, out_dir: &Path, force: bool) -> Result<Value> {
+/// `_declared_size`: the attachment's size as the server lists it (bytes).
+fn declared_size(att: &Value) -> Option<i64> {
+    for key in ["size", "content_file_size", "file_size"] {
+        match att.get(key) {
+            Some(Value::Number(n)) if n.is_i64() || n.is_u64() => {
+                if let Some(v) = n.as_i64().filter(|v| *v >= 0) {
+                    return Some(v);
+                }
+            }
+            Some(Value::String(t)) if !t.is_empty() && t.bytes().all(|b| b.is_ascii_digit()) => {
+                if let Ok(v) = t.parse() {
+                    return Some(v);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// `_too_large`: the result row of a file refused by `--max-bytes`.
+fn too_large(name: &str, path: &Path, size: i64, max_bytes: i64, what: &str) -> Value {
+    json!({
+        "name": name, "path": path.to_string_lossy(), "size": size, "skipped": true,
+        "refused": format!("{what} {size} bytes exceeds the {max_bytes}-byte limit; not downloaded"),
+    })
+}
+
+/// `download_attachment`: one file into `out_dir` (kept unless `force`),
+/// written to a `.part` file and renamed when complete. `max_bytes` refuses
+/// (`refused` in the row, nothing written) a file whose listed size,
+/// Content-Length or body exceeds it.
+pub fn download_attachment(
+    c: &dyn Api,
+    att: &Value,
+    out_dir: &Path,
+    force: bool,
+    max_bytes: Option<i64>,
+) -> Result<Value> {
     let url = attachment_url(att, &c.domain());
     if url.is_empty() {
         return Err(api0(format!("attachment has no URL: {}", py_repr(att))));
@@ -599,6 +636,11 @@ pub fn download_attachment(c: &dyn Api, att: &Value, out_dir: &Path, force: bool
     let mut path = out_dir.join(&name);
     if path.exists() && !force {
         return Ok(skipped_result(&name, &path));
+    }
+    if let (Some(max), Some(declared)) = (max_bytes, declared_size(att))
+        && declared > max
+    {
+        return Ok(too_large(&name, &path, declared, max, "listed size"));
     }
     eprintln!("  downloading {name}...");
     let r = c.fetch(&url)?;
@@ -617,10 +659,28 @@ pub fn download_attachment(c: &dyn Api, att: &Value, out_dir: &Path, force: bool
             return Ok(skipped_result(&name, &path));
         }
     }
-    std::fs::write(&path, &r.body).map_err(|e| Error::other(e.to_string()))?;
-    Ok(
-        json!({"name": name, "path": path.to_string_lossy(), "size": r.body.len(), "skipped": false}),
-    )
+    let length = r.header("content-length").unwrap_or("");
+    if let Some(max) = max_bytes
+        && !length.is_empty()
+        && length.bytes().all(|b| b.is_ascii_digit())
+        && let Ok(n) = length.parse::<i64>()
+        && n > max
+    {
+        return Ok(too_large(&name, &path, n, max, "declared size"));
+    }
+    let size = r.body.len() as i64;
+    if let Some(max) = max_bytes
+        && size > max
+    {
+        return Ok(too_large(&name, &path, size, max, "streamed size over"));
+    }
+    let part = path.with_file_name(format!(".{name}.part"));
+    let written = std::fs::write(&part, &r.body).and_then(|()| std::fs::rename(&part, &path));
+    if let Err(e) = written {
+        let _ = std::fs::remove_file(&part);
+        return Err(Error::other(e.to_string()));
+    }
+    Ok(json!({"name": name, "path": path.to_string_lossy(), "size": size, "skipped": false}))
 }
 
 fn now_epoch() -> f64 {
@@ -2181,14 +2241,15 @@ mod tests {
         let a = FakeApi::new().on("FETCH https://x/f1", Reply::Raw(200, b"one".to_vec()));
         let one = json!({"name": "one.txt", "attachment_url": "https://x/f1"});
         let mut out = vec![
-            download_attachment(&a, &one, &dir, false).unwrap(),
-            download_attachment(&a, &one, &dir, false).unwrap(),
-            download_attachment(&a, &one, &dir, true).unwrap(),
+            download_attachment(&a, &one, &dir, false, None).unwrap(),
+            download_attachment(&a, &one, &dir, false, None).unwrap(),
+            download_attachment(&a, &one, &dir, true, None).unwrap(),
             download_attachment(
                 &a,
                 &json!({"id": 4, "attachment_url": "https://x/f1"}),
                 &dir,
                 false,
+                None,
             )
             .unwrap(),
         ];
@@ -2214,7 +2275,8 @@ mod tests {
                 &bad,
                 &json!({"name": "z.txt", "attachment_url": "https://x/bad"}),
                 &dir,
-                false
+                false,
+                None
             )),
             want_err("download_bad")
         );
@@ -2223,7 +2285,8 @@ mod tests {
                 &FakeApi::new(),
                 &json!({"id": 1}),
                 &dir,
-                false
+                false,
+                None
             )),
             want_err("download_nourl")
         );
@@ -3339,5 +3402,65 @@ mod tests {
             run(Some(&names), false, "pdl_names"),
             want("planning_download_names")
         );
+    }
+
+    /// `tests/test_download_size_guard.py`.
+    const GUARD_BODY: &[u8] = b"Acme evidence\nAcme evidence\nAcme evidence\nAcme evidence\nAcme evidence\nAcme evidence\nAcme evidence\nAcme evidence\n";
+
+    fn guard_att(extra: Value) -> Value {
+        let mut a = json!({"name": "acme.txt", "attachment_url": "https://files.example.com/acme"});
+        a.as_object_mut().unwrap().extend(extra.as_object().unwrap().clone());
+        a
+    }
+
+    fn guard_api(length: Option<&'static str>) -> FnApi {
+        FnApi::new(|call| panic!("unexpected {}", call.path)).with_fetch(move |_| {
+            let r = fsv_core::client::Response::new(200).with_body(GUARD_BODY.to_vec());
+            Ok(match length {
+                Some(l) => r.with_header("content-length", l),
+                None => r,
+            })
+        })
+    }
+
+    #[test]
+    fn listed_size_over_limit_is_refused_without_a_request() {
+        let out = tmp("guard_listed");
+        let a = guard_api(None);
+        let r = download_attachment(&a, &guard_att(json!({"size": 500})), &out, false, Some(100)).unwrap();
+        assert!(
+            r["refused"].as_str().unwrap().contains("listed size 500 bytes exceeds the 100-byte limit"),
+            "{r}"
+        );
+        assert_eq!(r["skipped"], json!(true));
+        assert!(a.calls.lock().unwrap().is_empty());
+        assert_eq!(std::fs::read_dir(&out).unwrap().count(), 0);
+    }
+
+    #[test]
+    fn declared_or_streamed_size_over_limit_writes_nothing() {
+        for (length, what) in [(Some("112"), "declared size 112"), (None, "streamed size over 112")] {
+            let out = tmp("guard_declared");
+            let a = guard_api(length);
+            let r = download_attachment(&a, &guard_att(json!({})), &out, false, Some(50)).unwrap();
+            assert!(r["refused"].as_str().unwrap().contains(what), "{r}");
+            assert_eq!(a.calls.lock().unwrap().len(), 1);
+            assert_eq!(std::fs::read_dir(&out).unwrap().count(), 0, "no file, no .part");
+        }
+    }
+
+    #[test]
+    fn under_limit_streams_to_disk() {
+        let out = tmp("guard_ok");
+        let a = guard_api(Some("112"));
+        let size = GUARD_BODY.len() as i64;
+        let r = download_attachment(&a, &guard_att(json!({"size": size})), &out, false, Some(size)).unwrap();
+        assert_eq!(
+            r,
+            json!({"name": "acme.txt", "path": out.join("acme.txt").to_string_lossy(), "size": size, "skipped": false})
+        );
+        assert_eq!(std::fs::read(out.join("acme.txt")).unwrap(), GUARD_BODY);
+        let names: Vec<_> = std::fs::read_dir(&out).unwrap().map(|e| e.unwrap().file_name()).collect();
+        assert_eq!(names, ["acme.txt"]);
     }
 }

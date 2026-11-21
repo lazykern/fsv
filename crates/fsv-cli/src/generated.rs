@@ -1577,6 +1577,13 @@ pub struct ChangesDownloadArgs {
     pub out: Option<PathBuf>,
     #[arg(help = "overwrite existing files", long = "force")]
     pub force: bool,
+    #[arg(
+        help = "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
     #[arg(help = "emit JSON manifest", long = "json")]
     pub json_out: bool,
 }
@@ -3332,6 +3339,13 @@ pub struct ResDownloadArgs {
     pub out: Option<PathBuf>,
     #[arg(help = "overwrite existing files", long = "force")]
     pub force: bool,
+    #[arg(
+        help = "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
     #[arg(help = "emit JSON manifest", long = "json")]
     pub json_out: bool,
 }

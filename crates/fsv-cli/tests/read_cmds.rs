@@ -346,10 +346,35 @@ output downloads/INC-5
     );
     assert_eq!(
         r.err,
-        r#"output directory: downloads/INC-5 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/INC-5 (default ./downloads/<ID>; choose with --dir)
   downloading log.txt...
 "#
     );
+}
+
+#[test]
+fn download_max_bytes_refuses_a_larger_file_and_exits_1() {
+    let r = run_fixture(
+        "downloads",
+        &["tickets", "download", "5", "--max-bytes", "6", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 1, "{}", r.err);
+    let rows = r.json();
+    let row = &rows[0];
+    assert_eq!(row["status"], "refused");
+    assert_eq!(row["skipped"], true);
+    assert_eq!(row["size"], 7);
+    assert!(
+        row["refused"]
+            .as_str()
+            .unwrap()
+            .contains("7 bytes exceeds the 6-byte limit; not downloaded"),
+        "{row}"
+    );
+    assert!(!r.err.contains("size limit is unknown"), "{}", r.err);
+    assert!(r.err.contains("refused log.txt: "), "{}", r.err);
 }
 
 #[test]
@@ -400,7 +425,8 @@ fn download_ticket_all_json() {
     );
     assert_eq!(
         r.err,
-        r#"output directory: downloads/INC-5 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/INC-5 (default ./downloads/<ID>; choose with --dir)
   downloading log.txt...
   downloading reply.png...
   downloading attachment-93...
@@ -437,7 +463,8 @@ output out
     );
     assert_eq!(
         r.err,
-        r#"output directory: out (--dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: out (--dir)
   downloading reply.png...
 "#
     );
@@ -450,7 +477,8 @@ fn download_problem_api_error() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"output directory: downloads/PRB-9 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/PRB-9 (default ./downloads/<ID>; choose with --dir)
 error: HTTP 500 fetching problem: boom
 "#
     );
@@ -473,7 +501,8 @@ output downloads/CHN-5
     );
     assert_eq!(
         r.err,
-        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
   downloading plan.pdf...
 "#
     );
@@ -519,7 +548,8 @@ fn download_change_all_json() {
     );
     assert_eq!(
         r.err,
-        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
   downloading plan.pdf...
   downloading log.txt...
   downloading attachment-93...
@@ -546,7 +576,8 @@ fn download_change_named_planning() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
 error: planning field not found: 'rollout'; choices: Rollout plan, Backout plan
 "#
     );
@@ -563,7 +594,8 @@ fn download_change_unknown_planning() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+        r#"note: the tenant attachment size limit is unknown; downloading without a size limit (pass --max-bytes N to set one)
+output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
 error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
 "#
     );

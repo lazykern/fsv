@@ -266,7 +266,7 @@ fn failed_download_keeps_existing_bytes_even_with_force() {
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("plan.txt"), b"local bytes").unwrap();
     let att = json!({"name": "plan.txt", "attachment_url": "https://example.com/old"});
-    let r = download_attachment(&c, &att, &dir, true);
+    let r = download_attachment(&c, &att, &dir, true, None);
     assert_eq!(outcome(r, case), want_outcome(case));
     assert_eq!(
         std::fs::read_to_string(dir.join("plan.txt")).unwrap(),
@@ -280,7 +280,7 @@ fn missing_download_url_creates_no_directory() {
     let case = &ORACLE["attachments"]["missing_url"];
     let c = attach_api(None, None);
     let dir = fresh_dir("missing_url");
-    let r = download_attachment(&c, &json!({"name": "plan.txt"}), &dir, false);
+    let r = download_attachment(&c, &json!({"name": "plan.txt"}), &dir, false, None);
     assert_eq!(outcome(r, case), want_outcome(case));
     assert_eq!(json!(dir.exists()), case["created_dir"]);
     assert_eq!(calls_of(&c, "FETCH"), case["downloads"]);
