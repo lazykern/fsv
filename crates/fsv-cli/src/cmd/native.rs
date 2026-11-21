@@ -8,7 +8,7 @@ use std::sync::Arc;
 use serde_json::{Map, Value, json};
 
 use fsv_api::formmeta::{ClientResolver, DiskStore};
-use fsv_api::service::{Api, DiskJournal};
+use fsv_api::service::{Api, DiskJournal, Journal};
 use fsv_api::{
     canned, conversations, list_preferences, private_views, problem_workflows, scenarios,
 };
@@ -160,6 +160,7 @@ pub struct PrivateViewWrite {
     pub dry_run: bool,
     pub yes: bool,
     pub expect_plan: Option<String>,
+    pub confirm_destructive: bool,
 }
 
 impl From<TicketsPrivateViewsWriteArgs> for PrivateViewWrite {
@@ -171,6 +172,7 @@ impl From<TicketsPrivateViewsWriteArgs> for PrivateViewWrite {
             dry_run: a.dry_run,
             yes: a.yes,
             expect_plan: a.expect_plan,
+            confirm_destructive: a.confirm_destructive,
         }
     }
 }
@@ -184,6 +186,7 @@ impl From<ChangesPrivateViewsWriteArgs> for PrivateViewWrite {
             dry_run: a.dry_run,
             yes: a.yes,
             expect_plan: a.expect_plan,
+            confirm_destructive: a.confirm_destructive,
         }
     }
 }
@@ -200,6 +203,12 @@ pub fn private_views_write(module: &str, a: PrivateViewWrite) -> CmdResult {
         }
         let hash = plan.hash();
         require_review(a.yes, a.expect_plan.as_deref(), &hash)?;
+        if plan.plan.method == "DELETE" && !a.confirm_destructive {
+            return Err(Error::exit(
+                2,
+                "deleting a view cannot be undone; pass --confirm-destructive with --yes --expect-plan. Nothing was sent",
+            ));
+        }
         let result = private_views::send(&plan, c.as_ref(), &DiskJournal, Some(&hash))?;
         println!("{}", dumps(&result));
         Ok(())
@@ -244,19 +253,47 @@ pub fn columns_set(res: &'static Resource, a: ColumnsSetArgs) -> CmdResult {
     run().map_err(refusal)
 }
 
-/// Export is review-only: `--yes`/`--expect-plan` are refused before any
-/// read, and the review is printed with or without `--dry-run`.
+/// `export`: without `--yes` a review; `--yes --expect-plan FULL_HASH
+/// --confirm-send-to-me` submits it once (the server emails the file).
 pub fn export(res: &'static Resource, a: ResExportArgs) -> CmdResult {
     let run = || -> Result<()> {
-        if a.yes || a.expect_plan.is_some() {
+        let c = client()?;
+        let plan =
+            list_preferences::export_plan(c.as_ref(), &DiskJournal, res.name, &a.view, &a.field)?;
+        if a.dry_run || !a.yes {
+            if a.expect_plan.is_some() && !a.dry_run {
+                return Err(Error::exit(
+                    2,
+                    "--expect-plan sends only with --yes --confirm-send-to-me; nothing was sent",
+                ));
+            }
+            print_dry_run(plan.review());
+            return Ok(());
+        }
+        let hash = plan.hash();
+        if a.expect_plan.as_deref() != Some(hash.as_str()) {
+            let stale = a
+                .expect_plan
+                .as_deref()
+                .filter(|e| !e.is_empty())
+                .and_then(|e| DiskJournal.stale_plan_refusal(Some(e), &["list_export"]));
             return Err(Error::exit(
                 2,
-                "export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export",
+                stale.unwrap_or_else(|| {
+                    "review first, then pass --yes with the full --expect-plan hash; nothing was sent"
+                        .into()
+                }),
             ));
         }
-        let c = client()?;
-        let plan = list_preferences::export_plan(c.as_ref(), res.name, &a.view, &a.field)?;
-        print_dry_run(plan.review());
+        if !a.confirm_send_to_me {
+            return Err(Error::exit(
+                2,
+                "the server emails this export to your own mailbox; pass --confirm-send-to-me with --yes --expect-plan. Nothing was sent",
+            ));
+        }
+        let result =
+            list_preferences::send(&plan, c.as_ref(), &DiskJournal, a.expect_plan.as_deref())?;
+        println!("{}", dumps(&result));
         Ok(())
     };
     run().map_err(refusal)

@@ -38,6 +38,7 @@ C	fsv assets search
 A	fsv assets search	<query>	
 A	fsv assets search	--kind	
 A	fsv assets search	--page	
+A	fsv assets search	--per-page	rows per page, 1 to 100 (default 50)
 A	fsv assets search	--json	
 C	fsv solutions	Draft knowledge solutions.
 C	fsv solutions delete	Move one knowledge article to the trash (reviewed; --confirm-destructive).
@@ -274,12 +275,13 @@ C	fsv changes ci-list
 A	fsv changes ci-list	<target>	
 A	fsv changes ci-list	--kind	
 A	fsv changes ci-list	--json	
-C	fsv changes export	Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).
+C	fsv changes export	Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.
 A	fsv changes export	--view	saved view ID or unique name
 A	fsv changes export	--field	captured export field key (repeatable)
 A	fsv changes export	--dry-run	
 A	fsv changes export	--yes	
 A	fsv changes export	--expect-plan	
+A	fsv changes export	--confirm-send-to-me	required with --yes: the server emails the export to your own mailbox
 A	fsv changes export	--output	
 A	fsv changes export	--json	
 C	fsv changes asset-picker	Search/select a change asset candidate without associating it (read-only).
@@ -343,6 +345,7 @@ A	fsv changes update	--backup-replaced	when --duplicate replace, backup old atta
 A	fsv changes update	--backup-name	backup filename for replaced attachment
 A	fsv changes update	--attach	file(s) to attach to main change (Attachments section)
 A	fsv changes update	--due-by	reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH
+A	fsv changes update	--max-bytes	--attach and --planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)
 A	fsv changes update	--dry-run	print resolved payload without updating
 A	fsv changes update	--yes	confirm status changes, reassignment and other notifying writes
 A	fsv changes update	--json	emit JSON
@@ -360,6 +363,7 @@ A	fsv changes download	--description-attachments	download attachment links found
 A	fsv changes download	--all	download planning, main, and description attachments
 A	fsv changes download	--dir	output directory (default: ./downloads/CHN-<id>)
 A	fsv changes download	--force	overwrite existing files
+A	fsv changes download	--max-bytes	refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)
 A	fsv changes download	--json	emit JSON manifest
 C	fsv changes clone	Clone a change.
 A	fsv changes clone	<id_>	change ID to clone (pre-fills form)
@@ -540,6 +544,7 @@ A	fsv changes assets candidates	<target>
 A	fsv changes assets candidates	--search	integrated search text
 A	fsv changes assets candidates	--kind	
 A	fsv changes assets candidates	--page	
+A	fsv changes assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv changes assets candidates	--json	
 C	fsv changes assets legacy	
 A	fsv changes assets legacy	<target>	
@@ -567,6 +572,7 @@ C	fsv changes assets search
 A	fsv changes assets search	<query>	
 A	fsv changes assets search	--kind	
 A	fsv changes assets search	--page	
+A	fsv changes assets search	--per-page	rows per page, 1 to 100 (default 50)
 A	fsv changes assets search	--json	
 C	fsv changes columns	Inspect/set native list columns (shared account preferences may be affected).
 C	fsv changes columns list	
@@ -580,7 +586,7 @@ A	fsv changes columns set	--yes
 A	fsv changes columns set	--expect-plan	
 A	fsv changes columns set	--output	
 A	fsv changes columns set	--json	
-C	fsv changes private-views	Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.
+C	fsv changes private-views	Private change views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.
 C	fsv changes private-views list	Your own non-default saved views (the list carries no visibility).
 A	fsv changes private-views list	--output	
 A	fsv changes private-views list	--json	
@@ -590,11 +596,12 @@ A	fsv changes private-views show	--output
 A	fsv changes private-views show	--json	
 C	fsv changes private-views write	
 A	fsv changes private-views write	<id_>	
-A	fsv changes private-views write	<action>	create (clone source); rename/delete are not captured for change views
+A	fsv changes private-views write	<action>	create (clone source) | rename | delete
 A	fsv changes private-views write	--name	
 A	fsv changes private-views write	--dry-run	
 A	fsv changes private-views write	--yes	
 A	fsv changes private-views write	--expect-plan	
+A	fsv changes private-views write	--confirm-destructive	required with --yes for delete
 A	fsv changes private-views write	--output	
 A	fsv changes private-views write	--json	
 C	fsv changes watchers	Read watcher membership and review self-only watch changes.
@@ -645,12 +652,13 @@ C	fsv tickets tasks-legacy	List ticket tasks.
 A	fsv tickets tasks-legacy	<id_>	
 A	fsv tickets tasks-legacy	--output	output format
 A	fsv tickets tasks-legacy	--json	alias for --output json
-C	fsv tickets export	Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).
+C	fsv tickets export	Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.
 A	fsv tickets export	--view	saved view ID or unique name
 A	fsv tickets export	--field	captured export field key (repeatable)
 A	fsv tickets export	--dry-run	
 A	fsv tickets export	--yes	
 A	fsv tickets export	--expect-plan	
+A	fsv tickets export	--confirm-send-to-me	required with --yes: the server emails the export to your own mailbox
 A	fsv tickets export	--output	
 A	fsv tickets export	--json	
 C	fsv tickets note-edit	Review an edit to an exact ticket note.
@@ -868,6 +876,11 @@ A	fsv tickets update	--tag	tickets only: replace all tags with these values (rep
 A	fsv tickets update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv tickets update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv tickets update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
+A	fsv tickets update	--planning	problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update
+A	fsv tickets update	--description	problems --planning: section text/HTML; '-' reads stdin
+A	fsv tickets update	--file	problems --planning: file(s) to upload to the section
+A	fsv tickets update	--duplicate	problems --planning --file: same-name attachment behavior: prompt|skip|replace|append
+A	fsv tickets update	--max-bytes	problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)
 A	fsv tickets update	--reviewed	--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release
 A	fsv tickets update	--ack	tickets: acknowledge blocking rule messages (bound to the review hash)
 A	fsv tickets update	--expect-plan	full reviewed hash (ticket property update, problem update)
@@ -880,9 +893,12 @@ A	fsv tickets download	<id_>
 A	fsv tickets download	--attachments	download main attachments
 A	fsv tickets download	--conversations	download attachments from conversations/replies
 A	fsv tickets download	--description-attachments	download attachment links found in description HTML
+A	fsv tickets download	--planning	problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)
+A	fsv tickets download	--all-planning	problems: download every analysis section's attachments
 A	fsv tickets download	--all	download all attachments from all sources
 A	fsv tickets download	--dir	output directory (default: ./downloads/<ID>)
 A	fsv tickets download	--force	overwrite existing files
+A	fsv tickets download	--max-bytes	refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)
 A	fsv tickets download	--json	emit JSON manifest
 C	fsv tickets conversations	List ticket conversations/replies.
 A	fsv tickets conversations	<id_>	
@@ -933,6 +949,7 @@ A	fsv tickets assets candidates	<target>
 A	fsv tickets assets candidates	--search	integrated search text
 A	fsv tickets assets candidates	--kind	
 A	fsv tickets assets candidates	--page	
+A	fsv tickets assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv tickets assets candidates	--json	
 C	fsv tickets assets add	
 A	fsv tickets assets add	<target>	
@@ -1032,6 +1049,7 @@ A	fsv tickets private-views write	--name
 A	fsv tickets private-views write	--dry-run	
 A	fsv tickets private-views write	--yes	
 A	fsv tickets private-views write	--expect-plan	
+A	fsv tickets private-views write	--confirm-destructive	required with --yes for delete
 A	fsv tickets private-views write	--output	
 A	fsv tickets private-views write	--json	
 C	fsv tickets canned	Read canned responses and insert selected literal HTML into a reviewed reply.
@@ -1207,12 +1225,13 @@ C	fsv problems tasks	List problem tasks.
 A	fsv problems tasks	<id_>	
 A	fsv problems tasks	--output	output format
 A	fsv problems tasks	--json	alias for --output json
-C	fsv problems export	Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).
+C	fsv problems export	Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.
 A	fsv problems export	--view	saved view ID or unique name
 A	fsv problems export	--field	captured export field key (repeatable)
 A	fsv problems export	--dry-run	
 A	fsv problems export	--yes	
 A	fsv problems export	--expect-plan	
+A	fsv problems export	--confirm-send-to-me	required with --yes: the server emails the export to your own mailbox
 A	fsv problems export	--output	
 A	fsv problems export	--json	
 C	fsv problems task-write	Review a problem task update, complete or delete; completion may rewrite planned dates.
@@ -1377,6 +1396,11 @@ A	fsv problems update	--tag	tickets only: replace all tags with these values (re
 A	fsv problems update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv problems update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
 A	fsv problems update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
+A	fsv problems update	--planning	problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update
+A	fsv problems update	--description	problems --planning: section text/HTML; '-' reads stdin
+A	fsv problems update	--file	problems --planning: file(s) to upload to the section
+A	fsv problems update	--duplicate	problems --planning --file: same-name attachment behavior: prompt|skip|replace|append
+A	fsv problems update	--max-bytes	problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)
 A	fsv problems update	--reviewed	--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release
 A	fsv problems update	--ack	tickets: acknowledge blocking rule messages (bound to the review hash)
 A	fsv problems update	--expect-plan	full reviewed hash (ticket property update, problem update)
@@ -1389,9 +1413,12 @@ A	fsv problems download	<id_>
 A	fsv problems download	--attachments	download main attachments
 A	fsv problems download	--notes	download attachments from notes
 A	fsv problems download	--description-attachments	download attachment links found in description HTML
+A	fsv problems download	--planning	problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)
+A	fsv problems download	--all-planning	problems: download every analysis section's attachments
 A	fsv problems download	--all	download all attachments from all sources
 A	fsv problems download	--dir	output directory (default: ./downloads/<ID>)
 A	fsv problems download	--force	overwrite existing files
+A	fsv problems download	--max-bytes	refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)
 A	fsv problems download	--json	emit JSON manifest
 C	fsv problems notes	List problem notes.
 A	fsv problems notes	<id_>	
@@ -1424,6 +1451,7 @@ A	fsv problems assets candidates	<target>
 A	fsv problems assets candidates	--search	integrated search text
 A	fsv problems assets candidates	--kind	
 A	fsv problems assets candidates	--page	
+A	fsv problems assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv problems assets candidates	--json	
 C	fsv problems assets add	
 A	fsv problems assets add	<target>	
@@ -1491,6 +1519,7 @@ A	fsv attachments delete	--section	exact native planning section key
 A	fsv attachments delete	--dry-run	
 A	fsv attachments delete	--yes	
 A	fsv attachments delete	--expect-plan	
+A	fsv attachments delete	--confirm-destructive	required with --yes: the delete is permanent (no restore wire)
 A	fsv attachments delete	--json	
 C	fsv form	inspect form fields and business rules (explain, fields, dump, diff)
 C	fsv form explain	Why each field is visible, required or hidden, by rule.
@@ -1535,6 +1564,7 @@ A	fsv sr create	--requester	requester email or exact name
 A	fsv sr create	--requested-for	exact user email or name
 A	fsv sr create	--cc	plain CC email (repeatable)
 A	fsv sr create	--attach	general attachment (repeatable)
+A	fsv sr create	--max-bytes	total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash
 A	fsv sr create	--dry-run	show the review, payload and plan hash; send nothing
 A	fsv sr create	--output	table|json (with --dry-run: the plan)
 A	fsv sr create	--yes	place without the prompt (required without a terminal)
@@ -1563,6 +1593,7 @@ A	fsv sr assets candidates	<target>
 A	fsv sr assets candidates	--search	integrated search text
 A	fsv sr assets candidates	--kind	
 A	fsv sr assets candidates	--page	
+A	fsv sr assets candidates	--per-page	rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)
 A	fsv sr assets candidates	--json	
 C	fsv sr assets add	
 A	fsv sr assets add	<target>	

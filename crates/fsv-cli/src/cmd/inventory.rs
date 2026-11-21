@@ -90,9 +90,9 @@ pub(crate) fn finish(
 }
 
 /// `assets search QUERY` (top level and `changes assets search`).
-pub fn search(query: &str, kind: &str, page: i64) -> CmdResult {
+pub fn search(query: &str, kind: &str, page: i64, per_page: Option<i64>) -> CmdResult {
     let c = LazyApi::default();
-    guard(assets::search(&c, query, kind, page).map(|v| println!("{}", dumps(&v))))
+    guard(assets::search(&c, query, kind, page, per_page).map(|v| println!("{}", dumps(&v))))
 }
 
 /// `MODULE assets list|ls TARGET`.
@@ -102,10 +102,17 @@ pub fn listing(module: &str, target: &str, kind: &str) -> CmdResult {
 }
 
 /// `MODULE assets candidates TARGET [--search Q] [--kind K] [--page N]`.
-pub fn candidates(module: &str, target: &str, query: &str, kind: &str, page: i64) -> CmdResult {
+pub fn candidates(
+    module: &str,
+    target: &str,
+    query: &str,
+    kind: &str,
+    page: i64,
+    per_page: Option<i64>,
+) -> CmdResult {
     let c = LazyApi::default();
     guard(
-        assets::candidates(&c, module, &json!(target), query, kind, page)
+        assets::candidates(&c, module, &json!(target), query, kind, page, per_page)
             .map(|v| println!("{}", dumps(&v))),
     )
 }
@@ -115,7 +122,7 @@ pub fn legacy(target: &str, search_: Option<&str>) -> CmdResult {
     eprintln!("deprecated: use assets search or assets list");
     match search_ {
         None => listing("changes", target, "devices"),
-        Some(q) => search(q, "devices", 1),
+        Some(q) => search(q, "devices", 1, None),
     }
 }
 
@@ -179,7 +186,7 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
                 Ok(a) => a,
                 Err(e) => return Some(Err(e)),
             };
-            candidates(module, &a.target, &a.query, &a.kind, a.page)
+            candidates(module, &a.target, &a.query, &a.kind, a.page, a.per_page)
         }};
     }
     macro_rules! write {
@@ -220,7 +227,7 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
             Err(e) => Err(e),
         },
         ("changes", "assets search") => match parse::<ChangesAssetsSearchArgs>(m) {
-            Ok(a) => search(&a.query, &a.kind, a.page),
+            Ok(a) => search(&a.query, &a.kind, a.page, a.per_page),
             Err(e) => Err(e),
         },
         ("tickets", "assets list") => list!(TicketsAssetsListArgs),

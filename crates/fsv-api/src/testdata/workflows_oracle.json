@@ -1561,7 +1561,7 @@
       null
      ]
     ],
-    "hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
+    "hash": "0d34a7df691e5df1072eb576a8ad4fc9b1b25cca251648b3726bae38899f2321",
     "review": {
      "action": "list_export",
      "method": "POST",
@@ -1593,8 +1593,8 @@
       },
       "ticket_state_filter": "created_at"
      },
-     "plan_hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
-     "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+     "plan_hash": "0d34a7df691e5df1072eb576a8ad4fc9b1b25cca251648b3726bae38899f2321",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "recipient": {
       "mailbox": "unavailable",
       "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -1610,18 +1610,30 @@
       "selected_filter_view",
       "ticket_state_filter"
      ],
-     "review_only": true,
-     "delivery": "unknown"
+     "view": {
+      "id": "701",
+      "name": "Acme queue"
+     },
+     "format": "csv",
+     "fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+     },
+     "submit_only": true,
+     "delivery": "emailed by the server, not downloadable here",
+     "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+     "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
     },
     "action": "list_export",
     "target": 0,
     "method": "POST",
     "path": "tickets/export",
     "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\", \"status_name\": \"Acme state\", \"subject\": \"Acme subject\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
-    "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+    "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
     "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
     "send": {
-     "error": "export is review-only in fsv; nothing was sent",
+     "error": "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
      "type": "ReviewedWriteError",
      "calls": [],
      "events": []
@@ -1684,7 +1696,7 @@
     "events": []
    },
    "export_fail_429": {
-    "error": "export is review-only in fsv; nothing was sent",
+    "error": "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
     "type": "ReviewedWriteError",
     "calls": [],
     "events": []
@@ -1843,7 +1855,7 @@
       ]
      ],
      "ok": {
-      "hash": "0bc75a130df9ddb1e8447efebcc63c39be9b548befa49bdece24890e4312b9a5",
+      "hash": "2942ffbf2ed6f6a2cb7af8c855680adc95b6f24657e039a70acb6245a22928e9",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -1873,8 +1885,8 @@
         },
         "ticket_state_filter": "created_at"
        },
-       "plan_hash": "0bc75a130df9ddb1e8447efebcc63c39be9b548befa49bdece24890e4312b9a5",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "2942ffbf2ed6f6a2cb7af8c855680adc95b6f24657e039a70acb6245a22928e9",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -1890,15 +1902,25 @@
         "selected_filter_view",
         "ticket_state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "responder_name": "Acme agent"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "tickets/export",
       "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"responder_name\": \"Acme agent\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"responder_name\"]}"
      }
     },
@@ -1922,7 +1944,7 @@
       ]
      ],
      "ok": {
-      "hash": "118d8bb9a0a0ebbec2211ac288d6fb73db88b61a2893fafc8262b119e8d7d570",
+      "hash": "08df84f99046cd51343faaeea6129119defa83601839d41c330335dfacdd511f",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -1952,8 +1974,8 @@
         },
         "ticket_state_filter": "created_at"
        },
-       "plan_hash": "118d8bb9a0a0ebbec2211ac288d6fb73db88b61a2893fafc8262b119e8d7d570",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "08df84f99046cd51343faaeea6129119defa83601839d41c330335dfacdd511f",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -1969,15 +1991,25 @@
         "selected_filter_view",
         "ticket_state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "requester_info": "Acme requester"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "tickets/export",
       "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"requester_info\": \"Acme requester\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"requester_info\"]}"
      }
     },
@@ -1990,7 +2022,7 @@
       ]
      ],
      "ok": {
-      "hash": "d534ac2ae8da57107d3b9140c74f711740aa28c4064713c7d45d4e84211665c2",
+      "hash": "6a38af867f016a6dd47ee49425a8aa8a4fa3b9e69e762fe36daaf963e3b6a8d2",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -2020,8 +2052,8 @@
         },
         "ticket_state_filter": "created_at"
        },
-       "plan_hash": "d534ac2ae8da57107d3b9140c74f711740aa28c4064713c7d45d4e84211665c2",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "6a38af867f016a6dd47ee49425a8aa8a4fa3b9e69e762fe36daaf963e3b6a8d2",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2037,15 +2069,25 @@
         "selected_filter_view",
         "ticket_state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "display_id": "Acme ID"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "tickets/export",
       "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"display_id\"]}"
      }
     },
@@ -2218,7 +2260,7 @@
       null
      ]
     ],
-    "hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
+    "hash": "0bacc0237b6e406691fd811a67ba8ec496ee63c7d6a7c36c579ab3064deb05c5",
     "review": {
      "action": "list_export",
      "method": "POST",
@@ -2245,8 +2287,8 @@
       "format": "csv",
       "state_filter": "created_at"
      },
-     "plan_hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
-     "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+     "plan_hash": "0bacc0237b6e406691fd811a67ba8ec496ee63c7d6a7c36c579ab3064deb05c5",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "recipient": {
       "mailbox": "unavailable",
       "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2261,18 +2303,30 @@
       "format",
       "state_filter"
      ],
-     "review_only": true,
-     "delivery": "unknown"
+     "view": {
+      "id": "701",
+      "name": "Acme queue"
+     },
+     "format": "csv",
+     "fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+     },
+     "submit_only": true,
+     "delivery": "emailed by the server, not downloadable here",
+     "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+     "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
     },
     "action": "list_export",
     "target": 0,
     "method": "POST",
     "path": "changes/export",
     "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\", \"status_name\": \"Acme state\", \"subject\": \"Acme subject\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-    "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+    "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
     "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
     "send": {
-     "error": "export is review-only in fsv; nothing was sent",
+     "error": "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
      "type": "ReviewedWriteError",
      "calls": [],
      "events": []
@@ -2335,7 +2389,7 @@
     "events": []
    },
    "export_fail_429": {
-    "error": "export is review-only in fsv; nothing was sent",
+    "error": "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
     "type": "ReviewedWriteError",
     "calls": [],
     "events": []
@@ -2509,7 +2563,7 @@
       ]
      ],
      "ok": {
-      "hash": "402e66771dd506488e5a377abd89b14af86617c070ddff6bac83727aad80ab19",
+      "hash": "7bb77daf293059af9310a0280694657bca77fa2e063a83e3bb0d9235dbe5ab9b",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -2534,8 +2588,8 @@
         "format": "csv",
         "state_filter": "created_at"
        },
-       "plan_hash": "402e66771dd506488e5a377abd89b14af86617c070ddff6bac83727aad80ab19",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "7bb77daf293059af9310a0280694657bca77fa2e063a83e3bb0d9235dbe5ab9b",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2550,15 +2604,25 @@
         "format",
         "state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "owner": "Acme agent"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "changes/export",
       "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"owner\": \"Acme agent\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"owner\"]}"
      }
     },
@@ -2593,7 +2657,7 @@
       ]
      ],
      "ok": {
-      "hash": "7bbd60d1594543cf94997f312928d44363786d318e3f93b2941e693605becbd1",
+      "hash": "ca5d77c4e79f90a7b24341a1dc3e841e84e6828f79bca5e8c13e46d8a15554e5",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -2618,8 +2682,8 @@
         "format": "csv",
         "state_filter": "created_at"
        },
-       "plan_hash": "7bbd60d1594543cf94997f312928d44363786d318e3f93b2941e693605becbd1",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "ca5d77c4e79f90a7b24341a1dc3e841e84e6828f79bca5e8c13e46d8a15554e5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2634,15 +2698,25 @@
         "format",
         "state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "requester_info": "Acme requester"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "changes/export",
       "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"requester_info\": \"Acme requester\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"requester_info\"]}"
      }
     },
@@ -2655,7 +2729,7 @@
       ]
      ],
      "ok": {
-      "hash": "0f385c43fc7e171ad3fa7fc5ebbcfab783cbaefdd96e230cbbe4bd040a2cd027",
+      "hash": "f6e19a2c4bc712338cdb2a01702688a3dc916cc223bc6c4eb6724d30afb68bff",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -2680,8 +2754,8 @@
         "format": "csv",
         "state_filter": "created_at"
        },
-       "plan_hash": "0f385c43fc7e171ad3fa7fc5ebbcfab783cbaefdd96e230cbbe4bd040a2cd027",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "f6e19a2c4bc712338cdb2a01702688a3dc916cc223bc6c4eb6724d30afb68bff",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2696,15 +2770,25 @@
         "format",
         "state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "display_id": "Acme ID"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "changes/export",
       "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"display_id\"]}"
      }
     },
@@ -2877,7 +2961,7 @@
       null
      ]
     ],
-    "hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
+    "hash": "f5c975d24bed1b20a3b5746353cffeb9fa2bab65bc138e4e2518cd0accc2a34f",
     "review": {
      "action": "list_export",
      "method": "POST",
@@ -2903,8 +2987,8 @@
       "format": "csv",
       "state_filter": "created_at"
      },
-     "plan_hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
-     "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+     "plan_hash": "f5c975d24bed1b20a3b5746353cffeb9fa2bab65bc138e4e2518cd0accc2a34f",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "recipient": {
       "mailbox": "unavailable",
       "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -2918,18 +3002,30 @@
       "format",
       "state_filter"
      ],
-     "review_only": true,
-     "delivery": "unknown"
+     "view": {
+      "id": "701",
+      "name": "Acme queue"
+     },
+     "format": "csv",
+     "fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+     },
+     "submit_only": true,
+     "delivery": "emailed by the server, not downloadable here",
+     "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+     "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
     },
     "action": "list_export",
     "target": 0,
     "method": "POST",
     "path": "problems/export",
     "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\", \"status_name\": \"Acme state\", \"subject\": \"Acme subject\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-    "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+    "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
     "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
     "send": {
-     "error": "export is review-only in fsv; nothing was sent",
+     "error": "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
      "type": "ReviewedWriteError",
      "calls": [],
      "events": []
@@ -2992,7 +3088,7 @@
     "events": []
    },
    "export_fail_429": {
-    "error": "export is review-only in fsv; nothing was sent",
+    "error": "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
     "type": "ReviewedWriteError",
     "calls": [],
     "events": []
@@ -3140,7 +3236,7 @@
       ]
      ],
      "ok": {
-      "hash": "85d2bfa0e1934a4948928d0aefabc0868fc3747eb457b5e7e0f9a7f781081885",
+      "hash": "7da40a7d26c4b157ba76637a7b8715528ebd91b6bb7dd594646f594bf40239e5",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -3164,8 +3260,8 @@
         "format": "csv",
         "state_filter": "created_at"
        },
-       "plan_hash": "85d2bfa0e1934a4948928d0aefabc0868fc3747eb457b5e7e0f9a7f781081885",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "7da40a7d26c4b157ba76637a7b8715528ebd91b6bb7dd594646f594bf40239e5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3179,15 +3275,25 @@
         "format",
         "state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "owner": "Acme agent"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "problems/export",
       "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"owner\": \"Acme agent\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"owner\"]}"
      }
     },
@@ -3222,7 +3328,7 @@
       ]
      ],
      "ok": {
-      "hash": "efcd86c4bad5972227a5a5e042a885636920dbc43abe21e58906459eabbf43bf",
+      "hash": "d1ac304bda8d247a558b188ed60323347c8cb24b84cd43380fda58b1923670fc",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -3246,8 +3352,8 @@
         "format": "csv",
         "state_filter": "created_at"
        },
-       "plan_hash": "efcd86c4bad5972227a5a5e042a885636920dbc43abe21e58906459eabbf43bf",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "d1ac304bda8d247a558b188ed60323347c8cb24b84cd43380fda58b1923670fc",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3261,15 +3367,25 @@
         "format",
         "state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "requester_info": "Acme requester"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "problems/export",
       "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"requester_info\": \"Acme requester\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"requester_info\"]}"
      }
     },
@@ -3282,7 +3398,7 @@
       ]
      ],
      "ok": {
-      "hash": "7064db9678bfc44f740f3c20cff4dbacb021e7e210d526f9180b8186956bbb65",
+      "hash": "c7a61dc9c2866fc0281b2aae3525a41ea44678b52c67688c4cc68cc7f8dcc5d3",
       "review": {
        "action": "list_export",
        "method": "POST",
@@ -3306,8 +3422,8 @@
         "format": "csv",
         "state_filter": "created_at"
        },
-       "plan_hash": "7064db9678bfc44f740f3c20cff4dbacb021e7e210d526f9180b8186956bbb65",
-       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "plan_hash": "c7a61dc9c2866fc0281b2aae3525a41ea44678b52c67688c4cc68cc7f8dcc5d3",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
        "recipient": {
         "mailbox": "unavailable",
         "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
@@ -3321,15 +3437,25 @@
         "format",
         "state_filter"
        ],
-       "review_only": true,
-       "delivery": "unknown"
+       "view": {
+        "id": "701",
+        "name": "Acme queue"
+       },
+       "format": "csv",
+       "fields": {
+        "display_id": "Acme ID"
+       },
+       "submit_only": true,
+       "delivery": "emailed by the server, not downloadable here",
+       "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+       "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
       },
       "action": "list_export",
       "target": 0,
       "method": "POST",
       "path": "problems/export",
       "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
-      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "context_hash": "ffe8cf2760db1aa33b8b32b4774398b0c6d87d89d97c08e44452dd1423a8c098",
       "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"display_id\"]}"
      }
     },

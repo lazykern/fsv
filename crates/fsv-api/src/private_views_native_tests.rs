@@ -100,10 +100,15 @@ fn native_handle(s: &mut Value, call: &Call) -> Result<Value> {
         s[&coll][vid.to_string()] = stored;
         return Ok(json!({"ticket_filter": {"id": vid}}));
     }
-    let mut stored = change_read(next, name);
+    let vid = if call.method == "PUT" {
+        parts[1].parse().unwrap()
+    } else {
+        next
+    };
+    let mut stored = change_read(vid, name);
     stored["advanced_query_hash"] = body["advanced_query_hash"].clone();
-    s[&coll][next.to_string()] = stored;
-    Ok(json!({"change_filter": {"id": next}}))
+    s[&coll][vid.to_string()] = stored;
+    Ok(json!({"change_filter": {"id": vid}}))
 }
 
 struct Wire {
@@ -245,7 +250,7 @@ fn ticket_view_clone_rename_delete_with_meta_workspace() {
 }
 
 #[test]
-fn change_view_create_verified_rename_delete_not_captured() {
+fn change_view_create_rename_delete_verified() {
     let want = &ORACLE["views"]["change_create"];
     let w = native_wire();
     let p = private_views::build_plan(
@@ -258,22 +263,130 @@ fn change_view_create_verified_rename_delete_not_captured() {
     .unwrap();
     assert_eq!(Value::Array(w.log()), want["plan_calls"]);
     assert_plan(&view_plan(&p), want, "change create");
-    check(&send(&w, &p), &want["send"], "change create");
-    for case in ORACLE["views"]["change_refusals"].as_array().unwrap() {
-        let n = w.log().len();
-        let mut got = attempt(
-            private_views::build_plan(
+    let sent = send(&w, &p);
+    check(&sent, &want["send"], "change create");
+    let new = sent["ok"]["view_id"].as_i64().unwrap();
+
+    let q = private_views::build_plan(
+        &w.api,
+        &json!(new),
+        "rename",
+        Some("Globex renamed"),
+        &private_views::CHANGES,
+    )
+    .unwrap();
+    assert_eq!(
+        (
+            q.plan.method.as_str(),
+            q.plan.path.clone(),
+            q.plan.action.as_str()
+        ),
+        (
+            "PUT",
+            format!("change-filters/{new}"),
+            "change_private_view_edit"
+        )
+    );
+    let mut expect = p.plan.payload();
+    expect["name"] = json!("Globex renamed");
+    assert_eq!(
+        q.plan.payload(),
+        expect,
+        "the whole filter is re-sent, only the name changes"
+    );
+    let renamed = send(&w, &q);
+    assert_eq!(renamed["ok"]["verified"], json!(true), "{renamed}");
+    assert_eq!(renamed["ok"]["fields"]["name"], json!("matched"));
+    assert_eq!(
+        w.state.lock().unwrap()["change-filters"][new.to_string()]["name"],
+        json!("Globex renamed")
+    );
+
+    let d = private_views::build_plan(&w.api, &json!(new), "delete", None, &private_views::CHANGES)
+        .unwrap();
+    assert_eq!(
+        (
+            d.plan.method.as_str(),
+            d.plan.path.clone(),
+            d.plan.payload()
+        ),
+        ("DELETE", format!("change-filters/{new}"), Value::Null)
+    );
+    let gone = send(&w, &d);
+    assert_eq!(gone["ok"]["verified"], json!(true), "{gone}");
+    assert_eq!(gone["ok"]["status_on_read"], json!(404));
+    assert_eq!(gone["ok"]["absent_from_list"], json!(true));
+    assert!(
+        w.state.lock().unwrap()["change-filters"]
+            .get(new.to_string())
+            .is_none()
+    );
+    let methods: Vec<String> = w.api.writes().iter().map(|c| c.method.clone()).collect();
+    assert_eq!(methods, ["POST", "PUT", "DELETE"]);
+}
+
+#[test]
+fn change_view_rename_to_same_name_and_shared_views_refused() {
+    let w = native_wire();
+    let err = private_views::build_plan(
+        &w.api,
+        &json!(811),
+        "rename",
+        Some("Globex changes"),
+        &private_views::CHANGES,
+    )
+    .unwrap_err();
+    assert_eq!(err.exit_code(), 2);
+    assert!(err.to_string().contains("nothing to change"), "{err}");
+    for change in [
+        json!({"visibility": 1}),
+        json!({"group_ids": [44]}),
+        json!({"user_id": 906}),
+        json!({"default": true}),
+    ] {
+        let mut row = change_read(811, "Globex changes");
+        row.as_object_mut()
+            .unwrap()
+            .extend(change.as_object().unwrap().clone());
+        w.state.lock().unwrap()["change-filters"]["811"] = row;
+        for (action, name) in [("rename", Some("x")), ("delete", None)] {
+            let r = private_views::build_plan(
                 &w.api,
                 &json!(811),
-                case["action"].as_str().unwrap(),
-                case["name"].as_str(),
+                action,
+                name,
                 &private_views::CHANGES,
-            )
-            .map(|p| view_plan(&p)),
-        );
-        got["calls"] = Value::Array(w.log().split_off(n));
-        check(&got, case, case["action"].as_str().unwrap());
+            );
+            assert!(r.is_err(), "{change} {action}");
+        }
     }
+    assert!(w.api.writes().is_empty());
+}
+
+#[test]
+fn change_view_delete_unverified_when_still_readable() {
+    let state = Arc::new(Mutex::new(json!({
+        "ticket_filters": {},
+        "change-filters": {"811": change_read(811, "Globex changes")},
+        "next": 900,
+    })));
+    let shared = state.clone();
+    let api = FnApi::new(move |call: &Call| {
+        if call.method == "ME" {
+            return Ok(json!({"id": USER}));
+        }
+        let mut s = shared.lock().unwrap();
+        let out = native_handle(&mut s, call);
+        if call.method == "DELETE" {
+            s["change-filters"]["811"] = change_read(811, "Globex changes");
+        }
+        out
+    });
+    let journal = MemJournal::default();
+    let d = private_views::build_plan(&api, &json!(811), "delete", None, &private_views::CHANGES)
+        .unwrap();
+    let got = private_views::send(&d, &api, &journal, Some(&d.hash())).unwrap();
+    assert_eq!(got["verified"], json!(false), "{got}");
 }
 
 #[test]
@@ -431,8 +544,14 @@ fn export_review_shows_the_recipient_mailbox() {
         let module = case["module"].as_str().unwrap();
         let ctx = format!("{module} {}", case["me"]);
         let api = list_api(case["me"].clone());
-        let p =
-            list_preferences::export_plan(&api, module, "701", &["subject".to_string()]).unwrap();
+        let p = list_preferences::export_plan(
+            &api,
+            &MemJournal::default(),
+            module,
+            "701",
+            &["subject".to_string()],
+        )
+        .unwrap();
         assert_eq!(Value::Object(p.review()), case["review"], "{ctx}");
         assert_eq!(p.hash(), case["hash"], "{ctx}");
         assert_eq!(p.recipient_json, case["recipient_json"], "{ctx}");

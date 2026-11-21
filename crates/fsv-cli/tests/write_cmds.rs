@@ -1280,25 +1280,13 @@ fn update_planning_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "dry_run": true,
-  "action": "update_planning_field",
-  "id": "CHN-5",
-  "body": {
-    "planning_field": "rollout_plan",
-    "description": "hi",
-    "files": [
-      "x.pdf"
-    ],
-    "duplicate": "prompt"
-  }
-}
+        r.err,
+        r#"error: HTTP 404 listing planning-fields: no route
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -1312,7 +1300,7 @@ fn update_planning_unknown() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
+        r#"--planning needs --description and/or --file
 "#
     );
 }
@@ -1334,30 +1322,20 @@ fn update_attach_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "dry_run": true,
-  "action": "update",
-  "id": "CHN-5",
-  "body": {
-    "attachments": {
-      "preserve_existing": true,
-      "upload_files": [
-        "a.txt"
-      ],
-      "duplicate": "skip"
-    }
-  }
-}
+        r.err,
+        r#"attachments must be unique regular local files
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
 fn update_attach_prompt_no_input() {
+    // `--duplicate prompt` under `--no-input` refuses only on a real
+    // same-name attachment (change 5 has none); the missing file refuses.
     let r = run_fixture(
         "change_helpers",
         &["changes", "update", "5", "--attach", "a.txt", "--no-input"],
@@ -1367,7 +1345,7 @@ fn update_attach_prompt_no_input() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: --duplicate prompt disabled by --no-input; use --duplicate skip|replace|append
+        r#"attachments must be unique regular local files
 "#
     );
 }
@@ -2827,7 +2805,7 @@ fn sr_create_send() {
             ),
             "--yes",
             "--expect-plan",
-            "5e0581d3ec26d93d",
+            "4a5b3a005e3d29f6",
         ],
         None,
     );
@@ -2890,7 +2868,7 @@ fn sr_create_send_json() {
             ),
             "--yes",
             "--expect-plan",
-            "5e0581d3ec26d93d",
+            "4a5b3a005e3d29f6",
             "-o",
             "json",
         ],
@@ -2911,7 +2889,7 @@ fn sr_create_send_json() {
       "human_display_id": "SR-5001"
     }
   },
-  "plan_hash": "5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2",
+  "plan_hash": "4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9",
   "uploaded": [
     {
       "id": 901,
@@ -3005,7 +2983,7 @@ fn sr_create_plan_changed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: plan changed: expected 0000, computed 5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2. Review again with --dry-run.
+        r#"error: plan changed: expected 0000, computed 4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9. Review again with --dry-run.
 "#
     );
 }
@@ -3116,8 +3094,9 @@ Attachments (uploaded after you confirm)
   Other attachments: notes.txt  5 B  sha256:ab5aa97074c454a0
 Warnings
   Separate requested-for is available via --requested-for; requester remains unchanged.
+  the tenant publishes no attachment size limit; pass --max-bytes N to bind one
 form metadata as of 2030-01-15T10:00:00+09:00 (fetched NOW, server, fingerprint 1b3febc07fed14c1)
-plan 5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2
+plan 4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9
 ⚠ This sends a real service request to the catalog item's fulfilment team.
 Payload (POST /api/_/catalog/service-items/77/place-request; <upload N: name> becomes the attachment id after upload)
 {
@@ -3138,8 +3117,8 @@ Payload (POST /api/_/catalog/service-items/77/place-request; <upload N: name> be
     "<upload 2: notes.txt>"
   ]
 }
-plan_hash: 5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2
-send exactly this with: --yes --expect-plan 5e0581d3ec26d93d
+plan_hash: 4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9
+send exactly this with: --yes --expect-plan 4a5b3a005e3d29f6
 "#
     );
     assert_eq!(r.err, r#""#);

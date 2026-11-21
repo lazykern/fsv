@@ -7203,8 +7203,10 @@
     "result": {
      "status": "submitted",
      "plan_hash": "915d0ecca6fc822722bca5c21cae01b47fcc1391ad12d1e918912331784f8967",
-     "verified": true,
-     "attachment_id": 55
+     "verified": false,
+     "attachment_id": 55,
+     "section_text": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
     },
     "writes": 4
    },

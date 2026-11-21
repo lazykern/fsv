@@ -97,6 +97,8 @@ pub struct LiveForm {
     pub deps: FormDeps,
     pub meta: Meta,
     pub status_label: Option<StatusLabel>,
+    /// `FormSession._sr_limit`: the tenant's upload limit, read once.
+    sr_limit: Arc<std::sync::Mutex<Option<fsv_api::attachments::Limit>>>,
 }
 
 /// The form's resolver (`fsv_formui::Resolver`) over the flows'
@@ -532,6 +534,7 @@ impl LiveForm {
             deps,
             meta,
             status_label: None,
+            sr_limit: Arc::default(),
         }
     }
 
@@ -566,6 +569,7 @@ impl LiveForm {
                         .map(|_| &label_fn as &dyn Fn(&Json) -> String),
                     hints_path: None,
                     journal: None,
+                    upload_limit: None,
                 };
                 change::build_update_plan(&meta, &draft, &record, target, &opts)?
             }
@@ -598,7 +602,32 @@ impl LiveForm {
     pub fn item_plan(&self, req: &PlanRequest<'_>, meta: &ItemMeta) -> Result<SRPlan> {
         let resolver: Arc<dyn LookupResolver> = self.deps.resolver.clone();
         let domain = self.deps.api.domain();
-        let mut plan = catalog::build_sr_plan(
+        // the same tenant upload limit `fsv sr create` binds into the hash
+        let limit_errors: std::cell::RefCell<Vec<String>> = std::cell::RefCell::new(Vec::new());
+        let upload_limit = || -> Result<fsv_api::attachments::Limit> {
+            let mut cached = self.sr_limit.lock().unwrap();
+            if let Some(limit) = cached.clone() {
+                return Ok(limit);
+            }
+            match fsv_api::attachments::resolve_limit(self.deps.api.as_ref(), &Json::Null, None) {
+                Ok(limit) => {
+                    *cached = Some(limit.clone());
+                    Ok(limit)
+                }
+                Err(e) => {
+                    // unreadable limit: no hash, the error is shown
+                    limit_errors
+                        .borrow_mut()
+                        .push(format!("{e}; use `fsv sr create --max-bytes N`"));
+                    Ok(fsv_api::attachments::Limit {
+                        max_bytes: None,
+                        source: "unreadable".into(),
+                        published: None,
+                    })
+                }
+            }
+        };
+        let mut plan = catalog::build_sr_plan_limited(
             meta,
             &sr_draft(req.draft),
             Some(resolver),
@@ -606,7 +635,15 @@ impl LiveForm {
             req.ack_all,
             &catalog::Recipients::default(),
             &domain,
+            Some(&upload_limit),
         )?;
+        let limit_errors = limit_errors.into_inner();
+        if !limit_errors.is_empty() {
+            plan.errors.extend(limit_errors.clone());
+            plan.review.errors.extend(limit_errors);
+            plan.hash.clear();
+            plan.review.plan_hash.clear();
+        }
         block_on(
             &mut plan.errors,
             &mut plan.review,
@@ -903,6 +940,7 @@ fn open(deps: &FormDeps, o: Open) -> Result<FormSession> {
         deps: deps.clone(),
         meta: o.meta,
         status_label: o.status_label,
+        sr_limit: Arc::default(),
     };
     let init = SessionInit {
         kind: o.kind,

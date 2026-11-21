@@ -1004,18 +1004,37 @@ pub fn delete(
     child: Option<&Value>,
     section: Option<&str>,
 ) -> Result<Value> {
-    let inventory = || -> Result<std::collections::BTreeSet<i64>> {
-        ids_of(&rows_attachments(Some(&deletion_owner(
-            c, owner, child, section,
-        )?))?)
-    };
-    let mut expected = inventory()?;
+    let before_row = deletion_owner(c, owner, child, section)?;
+    let mut expected = ids_of(&rows_attachments(Some(&before_row))?)?;
     expected.remove(&plan.target);
+    let before_text = section
+        .is_some()
+        .then(|| crate::planning_text::section_content(Some(&Value::Object(before_row.clone()))))
+        .flatten();
     let rebuild = || delete_plan(c, &json!(plan.target), owner, child, section);
     let verify = |_: &Value| -> Result<Map<String, Value>> {
-        Ok(obj(
-            json!({"attachment_id": plan.target, "verified": inventory()? == expected}),
-        ))
+        let row = deletion_owner(c, owner, child, section)?;
+        let mut out = obj(json!({
+            "attachment_id": plan.target,
+            "verified": ids_of(&rows_attachments(Some(&row))?)? == expected,
+        }));
+        if section.is_some() {
+            // captured: deleting a section's file keeps the section text
+            let after_text = crate::planning_text::section_content(Some(&Value::Object(row)));
+            let kept = matches!((&before_text, &after_text),
+                (Some(before), Some(after)) if same_text(&json!(after), &json!(before)));
+            let state = if kept {
+                "kept"
+            } else if after_text.is_none() {
+                "unavailable"
+            } else {
+                "changed"
+            };
+            out.insert("section_text".into(), json!(state));
+            let verified = out["verified"] == json!(true) && kept;
+            out.insert("verified".into(), json!(verified));
+        }
+        Ok(out)
     };
     execute(plan, c, journal, reviewed_hash, &rebuild, &verify)
 }

@@ -1195,6 +1195,8 @@
        }
       ],
       "kind": "devices",
+      "per_page": 50,
+      "pages": 1,
       "complete": true
      }
     }
@@ -1762,6 +1764,8 @@
        }
       ],
       "kind": "devices",
+      "per_page": 50,
+      "pages": 1,
       "complete": true
      }
     }

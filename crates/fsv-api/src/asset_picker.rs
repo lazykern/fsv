@@ -37,7 +37,7 @@ pub fn candidates(c: &dyn Api, target: &Value, query: &str, page: i64) -> Result
     if page < 1 {
         return Err(Error::value("page must be positive"));
     }
-    let raw = search(c, query, "devices", page)?;
+    let raw = search(c, query, "devices", page, None)?;
     let data = raw
         .get("data")
         .and_then(Value::as_array)

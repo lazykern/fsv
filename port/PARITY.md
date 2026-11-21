@@ -523,3 +523,52 @@ stays in the command tree (same flags and completion as Python) and exits 1
 with `error: the TUI is not in this build (it is being redesigned); use the
 fsv commands`. `port/function_map.json` marks every `tui/*` def `dropped`.
 The interactive forms (`fsv-formui`) stay.
+
+## Upstream ports `port/up-d` (Python 31a9103..84ffb0f, commits 9056d44 to 7abd5a0)
+
+Divergences and open items from the planning-files, export-send, size-limit
+and attachment-guard ports. Wire formats, plan hashes and journal kinds are
+Python's.
+
+- **Downloads are buffered, not streamed (8465498).** `Client::fetch_raw`
+  reads the whole body, so `--max-bytes` cannot abort mid-transfer: a file is
+  refused after the body arrived (still before anything is written). The
+  `.part` file is written and renamed from the buffered body. When the
+  response has no `Content-Length`, the number in `streamed size over N bytes`
+  is the full body length; Python reports the bytes read up to the first chunk
+  that crossed the limit.
+- **Failed send carries its HTTP status in `planning_files::Failure`
+  (9056d44).** Python's `ReviewedWriteError(http_status=...)` and `as_dict()`
+  come from the update-failure commit ff7b40c, which is not in this branch.
+  `--json` error output prints `error`, and `http_status` with an empty
+  `server_message` for a failed step, as Python does for these two flows.
+  Merge with the generic carrier when ff7b40c lands.
+- **Export send reads the HTTP status through `Api::last_status()` (ef52462).**
+  `fsv_core::Client` records the status of the last write (`_last_status`);
+  other `Api` implementations answer `None`, which prints `"status": null`.
+- **SR upload-limit hash (838c9eb).** The SR goldens that upload files were
+  regenerated from Rust (hash input is Python's `{"request", "target",
+  "upload_limit"}` dict; the extra key is the only change). They are not
+  Python-captured. `upstream_cmds.rs` and `write_cmds.rs` carry hashes
+  `4a5b3a00…` for the SR create plan with files; `fsv-app` `SR_FILES_HASH`
+  is `6416a148…`.
+- **Plan hashes in the new goldens follow the 31a9103-era `plan_hash`.** The
+  later tenant-bound `plan_hash` (tenant agent's port) changes every hash;
+  those goldens need restamping after that merge.
+- **`changes update --attach` and `--planning` replace the legacy paths.**
+  `create::update_planning_field` and `attach_files_to_change` have no caller
+  in the update command anymore (Python removed the same code); they stay for
+  the TUI and other callers.
+- **Duplicate prompt uses the process terminal.** `ask_duplicate` reads
+  `std::io::stdin().is_terminal()` through `create::Prompter`
+  (`StdinPrompter`), as Python's `sys.stdin.isatty()`. The `FSV_TEST_TTY`
+  override applies to `util::stdin_tty()` only.
+- **Not ported:** a427f9a (docs-only: `docs/freshservice/*` is not in the Rust
+  tree). The Python tree diffs of `docs/commands.md` and
+  `docs/reviewed-parity.md` for these commits have no Rust counterpart.
+- **Completion fixtures are not regenerated.** `completion_tree.json` and the
+  three `completion.*` scripts lack the new options (`--per-page`,
+  `--confirm-destructive`, `--max-bytes`, `--confirm-send-to-me`,
+  `--planning`/`--description`/`--file`/`--duplicate` on tickets|problems
+  update, `--planning`/`--all-planning` on downloads); re-dump them with
+  `dump_completion.py` at the final Python commit.

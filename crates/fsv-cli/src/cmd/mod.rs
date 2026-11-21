@@ -24,6 +24,7 @@ pub mod sr;
 pub mod ticket_links;
 pub mod ticket_trash;
 pub mod tickets;
+pub mod upload_update;
 pub mod windows;
 
 use clap::{ArgMatches, FromArgMatches};
@@ -76,7 +77,7 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         "attachments delete" => attachments::delete(parse(m)?),
         "assets search" => {
             let a: AssetsSearchArgs = parse(m)?;
-            inventory::search(&a.query, &a.kind, a.page)
+            inventory::search(&a.query, &a.kind, a.page, a.per_page)
         }
         "solutions create" => inventory::solutions_create(parse(m)?),
         "sr items list" => reviewed::sr_items_list(parse(m)?),

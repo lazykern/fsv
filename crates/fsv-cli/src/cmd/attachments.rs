@@ -6,7 +6,7 @@ use serde_json::{Map, Value, json};
 use fsv_api::attachments::{self, AttachedPlan};
 use fsv_api::problem_workflows;
 use fsv_api::service::{Api, DiskJournal};
-use fsv_core::Result;
+use fsv_core::{Error, Result};
 
 use super::native::finish_problem;
 use super::reviewed::{dumps, print_verified, refusal, require_full_hash};
@@ -56,11 +56,23 @@ pub fn delete(a: AttachmentsDeleteArgs) -> CmdResult {
             out.insert("owner".into(), json!(a.owner));
             out.insert("child".into(), child.clone().unwrap_or(Value::Null));
             out.insert("section".into(), json!(section));
+            out.insert("requires".into(), json!("--confirm-destructive"));
             println!("{}", dumps(&Value::Object(out)));
             return Ok(());
         }
         let hash = plan.hash();
-        require_full_hash(a.yes, a.expect_plan.as_deref(), &hash)?;
+        if !a.yes || a.expect_plan.as_deref() != Some(hash.as_str()) {
+            return Err(Error::exit(
+                2,
+                "review with --dry-run, then --yes --expect-plan FULL_HASH --confirm-destructive",
+            ));
+        }
+        if !a.confirm_destructive {
+            return Err(Error::exit(
+                2,
+                "attachment deletion is permanent; pass --confirm-destructive with --yes --expect-plan FULL_HASH. Nothing was sent",
+            ));
+        }
         let result = attachments::delete(
             &plan,
             c.as_ref(),

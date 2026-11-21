@@ -222,36 +222,6 @@ pub fn confirm_writes(
     Ok(())
 }
 
-/// `_emit_dry_run`.
-pub fn emit_dry_run(res: &Resource, cid: i64, body: Value, action: &str, risks: &[String]) {
-    emit_dry_run_as(res, cid, body, action, risks, None);
-}
-
-/// `_emit_dry_run(..., display_id=...)`.
-pub fn emit_dry_run_as(
-    res: &Resource,
-    cid: i64,
-    body: Value,
-    action: &str,
-    risks: &[String],
-    display_id: Option<String>,
-) {
-    emit_dry_run_full(res, cid, body, action, risks, display_id, &[]);
-}
-
-/// `_emit_dry_run(..., display_id=..., warnings=...)`.
-pub fn emit_dry_run_full(
-    res: &Resource,
-    cid: i64,
-    body: Value,
-    action: &str,
-    risks: &[String],
-    display_id: Option<String>,
-    warnings: &[String],
-) {
-    emit_dry_run_hashed(res, cid, body, action, risks, display_id, warnings, None);
-}
-
 /// `_emit_dry_run(..., plan_hash=...)`.
 #[allow(clippy::too_many_arguments)]
 pub fn emit_dry_run_hashed(

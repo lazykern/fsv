@@ -21,8 +21,11 @@ use crate::views::load_views;
 pub struct ListPlan {
     pub plan: WritePlan,
     pub inputs_json: String,
-    /// Export only, display-only (the request itself names no recipient).
+    /// Export only: the signed-in agent's mailbox (the request itself names
+    /// no recipient; the server mails the file to the requesting agent).
     pub recipient_json: String,
+    /// Export only: `{"id", "name"}` of the saved view.
+    pub view_json: String,
 }
 
 impl ListPlan {
@@ -44,10 +47,27 @@ impl ListPlan {
                 .map(|m| m.keys().cloned().collect())
                 .unwrap_or_default();
             keys.sort();
+            let payload = self.payload();
             out.insert("body_keys".into(), json!(keys));
-            out.insert("review_only".into(), json!(true));
-            out.insert("delivery".into(), json!("unknown"));
-            out.insert("warning".into(), json!(EXPORT_REVIEW_ONLY));
+            out.insert(
+                "view".into(),
+                serde_json::from_str(&self.view_json).unwrap_or(Value::Null),
+            );
+            out.insert(
+                "format".into(),
+                payload.get("format").cloned().unwrap_or(Value::Null),
+            );
+            out.insert(
+                "fields".into(),
+                payload.get("export_fields").cloned().unwrap_or(Value::Null),
+            );
+            out.insert("submit_only".into(), json!(true));
+            out.insert("delivery".into(), json!(EXPORT_DELIVERY));
+            out.insert("note".into(), json!(EXPORT_NOTE));
+            out.insert(
+                "requires".into(),
+                json!("--yes --expect-plan FULL_HASH --confirm-send-to-me"),
+            );
         }
         out
     }
@@ -57,7 +77,9 @@ impl ListPlan {
     }
 }
 
-const EXPORT_REVIEW_ONLY: &str = "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.";
+const EXPORT_DELIVERY: &str = "emailed by the server, not downloadable here";
+
+const EXPORT_NOTE: &str = "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.";
 
 const RECIPIENT_NOTE: &str = "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back";
 
@@ -172,6 +194,7 @@ pub fn columns_plan(
         inputs_json: Dumps::default()
             .dump(&json!({"module": module, "columns": columns, "frozen": frozen})),
         recipient_json: "{}".into(),
+        view_json: "{}".into(),
     })
 }
 
@@ -225,9 +248,71 @@ pub fn export_source(
     Ok((selected, row))
 }
 
+fn plain_id(v: &Value) -> bool {
+    matches!(v, Value::Number(n) if n.is_i64() || n.is_u64())
+}
+
+/// Port of fsv.list_preferences.export_data_hash: the view's `query_hash`
+/// as the export dialog's `data_hash`. Only strings and lists of strings
+/// were accepted by the server: a ticket view's single integer
+/// `workspace_id` becomes the captured `is "<id>"`, a scalar integer its
+/// string, string values pass unchanged; any other value is refused at
+/// review time naming the condition.
+pub fn export_data_hash(module: &str, query_hash: &[Value]) -> Result<Vec<Value>> {
+    let mut out = Vec::new();
+    let mut unsupported: Vec<String> = Vec::new();
+    for item in query_hash {
+        let Some(name) = item
+            .as_object()
+            .and_then(|m| m.get("condition"))
+            .and_then(Value::as_str)
+        else {
+            unsupported.push(fsv_py::py_repr(item).chars().take(40).collect());
+            continue;
+        };
+        let mut cond = item.as_object().cloned().unwrap_or_default();
+        let value = item.get("value").cloned().unwrap_or(Value::Null);
+        let operator = item.get("operator");
+        if module == "tickets"
+            && name == "workspace_id"
+            && (operator == Some(&json!("is")) || operator == Some(&json!("is_in")))
+            && value
+                .as_array()
+                .is_some_and(|v| v.len() == 1 && plain_id(&v[0]))
+        {
+            cond.insert("operator".into(), json!("is"));
+            cond.insert("value".into(), json!(py_str(&value[0])));
+        } else if plain_id(&value) {
+            cond.insert("value".into(), json!(py_str(&value)));
+        } else if value.is_string()
+            || value
+                .as_array()
+                .is_some_and(|v| !v.is_empty() && v.iter().all(Value::is_string))
+        {
+        } else {
+            unsupported.push(name.to_string());
+            continue;
+        }
+        out.push(Value::Object(cond));
+    }
+    if !unsupported.is_empty() {
+        return Err(refused(format!(
+            "this view has conditions fsv cannot serialise for export yet: {} (the export endpoint takes string values only; nothing was sent)",
+            unsupported.join(", ")
+        )));
+    }
+    Ok(out)
+}
+
 /// Port of fsv.list_preferences.export_plan: one CSV / 30-day / created-at
 /// export request for a saved view.
-pub fn export_plan(c: &dyn Api, module: &str, view: &str, fields: &[String]) -> Result<ListPlan> {
+pub fn export_plan(
+    c: &dyn Api,
+    journal: &dyn Journal,
+    module: &str,
+    view: &str,
+    fields: &[String],
+) -> Result<ListPlan> {
     let rows = headers(c, module)?;
     let excluded: &[&str] = if module == "tickets" {
         &["owner", "department_name"]
@@ -261,7 +346,7 @@ pub fn export_plan(c: &dyn Api, module: &str, view: &str, fields: &[String]) -> 
     }
     let (selected, row) = export_source(c, module, view)?;
     let mut payload = json!({"format": "csv", "date_filter": 30, "export_fields": export_fields,
-                             "custom_fields": {}, "data_hash": row["query_hash"]});
+                             "custom_fields": {}, "data_hash": export_data_hash(module, row["query_hash"].as_array().map_or(&[], Vec::as_slice))?});
     if module == "tickets" {
         payload["ticket_state_filter"] = json!("created_at");
         payload["advanced_data_hash"] = Value::Null;
@@ -273,8 +358,15 @@ pub fn export_plan(c: &dyn Api, module: &str, view: &str, fields: &[String]) -> 
             payload["advanced_data_hash"] = Value::Null;
         }
     }
-    let context =
-        snapshot_hash(&json!({"headers": rows, "view": row, "selection": selected.to_json()}))?;
+    let recipient = export_recipient(c);
+    let mut bound = json!({"headers": rows, "view": row, "selection": selected.to_json(),
+                           "recipient": recipient["mailbox"]});
+    let accepted = journal.verified_sends(&[accepted_action(module).as_str()], &json!(0));
+    if accepted != 0 {
+        // a later export of the same view plans a fresh hash; an unknown outcome does not
+        bound["accepted_exports"] = json!(accepted);
+    }
+    let context = snapshot_hash(&bound)?;
     Ok(ListPlan {
         plan: WritePlan {
             action: "list_export".into(),
@@ -289,8 +381,62 @@ pub fn export_plan(c: &dyn Api, module: &str, view: &str, fields: &[String]) -> 
             .dump(&json!({"module": module, "view": selected.id, "fields": fields})),
         recipient_json: Dumps::default()
             .sort_keys(true)
-            .dump(&Value::Object(export_recipient(c))),
+            .dump(&Value::Object(recipient)),
+        view_json: Dumps::default()
+            .ensure_ascii(false)
+            .dump(&json!({"id": selected.id, "name": selected.name})),
     })
+}
+
+/// `accepted_action`: journal kind counting exports the server accepted
+/// (2xx `success: true`).
+pub fn accepted_action(module: &str) -> String {
+    format!("list_export_accepted_{module}")
+}
+
+/// `send_export`: POST the reviewed export once (journaled; an unknown
+/// outcome is never replayed). Delivery is by mail and cannot be read back:
+/// the result says `submitted` with the HTTP status and `verified: false`.
+pub fn send_export(
+    plan: &ListPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    reviewed_hash: Option<&str>,
+) -> Result<Value> {
+    let inputs: Value = serde_json::from_str(&plan.inputs_json)?;
+    let recipient: Value = serde_json::from_str(&plan.recipient_json)?;
+    let mailbox = match recipient.get("mailbox") {
+        Some(Value::String(m)) if m.contains('@') => m.clone(),
+        _ => {
+            return Err(refused(
+                "the signed-in agent's mailbox is unreadable, so the export recipient is unknown; nothing was sent",
+            ));
+        }
+    };
+    let module = inputs["module"].as_str().unwrap_or_default().to_string();
+    let rebuild = || -> Result<WritePlan> {
+        Ok(export_plan(
+            c,
+            journal,
+            &module,
+            inputs["view"].as_str().unwrap_or_default(),
+            &strings(&inputs["fields"]),
+        )?
+        .plan)
+    };
+    let verify = |response: &Value| -> Result<Map<String, Value>> {
+        let accepted = response.get("success") == Some(&Value::Bool(true));
+        Ok(obj(json!({
+            "submitted": true, "status": c.last_status(), "accepted": accepted,
+            "recipient": mailbox, "delivery": EXPORT_DELIVERY, "verified": false,
+            "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend",
+        })))
+    };
+    let result = execute(&plan.plan, c, journal, reviewed_hash, &rebuild, &verify)?;
+    if result.get("submitted").is_some_and(truthy) && result.get("accepted").is_some_and(truthy) {
+        journal.record_verified(&plan.hash(), &accepted_action(&module), Some(&json!(0)));
+    }
+    Ok(result)
 }
 
 fn strings(v: &Value) -> Vec<String> {
@@ -300,7 +446,7 @@ fn strings(v: &Value) -> Vec<String> {
 }
 
 /// Port of fsv.list_preferences.send: a columns change is read back from
-/// the headers; an export is review-only and never sent.
+/// the headers; an export is submitted once ([`send_export`]).
 pub fn send(
     plan: &ListPlan,
     c: &dyn Api,
@@ -310,7 +456,7 @@ pub fn send(
     let inputs: Value = serde_json::from_str(&plan.inputs_json)?;
     let module = inputs["module"].as_str().unwrap_or_default().to_string();
     if plan.plan.action != "list_columns" {
-        return Err(refused("export is review-only in fsv; nothing was sent"));
+        return send_export(plan, c, journal, reviewed_hash);
     }
     let payload = plan.payload();
     let rebuild = || -> Result<WritePlan> {
@@ -363,4 +509,296 @@ pub fn send(
         ))
     };
     execute(&plan.plan, c, journal, reviewed_hash, &rebuild, &verify)
+}
+
+#[cfg(test)]
+mod export_tests {
+    use std::sync::{Arc, Mutex};
+
+    use fsv_core::{ApiError, Error};
+
+    use super::*;
+    use crate::service::testing::{Call, FnApi, MemJournal};
+
+    const EMAIL: &str = "agent@example.com";
+
+    #[derive(Default)]
+    struct World {
+        row: Value,
+        failure: Option<Value>,
+        writes: usize,
+    }
+
+    fn headers() -> Value {
+        json!([
+            {"name": "ticket_subject", "label": "Acme subject", "position": 1, "selected": true, "frozen": false},
+            {"name": "status", "label": "Acme state", "position": 2, "selected": true, "frozen": false},
+            {"name": "display_id", "label": "Acme ID", "position": 3, "selected": true, "frozen": true},
+        ])
+    }
+
+    fn view_row(query_hash: Value) -> Value {
+        json!({"id": 701, "name": "Acme queue", "query_hash": query_hash, "advanced_query_hash": null})
+    }
+
+    /// The `tests/test_list_preferences.py` wire for `module`; `me` is the
+    /// signed-in agent and `string_values_only` the trial's server rule for
+    /// `data_hash`.
+    fn api(module: &'static str, me: Value) -> (Arc<Mutex<World>>, FnApi) {
+        let world = Arc::new(Mutex::new(World {
+            row: view_row(
+                json!([{"condition": "status", "operator": "is_in", "value": ["47"], "type": "default"}]),
+            ),
+            ..World::default()
+        }));
+        let shared = world.clone();
+        let filters = match module {
+            "tickets" => "ticket_filters",
+            "changes" => "change-filters",
+            _ => "problem-filters",
+        };
+        let api = FnApi::new(move |call: &Call| {
+            if call.method == "ME" {
+                return Ok(me.clone());
+            }
+            let mut w = shared.lock().unwrap();
+            if call.method == "GET" {
+                if call.path == format!("{module}/headers") {
+                    return Ok(json!({"headers": headers()}));
+                }
+                if call.path == filters {
+                    return Ok(json!({"filters": [w.row.clone()]}));
+                }
+                if call.path == format!("{filters}/701") {
+                    return Ok(
+                        json!({format!("{}_filter", &module[..module.len() - 1]): w.row.clone()}),
+                    );
+                }
+                panic!("unexpected read {}", call.path);
+            }
+            assert_eq!(call.path, format!("{module}/export"));
+            w.writes += 1;
+            match w.failure.clone() {
+                Some(Value::String(_)) => Err(Error::Http {
+                    kind: "ReadError".into(),
+                    message: "synthetic disconnect".into(),
+                }),
+                Some(n) => Err(ApiError::new(
+                    n.as_u64().unwrap() as u16,
+                    json!({"error": "synthetic"}),
+                )
+                .into()),
+                None => {
+                    let data = &call.body.as_ref().unwrap()["data_hash"];
+                    let strings = data.as_array().unwrap().iter().all(|c| match &c["value"] {
+                        Value::String(_) => true,
+                        Value::Array(v) => v.iter().all(Value::is_string),
+                        _ => false,
+                    });
+                    if strings {
+                        Ok(json!({"success": true}))
+                    } else {
+                        Err(ApiError::new(400, json!({"description": "Validation failed"})).into())
+                    }
+                }
+            }
+        });
+        (world, api)
+    }
+
+    fn agent() -> Value {
+        json!({"id": 9000001, "email": EMAIL})
+    }
+
+    fn fields() -> Vec<String> {
+        vec!["subject".into(), "display_id".into()]
+    }
+
+    fn plan(c: &FnApi, j: &MemJournal, module: &str) -> ListPlan {
+        export_plan(c, j, module, "701", &fields()).unwrap()
+    }
+
+    #[test]
+    fn export_review_carries_view_format_fields_and_the_send_requirements() {
+        for module in ["tickets", "changes", "problems"] {
+            let (_, c) = api(module, agent());
+            let j = MemJournal::default();
+            let p = plan(&c, &j, module);
+            let review = p.review();
+            assert_eq!(review["view"], json!({"id": "701", "name": "Acme queue"}));
+            assert_eq!(review["format"], json!("csv"));
+            assert_eq!(review["fields"], p.payload()["export_fields"]);
+            assert_eq!(review["submit_only"], json!(true));
+            assert_eq!(
+                review["delivery"],
+                json!("emailed by the server, not downloadable here")
+            );
+            assert!(review["note"].as_str().unwrap().contains("submit-only"));
+            assert_eq!(review["recipient"]["mailbox"], json!(EMAIL));
+            assert_eq!(
+                review["requires"],
+                json!("--yes --expect-plan FULL_HASH --confirm-send-to-me")
+            );
+            assert!(c.writes().is_empty());
+        }
+    }
+
+    #[test]
+    fn export_is_submitted_once_journaled_and_never_replayed() {
+        let (world, c) = api("tickets", agent());
+        let j = MemJournal::default();
+        let p = plan(&c, &j, "tickets");
+        let sent = send(&p, &c, &j, Some(&p.hash())).unwrap();
+        assert_eq!(sent["submitted"], json!(true));
+        assert_eq!(sent["accepted"], json!(true));
+        assert_eq!(sent["verified"], json!(false));
+        assert_eq!(sent["recipient"], json!(EMAIL));
+        assert!(
+            sent["delivery"]
+                .as_str()
+                .unwrap()
+                .contains("not downloadable")
+        );
+        assert_eq!(sent["plan_hash"], json!(p.hash()));
+        assert_eq!(world.lock().unwrap().writes, 1);
+        assert!(
+            c.writes()[0]
+                .raw
+                .as_ref()
+                .is_some_and(|b| !String::from_utf8_lossy(b).contains("recipient"))
+        );
+        let again = send(&p, &c, &j, Some(&p.hash())).unwrap_err();
+        assert_eq!(again.exit_code(), 2);
+        assert_eq!(world.lock().unwrap().writes, 1);
+        // an accepted export lets a fresh review of the same view plan a new hash
+        let fresh = plan(&c, &j, "tickets");
+        assert_ne!(fresh.hash(), p.hash());
+    }
+
+    #[test]
+    fn export_unknown_outcome_is_never_replayed() {
+        for failure in [json!(500), json!("disconnect")] {
+            let (world, c) = api("tickets", agent());
+            let j = MemJournal::default();
+            let p = plan(&c, &j, "tickets");
+            world.lock().unwrap().failure = Some(failure.clone());
+            let err = send(&p, &c, &j, Some(&p.hash())).unwrap_err();
+            assert!(err.to_string().contains("unknown"), "{failure}: {err}");
+            let again = plan(&c, &j, "tickets");
+            assert_eq!(again.hash(), p.hash());
+            let err = send(&again, &c, &j, Some(&again.hash())).unwrap_err();
+            assert!(err.to_string().contains("was sent"), "{failure}: {err}");
+            assert_eq!(world.lock().unwrap().writes, 1);
+        }
+    }
+
+    #[test]
+    fn export_refused_when_the_mailbox_is_unreadable() {
+        let (world, c) = api("tickets", json!({"id": 9000001}));
+        let j = MemJournal::default();
+        let p = plan(&c, &j, "tickets");
+        let err = send(&p, &c, &j, Some(&p.hash())).unwrap_err();
+        assert!(err.to_string().contains("mailbox"), "{err}");
+        assert_eq!(world.lock().unwrap().writes, 0);
+    }
+
+    #[test]
+    fn export_hash_binds_the_session_mailbox() {
+        let (_, c) = api("tickets", agent());
+        let j = MemJournal::default();
+        let first = plan(&c, &j, "tickets");
+        let (_, other) = api("tickets", json!({"email": "other@example.com"}));
+        assert_ne!(plan(&other, &j, "tickets").hash(), first.hash());
+    }
+
+    fn string_values(conds: &Value) -> bool {
+        conds.as_array().unwrap().iter().all(|c| match &c["value"] {
+            Value::String(_) => true,
+            Value::Array(v) => v.iter().all(Value::is_string),
+            _ => false,
+        })
+    }
+
+    #[test]
+    fn export_integer_workspace_view_is_normalised_to_the_captured_string_shape() {
+        for module in ["tickets", "changes", "problems"] {
+            let (world, c) = api(module, agent());
+            let j = MemJournal::default();
+            let query = json!([
+                {"condition": "status", "operator": "is_in", "value": ["2", "3"], "type": "default"},
+                {"condition": "workspace_id", "operator": "is_in", "value": [1], "type": "default"},
+                {"condition": "priority", "operator": "is", "value": 4, "type": "default"}]);
+            world.lock().unwrap().row = view_row(query.clone());
+            if module != "tickets" {
+                let err = export_plan(&c, &j, module, "701", &fields()).unwrap_err();
+                assert!(
+                    err.to_string().contains("export yet: workspace_id"),
+                    "{err}"
+                );
+                continue;
+            }
+            let p = plan(&c, &j, module);
+            let data = p.payload()["data_hash"].clone();
+            assert_eq!(data[0], query[0]);
+            assert_eq!(
+                data[1],
+                json!({"condition": "workspace_id", "operator": "is", "value": "1", "type": "default"})
+            );
+            assert_eq!(data[2]["value"], json!("4"));
+            assert!(string_values(&data));
+            assert!(
+                !string_values(&query),
+                "as read, the fake server answers 400"
+            );
+            assert_eq!(
+                world.lock().unwrap().row["query_hash"][1]["value"],
+                json!([1])
+            );
+            assert_eq!(
+                send_export(&p, &c, &j, Some(&p.hash())).unwrap()["accepted"],
+                json!(true)
+            );
+            assert_eq!(world.lock().unwrap().writes, 1);
+        }
+    }
+
+    #[test]
+    fn export_string_view_body_is_unchanged() {
+        let (world, c) = api("tickets", agent());
+        let p = plan(&c, &MemJournal::default(), "tickets");
+        assert_eq!(
+            p.payload()["data_hash"],
+            world.lock().unwrap().row["query_hash"]
+        );
+        assert!(string_values(&p.payload()["data_hash"]));
+    }
+
+    #[test]
+    fn export_unserialisable_view_is_refused_at_review_naming_the_field() {
+        let values = [
+            json!([0]),
+            json!([0, 1]),
+            json!({"from": "x", "to": "y"}),
+            Value::Null,
+            json!(true),
+            json!([]),
+        ];
+        for module in ["tickets", "changes", "problems"] {
+            for value in &values {
+                let (world, c) = api(module, agent());
+                world.lock().unwrap().row = view_row(json!([
+                    {"condition": "status", "operator": "is_in", "value": ["2"], "type": "default"},
+                    {"condition": "responder_id", "operator": "is_in", "value": value, "type": "default"}]));
+                let err =
+                    export_plan(&c, &MemJournal::default(), module, "701", &fields()).unwrap_err();
+                assert_eq!(err.exit_code(), 2);
+                assert!(
+                    err.to_string()
+                        .contains("cannot serialise for export yet: responder_id"),
+                    "{module} {value}: {err}"
+                );
+                assert_eq!(world.lock().unwrap().writes, 0);
+            }
+        }
+    }
 }

@@ -148,6 +148,13 @@ pub struct AssetsSearchArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -1150,15 +1157,15 @@ pub struct ResExportArgs {
     pub field: Vec<String>,
     #[arg(long = "dry-run")]
     pub dry_run: bool,
-    #[arg(hide = true, long = "yes")]
+    #[arg(long = "yes")]
     pub yes: bool,
-    #[arg(
-        hide = true,
-        long = "expect-plan",
-        allow_hyphen_values = true,
-        value_name = "TEXT"
-    )]
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "required with --yes: the server emails the export to your own mailbox",
+        long = "confirm-send-to-me"
+    )]
+    pub confirm_send_to_me: bool,
     #[arg(
         long = "output",
         short = 'o',
@@ -1490,6 +1497,13 @@ pub struct ChangesUpdateArgs {
         value_name = "TEXT"
     )]
     pub due_by: Option<String>,
+    #[arg(
+        help = "--attach and --planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
     #[arg(help = "print resolved payload without updating", long = "dry-run")]
     pub dry_run: bool,
     #[arg(
@@ -1570,6 +1584,13 @@ pub struct ChangesDownloadArgs {
     pub out: Option<PathBuf>,
     #[arg(help = "overwrite existing files", long = "force")]
     pub force: bool,
+    #[arg(
+        help = "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
     #[arg(help = "emit JSON manifest", long = "json")]
     pub json_out: bool,
 }
@@ -2307,6 +2328,13 @@ pub struct ChangesAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -2393,6 +2421,13 @@ pub struct ChangesAssetsSearchArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -2486,7 +2521,7 @@ pub struct ChangesPrivateViewsWriteArgs {
     #[arg(value_name = "SOURCE_VIEW", value_parser = crate::pyint::POSITIVE)]
     pub id_: i64,
     #[arg(
-        help = "create (clone source); rename/delete are not captured for change views",
+        help = "create (clone source) | rename | delete",
         value_name = "ACTION"
     )]
     pub action: String,
@@ -2498,6 +2533,8 @@ pub struct ChangesPrivateViewsWriteArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(help = "required with --yes for delete", long = "confirm-destructive")]
+    pub confirm_destructive: bool,
     #[arg(
         long = "output",
         short = 'o',
@@ -3255,6 +3292,44 @@ pub struct ResUpdateArgs {
     )]
     pub planned_effort: Option<String>,
     #[arg(
+        help = "problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update",
+        long = "planning",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub planning: Option<String>,
+    #[arg(
+        help = "problems --planning: section text/HTML; '-' reads stdin",
+        long = "description",
+        visible_alias = "desc",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub description: Option<String>,
+    #[arg(
+        help = "problems --planning: file(s) to upload to the section",
+        long = "file",
+        short = 'f',
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub files: Vec<String>,
+    #[arg(
+        help = "problems --planning --file: same-name attachment behavior: prompt|skip|replace|append",
+        long = "duplicate",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = "prompt"
+    )]
+    pub duplicate: String,
+    #[arg(
+        help = "problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
+    #[arg(
         help = "--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release",
         long = "reviewed",
         overrides_with = "no_review"
@@ -3309,6 +3384,18 @@ pub struct ResDownloadArgs {
         long = "description-attachments"
     )]
     pub description_attachments: bool,
+    #[arg(
+        help = "problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)",
+        long = "planning",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub planning: Vec<String>,
+    #[arg(
+        help = "problems: download every analysis section's attachments",
+        long = "all-planning"
+    )]
+    pub all_planning: bool,
     #[arg(help = "download all attachments from all sources", long = "all")]
     pub all_: bool,
     #[arg(
@@ -3321,6 +3408,13 @@ pub struct ResDownloadArgs {
     pub out: Option<PathBuf>,
     #[arg(help = "overwrite existing files", long = "force")]
     pub force: bool,
+    #[arg(
+        help = "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
     #[arg(help = "emit JSON manifest", long = "json")]
     pub json_out: bool,
 }
@@ -3557,6 +3651,13 @@ pub struct TicketsAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -3761,6 +3862,8 @@ pub struct TicketsPrivateViewsWriteArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(help = "required with --yes for delete", long = "confirm-destructive")]
+    pub confirm_destructive: bool,
     #[arg(
         long = "output",
         short = 'o',
@@ -4627,6 +4730,13 @@ pub struct ProblemsAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -4822,6 +4932,11 @@ pub struct AttachmentsDeleteArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "required with --yes: the delete is permanent (no restore wire)",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -5076,6 +5191,13 @@ pub struct SrCreateArgs {
     )]
     pub attach: Vec<String>,
     #[arg(
+        help = "total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash",
+        long = "max-bytes",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::POSITIVE
+    )]
+    pub max_bytes: Option<i64>,
+    #[arg(
         help = "show the review, payload and plan hash; send nothing",
         long = "dry-run"
     )]
@@ -5201,6 +5323,13 @@ pub struct SrAssetsCandidatesArgs {
         value_parser = crate::pyint::POSITIVE
     )]
     pub page: i64,
+    #[arg(
+        help = "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+        long = "per-page",
+        value_name = "INTEGER RANGE",
+        value_parser = crate::pyint::PER_PAGE
+    )]
+    pub per_page: Option<i64>,
     #[arg(long = "json")]
     pub json_out: bool,
 }
@@ -5640,7 +5769,7 @@ pub fn build() -> Command {
             .subcommand(ChangesCiAddArgs::augment_args(Command::new("ci-add") .hide(true).arg(global_verbose())))
             .subcommand(ChangesCiRemoveArgs::augment_args(Command::new("ci-remove") .hide(true).arg(global_verbose())))
             .subcommand(ChangesCiListArgs::augment_args(Command::new("ci-list") .hide(true).arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.").arg(global_verbose())))
             .subcommand(ChangesAssetPickerArgs::augment_args(Command::new("asset-picker") .about("Search/select a change asset candidate without associating it (read-only).").arg(global_verbose())))
             .subcommand(PlanningTextArgs::augment_args(Command::new("planning-text") .about("Review a native planning/analysis text section; no files.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable change fields.") .after_help("Examples: fsv changes fields | fsv changes fields --required | fsv changes fields --choices status | fsv changes fields --custom").arg(global_verbose())))
@@ -5688,7 +5817,7 @@ pub fn build() -> Command {
                 .subcommand(ChangesAssetsSearchArgs::augment_args(Command::new("search").arg(global_verbose()))))
             .subcommand(columns_group())
             .subcommand(Command::new("private-views")
-                .about("Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.")
+                .about("Private change views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.")
                 .subcommand(ChangesPrivateViewsListArgs::augment_args(Command::new("list") .about("Your own non-default saved views (the list carries no visibility).").arg(global_verbose())))
                 .subcommand(ChangesPrivateViewsShowArgs::augment_args(Command::new("show") .about("Exact view read plus whether fsv treats it as private (Myself, no groups).").arg(global_verbose())))
                 .subcommand(ChangesPrivateViewsWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))
@@ -5700,7 +5829,7 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one ticket.") .after_help("Examples: fsv tickets get INC-1234 | fsv tickets get INC-1234 --tab activity | fsv tickets get INC-1234 --all-tabs | fsv tickets get INC-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List ticket activity.") .after_help("Examples: fsv tickets activity INC-1234 | fsv tickets activity INC-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks-legacy") .hide(true) .about("List ticket tasks.") .after_help("Examples: fsv tickets tasks INC-1234 | fsv tickets tasks INC-1234 --json").arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.").arg(global_verbose())))
             .subcommand(TicketsNoteEditArgs::augment_args(Command::new("note-edit") .about("Review an edit to an exact ticket note.").arg(global_verbose())))
             .subcommand(TicketsNoteDeleteArgs::augment_args(Command::new("note-delete") .about("Review deletion of an exact ticket note.").arg(global_verbose())))
             .subcommand(TicketsAssignArgs::augment_args(Command::new("assign") .about("Review ticket assignment, group assignment, or agent unassignment.").arg(global_verbose())))
@@ -5785,7 +5914,7 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one problem.") .after_help("Examples: fsv problems get PRB-1234 | fsv problems get PRB-1234 --tab activity | fsv problems get PRB-1234 --all-tabs | fsv problems get PRB-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List problem activity.") .after_help("Examples: fsv problems activity PRB-1234 | fsv problems activity PRB-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks") .about("List problem tasks.") .after_help("Examples: fsv problems tasks PRB-1234 | fsv problems tasks PRB-1234 --json").arg(global_verbose())))
-            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.").arg(global_verbose())))
             .subcommand(ProblemsTaskWriteArgs::augment_args(Command::new("task-write") .about("Review a problem task update, complete or delete; completion may rewrite planned dates.").arg(global_verbose())))
             .subcommand(ProblemsDeleteArgs::augment_args(Command::new("delete") .about("Move one exact problem to the trash (reviewed; restorable).").arg(global_verbose())))
             .subcommand(ProblemsRestoreArgs::augment_args(Command::new("restore") .about("Restore one exact problem from the trash (reviewed).").arg(global_verbose())))

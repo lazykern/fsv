@@ -3078,7 +3078,7 @@ fn sr_send_failure_lists_uploads() {
             "/Users/phusit.somb/lab/work/fsv-rust/crates/fsv-cli/tests/fixtures/files/sr/notes.txt",
             "--yes",
             "--expect-plan",
-            "5e0581d3ec26d93df27b1323a4704c3d88408b3ffe759d5cbad55d7b2332cda2",
+            "4a5b3a005e3d29f6f7da7d37ecc786c8d52391926e954078f7e1c3cfd7e912c9",
         ],
         None,
     );
@@ -4878,6 +4878,7 @@ fn pv_delete_send() {
             "--yes",
             "--expect-plan",
             "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+            "--confirm-destructive",
         ],
         None,
     );
@@ -4894,6 +4895,28 @@ fn pv_delete_send() {
     );
     assert_eq!(r.err, r#""#);
     assert_eq!(r.write_paths(), ["DELETE /api/_/ticket_filters/704"]);
+}
+
+#[test]
+fn pv_delete_yes_without_confirm_destructive_sends_nothing() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "704",
+            "delete",
+            "--yes",
+            "--expect-plan",
+            "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
+    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
@@ -5519,7 +5542,7 @@ fn cpv_create_shared_refused() {
 }
 
 #[test]
-fn cpv_delete_not_captured() {
+fn cpv_delete_dry_run() {
     let r = run_fixture(
         "private_views_native",
         &[
@@ -5532,17 +5555,26 @@ fn cpv_delete_not_captured() {
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"changes private-view delete is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_private_view_delete",
+  "method": "DELETE",
+  "path": "/api/_/change-filters/811",
+  "payload": null,
+  "plan_hash": "bf01ab37b7ba23ef6d68b60d26eb310e3336003170e601bd68bfb3e4a3064a09",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
-fn cpv_rename_not_captured() {
+fn cpv_rename_dry_run() {
     let r = run_fixture(
         "private_views_native",
         &[
@@ -5552,7 +5584,36 @@ fn cpv_rename_not_captured() {
             "811",
             "rename",
             "--name",
-            "x",
+            "Globex renamed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    let out = r.json();
+    assert_eq!(out["action"], "change_private_view_edit");
+    assert_eq!(out["method"], "PUT");
+    assert_eq!(out["path"], "/api/_/change-filters/811");
+    assert_eq!(out["payload"]["name"], "Globex renamed");
+    assert_eq!(
+        out["plan_hash"],
+        "9b6dd065907073b9cc15f25c61d1dc3784eb3567c70a42fadac1e20e6017ff7a"
+    );
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
+fn cpv_rename_to_the_current_name_is_refused() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "rename",
+            "--name",
+            "Globex changes",
             "--dry-run",
         ],
         None,
@@ -5561,9 +5622,29 @@ fn cpv_rename_not_captured() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI
-"#
+        "the view is already named 'Globex changes'; nothing to change\n"
     );
+}
+
+#[test]
+fn cpv_delete_yes_without_confirm_destructive_sends_nothing() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "delete",
+            "--yes",
+            "--expect-plan",
+            "bf01ab37b7ba23ef6d68b60d26eb310e3336003170e601bd68bfb3e4a3064a09",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
@@ -5799,8 +5880,8 @@ fn tickets_export_dry_run() {
     },
     "ticket_state_filter": "created_at"
   },
-  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -5816,8 +5897,20 @@ fn tickets_export_dry_run() {
     "selected_filter_view",
     "ticket_state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -5841,17 +5934,80 @@ fn tickets_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
+            "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+            "--confirm-send-to-me",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": 202,
+  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "verified": false,
+  "submitted": true,
+  "accepted": true,
+  "recipient": "agent@example.com",
+  "delivery": "emailed by the server, not downloadable here",
+  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/export"]);
+}
+
+#[test]
+fn tickets_export_yes_without_confirm_send_to_me_sends_nothing() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--yes",
+            "--expect-plan",
+            "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
         ],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
-"#
-    );
+    assert!(r.err.contains("--confirm-send-to-me"), "{}", r.err);
+    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
+fn tickets_export_send_runs_once_and_is_not_replayed() {
+    let args = [
+        "tickets",
+        "export",
+        "--view",
+        "Acme queue",
+        "--field",
+        "subject",
+        "--field",
+        "status_name",
+        "--field",
+        "display_id",
+        "--yes",
+        "--expect-plan",
+        "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+        "--confirm-send-to-me",
+    ];
+    let first: &[&str] = &args;
+    let r = common::run_steps("list_prefs", &[first], first, None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.write_paths().is_empty(), "{:?}", r.write_paths());
 }
 
 #[test]
@@ -6072,8 +6228,8 @@ fn changes_export_dry_run() {
     "format": "csv",
     "state_filter": "created_at"
   },
-  "plan_hash": "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -6088,8 +6244,20 @@ fn changes_export_dry_run() {
     "format",
     "state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -6113,17 +6281,28 @@ fn changes_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
+            "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+            "--confirm-send-to-me",
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r.out,
+        r#"{
+  "status": 202,
+  "plan_hash": "5a492a16a9e0bbe70de8576070b0b0e0cb75580dff4e57c2ee7172d41afe0d88",
+  "verified": false,
+  "submitted": true,
+  "accepted": true,
+  "recipient": "agent@example.com",
+  "delivery": "emailed by the server, not downloadable here",
+  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/changes/export"]);
 }
 
 #[test]
@@ -6332,8 +6511,8 @@ fn problems_export_dry_run() {
     "format": "csv",
     "state_filter": "created_at"
   },
-  "plan_hash": "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -6347,8 +6526,20 @@ fn problems_export_dry_run() {
     "format",
     "state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -6372,17 +6563,28 @@ fn problems_export_send() {
             "display_id",
             "--yes",
             "--expect-plan",
-            "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
+            "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+            "--confirm-send-to-me",
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r.out,
+        r#"{
+  "status": 202,
+  "plan_hash": "ef0424f3cae66118ee484135386b52d6ae317c18f4f64c447d078bf6cf465db7",
+  "verified": false,
+  "submitted": true,
+  "accepted": true,
+  "recipient": "agent@example.com",
+  "delivery": "emailed by the server, not downloadable here",
+  "warning": "export is submit-only; check the mailbox (usually within 15 minutes, up to 2 hours) and do not resend"
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/export"]);
 }
 
 #[test]
@@ -6761,8 +6963,8 @@ fn tickets_export_without_dry_run() {
     },
     "ticket_state_filter": "created_at"
   },
-  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
-  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "plan_hash": "30fdde3a537b6f95629edba973aad6d97fce335f03ebc01f5014713b01734ea3",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "recipient": {
     "mailbox": "agent@example.com",
     "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
@@ -6778,8 +6980,20 @@ fn tickets_export_without_dry_run() {
     "selected_filter_view",
     "ticket_state_filter"
   ],
-  "review_only": true,
-  "delivery": "unknown"
+  "view": {
+    "id": "701",
+    "name": "Acme queue"
+  },
+  "format": "csv",
+  "fields": {
+    "display_id": "Acme ID",
+    "status_name": "Acme state",
+    "subject": "Acme subject"
+  },
+  "submit_only": true,
+  "delivery": "emailed by the server, not downloadable here",
+  "note": "Export is submit-only: the server answers 202 and emails the file to the signed-in agent's own mailbox (shown as recipient), usually within 15 minutes and up to 2 hours. fsv cannot read the mailbox, so the result is never verified; check the mailbox and do not resend.",
+  "requires": "--yes --expect-plan FULL_HASH --confirm-send-to-me"
 }
 "#
     );
@@ -6809,7 +7023,7 @@ fn changes_export_yes_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r#"review first, then pass --yes with the full --expect-plan hash; nothing was sent
 "#
     );
 }
@@ -6838,7 +7052,7 @@ fn problems_export_expect_plan_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+        r#"--expect-plan sends only with --yes --confirm-send-to-me; nothing was sent
 "#
     );
 }
@@ -13423,7 +13637,8 @@ fn attachments_delete_dry_run() {
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "owner": "tickets/5",
   "child": null,
-  "section": null
+  "section": null,
+  "requires": "--confirm-destructive"
 }
 "#
     );
@@ -13443,6 +13658,7 @@ fn attachments_delete_send() {
             "--yes",
             "--expect-plan",
             "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
+            "--confirm-destructive",
         ],
         None,
     );
@@ -13462,6 +13678,29 @@ fn attachments_delete_send() {
 }
 
 #[test]
+fn attachments_delete_yes_without_confirm_destructive_sends_nothing() {
+    let r = run_fixture(
+        "attachments",
+        &[
+            "attachments",
+            "delete",
+            "62",
+            "--owner",
+            "tickets/6",
+            "--yes",
+            "--expect-plan",
+            "ec9e611d62683d7924817e440437e392cc74f4e9e0d11525910e6c3555ae0f3a",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
+    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
 fn attachments_delete_send_unverified() {
     let r = run_fixture(
         "attachments",
@@ -13474,6 +13713,7 @@ fn attachments_delete_send_unverified() {
             "--yes",
             "--expect-plan",
             "b543497e0ec2e43bcdcf810686166714f25a5accfd7f8ee13a4badbdeaa831d4",
+            "--confirm-destructive",
         ],
         None,
     );
@@ -13511,7 +13751,7 @@ fn attachments_delete_needs_expect_plan() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+        r#"review with --dry-run, then --yes --expect-plan FULL_HASH --confirm-destructive
 "#
     );
 }
@@ -13616,7 +13856,8 @@ fn attachments_delete_child_conversation() {
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "owner": "tickets/5",
   "child": 950,
-  "section": null
+  "section": null,
+  "requires": "--confirm-destructive"
 }
 "#
     );
@@ -14081,6 +14322,8 @@ fn assets_search_devices() {
   "total_rows": 1,
   "page": 1,
   "kind": "devices",
+  "per_page": 50,
+  "pages": 1,
   "complete": true
 }
 "#
@@ -14111,6 +14354,8 @@ fn assets_search_services_page() {
   "total_rows": 4,
   "page": 2,
   "kind": "services",
+  "per_page": 50,
+  "pages": 1,
   "complete": false
 }
 "#
@@ -14158,6 +14403,8 @@ fn changes_assets_search_devices() {
   "total_rows": 1,
   "page": 1,
   "kind": "devices",
+  "per_page": 50,
+  "pages": 1,
   "complete": true
 }
 "#
@@ -14313,6 +14560,8 @@ fn changes_assets_legacy() {
   "total_rows": 1,
   "page": 1,
   "kind": "devices",
+  "per_page": 50,
+  "pages": 1,
   "complete": true
 }
 "#
@@ -14655,7 +14904,11 @@ fn tickets_assets_candidates() {
     }
   ],
   "complete": true,
-  "driver": "legacy"
+  "driver": "legacy",
+  "page": "all",
+  "per_page": 30,
+  "pages": 1,
+  "total_rows": 2
 }
 "#
     );
@@ -14680,7 +14933,11 @@ fn changes_assets_candidates() {
     }
   ],
   "complete": true,
-  "driver": "legacy"
+  "driver": "legacy",
+  "page": "all",
+  "per_page": 30,
+  "pages": 1,
+  "total_rows": 1
 }
 "#
     );
@@ -14709,7 +14966,11 @@ fn sr_assets_candidates() {
     }
   ],
   "complete": true,
-  "driver": "legacy"
+  "driver": "legacy",
+  "page": "all",
+  "per_page": 30,
+  "pages": 1,
+  "total_rows": 2
 }
 "#
     );

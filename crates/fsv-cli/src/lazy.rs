@@ -92,6 +92,9 @@ impl Api for LazyApi {
             .map(|c| Api::workspace_cookies(c.as_ref()))
             .unwrap_or_default()
     }
+    fn last_status(&self) -> Option<u16> {
+        self.get().ok().and_then(|c| Api::last_status(c.as_ref()))
+    }
     fn me(&self) -> Result<Value> {
         Api::me(self.get()?.as_ref())
     }

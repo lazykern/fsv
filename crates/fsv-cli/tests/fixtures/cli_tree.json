@@ -619,6 +619,27 @@
        "max": null
       },
       {
+       "name": "per_page",
+       "kind": "option",
+       "opts": [
+        "--per-page"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "rows per page, 1 to 100 (default 50)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": 100
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -4761,7 +4782,7 @@
     },
     {
      "path": "fsv changes export",
-     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
+     "help": "Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -4837,7 +4858,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": true,
+       "hidden": false,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -4856,8 +4877,27 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": true,
+       "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_send_to_me",
+       "kind": "option",
+       "opts": [
+        "--confirm-send-to-me"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the server emails the export to your own mailbox",
        "metavar": null,
        "envvar": null
       },
@@ -6041,6 +6081,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "--attach and --planning --file: explicit total upload size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "dry_run",
        "kind": "option",
        "opts": [
@@ -6356,6 +6417,27 @@
        "help": "overwrite existing files",
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
       },
       {
        "name": "json_out",
@@ -9613,6 +9695,27 @@
          "max": null
         },
         {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
+        },
+        {
          "name": "json_out",
          "kind": "option",
          "opts": [
@@ -10094,6 +10197,27 @@
          "max": null
         },
         {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
+        },
+        {
          "name": "json_out",
          "kind": "option",
          "opts": [
@@ -10326,7 +10450,7 @@
     },
     {
      "path": "fsv changes private-views",
-     "help": "Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.",
+     "help": "Private change views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.",
      "epilog": null,
      "hidden": false,
      "group": true,
@@ -10498,7 +10622,7 @@
          "is_flag": false,
          "default": null,
          "hidden": false,
-         "help": "create (clone source); rename/delete are not captured for change views",
+         "help": "create (clone source) | rename | delete",
          "metavar": null,
          "envvar": null
         },
@@ -10575,6 +10699,25 @@
          "default": null,
          "hidden": false,
          "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "confirm_destructive",
+         "kind": "option",
+         "opts": [
+          "--confirm-destructive"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "required with --yes for delete",
          "metavar": null,
          "envvar": null
         },
@@ -11510,7 +11653,7 @@
     },
     {
      "path": "fsv tickets export",
-     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
+     "help": "Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -11586,7 +11729,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": true,
+       "hidden": false,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -11605,8 +11748,27 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": true,
+       "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_send_to_me",
+       "kind": "option",
+       "opts": [
+        "--confirm-send-to-me"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the server emails the export to your own mailbox",
        "metavar": null,
        "envvar": null
       },
@@ -15601,6 +15763,105 @@
        "envvar": null
       },
       {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "description",
+       "kind": "option",
+       "opts": [
+        "--description",
+        "--desc"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: section text/HTML; '-' reads stdin",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "files",
+       "kind": "option",
+       "opts": [
+        "--file",
+        "-f"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: file(s) to upload to the section",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "duplicate",
+       "kind": "option",
+       "opts": [
+        "--duplicate"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "prompt",
+       "hidden": false,
+       "help": "problems --planning --file: same-name attachment behavior: prompt|skip|replace|append",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "reviewed",
        "kind": "option",
        "opts": [
@@ -15824,6 +16085,44 @@
        "envvar": null
       },
       {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "all_planning",
+       "kind": "option",
+       "opts": [
+        "--all-planning"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "problems: download every analysis section's attachments",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "all_",
        "kind": "option",
        "opts": [
@@ -15880,6 +16179,27 @@
        "help": "overwrite existing files",
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
       },
       {
        "name": "json_out",
@@ -16785,6 +17105,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",
@@ -18528,6 +18869,25 @@
          "default": null,
          "hidden": false,
          "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "confirm_destructive",
+         "kind": "option",
+         "opts": [
+          "--confirm-destructive"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "required with --yes for delete",
          "metavar": null,
          "envvar": null
         },
@@ -21643,7 +22003,7 @@
     },
     {
      "path": "fsv problems export",
-     "help": "Review-only: print the native CSV/30-day export request (body keys, recipient mailbox); fsv never sends it (delivery unknown).",
+     "help": "Native CSV/30-day export of a saved view, emailed by the server to the signed-in agent (submit-only). Without --yes: review only (body, fields, view, recipient). Send: --yes --expect-plan FULL_HASH --confirm-send-to-me.",
      "epilog": null,
      "hidden": false,
      "group": false,
@@ -21719,7 +22079,7 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
-       "hidden": true,
+       "hidden": false,
        "help": null,
        "metavar": null,
        "envvar": null
@@ -21738,8 +22098,27 @@
        "nargs": 1,
        "is_flag": false,
        "default": null,
-       "hidden": true,
+       "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_send_to_me",
+       "kind": "option",
+       "opts": [
+        "--confirm-send-to-me"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the server emails the export to your own mailbox",
        "metavar": null,
        "envvar": null
       },
@@ -24747,6 +25126,105 @@
        "envvar": null
       },
       {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems only: analysis section (Root Cause, Impact, Symptoms or problem_cause/problem_impact/problem_symptom) to update",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "description",
+       "kind": "option",
+       "opts": [
+        "--description",
+        "--desc"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: section text/HTML; '-' reads stdin",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "files",
+       "kind": "option",
+       "opts": [
+        "--file",
+        "-f"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning: file(s) to upload to the section",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "duplicate",
+       "kind": "option",
+       "opts": [
+        "--duplicate"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "prompt",
+       "hidden": false,
+       "help": "problems --planning --file: same-name attachment behavior: prompt|skip|replace|append",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems --planning --file: explicit total upload size limit in bytes (default: the tenant's published limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "reviewed",
        "kind": "option",
        "opts": [
@@ -24970,6 +25448,44 @@
        "envvar": null
       },
       {
+       "name": "planning",
+       "kind": "option",
+       "opts": [
+        "--planning"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems: analysis section (Root Cause, Impact, Symptoms or its key; repeatable)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "all_planning",
+       "kind": "option",
+       "opts": [
+        "--all-planning"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "problems: download every analysis section's attachments",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "all_",
        "kind": "option",
        "opts": [
@@ -25026,6 +25542,27 @@
        "help": "overwrite existing files",
        "metavar": null,
        "envvar": null
+      },
+      {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "refuse any file larger than N bytes (default: the tenant's published attachment limit, else no limit)",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
       },
       {
        "name": "json_out",
@@ -25591,6 +26128,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",
@@ -26788,6 +27346,25 @@
        "envvar": null
       },
       {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required with --yes: the delete is permanent (no restore wire)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "json_out",
        "kind": "option",
        "opts": [
@@ -27550,6 +28127,27 @@
        "envvar": null
       },
       {
+       "name": "max_bytes",
+       "kind": "option",
+       "opts": [
+        "--max-bytes"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "total upload size limit in bytes for --attach and file fields (default: the tenant's published limit); bound into the plan hash",
+       "metavar": null,
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
        "name": "dry_run",
        "kind": "option",
        "opts": [
@@ -28038,6 +28636,27 @@
          "envvar": null,
          "min": 1,
          "max": null
+        },
+        {
+         "name": "per_page",
+         "kind": "option",
+         "opts": [
+          "--per-page"
+         ],
+         "secondary_opts": [],
+         "type": "integer range",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "rows per page, 1 to 100 (default 50; legacy picker 30, all pages read)",
+         "metavar": null,
+         "envvar": null,
+         "min": 1,
+         "max": 100
         },
         {
          "name": "json_out",

@@ -6,7 +6,6 @@ use clap::ArgMatches;
 use serde_json::{Map, Value, json};
 
 use fsv_api::attachments;
-use fsv_api::create::{DuplicateOpts, StdinPrompter};
 use fsv_api::service::DiskJournal;
 use fsv_api::state_flow::Printed;
 use fsv_api::{change_task_delete, change_task_update};
@@ -30,8 +29,8 @@ use crate::cmd::formflow::{self, Requester, Reviewed};
 use crate::cmd::sr::expanduser;
 use crate::types::{OutputFormat, effective};
 use crate::util::{
-    CmdResult, cid, client, confirm_writes, edit_body, emit_dry_run, emit_fmt, fail_exc, first_str,
-    format_cid, no_input, stdin_tty, usage,
+    CmdResult, cid, client, confirm_writes, edit_body, emit_fmt, fail_exc, first_str, format_cid,
+    no_input, stdin_tty, usage,
 };
 
 pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
@@ -1001,6 +1000,22 @@ fn change_update(
         *flow_cache.borrow_mut() = Some(flow.clone());
         Ok(flow)
     };
+    let limit_cache: std::cell::RefCell<Option<attachments::Limit>> = std::cell::RefCell::new(None);
+    let upload_limit = || -> Result<attachments::Limit, Error> {
+        if let Some(limit) = limit_cache.borrow().clone() {
+            return Ok(limit);
+        }
+        let limit = attachments::resolve_limit(api.as_ref(), &Value::Null, a.max_bytes).map_err(
+            |e| match e {
+                Error::Exit { code: 2, message } => {
+                    flow_exit(2, format!("{message}; pass --max-bytes N"))
+                }
+                other => other,
+            },
+        )?;
+        *limit_cache.borrow_mut() = Some(limit.clone());
+        Ok(limit)
+    };
     let build = |d: &Draft, ack_all: bool, mt: Option<Arc<FormMeta>>| -> Result<Plan, Error> {
         let opts = change::UpdateOptions {
             resolver: Some(resolver.clone()),
@@ -1008,6 +1023,7 @@ fn change_update(
             status_label: None,
             hints_path: None,
             journal: None,
+            upload_limit: Some(&upload_limit),
         };
         let lifecycle: Option<&dyn Fn() -> Result<Value, Error>> = record
             .get("state_flow_id")
@@ -1490,22 +1506,11 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
             "choose one update mode: --due-by, --planning, --edit, or field/attachment flags",
         ));
     }
-    if local_no_input && a.duplicate == "prompt" && (!a.files.is_empty() || !a.attach.is_empty()) {
+    if local_no_input && a.duplicate == "prompt" && !a.files.is_empty() {
         return Err(usage(
             "--duplicate prompt disabled by --no-input; use --duplicate skip|replace|append",
         ));
     }
-    let dup = DuplicateOpts {
-        duplicate: Some(a.duplicate.clone()),
-        backup_replaced: if a.backup_replaced {
-            Some(true)
-        } else if a.no_backup_replaced {
-            Some(false)
-        } else {
-            None
-        },
-        backup_name: a.backup_name.clone(),
-    };
     if let Some(due) = &a.due_by {
         return crate::cmd::due_by::change_due_by_update(
             id,
@@ -1519,12 +1524,6 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
         );
     }
     if let Some(planning) = &a.planning {
-        let c = client()?;
-        let sch = crate::schema::load(&CHANGES, &c, false).map_err(fail_exc)?;
-        let fields = crate::schema::fields(&sch);
-        let def =
-            fsv_api::create::resolve_planning_definition(planning, &fields).map_err(fail_exc)?;
-        let planning_id = fsv_api::create::planning_server_key(&def);
         let desc = if a.description.as_deref() == Some("-") {
             let mut buf = String::new();
             std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
@@ -1532,108 +1531,46 @@ pub fn update(a: ChangesUpdateArgs) -> CmdResult {
         } else {
             a.description.clone()
         };
-        if a.dry_run {
-            emit_dry_run(
-                &CHANGES,
-                id,
-                json!({"planning_field": planning_id, "description": desc, "files": a.files, "duplicate": a.duplicate}),
-                "update_planning_field",
-                &[],
-            );
-            return Ok(());
-        }
-        let label = def
-            .get("label")
-            .filter(|v| fsv_py::truthy(v))
-            .map(fsv_py::py_str)
-            .unwrap_or_else(|| planning.clone());
-        let updated = fsv_api::create::update_planning_field(
-            c.as_ref(),
+        return crate::cmd::upload_update::planning(
+            "changes",
             id,
-            &planning_id,
+            planning,
             desc.as_deref(),
             &a.files,
-            &dup,
-            Some(&label),
-            &StdinPrompter,
+            &a.duplicate,
+            a.backup_replaced,
+            a.max_bytes,
+            &crate::cmd::upload_update::Flags {
+                dry_run: a.dry_run,
+                yes: a.yes,
+                expect_plan: a.expect_plan.as_deref(),
+                json_out: a.json_out,
+                no_input: a.no_input,
+            },
         )
-        .map_err(fail_exc)?;
-        let key = fsv_py::py_repr_str(&planning_id);
-        if a.json_out {
-            emit_json(&updated);
-        } else if updated.get("_fsv_noop").is_some_and(fsv_py::truthy) {
-            let skipped = joined(updated.get("skipped"));
-            let tail = if skipped.is_empty() {
-                String::new()
-            } else {
-                format!(" ({skipped} already attached)")
-            };
-            out().print(&format!("[yellow]no changes[/] planning field {key}{tail}"));
-        } else {
-            let mut suffix = Vec::new();
-            if desc.is_some() {
-                suffix.push("description".to_string());
-            }
-            if !a.files.is_empty() {
-                suffix.push(format!("{} file(s)", a.files.len()));
-            }
-            let tail = if suffix.is_empty() {
-                String::new()
-            } else {
-                format!(" ({})", suffix.join(", "))
-            };
-            out().print(&format!("[green]updated[/] planning field {key}{tail}"));
-        }
-        return Ok(());
+        .map_err(fail_exc);
     }
-    if quick {
-        // Field flags and --set take the form path above; only --attach lands here.
-        let c = client()?;
-        fsv_api::schema::revalidate_for_write(&CHANGES, &c).map_err(fail_exc)?;
-        crate::schema::load(&CHANGES, &c, false).map_err(fail_exc)?;
-        let subject = format_cid(id, &CHANGES);
-        if a.dry_run {
-            let body = json!({"attachments": {"preserve_existing": true, "upload_files": a.attach, "duplicate": a.duplicate}});
-            emit_dry_run(&CHANGES, id, body, "update", &[]);
-            return Ok(());
-        }
-        let result = fsv_api::create::attach_files_to_change(
-            c.as_ref(),
+    if !a.attach.is_empty() {
+        // attach-only (every field flag went to the form path above): reviewed
+        return crate::cmd::upload_update::attach(
             id,
             &a.attach,
-            &dup,
-            &StdinPrompter,
+            &a.duplicate,
+            a.backup_replaced || a.backup_name.is_some(),
+            a.max_bytes,
+            &crate::cmd::upload_update::Flags {
+                dry_run: a.dry_run,
+                yes: a.yes,
+                expect_plan: a.expect_plan.as_deref(),
+                json_out: a.json_out,
+                no_input: a.no_input,
+            },
         )
-        .map_err(fail_exc)?;
-        if result.get("_fsv_noop").is_some_and(fsv_py::truthy) {
-            let skipped = joined(result.get("skipped"));
-            let tail = if skipped.is_empty() {
-                String::new()
-            } else {
-                format!(" ({skipped} already attached)")
-            };
-            out().print(&format!("[yellow]no changes[/] {subject}{tail}"));
-            return Ok(());
-        }
-        if fsv_py::truthy(&result) {
-            if a.json_out {
-                emit_json(&result);
-            } else {
-                out().print(&format!("[green]updated[/] {subject}"));
-            }
-            return Ok(());
-        }
+        .map_err(fail_exc);
     }
     Err(usage(
         "nothing to update; use --set, --from, --attach, --planning, --edit, or pass --status/--priority/--agent/--group (in a terminal, no flags opens the edit form)",
     ))
-}
-
-/// `", ".join(v or [])`.
-fn joined(v: Option<&Value>) -> String {
-    v.and_then(Value::as_array)
-        .map(|a| a.iter().map(fsv_py::py_str).collect::<Vec<_>>().join(", "))
-        .unwrap_or_default()
 }
 
 /// `changes download`.

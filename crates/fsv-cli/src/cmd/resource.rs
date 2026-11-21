@@ -1478,6 +1478,65 @@ pub fn reply(res: &'static Resource, a: PlainReplyArgs<'_>) -> CmdResult {
 
 /// Generic `update` (tickets, problems).
 pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
+    if a.planning.is_some() || a.description.is_some() || !a.files.is_empty() {
+        if res.name != PROBLEMS.name {
+            return Err(usage(
+                "--planning/--description/--file are supported only for problems here (changes have their own `changes update --planning`)",
+            ));
+        }
+        let Some(planning) = &a.planning else {
+            return Err(usage("--description/--file need --planning SECTION"));
+        };
+        if [
+            &a.status,
+            &a.priority,
+            &a.agent_id,
+            &a.group_id,
+            &a.planned_start,
+            &a.planned_end,
+            &a.planned_effort,
+        ]
+        .iter()
+        .any(|v| v.is_some())
+            || !a.set_.is_empty()
+            || !a.tag.is_empty()
+            || a.ack
+            || a.no_review
+        {
+            return Err(usage(
+                "--planning is its own update mode; send other fields in a separate update",
+            ));
+        }
+        let desc = if a.description.as_deref() == Some("-") {
+            let mut buf = String::new();
+            std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+            Some(buf)
+        } else {
+            a.description.clone()
+        };
+        let id = cid(&a.id_, res)?;
+        return crate::cmd::upload_update::planning(
+            "problems",
+            id,
+            planning,
+            desc.as_deref(),
+            &a.files,
+            &a.duplicate,
+            false,
+            a.max_bytes,
+            &crate::cmd::upload_update::Flags {
+                dry_run: a.dry_run,
+                yes: a.yes,
+                expect_plan: a.expect_plan.as_deref(),
+                json_out: a.json_out,
+                no_input: a.no_input,
+            },
+        )
+        .map_err(fail_exc);
+    }
+    if a.max_bytes.is_some() {
+        return Err(usage("--max-bytes applies to problems --planning --file"));
+    }
     if a.no_review {
         if !a.tag.is_empty()
             || a.planned_start.is_some()

@@ -3,9 +3,9 @@
 # --verbose is global in Rust and listed on every command; this file lists it only where Python declares it.
 fsv	--install-completion,--no-input,--refresh,--show-completion,--verbose,--version	0
 fsv assets		0
-fsv assets search	--json,--kind,--page	1
+fsv assets search	--json,--kind,--page,--per-page	1
 fsv attachments		0
-fsv attachments delete	--child,--dry-run,--expect-plan,--json,--owner,--section,--yes	1
+fsv attachments delete	--child,--confirm-destructive,--dry-run,--expect-plan,--json,--owner,--section,--yes	1
 fsv auth		0
 fsv auth login	--browser,--domain,--force,--header,--no-input,--store	0
 fsv auth logout	--no-input,--yes	0
@@ -25,12 +25,12 @@ fsv changes approvals	--groups,--json,--output	1
 fsv changes asset-picker	--json,--output,--page,--search,--select	1
 fsv changes assets		0
 fsv changes assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv changes assets candidates	--json,--kind,--page,--search	1
+fsv changes assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv changes assets legacy	--json,--search	1
 fsv changes assets list	--json,--kind	1
 fsv changes assets ls	--json,--kind	1
 fsv changes assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv changes assets search	--json,--kind,--page	1
+fsv changes assets search	--json,--kind,--page,--per-page	1
 fsv changes associations		0
 fsv changes associations add	--dry-run,--expect-plan,--json,--read-only,--yes	2
 fsv changes associations legacy	--add,--dry-run,--expect-plan,--json,--output,--pick,--read-only,--remove,--search,--yes	1
@@ -47,8 +47,8 @@ fsv changes columns list	--json,--output	0
 fsv changes columns set	--column,--dry-run,--expect-plan,--freeze,--json,--output,--yes	0
 fsv changes create	--ack,--agent,--agent-id,--all,--allow-duplicate,--attach,--attach-flow,--desc,--description,--device,--dry-run,--edit,--expect-plan,--from,--group,--group-id,--json,--max-bytes,--no-input,--no-validate,--optional,--output,--preset,--priority,--requester,--set,--status,--subject,--yes	0
 fsv changes delete	--confirm-destructive,--dry-run,--expect-plan,--json,--yes	1
-fsv changes download	--all,--all-planning,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--out,--planning	1
-fsv changes export	--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
+fsv changes download	--all,--all-planning,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--max-bytes,--out,--planning	1
+fsv changes export	--confirm-send-to-me,--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
 fsv changes fields	--choices,--custom,--default,--json,--output,--refresh,--required	1
 fsv changes get	--all-conversations,--all-tabs,--json,--output,--stats,--tab	1
 fsv changes lookup	--json,--output,--refresh	2
@@ -58,7 +58,7 @@ fsv changes planning-text	--clear,--description,--dry-run,--expect-plan,--json,-
 fsv changes private-views		0
 fsv changes private-views list	--json,--output	0
 fsv changes private-views show	--json,--output	1
-fsv changes private-views write	--dry-run,--expect-plan,--json,--name,--output,--yes	2
+fsv changes private-views write	--confirm-destructive,--dry-run,--expect-plan,--json,--name,--output,--yes	2
 fsv changes relationships		0
 fsv changes relationships list	--json	2
 fsv changes relationships write	--dry-run,--expect-plan,--item,--json,--name,--project-json,--project-key,--yes	3
@@ -72,7 +72,7 @@ fsv changes time		0
 fsv changes time list	--json,--output	1
 fsv changes time update	--dry-run,--expect-plan,--json,--note,--spent,--yes	2
 fsv changes time write	--billable,--dry-run,--entry,--executed-at,--expect-plan,--json,--no-billable,--non-billable,--note,--output,--spent,--yes	2
-fsv changes update	--ack,--agent,--agent-id,--attach,--backup-name,--backup-replaced,--desc,--description,--dry-run,--due-by,--duplicate,--edit,--expect-plan,--file,--from,--group,--group-id,--json,--no-backup-replaced,--no-input,--planning,--preset,--priority,--set,--status,--yes	1
+fsv changes update	--ack,--agent,--agent-id,--attach,--backup-name,--backup-replaced,--desc,--description,--dry-run,--due-by,--duplicate,--edit,--expect-plan,--file,--from,--group,--group-id,--json,--max-bytes,--no-backup-replaced,--no-input,--planning,--preset,--priority,--set,--status,--yes	1
 fsv changes url		1
 fsv changes views	--json,--output	0
 fsv changes watchers		0
@@ -110,7 +110,7 @@ fsv problems activity	--all,--json,--limit,--output	1
 fsv problems add-note	--dry-run,--expect-plan,--json,--no-input,--public,--yes	2
 fsv problems assets		0
 fsv problems assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv problems assets candidates	--json,--kind,--page,--search	1
+fsv problems assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv problems assets list	--json,--kind	1
 fsv problems assets ls	--json,--kind	1
 fsv problems assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
@@ -120,8 +120,8 @@ fsv problems columns set	--column,--dry-run,--expect-plan,--freeze,--json,--outp
 fsv problems create	--dry-run,--expect-plan,--from,--json,--output,--requester,--set,--yes	0
 fsv problems delete	--confirm-destructive,--dry-run,--expect-plan,--json,--yes	1
 fsv problems delete-forever	--confirm-destructive,--dry-run,--expect-plan,--json,--max-records,--yes	1
-fsv problems download	--all,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--notes,--out	1
-fsv problems export	--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
+fsv problems download	--all,--all-planning,--attachments,--description-attachments,--dir,--force,--json,--main-attachments,--max-bytes,--notes,--out,--planning	1
+fsv problems export	--confirm-send-to-me,--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
 fsv problems fields	--choices,--custom,--default,--json,--output,--refresh,--required	1
 fsv problems get	--all-conversations,--all-tabs,--json,--output,--stats,--tab	1
 fsv problems link-incident	--dry-run,--expect-plan,--json,--output,--yes	2
@@ -143,7 +143,7 @@ fsv problems time update	--dry-run,--expect-plan,--json,--note,--spent,--yes	2
 fsv problems time write	--billable,--dry-run,--entry,--executed-at,--expect-plan,--json,--no-billable,--non-billable,--note,--output,--spent,--yes	2
 fsv problems unlink-incident	--dry-run,--expect-plan,--json,--output,--yes	2
 fsv problems unlink-solution	--dry-run,--expect-plan,--json,--read-only,--yes	2
-fsv problems update	--ack,--agent,--agent-id,--dry-run,--expect-plan,--group,--group-id,--json,--no-input,--no-review,--planned-effort,--planned-end,--planned-start,--priority,--reviewed,--set,--status,--tag,--yes	1
+fsv problems update	--ack,--agent,--agent-id,--desc,--description,--dry-run,--duplicate,--expect-plan,--file,--group,--group-id,--json,--max-bytes,--no-input,--no-review,--planned-effort,--planned-end,--planned-start,--planning,--priority,--reviewed,--set,--status,--tag,--yes	1
 fsv problems url		1
 fsv problems views	--json,--output	0
 fsv problems write-child	--dry-run,--expect-plan,--json,--output,--yes	3
@@ -163,12 +163,12 @@ fsv sr approvals remind	--dry-run,--expect-plan,--json,--read-only,--remark,--ye
 fsv sr approvals request	--approver,--dry-run,--expect-plan,--json,--message,--name,--read-only,--rule,--yes	1
 fsv sr assets		0
 fsv sr assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv sr assets candidates	--json,--kind,--page,--search	1
+fsv sr assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv sr assets list	--json,--kind	1
 fsv sr assets ls	--json,--kind	1
 fsv sr assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
 fsv sr catalog	--categories,--category,--output,--popular,--search	0
-fsv sr create	--ack,--allow-duplicate,--attach,--cc,--dry-run,--edit,--expect-plan,--from,--no-input,--output,--preset,--requested-for,--requester,--set,--yes	1
+fsv sr create	--ack,--allow-duplicate,--attach,--cc,--dry-run,--edit,--expect-plan,--from,--max-bytes,--no-input,--output,--preset,--requested-for,--requester,--set,--yes	1
 fsv sr fields	--output	1
 fsv sr get	--attachments,--download,--force,--items,--output	1
 fsv sr items		0
@@ -183,7 +183,7 @@ fsv tickets add-note	--ack,--attach,--body,--confirm-public,--dry-run,--expect-p
 fsv tickets approvals	--json,--output	1
 fsv tickets assets		0
 fsv tickets assets add	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
-fsv tickets assets candidates	--json,--kind,--page,--search	1
+fsv tickets assets candidates	--json,--kind,--page,--per-page,--search	1
 fsv tickets assets list	--json,--kind	1
 fsv tickets assets ls	--json,--kind	1
 fsv tickets assets remove	--dry-run,--expect-plan,--json,--kind,--read-only,--yes	2
@@ -213,8 +213,8 @@ fsv tickets columns set	--column,--dry-run,--expect-plan,--freeze,--json,--outpu
 fsv tickets conversations	--all,--json,--npages,--output,--page,--per-page	1
 fsv tickets create	--ack,--allow-duplicate,--attach,--cc,--device,--dry-run,--edit,--expect-plan,--from,--json,--max-bytes,--no-input,--output,--preset,--requester,--set,--template,--yes	0
 fsv tickets delete-forever	--confirm-destructive,--dry-run,--expect-plan,--json,--max-records,--yes	1
-fsv tickets download	--all,--attachments,--conversations,--description-attachments,--dir,--force,--json,--main-attachments,--out	1
-fsv tickets export	--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
+fsv tickets download	--all,--all-planning,--attachments,--conversations,--description-attachments,--dir,--force,--json,--main-attachments,--max-bytes,--out,--planning	1
+fsv tickets export	--confirm-send-to-me,--dry-run,--expect-plan,--field,--json,--output,--view,--yes	0
 fsv tickets fields	--choices,--custom,--default,--json,--output,--refresh,--required	1
 fsv tickets forward	--conversation,--dry-run,--expect-plan,--json,--output,--sender,--to,--yes	2
 fsv tickets get	--all-conversations,--all-tabs,--json,--output,--stats,--tab	1
@@ -227,7 +227,7 @@ fsv tickets pick-up	--dry-run,--expect-plan,--json,--output,--yes	1
 fsv tickets private-views		0
 fsv tickets private-views list	--json,--output	0
 fsv tickets private-views show	--json,--output	1
-fsv tickets private-views write	--dry-run,--expect-plan,--json,--name,--output,--yes	2
+fsv tickets private-views write	--confirm-destructive,--dry-run,--expect-plan,--json,--name,--output,--yes	2
 fsv tickets problems		0
 fsv tickets problems candidates	--json,--kind,--search	1
 fsv tickets problems link	--dry-run,--expect-plan,--json,--kind,--yes	2
@@ -257,7 +257,7 @@ fsv tickets time write	--dry-run,--entry,--executed-at,--expect-plan,--json,--no
 fsv tickets trash		0
 fsv tickets trash list	--json,--page,--per-page	0
 fsv tickets unspam	--confirm-destructive,--dry-run,--expect-plan,--json,--yes	1
-fsv tickets update	--ack,--agent,--agent-id,--dry-run,--expect-plan,--group,--group-id,--json,--no-input,--no-review,--planned-effort,--planned-end,--planned-start,--priority,--reviewed,--set,--status,--tag,--yes	1
+fsv tickets update	--ack,--agent,--agent-id,--desc,--description,--dry-run,--duplicate,--expect-plan,--file,--group,--group-id,--json,--max-bytes,--no-input,--no-review,--planned-effort,--planned-end,--planned-start,--planning,--priority,--reviewed,--set,--status,--tag,--yes	1
 fsv tickets url		1
 fsv tickets views	--json,--output	0
 fsv tickets watchers		0
