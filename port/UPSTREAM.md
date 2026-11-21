@@ -3758,3 +3758,28 @@ Divergences are in `port/PARITY.md`. Provenance debt left as is:
   `terminal_status_ids`, the label-based `status_closes`) are removed from
   `fsv-core/src/safety.rs`; `safety.status_closes` maps to
   `fsv_api::status_semantics::status_closes`.
+
+## Ledger: `31a9103..main`, branch `port/up-c`
+
+Rows for the commits ported on `port/up-c`. Python sha, then what Rust has and
+what is left. The CLI tree (`cli_tree.json`, `completion_tree.json`,
+`generated.rs`, `command_flags.txt`, `command_help.txt`) was patched with the
+per-commit delta of the Python dumps (`git archive <sha>~1` against `<sha>`),
+not regenerated from `main`, so it holds only these commits' changes.
+Plan hashes were checked against Python with `tenant.bind_plan` neutralised in
+the export (the tenant binding of `5eefaaf`..`230b348` belongs to the auth
+branch and changes every plan hash).
+
+| commit | status | where, and what is left |
+|---|---|---|
+| `abfffc7` schema cache freshness | ported | `fsv-core` `cache.rs` (`schema`/`form_rules` TTL 900, `WRITE_MAX_AGE`, `forced`, `--refresh` via `runtime::set_force_refresh`); `fsv-api` `schema.rs` (`revalidate_for_write`, `validate_with_refetch`, thread-local retry scope; `fsv-cli` `util::fail` withholds a refusal inside the scope); write sites: `update_resource`, problem reviewed update, `changes clone`, `changes update --attach`, `changes windows create`. `changes create` / `--edit` / `--set` go through the form engine (metadata fetched fresh), not `schema::load`. |
+| `01a88d4` (cache clear/status part) | ported | `cache clear schema\|forms\|views\|groups\|all` (`forms` removes `CACHE_DIR/forms`), `choose schema\|forms\|views\|groups\|all`, completer entry, status rows `forms/<name>` labelled "form fields"/"form rules", `_age_text`, caption. The private-view rename and planning-text `--clear` no-op exits of the same commit are not in this branch. `term::Table` gained a `caption`. |
+| `8a3d2c6` tickets update reviewed by default | ported, token wiring partial | `--reviewed/--no-review` (`reviewed` is a no-op; effective flag is `!no_review`), `--no-review` stderr notice, "drop --no-review" refusals, `--ack` without `--reviewed`, exit 4 on an unverified readback, `stale_plan_refusal` on a mismatched `--expect-plan`, record-state token in the ticket property plan (`PropertyPlan.state_json`, `prior_hash`, `record_state` in the review, verified-send journaling, `prior_hash` guard in `send_with`). `build_plan_in` takes the `Journal` the token is read from (`DiskJournal` by default). Journal primitives come from `port/up-b` `73c84eb` verbatim. Existing goldens whose plan hash includes a ticket property plan (`bulk-priority`, ticket assign/pick-up, bulk status set) were refreshed from Rust; `bulk-priority` and `update --reviewed` were compared with Python. The assign/pick-up hashes will change again when the `9cc8b99` token of those writes lands. |
+| `b04e117` problems update form fields reviewed | ported | `problem_properties::build_update_plan`/`send_update`/`update_fields` (action `problem_update`, `UpdateError::NothingToChange`), CLI `problem_reviewed_update`; `--no-review` moved ahead of the problem planning branch for every resource. Planning (`problem_planning`) still builds its plan without a record-state token (`PlanningPlan.state_json` is empty there): binding it is part of `55d3e87` on the reviewed-write branch. |
+| `d202e49` ticket update reviews against the cached form | ported | `properties::build_plan_in` (cached `ticket-fields`, one refetch on a refusal `looks_like_schema_refusal`, stderr note) and `build_plan_fresh` for the send rebuild. |
+| `a53b300` changes update --due-by | ported | `fsv-api` `change_due_by.rs`, `fsv-cli` `cmd/due_by.rs`; `create::set_due_by` is no longer called (kept, as in Python). |
+| `447450f` pin test for the old --due-by | superseded | by `a53b300`; the two Rust tests that pinned the direct PATCH were replaced by `up_c_cmds.rs::due_by_*`. |
+
+Rust tests: `crates/fsv-cli/tests/up_c_cmds.rs` (ticket/problem update,
+form cache, due-by), `cache_cmds.rs` (cache clear/status), `fsv-api`
+`schema.rs` load tests (freshness, refetch-once), `fsv-core` `cache.rs`.
