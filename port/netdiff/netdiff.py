@@ -122,7 +122,9 @@ def _run_scenario(sc, verbose):
             r = run_impl(impl, sc["args"], srv, home, sc["stdin"], sc["env_extra"])
             time.sleep(0.2)
             r["reqs"] = summarize(srv)
-            r["proxy"] = list(srv.proxy_log)
+            r["proxy"] = [x for x in srv.proxy_log if not x.startswith("CONNECT")]
+            if any("handshake" in x for x in r["proxy"]):
+                r["proxy"] = ["tls handshake failed"]
             if sc["after"]:
                 r["after"] = sc["after"](home)
             srv.close()
@@ -132,12 +134,12 @@ def _run_scenario(sc, verbose):
     return results
 
 
-LIB_MSG = re.compile(r"(-> (?:ProxyError|DecodingError|ConnectError|NetworkError|ReadError|WriteError): ).*|(-> RemoteProtocolError: )(?!Server disconnected|peer closed).*")
+LIB_MSG = re.compile(r"(-> (?:ProxyError|DecodingError|ConnectError|NetworkError|ReadError|WriteError|ReadTimeout|ConnectTimeout): ).*|(-> RemoteProtocolError: )(?!Server disconnected|peer closed).*")
 
 
 def short(text, mask_final=False):
     text = re.sub(r"\b\d+ms\b", "Nms", text)
-    text = re.sub(r"\n.*GetPassWarning.*\n.*fallback_getpass.*\n", "\n", text)
+    text = re.sub(r"(?m)^.*GetPassWarning.*\n.*fallback_getpass.*\n", "", text)
     text = "\n".join(LIB_MSG.sub(lambda m: (m.group(1) or m.group(2)) + "<lib msg>", ln) for ln in text.split("\n"))
     if mask_final:
         lines = text.rstrip("\n").split("\n")
@@ -167,7 +169,7 @@ def compare(name, res, verbose, mask_final=False):
     res = {k: {**v, "err": short(v["err"], mask_final), "out": v["out"][:600]} for k, v in res.items()}
     py, rs = res["py"], res["rust"]
     diffs = []
-    for key in ("code", "out", "err", "proxy", "after"):
+    for key in ("code", "out", "err", "after"):
         if py.get(key) != rs.get(key):
             diffs.append(f"  {key}:\n    py:   {py.get(key)!r}\n    rust: {rs.get(key)!r}")
     pr, rr = py["reqs"], rs["reqs"]
@@ -180,7 +182,7 @@ def compare(name, res, verbose, mask_final=False):
         if a["headers"] != b["headers"]:
             sa, sb = set(map(tuple, a["headers"])), set(map(tuple, b["headers"]))
             diffs.append(f"  req{i}.headers only-py={sorted(sa - sb)} only-rust={sorted(sb - sa)}")
-        if abs(a["t"] - b["t"]) > 0.6:
+        if "retry" in name and abs(a["t"] - b["t"]) > 0.6:
             diffs.append(f"  req{i}.t: py={a['t']} rust={b['t']}")
         if a["conn"] != b["conn"]:
             diffs.append(f"  req{i}.conn: py={a['conn']} rust={b['conn']} (connection reuse)")

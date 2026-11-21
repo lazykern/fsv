@@ -218,7 +218,91 @@ scenario("timeout-write-slow", REPLY, table(reply_routes(**{"/api/_/tickets/1/re
 scenario("timeout-connect-slow", STATUS, table(STATUS_ROUTES), connect_mode="hang", slow=True)
 
 MASKED = {"body-nonjson-200", "body-json-nan", "body-json-latin1-charset", "body-json-bad-utf8", "body-gzip-bad",
-          "retry-garbage-response", "resp-duplicate-content-length", "connect-proxy-refuse"}
+          "retry-garbage-response", "resp-duplicate-content-length", "connect-proxy-refuse", "timeout-get-slow", "timeout-write-slow", "timeout-connect-slow"}
 for _sc in SCENARIOS:
     if _sc["name"] in MASKED:
         _sc["mask"] = True
+
+
+# ---------- auth login ----------
+def login_after(home):
+    cfg = home / "config"
+    out = {}
+    for name in ("session.json", "store", "config.json"):
+        f = cfg / name
+        if f.exists():
+            text = f.read_text()
+            if name == "session.json" and text.startswith("{") and "saved_at" in text:
+                d = json.loads(text)
+                d["saved_at"] = "T"
+                text = json.dumps(d)
+            out[name] = text
+    return out
+
+
+GOOD = "_x_m=a; _x_d=b; _x_w=c; fw-session-id=d"
+LOGIN_ROUTES = {"/api/v2/agents/me": ME_OK}
+for label, stdin in {
+    "bare": GOOD + "\n",
+    "header-line": "Cookie: " + GOOD + "\n",
+    "chrome-alt": "cookie\n" + GOOD + "\n",
+    "curl": "curl 'https://x' -H 'cookie: " + GOOD + "' --compressed\n",
+    "firefox-json": json.dumps([{"name": "cookie", "value": GOOD}]) + "\n",
+    "fetch-json": json.dumps({"headers": {"Cookie": GOOD}}) + "\n",
+    "all-headers": "Host: x\nCookie: " + GOOD + "\nAccept: */*\n",
+    "empty": "",
+    "missing-cookie": "_x_m=a\n",
+    "spaces-and-quotes": '  _x_m = a ;_x_d=b;  _x_w=c;fw-session-id=d;extra==x=\n',
+    "crlf": "Cookie: " + GOOD + "\r\n",
+}.items():
+    scenario(f"login-prompt-{label}", ["auth", "login", "--store", "file"], table(LOGIN_ROUTES), stdin=stdin, session=False, after=login_after)
+scenario("login-header-arg", ["auth", "login", "--store", "file", "--header", GOOD], table(LOGIN_ROUTES), session=False, after=login_after)
+scenario("login-header-stdin", ["auth", "login", "--store", "file", "--header", "-"], table(LOGIN_ROUTES), stdin=GOOD + "\n", session=False, after=login_after)
+scenario("login-no-input-no-header", ["auth", "login", "--store", "file", "--no-input"], table(LOGIN_ROUTES), session=False, after=login_after)
+scenario("login-expired-cookies", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": json_resp({}, 401)}), session=False, after=login_after)
+scenario("login-expired-403-live", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": json_resp({}, 403), "/a/dashboard": APP_OK}), session=False, after=login_after)
+scenario("login-server-500", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": json_resp({}, 500)}), session=False, after=login_after)
+scenario("login-force-expired", ["auth", "login", "--store", "file", "--force", "--header", GOOD], table({"/api/v2/agents/me": json_resp({}, 401)}), session=False, after=login_after)
+scenario("login-drop", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": Drop()}), session=False, after=login_after)
+scenario("login-second-check-fails", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": [ME_OK, json_resp({}, 401)]}), session=False, after=login_after)
+scenario("login-identity-hidden", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": [ME_OK, json_resp({}, 403)], "/a/dashboard": APP_OK}), session=False, after=login_after)
+scenario("login-set-cookie-during-validate", ["auth", "login", "--store", "file", "--header", GOOD], table({"/api/v2/agents/me": Resp(200, [("Content-Type", "application/json"), ("Set-Cookie", "fw-session-id=rot; Path=/")], json.dumps(ME))}), session=False, after=login_after)
+scenario("login-argon", ["auth", "login", "--store", "argon", "--header", GOOD], table(LOGIN_ROUTES), stdin="pw1\npw1\n", session=False, after=lambda h: {"store": (h / "config/store").read_text(), "kind": json.loads((h / "config/session.json").read_text())["backend"]})
+scenario("login-argon-mismatch", ["auth", "login", "--store", "argon", "--header", GOOD], table(LOGIN_ROUTES), stdin="pw1\npw2\n", session=False, after=login_after)
+scenario("login-argon-empty", ["auth", "login", "--store", "argon", "--header", GOOD], table(LOGIN_ROUTES), stdin="\n", session=False, after=login_after)
+scenario("login-bad-store", ["auth", "login", "--store", "nope", "--header", GOOD], table(LOGIN_ROUTES), session=False, after=login_after)
+
+
+# ---------- attachment downloads (follow redirects) ----------
+def ticket_with(url):
+    return json_resp({"ticket": {"id": 1, "display_id": 1, "subject": "s", "attachments": [{"id": 5, "name": "a.txt", "size": 4, "attachment_url": url}]}})
+
+
+def files_after(home):
+    d = home / "dl"
+    return {p.name: p.read_bytes().decode(errors="replace") for p in sorted(d.rglob("*")) if p.is_file()} if d.exists() else {}
+
+
+def download(name, url, routes, **kw):
+    r = {"/api/_/tickets/1": ticket_with(url), "/a/dashboard": APP_OK}
+    r.update(routes)
+    scenario(name, ["tickets", "download", "1", "--attachments", "--dir", "dl", "--max-bytes", "1000000", "-v"], table(r), after=files_after, **kw)
+
+
+FILE_OK = Resp(200, [("Content-Type", "text/plain")], "data")
+download("dl-direct", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": FILE_OK})
+download("dl-redirect-cross-host", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": redirect(302, "https://files.example.net/blob/a.txt", [("Set-Cookie", "dlc=1; Path=/")]), "/blob/a.txt": FILE_OK})
+download("dl-redirect-to-http", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": redirect(301, "http://files.example.net/blob/a.txt"), "/blob/a.txt": FILE_OK})
+download("dl-redirect-307-chain", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": redirect(307, "/dl/b"), "/dl/b": redirect(308, "https://files.example.net/blob/a.txt"), "/blob/a.txt": FILE_OK})
+download("dl-redirect-back-to-tenant-with-cookie", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": redirect(302, "https://files.example.net/hop", [("Set-Cookie", "c=1; Path=/")]), "/hop": redirect(302, "https://acme.freshservice.com/blob/a.txt"), "/blob/a.txt": FILE_OK})
+download("dl-redirect-loop", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": redirect(302, "/dl/a.txt")})
+download("dl-404", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(404, [("Content-Type", "text/plain")], "gone")})
+download("dl-503-no-retry", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(503, [], "busy")})
+download("dl-drop", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Drop()})
+download("dl-chunked", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(200, [("Content-Type", "text/plain")], "chunked data!", mode="chunked")})
+download("dl-no-length", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(200, [("Content-Type", "text/plain")], "close data", mode="close")})
+download("dl-gzip", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(200, [("Content-Type", "text/plain")], "gz data", mode="gzip")})
+download("dl-truncated", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(200, [("Content-Type", "text/plain")], "short", mode="truncate")})
+download("dl-too-big-declared", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(200, [("Content-Type", "text/plain")], "x" * 2000000)})
+download("dl-empty", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": Resp(200, [], "")})
+download("dl-html-login", "https://acme.freshservice.com/dl/a.txt", {"/dl/a.txt": html_resp("<html>login</html>")})

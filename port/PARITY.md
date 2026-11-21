@@ -697,3 +697,70 @@ Not verified / known differences left:
 - Interactive TUI/form UI, `setup`/`login` flows beyond the tty-scripted cases,
   and real-network behavior (redirects, timeouts, retries) are not in the
   differential; the canned-route harness answers every request at once.
+
+## Real-network differential (`port/netdiff`)
+
+`python3 port/netdiff/netdiff.py [-k name] [--slow]` runs both binaries against one
+scripted local TLS server and compares exit code, stdout, stderr (including `-v`
+lines), the session file and every request the server saw (method, target,
+headers, cookies, body, count, retry timing). Both binaries reach it through an
+HTTP CONNECT proxy (`HTTPS_PROXY`) and trust its CA through `SSL_CERT_FILE`.
+`python3 port/netdiff/crossstore.py` writes a session with one binary and reads
+it with the other (`file`, `argon`). 160+ scenarios: redirects (301/302/303/307/308,
+cross-host, to http, loops, ftp, scheme-relative), cookie jar updates from
+`Set-Cookie`, CSRF fetch flow, 401/403 session probes, retry and `Retry-After`,
+no-replay of writes, gzip/deflate/chunked/close-delimited/truncated/empty/1 MB
+bodies, non-JSON error bodies, attachment download redirects, `auth login`
+paste formats and stores, timeouts (`--slow`, 30 s each).
+
+Fixed in Rust:
+
+- `SSL_CERT_FILE` / `SSL_CERT_DIR` are honored like httpx's `trust_env` (they
+  replace the built-in roots; an unreadable file is `[Errno 2] No such file or
+  directory`, exit 1). Rust ignored them, so a corporate CA could not be trusted.
+- Requests carry httpx's `Accept-Encoding: gzip, deflate` and `Connection:
+  keep-alive` (reqwest sent `gzip` only); `deflate` bodies are decoded; idle
+  connections are dropped after 5 s like httpx's `keepalive_expiry`.
+- Transport failures use httpx's class names where the cause is visible, because
+  the name is printed in `-v` lines and in `reply outcome unknown (...)`:
+  `RemoteProtocolError` (server closed without a response, RST or missing TLS
+  close_notify before a response, incomplete body, malformed response),
+  `ProxyError`, `UnsupportedProtocol` (redirect to `ftp://`), `DecodingError`.
+  A `DecodingError` (bad gzip) is not retried, as in Python; Rust retried it
+  three times.
+- `Response.text()` honors a `charset=` of latin-1/ASCII (Python `r.text`); JSON
+  bodies are decoded like `json.loads(bytes)` (UTF-8 BOM, UTF-16, UTF-32).
+- Argon passphrase prompt with no terminal reads a line from stdin after
+  `Warning: Password input may be echoed.` (`getpass.fallback_getpass`); Rust
+  aborted. `auth login` no longer drops the decrypted session cache after saving,
+  so an argon login asks for the passphrase once, as Python does.
+
+Left, not fixable or deliberate:
+
+- Library message text differs for transport errors (`The read operation timed
+  out` vs `operation timed out`, `illegal status line: bytearray(b'GARBAGE')`,
+  `502 Bad Gateway` for a refused proxy tunnel, zlib wording, JSON/Unicode decode
+  wording). The class name, exit code, request count and retry schedule match.
+  An escaping Python transport error is a traceback (exit 1); Rust prints
+  `error: <message>` (exit 1).
+- A response without `Content-Length` whose TLS connection ends without
+  `close_notify`: Python accepts the body, rustls reports a read error.
+  Servers that close properly behave the same.
+- A JSON body containing `NaN` / `Infinity`: Python parses it, Rust refuses (exit
+  2); `serde_json::Value` cannot hold them.
+- Cookies: Python sends tenant cookies to subdomains of the tenant
+  (`sub.acme.freshservice.com`) and keeps a `Domain=freshservice.com` cookie next
+  to the host-only one (two `_x_m` in the `Cookie` header). Rust keeps tenant
+  cookies host-only (documented above), so neither happens. A cookie value with
+  non-ASCII characters makes httpx raise `UnicodeEncodeError` (exit 1); Rust
+  sends it.
+- `auth login --store argon` with a mismatched or empty passphrase, and a
+  Keychain write failure, are an uncaught `SessionError` in Python (traceback,
+  exit 1); Rust prints the message and exits 3.
+- Keychain: the sandbox could not write the login Keychain (both binaries fail
+  the same way), so only the `security -i` command line and account hash
+  (golden-tested) are compared, not a live round trip.
+- Connect timeouts go through the CONNECT proxy in this harness, so both binaries
+  report `ReadTimeout` while waiting for the tunnel; `ConnectTimeout` itself and
+  a direct (no proxy) `ConnectError` message were not exercised because the
+  tenant host must be `https://<domain>:443`.
