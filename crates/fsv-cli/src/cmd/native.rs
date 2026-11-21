@@ -159,6 +159,7 @@ pub struct PrivateViewWrite {
     pub dry_run: bool,
     pub yes: bool,
     pub expect_plan: Option<String>,
+    pub confirm_destructive: bool,
 }
 
 impl From<TicketsPrivateViewsWriteArgs> for PrivateViewWrite {
@@ -170,6 +171,7 @@ impl From<TicketsPrivateViewsWriteArgs> for PrivateViewWrite {
             dry_run: a.dry_run,
             yes: a.yes,
             expect_plan: a.expect_plan,
+            confirm_destructive: a.confirm_destructive,
         }
     }
 }
@@ -183,6 +185,7 @@ impl From<ChangesPrivateViewsWriteArgs> for PrivateViewWrite {
             dry_run: a.dry_run,
             yes: a.yes,
             expect_plan: a.expect_plan,
+            confirm_destructive: a.confirm_destructive,
         }
     }
 }
@@ -199,6 +202,12 @@ pub fn private_views_write(module: &str, a: PrivateViewWrite) -> CmdResult {
         }
         let hash = plan.hash();
         require_review(a.yes, a.expect_plan.as_deref(), &hash)?;
+        if plan.plan.method == "DELETE" && !a.confirm_destructive {
+            return Err(Error::exit(
+                2,
+                "deleting a view cannot be undone; pass --confirm-destructive with --yes --expect-plan. Nothing was sent",
+            ));
+        }
         let result = private_views::send(&plan, c.as_ref(), &DiskJournal, Some(&hash))?;
         println!("{}", dumps(&result));
         Ok(())

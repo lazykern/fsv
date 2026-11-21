@@ -4830,6 +4830,7 @@ fn pv_delete_send() {
             "--yes",
             "--expect-plan",
             "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+            "--confirm-destructive",
         ],
         None,
     );
@@ -4846,6 +4847,28 @@ fn pv_delete_send() {
     );
     assert_eq!(r.err, r#""#);
     assert_eq!(r.write_paths(), ["DELETE /api/_/ticket_filters/704"]);
+}
+
+#[test]
+fn pv_delete_yes_without_confirm_destructive_sends_nothing() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "704",
+            "delete",
+            "--yes",
+            "--expect-plan",
+            "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
+    assert!(r.err.contains("Nothing was sent"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
@@ -5471,7 +5494,7 @@ fn cpv_create_shared_refused() {
 }
 
 #[test]
-fn cpv_delete_not_captured() {
+fn cpv_delete_dry_run() {
     let r = run_fixture(
         "private_views_native",
         &[
@@ -5484,17 +5507,26 @@ fn cpv_delete_not_captured() {
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"changes private-view delete is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_private_view_delete",
+  "method": "DELETE",
+  "path": "/api/_/change-filters/811",
+  "payload": null,
+  "plan_hash": "bf01ab37b7ba23ef6d68b60d26eb310e3336003170e601bd68bfb3e4a3064a09",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]
-fn cpv_rename_not_captured() {
+fn cpv_rename_dry_run() {
     let r = run_fixture(
         "private_views_native",
         &[
@@ -5504,7 +5536,36 @@ fn cpv_rename_not_captured() {
             "811",
             "rename",
             "--name",
-            "x",
+            "Globex renamed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    let out = r.json();
+    assert_eq!(out["action"], "change_private_view_edit");
+    assert_eq!(out["method"], "PUT");
+    assert_eq!(out["path"], "/api/_/change-filters/811");
+    assert_eq!(out["payload"]["name"], "Globex renamed");
+    assert_eq!(
+        out["plan_hash"],
+        "9b6dd065907073b9cc15f25c61d1dc3784eb3567c70a42fadac1e20e6017ff7a"
+    );
+    assert!(r.write_paths().is_empty());
+}
+
+#[test]
+fn cpv_rename_to_the_current_name_is_refused() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "rename",
+            "--name",
+            "Globex changes",
             "--dry-run",
         ],
         None,
@@ -5513,9 +5574,29 @@ fn cpv_rename_not_captured() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI
-"#
+        "the view is already named 'Globex changes'; nothing to change\n"
     );
+}
+
+#[test]
+fn cpv_delete_yes_without_confirm_destructive_sends_nothing() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "delete",
+            "--yes",
+            "--expect-plan",
+            "bf01ab37b7ba23ef6d68b60d26eb310e3336003170e601bd68bfb3e4a3064a09",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.err.contains("--confirm-destructive"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
 }
 
 #[test]

@@ -10288,7 +10288,7 @@
     },
     {
      "path": "fsv changes private-views",
-     "help": "Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.",
+     "help": "Private change views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.",
      "epilog": null,
      "hidden": false,
      "group": true,
@@ -10460,7 +10460,7 @@
          "is_flag": false,
          "default": null,
          "hidden": false,
-         "help": "create (clone source); rename/delete are not captured for change views",
+         "help": "create (clone source) | rename | delete",
          "metavar": null,
          "envvar": null
         },

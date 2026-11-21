@@ -578,7 +578,7 @@ A	fsv changes columns set	--yes
 A	fsv changes columns set	--expect-plan	
 A	fsv changes columns set	--output	
 A	fsv changes columns set	--json	
-C	fsv changes private-views	Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.
+C	fsv changes private-views	Private change views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.
 C	fsv changes private-views list	Your own non-default saved views (the list carries no visibility).
 A	fsv changes private-views list	--output	
 A	fsv changes private-views list	--json	
@@ -588,7 +588,7 @@ A	fsv changes private-views show	--output
 A	fsv changes private-views show	--json	
 C	fsv changes private-views write	
 A	fsv changes private-views write	<id_>	
-A	fsv changes private-views write	<action>	create (clone source); rename/delete are not captured for change views
+A	fsv changes private-views write	<action>	create (clone source) | rename | delete
 A	fsv changes private-views write	--name	
 A	fsv changes private-views write	--dry-run	
 A	fsv changes private-views write	--yes	

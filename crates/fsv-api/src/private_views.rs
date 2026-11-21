@@ -55,12 +55,13 @@ pub static TICKETS: ViewKind = ViewKind {
     prefix: "private_view_",
 };
 
-/// Only the change-view create wire is captured; rename/delete stay refused.
+/// Change views: create (POST), rename (PUT re-sending the whole filter) and
+/// delete (DELETE -> 204) are captured on change-filters.
 pub static CHANGES: ViewKind = ViewKind {
     module: "changes",
     path: "change-filters",
     envelope: "change_filter",
-    actions: &["create"],
+    actions: &["create", "edit", "delete"],
     prefix: "change_private_view_",
 };
 
@@ -364,11 +365,8 @@ pub fn build_plan(
     }
     if !k.actions.contains(&action) {
         return Err(refused(format!(
-            "{} private-view {} is not captured (PUT/DELETE /api/_/{}/<id> has no accepted wire); \
-             nothing was sent; use the web UI",
-            k.module,
-            if action == "edit" { "rename" } else { action },
-            k.path,
+            "{} private-view {action} has no accepted wire; nothing was sent",
+            k.module
         )));
     }
     let source_id = positive_id(source_id)?;
@@ -384,6 +382,12 @@ pub fn build_plan(
         let Some(name) = name.filter(|n| !fsv_core::pystr::strip(n).is_empty()) else {
             return Err(Error::value("create/rename requires a nonempty --name"));
         };
+        if action == "edit" && row.get("name") == Some(&json!(name)) {
+            return Err(Error::value(format!(
+                "the view is already named {}; nothing to change",
+                fsv_py::py_repr_str(name)
+            )));
+        }
         if row.get("order_by") != Some(&json!("created_at"))
             || row.get("order_type") != Some(&json!("desc"))
         {
@@ -528,6 +532,23 @@ pub fn own_views(c: &dyn Api, k: &ViewKind) -> Result<Value> {
               "note": "the list carries no visibility; run show ID to see whether a view is private"}))
 }
 
+/// `_single_list`: the one saved-view list in a list response
+/// (`*filters` / `*views`), else `None`.
+fn single_list(raw: &Value) -> Option<&Vec<Value>> {
+    match raw {
+        Value::Array(rows) => Some(rows),
+        Value::Object(map) => {
+            let mut lists = map.iter().filter_map(|(k, v)| match v {
+                Value::Array(rows) if k.ends_with("filters") || k.ends_with("views") => Some(rows),
+                _ => None,
+            });
+            let first = lists.next()?;
+            lists.next().is_none().then_some(first)
+        }
+        _ => None,
+    }
+}
+
 /// Port of fsv.private_views.send. A delete is verified by an HTTP 404 on
 /// the view and its absence from a complete re-list.
 pub fn send(
@@ -574,6 +595,20 @@ pub fn send(
                 Err(e) if e.status() == Some(404) => {}
                 Err(e) => return Err(e),
                 Ok(_) => return Ok(obj(json!({"view_id": view_id, "verified": false}))),
+            }
+            if is_changes(k) {
+                let raw = c.int_get(k.path, None)?;
+                let listed = single_list(&raw);
+                let absent = listed.is_some_and(|rows| {
+                    !rows.iter().any(|r| {
+                        r.is_object()
+                            && py_str(r.get("id").unwrap_or(&Value::Null)) == view_id.to_string()
+                    })
+                });
+                return Ok(obj(json!({
+                    "view_id": view_id, "status_on_read": 404,
+                    "absent_from_list": absent, "verified": absent,
+                })));
             }
             let params = obj(json!({"page": 1, "per_page": 30}));
             let pages = collect_pages(

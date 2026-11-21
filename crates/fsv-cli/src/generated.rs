@@ -2507,7 +2507,7 @@ pub struct ChangesPrivateViewsWriteArgs {
     #[arg(value_name = "SOURCE_VIEW", value_parser = crate::pyint::POSITIVE)]
     pub id_: i64,
     #[arg(
-        help = "create (clone source); rename/delete are not captured for change views",
+        help = "create (clone source) | rename | delete",
         value_name = "ACTION"
     )]
     pub action: String,
@@ -2519,6 +2519,11 @@ pub struct ChangesPrivateViewsWriteArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "required with --yes for delete",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
     #[arg(
         long = "output",
         short = 'o',
@@ -3793,6 +3798,11 @@ pub struct TicketsPrivateViewsWriteArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
+    #[arg(
+        help = "required with --yes for delete",
+        long = "confirm-destructive"
+    )]
+    pub confirm_destructive: bool,
     #[arg(
         long = "output",
         short = 'o',
@@ -5695,7 +5705,7 @@ pub fn build() -> Command {
                 .subcommand(ChangesAssetsSearchArgs::augment_args(Command::new("search").arg(global_verbose()))))
             .subcommand(columns_group())
             .subcommand(Command::new("private-views")
-                .about("Private change views: list, show, and reviewed create (clone source); rename/delete are not captured for change views on an exact self-owned non-default view visible only to you.")
+                .about("Private change views: list, show, and reviewed create (clone source) | rename | delete on an exact self-owned non-default view visible only to you.")
                 .subcommand(ChangesPrivateViewsListArgs::augment_args(Command::new("list") .about("Your own non-default saved views (the list carries no visibility).").arg(global_verbose())))
                 .subcommand(ChangesPrivateViewsShowArgs::augment_args(Command::new("show") .about("Exact view read plus whether fsv treats it as private (Myself, no groups).").arg(global_verbose())))
                 .subcommand(ChangesPrivateViewsWriteArgs::augment_args(Command::new("write").arg(global_verbose()))))

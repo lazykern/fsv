@@ -498,36 +498,6 @@
     ]
    }
   },
-  "change_refusals": [
-   {
-    "action": "rename",
-    "name": "x",
-    "error": "changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI",
-    "type": "ReviewedWriteError",
-    "calls": []
-   },
-   {
-    "action": "delete",
-    "name": null,
-    "error": "changes private-view delete is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI",
-    "type": "ReviewedWriteError",
-    "calls": []
-   },
-   {
-    "action": "edit",
-    "name": "x",
-    "error": "changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI",
-    "type": "ReviewedWriteError",
-    "calls": []
-   },
-   {
-    "action": "bogus",
-    "name": null,
-    "error": "unsupported saved-view action (create | rename | delete)",
-    "type": "ValueError",
-    "calls": []
-   }
-  ],
   "cases": [
    {
     "module": "tickets",

@@ -58,7 +58,7 @@ fsv changes planning-text	--clear,--description,--dry-run,--expect-plan,--json,-
 fsv changes private-views		0
 fsv changes private-views list	--json,--output	0
 fsv changes private-views show	--json,--output	1
-fsv changes private-views write	--dry-run,--expect-plan,--json,--name,--output,--yes	2
+fsv changes private-views write	--confirm-destructive,--dry-run,--expect-plan,--json,--name,--output,--yes	2
 fsv changes relationships		0
 fsv changes relationships list	--json	2
 fsv changes relationships write	--dry-run,--expect-plan,--item,--json,--name,--project-json,--project-key,--yes	3
@@ -227,7 +227,7 @@ fsv tickets pick-up	--dry-run,--expect-plan,--json,--output,--yes	1
 fsv tickets private-views		0
 fsv tickets private-views list	--json,--output	0
 fsv tickets private-views show	--json,--output	1
-fsv tickets private-views write	--dry-run,--expect-plan,--json,--name,--output,--yes	2
+fsv tickets private-views write	--confirm-destructive,--dry-run,--expect-plan,--json,--name,--output,--yes	2
 fsv tickets problems		0
 fsv tickets problems candidates	--json,--kind,--search	1
 fsv tickets problems link	--dry-run,--expect-plan,--json,--kind,--yes	2
