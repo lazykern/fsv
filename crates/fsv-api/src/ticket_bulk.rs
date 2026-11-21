@@ -1058,6 +1058,13 @@ mod tests {
         MemStore::default()
     }
 
+    fn set_store() -> MemStore {
+        MemStore {
+            workspace: json!(1),
+            ..MemStore::default()
+        }
+    }
+
     fn msg(err: &Error) -> String {
         err.to_string()
     }
@@ -1561,7 +1568,7 @@ mod tests {
             ),
         ]);
         let rules = json!({"business_rules": [{
-            "id": 9000007107_i64, "name": "Pending needs reason", "workspace_id": 2, "module_type": "ticket",
+            "id": 9000007107_i64, "name": "Pending needs reason", "workspace_id": 1, "module_type": "ticket",
             "item_id": null, "deleted": false, "user_type": "both", "form_type": "both", "state": "active",
             "rule_type": "client_side", "description": "",
             "condition_data": {"all": [{"name": "status", "operator": "is", "value": "3", "evaluate_on": "ticket"}]},
@@ -1637,6 +1644,7 @@ mod tests {
 
     #[test]
     fn bulk_status_set_matches_python() {
+        fsv_core::config::use_domain_on_thread("acme.freshservice.com");
         let cases = SET["cases"].as_array().unwrap();
         assert_eq!(cases.len(), 10);
         for case in cases {
@@ -1648,7 +1656,7 @@ mod tests {
             bulk.status = (action == "status").then(|| case["status"].as_str().unwrap());
             let built = build_plan_with_answers(
                 &c,
-                &store(),
+                &set_store(),
                 &MemJournal::default(),
                 &["71".into(), "72".into()],
                 &bulk,
@@ -1673,13 +1681,13 @@ mod tests {
             assert_eq!(got, case["build"], "{name} build");
             if let Some(want) = case.get("send") {
                 let journal = MemJournal::default();
-                let sent = send(&plan, &c, &store(), &journal, Some(&plan.hash()), false);
+                let sent = send(&plan, &c, &set_store(), &journal, Some(&plan.hash()), false);
                 let sent = sent.map_or_else(
                     |e| json!({"error": error_json(&e)}),
                     |r| json!({"result": r}),
                 );
                 assert_eq!(&sent, want, "{name} send");
-                let replay = send(&plan, &c, &store(), &journal, Some(&plan.hash()), false);
+                let replay = send(&plan, &c, &set_store(), &journal, Some(&plan.hash()), false);
                 assert_eq!(
                     json!({"error": error_json(&replay.unwrap_err())}),
                     case["replay"],
