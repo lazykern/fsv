@@ -1,7 +1,7 @@
 # upstream 31a910336ac8b936d6d5891cb74c21632dd232f9
 # path<TAB>long options<TAB>positional count
 # --verbose is global in Rust and listed on every command; this file lists it only where Python declares it.
-fsv	--install-completion,--no-input,--show-completion,--verbose,--version	0
+fsv	--install-completion,--no-input,--refresh,--show-completion,--verbose,--version	0
 fsv assets		0
 fsv assets search	--json,--kind,--page	1
 fsv attachments		0
@@ -143,7 +143,7 @@ fsv problems time update	--dry-run,--expect-plan,--json,--note,--spent,--yes	2
 fsv problems time write	--billable,--dry-run,--entry,--executed-at,--expect-plan,--json,--no-billable,--non-billable,--note,--output,--spent,--yes	2
 fsv problems unlink-incident	--dry-run,--expect-plan,--json,--output,--yes	2
 fsv problems unlink-solution	--dry-run,--expect-plan,--json,--read-only,--yes	2
-fsv problems update	--ack,--agent,--agent-id,--dry-run,--expect-plan,--group,--group-id,--json,--no-input,--planned-effort,--planned-end,--planned-start,--priority,--reviewed,--set,--status,--tag,--yes	1
+fsv problems update	--ack,--agent,--agent-id,--dry-run,--expect-plan,--group,--group-id,--json,--no-input,--no-review,--planned-effort,--planned-end,--planned-start,--priority,--reviewed,--set,--status,--tag,--yes	1
 fsv problems url		1
 fsv problems views	--json,--output	0
 fsv problems write-child	--dry-run,--expect-plan,--json,--output,--yes	3
@@ -257,7 +257,7 @@ fsv tickets time write	--dry-run,--entry,--executed-at,--expect-plan,--json,--no
 fsv tickets trash		0
 fsv tickets trash list	--json,--page,--per-page	0
 fsv tickets unspam	--confirm-destructive,--dry-run,--expect-plan,--json,--yes	1
-fsv tickets update	--ack,--agent,--agent-id,--dry-run,--expect-plan,--group,--group-id,--json,--no-input,--planned-effort,--planned-end,--planned-start,--priority,--reviewed,--set,--status,--tag,--yes	1
+fsv tickets update	--ack,--agent,--agent-id,--dry-run,--expect-plan,--group,--group-id,--json,--no-input,--no-review,--planned-effort,--planned-end,--planned-start,--priority,--reviewed,--set,--status,--tag,--yes	1
 fsv tickets url		1
 fsv tickets views	--json,--output	0
 fsv tickets watchers		0

@@ -33,6 +33,14 @@
    "kind": "boolean",
    "completer": null,
    "resource": null
+  },
+  {
+   "flags": [
+    "--refresh"
+   ],
+   "kind": "boolean",
+   "completer": null,
+   "resource": null
   }
  ],
  "subcommands": [
@@ -7807,7 +7815,8 @@
       },
       {
        "flags": [
-        "--reviewed"
+        "--reviewed",
+        "--no-review"
        ],
        "kind": "boolean",
        "completer": null,
@@ -12324,7 +12333,8 @@
       },
       {
        "flags": [
-        "--reviewed"
+        "--reviewed",
+        "--no-review"
        ],
        "kind": "boolean",
        "completer": null,

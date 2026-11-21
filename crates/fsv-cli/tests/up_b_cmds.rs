@@ -565,6 +565,7 @@ fn ticket_update_legacy_dry_run() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -591,7 +592,10 @@ fn ticket_update_legacy_dry_run() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
 }
 
 #[test]
@@ -601,6 +605,7 @@ fn ticket_update_legacy_send_hash() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -623,7 +628,10 @@ fn ticket_update_legacy_send_hash() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/11"]);
 }
 
@@ -634,6 +642,7 @@ fn ticket_update_legacy_plain_send() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -647,7 +656,10 @@ fn ticket_update_legacy_plain_send() {
         r#"updated SR-11
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/11"]);
 }
 
@@ -658,6 +670,7 @@ fn ticket_update_legacy_hash_body() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Low",
@@ -684,7 +697,10 @@ fn ticket_update_legacy_hash_body() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
 }
 
 #[test]
@@ -694,6 +710,7 @@ fn ticket_update_legacy_hash_set() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -723,7 +740,10 @@ fn ticket_update_legacy_hash_set() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
 }
 
 #[test]
@@ -733,6 +753,7 @@ fn ticket_update_legacy_body_changed() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Low",
@@ -746,7 +767,8 @@ fn ticket_update_legacy_body_changed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
 "#
     );
 }
@@ -758,6 +780,7 @@ fn ticket_update_legacy_prefix() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -771,7 +794,8 @@ fn ticket_update_legacy_prefix() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
 "#
     );
 }
@@ -783,6 +807,7 @@ fn ticket_update_legacy_record_changed() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -796,7 +821,8 @@ fn ticket_update_legacy_record_changed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
 "#
     );
 }
@@ -808,6 +834,7 @@ fn ticket_update_legacy_unreadable_dry_run() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -829,7 +856,10 @@ fn ticket_update_legacy_unreadable_dry_run() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
 }
 
 #[test]
@@ -839,6 +869,7 @@ fn ticket_update_legacy_unreadable_expect() {
         &[
             "tickets",
             "update",
+            "--no-review",
             "SR-11",
             "--priority",
             "Medium",
@@ -852,7 +883,8 @@ fn ticket_update_legacy_unreadable_expect() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
+        r#"warning: tickets update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: INC-11 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
 "#
     );
 }
@@ -863,6 +895,7 @@ fn problem_update_dry_run_state() {
         &[
             "problems",
             "update",
+            "--no-review",
             "PRB-71",
             "--set",
             "subject=Acme renamed",
@@ -889,7 +922,10 @@ fn problem_update_dry_run_state() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default\n"
+    );
 }
 #[test]
 fn ticket_reply_plain_dry_run() {

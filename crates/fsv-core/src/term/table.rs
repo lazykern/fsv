@@ -99,6 +99,7 @@ impl Column {
 #[derive(Clone, Debug)]
 pub struct Table {
     pub title: Option<String>,
+    pub caption: Option<String>,
     pub show_header: bool,
     pub box_style: Option<BoxStyle>,
     pub pad_edge: bool,
@@ -112,6 +113,7 @@ impl Default for Table {
     fn default() -> Self {
         Table {
             title: None,
+            caption: None,
             show_header: true,
             box_style: Some(BoxStyle::HeavyHead),
             pad_edge: true,
@@ -193,6 +195,11 @@ impl Table {
         }
         t
     }
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
     pub fn title(mut self, title: impl Into<String>) -> Self {
         self.title = Some(title.into());
         self
@@ -529,6 +536,23 @@ impl Table {
         }
         if let Some(b) = bx {
             out.push(edge(&b.bottom));
+        }
+        if let Some(caption) = self.caption.as_deref().filter(|t| !t.is_empty()) {
+            let style = Style {
+                italic: Some(true),
+                dim: Some(true),
+                ..Style::default()
+            };
+            for line in wrap(
+                &render(caption),
+                style,
+                table_width,
+                Justify::Center,
+                Overflow::Fold,
+                false,
+            ) {
+                out.push(to_ansi(&line, color));
+            }
         }
         out
     }

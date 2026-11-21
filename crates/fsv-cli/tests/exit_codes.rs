@@ -87,7 +87,7 @@ fn cache_clear_needs_target() {
     let r = fsv(&["cache", "clear"]);
     assert_eq!(r.code, 2);
     assert!(
-        r.err.contains("choose schema|views|groups|all"),
+        r.err.contains("choose schema|forms|views|groups|all"),
         "{}",
         r.err
     );

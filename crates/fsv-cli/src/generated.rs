@@ -357,7 +357,7 @@ pub struct CacheRefreshArgs {}
 // fsv cache clear
 #[derive(Args, Debug, Clone)]
 pub struct CacheClearArgs {
-    #[arg(help = "schema|views|groups|all", value_name = "TARGET")]
+    #[arg(help = "schema|forms|views|groups|all", value_name = "TARGET")]
     pub target: Option<String>,
 }
 
@@ -1484,7 +1484,7 @@ pub struct ChangesUpdateArgs {
     )]
     pub attach: Vec<String>,
     #[arg(
-        help = "set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)",
+        help = "reviewed: set the resolution due date (ISO-8601 with an offset, e.g. 2026-06-09T18:00:00+07:00); --dry-run, then --yes --expect-plan FULL_HASH",
         long = "due-by",
         allow_hyphen_values = true,
         value_name = "TEXT"
@@ -3255,12 +3255,15 @@ pub struct ResUpdateArgs {
     )]
     pub planned_effort: Option<String>,
     #[arg(
-        help = "tickets only: evaluate --set and core flags as a hash-bound property plan",
-        long = "reviewed"
+        help = "--reviewed (default; accepted as a no-op) evaluates --set and core flags as a hash-bound plan with journal and readback; --no-review is deprecated: the old body-only update, kept for one release",
+        long = "reviewed",
+        overrides_with = "no_review"
     )]
     pub reviewed: bool,
+    #[arg(long = "no-review", overrides_with = "reviewed")]
+    pub no_review: bool,
     #[arg(
-        help = "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
+        help = "tickets: acknowledge blocking rule messages (bound to the review hash)",
         long = "ack"
     )]
     pub ack: bool,
@@ -5491,6 +5494,11 @@ pub struct RootArgs {
     #[arg(help = "print version and exit", long = "version", short = 'V')]
     pub version: bool,
     #[arg(
+        help = "refetch every cached form schema, form rule set and view list once in this run",
+        long = "refresh"
+    )]
+    pub refresh: bool,
+    #[arg(
         help = "Install completion for the current shell.",
         long = "install-completion"
     )]
@@ -5606,7 +5614,7 @@ pub fn build() -> Command {
             .after_help("Examples: fsv cache status | fsv cache refresh | fsv cache clear schema")
             .subcommand(CacheStatusArgs::augment_args(Command::new("status") .about("Show cache health and TTL.") .after_help("Examples: fsv cache status").arg(global_verbose())))
             .subcommand(CacheRefreshArgs::augment_args(Command::new("refresh") .about("Refresh only stale caches.") .after_help("Examples: fsv cache refresh").arg(global_verbose())))
-            .subcommand(CacheClearArgs::augment_args(Command::new("clear") .about("Delete cached data.") .after_help("Examples: fsv cache clear views | fsv cache clear all").arg(global_verbose()))))
+            .subcommand(CacheClearArgs::augment_args(Command::new("clear") .about("Delete cached data. schema: the per-module field schemas (`fsv <module> fields`, list filters, quick updates); forms: the form engine's fields and business rules (`forms/*`: form create/update, ticket property reviews); all: both plus views and groups. Each target removes only its own files.") .after_help("Examples: fsv cache clear views | fsv cache clear forms | fsv cache clear all").arg(global_verbose()))))
         .subcommand(Command::new("journal")
             .about("read the local write journal")
             .subcommand(JournalLsArgs::augment_args(Command::new("ls") .about("List journaled write requests (oldest first).") .after_help("Examples: fsv journal ls | fsv journal ls --json --failed").arg(global_verbose())))
@@ -5717,7 +5725,7 @@ pub fn build() -> Command {
             .subcommand(TicketsCreateArgs::augment_args(Command::new("create") .about("Create an incident using the ticket form and business rules.").arg(global_verbose())))
             .subcommand(TicketsApprovalsArgs::augment_args(Command::new("approvals") .about("List ticket approvals for approval-capable tickets; some INC tickets may return 404.") .after_help("Examples: fsv tickets approvals SR-1234 | fsv tickets approvals SR-1234 --json").arg(global_verbose())))
             .subcommand(TicketsAssociationsArgs::augment_args(Command::new("associations") .about("List ticket associations.") .after_help("Examples: fsv tickets associations INC-1234 | fsv tickets associations INC-1234 --json").arg(global_verbose())))
-            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update ticket fields.") .after_help("Examples: fsv tickets update INC-1234 --status 'In Progress' | fsv tickets update INC-1234 --priority High --dry-run | fsv tickets update INC-1234 --status Closed --yes").arg(global_verbose())))
+            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update ticket fields.") .after_help("Note: reviewed by default: --dry-run prints the plan_hash and record_state; send with --yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is deprecated (body-only update, removed in the next release). Examples: fsv tickets update INC-1234 --priority High --dry-run | fsv tickets update INC-1234 --priority High --yes --expect-plan FULL_HASH").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download ticket attachments.") .after_help("Examples: fsv tickets download INC-1234 | fsv tickets download INC-1234 --all --dir ./evidence").arg(global_verbose())))
             .subcommand(TicketsConversationsArgs::augment_args(Command::new("conversations") .about("List ticket conversations/replies.") .after_help("Examples: fsv tickets conversations INC-1234 | fsv tickets conversations INC-1234 --json").arg(global_verbose())))
             .subcommand(TicketsReplyArgs::augment_args(Command::new("reply") .about("Add a ticket reply.") .after_help("Note: Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md). --dry-run prints the plan_hash (exact body, recipients, tenant); --expect-plan HASH refuses anything else; the result reports verified from the conversation readback. Examples: fsv tickets reply INC-1234 'Working on this'").arg(global_verbose())))
@@ -5797,7 +5805,7 @@ pub fn build() -> Command {
             .subcommand(ResViewsArgs::augment_args(Command::new("views") .about("List saved view names.") .after_help("Examples: fsv problems views | fsv problems ls --view all").arg(global_verbose())))
             .subcommand(ResSearchArgs::augment_args(Command::new("search") .about("Full-text keyword search problems.") .after_help("Examples: fsv problems search 'AcmeApp' | fsv problems search 'AcmeApp' --npages 3 | fsv problems search 'AcmeApp' --all | fsv problems search 'data migration' --json").arg(global_verbose())))
             .subcommand(ResUrlArgs::augment_args(Command::new("url") .about("Print problem browser URL.") .after_help("Examples: fsv problems url PRB-1234").arg(global_verbose())))
-            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Examples: fsv problems update PRB-1234 --status 'In Progress' | fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --status Closed --yes").arg(global_verbose())))
+            .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Note: reviewed by default: --dry-run prints the plan_hash and record_state; send with --yes --expect-plan FULL_HASH (journal, independent readback, `verified`). --no-review is deprecated (body-only update, removed in the next release). Problem status: `fsv problems status ID --to STATUS`. Examples: fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --priority High --yes --expect-plan FULL_HASH").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download problem attachments.") .after_help("Examples: fsv problems download PRB-1234 | fsv problems download PRB-1234 --all --dir ./evidence").arg(global_verbose())).mut_arg("threads", |a| a.help("download attachments from notes").long("notes").alias(None).short(None).short_alias(None)))
             .subcommand(ResNotesArgs::augment_args(Command::new("notes") .about("List problem notes.") .after_help("Examples: fsv problems notes PRB-1234 | fsv problems notes PRB-1234 --json").arg(global_verbose())))
             .subcommand(ProblemsAddNoteArgs::augment_args(Command::new("add-note") .about("Review and add a problem note (reviewed write: plan hash, journal, independent readback by listing notes).") .after_help("Examples: fsv problems add-note PRB-1234 'Root cause evidence' --dry-run | fsv problems add-note PRB-1234 'Root cause evidence' --yes --expect-plan HASH --json (problem notes have no visibility key: the tenant default applies)").arg(global_verbose())))
@@ -7253,6 +7261,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "version",
                 flags: &["--version", "-V"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "refresh",
+                flags: &["--refresh"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -12154,7 +12169,7 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
             OptionHint {
                 id: "reviewed",
-                flags: &["--reviewed"],
+                flags: &["--reviewed", "--no-review"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -14997,7 +15012,7 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             },
             OptionHint {
                 id: "reviewed",
-                flags: &["--reviewed"],
+                flags: &["--reviewed", "--no-review"],
                 completer: None,
                 resource: None,
                 value_flag: false,

@@ -2266,8 +2266,12 @@ fn update_reviewed_priority_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2314,8 +2318,12 @@ fn update_reviewed_custom_field_dry_run() {
       "cost_code": "new"
     }
   },
-  "plan_hash": "ee8614676d5f0a6d50b10744d54aa188a2f1eda2dcdcd142084de187b903c63d",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "f451505413b47d11d9206f939a3c3e3f546b317bff991aa754f7c04950bf9cad",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2335,7 +2343,7 @@ fn update_reviewed_send_verifies() {
             "High",
             "--yes",
             "--expect-plan",
-            "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
+            "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
         ],
         None,
     );
@@ -2345,7 +2353,7 @@ fn update_reviewed_send_verifies() {
         r#"{
   "status": "submitted",
   "ticket_id": 5,
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
   "verified": true,
   "fields": {
     "priority": "matched"
@@ -2369,8 +2377,12 @@ fn update_reviewed_send_verifies() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2410,8 +2422,12 @@ fn update_reviewed_yes_without_hash() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 --yes requires the full --expect-plan from a prior review
 "#
@@ -2453,8 +2469,12 @@ fn update_reviewed_wrong_hash() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7",
-  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+  "plan_hash": "9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 review hash changed; review again
 "#
@@ -2560,7 +2580,7 @@ fn update_reviewed_set_without_equals() {
 }
 
 #[test]
-fn update_reviewed_problems_refused() {
+fn update_reviewed_flag_on_problems_reviews_the_form_update_and_needs_the_form_route() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
@@ -2574,29 +2594,38 @@ fn update_reviewed_problems_refused() {
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.code, 5, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"--tag and planned dates are supported only for tickets
+        r#"error: HTTP 404 listing problem form fields: no route
 "#
     );
 }
 
 #[test]
-fn update_ack_requires_reviewed() {
+fn update_ack_without_reviewed_flag_reviews_the_plan() {
     let r = run_fixture(
         "ticket_reviewed",
-        &["tickets", "update", "5", "--priority", "High", "--ack"],
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--priority",
+            "High",
+            "--ack",
+            "--dry-run",
+        ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert_eq!(r.err, "error: --ack requires tickets --reviewed\n");
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert!(r.out.contains("\"plan_hash\": \"9fcb01d6"), "{}", r.out);
+    assert!(r.out.contains("\"record_state\""), "{}", r.out);
+    assert_eq!(r.err, "");
 }
 
 #[test]
-fn problems_update_ack_requires_reviewed() {
+fn problems_update_ack_is_ticket_only() {
     let r = run_fixture(
         "ticket_reviewed",
         &["problems", "update", "5", "--ack"],
@@ -2604,7 +2633,7 @@ fn problems_update_ack_requires_reviewed() {
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, "");
-    assert_eq!(r.err, "error: --ack requires tickets --reviewed\n");
+    assert_eq!(r.err, "error: --ack applies to ticket updates only\n");
 }
 
 #[test]
@@ -2626,7 +2655,7 @@ fn update_reviewed_ack_without_blocking_keeps_hash() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert!(
         r.out.contains(
-            "\"plan_hash\": \"3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7\""
+            "\"plan_hash\": \"9fcb01d62b5563e3ec5c8894df04d9675cf6590ca6b4ca395fcd3c0a4ffcd482\""
         ),
         "{}",
         r.out
@@ -2692,11 +2721,15 @@ fn update_reviewed_ack_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "priority": 73
   },
-  "plan_hash": "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+  "plan_hash": "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
   "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
   "acknowledged_rule_messages": [
     "High priority needs the Acme lead"
-  ]
+  ],
+  "record_state": {
+    "sends": 0,
+    "server_version": null
+  }
 }
 "#
     );
@@ -2716,7 +2749,7 @@ fn update_reviewed_ack_send() {
             "High",
             "--yes",
             "--expect-plan",
-            "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+            "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
         ],
         None,
     );
@@ -2726,7 +2759,7 @@ fn update_reviewed_ack_send() {
         r#"{
   "status": "submitted",
   "ticket_id": 5,
-  "plan_hash": "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+  "plan_hash": "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
   "verified": true,
   "fields": {
     "priority": "matched"
@@ -2755,7 +2788,7 @@ fn update_reviewed_acked_hash_without_ack() {
             "High",
             "--yes",
             "--expect-plan",
-            "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+            "09327640627c0ec315ce3c71f5c96e9e3ff15cfb145bcef87ed86b279b38cb41",
         ],
         None,
     );
@@ -2769,7 +2802,7 @@ fn update_reviewed_acked_hash_without_ack() {
 }
 
 #[test]
-fn update_expect_plan_needs_reviewed() {
+fn update_expect_plan_is_checked_without_the_reviewed_flag() {
     let r = run_fixture(
         "ticket_reviewed",
         &[
@@ -2784,11 +2817,11 @@ fn update_expect_plan_needs_reviewed() {
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: INC-5 or the update changed since review (or the record could not be read); review again with --dry-run. Nothing was sent
-"#
+    assert_eq!(r.out, "");
+    assert!(
+        r.err.ends_with("review hash changed; review again\n"),
+        "{}",
+        r.err
     );
 }
 
@@ -2823,7 +2856,7 @@ fn bulk_priority_dry_run() {
     "priority": 73,
     "reply": {}
   },
-  "plan_hash": "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6",
+  "plan_hash": "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
   "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible.",
   "before": [
     {
@@ -2855,7 +2888,7 @@ fn bulk_priority_send_verifies() {
             "High",
             "--yes",
             "--expect-plan",
-            "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6",
+            "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
         ],
         None,
     );
@@ -2864,7 +2897,7 @@ fn bulk_priority_send_verifies() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "30c3701174e08ef1909b742d678003f03bdc9f025653d2e3410f8f0fe79d98c6",
+  "plan_hash": "1ae1c723875e5f403bc19f5cee51b797e25f1ce4e5d265d87b02894c0fc6042e",
   "verified": true,
   "tickets": {
     "5": "matched",
@@ -2894,7 +2927,7 @@ fn bulk_priority_unverified_exits_1() {
             "High",
             "--yes",
             "--expect-plan",
-            "2d1b32c2ff8fff0541e21780bcefc8817ff4150c6a4a7b498d524f09215514ff",
+            "5937678464cf9dbc2cf84f682e4d86860c5968305ca9cf37c72c1766446e1955",
         ],
         None,
     );
@@ -2903,7 +2936,7 @@ fn bulk_priority_unverified_exits_1() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "2d1b32c2ff8fff0541e21780bcefc8817ff4150c6a4a7b498d524f09215514ff",
+  "plan_hash": "5937678464cf9dbc2cf84f682e4d86860c5968305ca9cf37c72c1766446e1955",
   "verified": false,
   "tickets": {
     "5": "matched",
@@ -9035,7 +9068,7 @@ fn tickets_assign_unassign_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": null
   },
-  "plan_hash": "9322c42dea1528d7d2db337fbe7963102c7a48af03e9ba0f92bb21995efed8e4",
+  "plan_hash": "cf919ae0bb0975297545e354e93ca53b21911efc4bb69041b6047505e6851263",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9105,7 +9138,7 @@ fn tickets_assign_unassign_send() {
             "--unassign",
             "--yes",
             "--expect-plan",
-            "9322c42dea1528d7d2db337fbe7963102c7a48af03e9ba0f92bb21995efed8e4",
+            "cf919ae0bb0975297545e354e93ca53b21911efc4bb69041b6047505e6851263",
         ],
         None,
     );
@@ -9114,7 +9147,7 @@ fn tickets_assign_unassign_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "9322c42dea1528d7d2db337fbe7963102c7a48af03e9ba0f92bb21995efed8e4",
+  "plan_hash": "cf919ae0bb0975297545e354e93ca53b21911efc4bb69041b6047505e6851263",
   "verified": true,
   "tickets": {
     "123": {
@@ -9155,7 +9188,7 @@ fn tickets_assign_agent_in_group_dry_run() {
     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
     "responder_id": 71
   },
-  "plan_hash": "a75b2c331f7963e3710aa65c4a6c36f4fb424a388783153c4b25613adefef89c",
+  "plan_hash": "2e400a741c06bd4266c1b629c4d61c6860d967b10cf510a276412985970d0000",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9186,7 +9219,7 @@ fn tickets_assign_agent_send() {
             "agent@example.com",
             "--yes",
             "--expect-plan",
-            "a75b2c331f7963e3710aa65c4a6c36f4fb424a388783153c4b25613adefef89c",
+            "2e400a741c06bd4266c1b629c4d61c6860d967b10cf510a276412985970d0000",
         ],
         None,
     );
@@ -9195,7 +9228,7 @@ fn tickets_assign_agent_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "a75b2c331f7963e3710aa65c4a6c36f4fb424a388783153c4b25613adefef89c",
+  "plan_hash": "2e400a741c06bd4266c1b629c4d61c6860d967b10cf510a276412985970d0000",
   "verified": true,
   "tickets": {
     "124": {
@@ -9239,7 +9272,7 @@ fn tickets_assign_group_and_agent_dry_run() {
     "group_id": 81,
     "responder_id": 71
   },
-  "plan_hash": "103f33ebbbdf293c48ff9bb57f96d06e60b1732464fe7698ad7a6a571f963fad",
+  "plan_hash": "957686e28c75f530b8f3ba38c8a122859304b042e29795185ba8c04534ca6b03",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9285,7 +9318,7 @@ fn tickets_assign_group_only_clears_agent_dry_run() {
     "group_id": 82,
     "responder_id": null
   },
-  "plan_hash": "548e2ff41e4e200beeb27486c34e6ea55067ef635dad39ab09e19c70ace96538",
+  "plan_hash": "217e75d48b6fe03c2d3fae3ac41a916b2e241ed5568b89f7674fd33517b9feca",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9395,7 +9428,7 @@ fn tickets_assign_readback_unverified() {
             "71",
             "--yes",
             "--expect-plan",
-            "ded9f80f01b8e046dabcc62002418f3f53ffdc77d2ab874f89dfc16802dd5f0c",
+            "71149c4085e833bc053b486c5c37c8e05ce6eb1a9d0594d7fadeb5f6651c3945",
         ],
         None,
     );
@@ -9404,7 +9437,7 @@ fn tickets_assign_readback_unverified() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "ded9f80f01b8e046dabcc62002418f3f53ffdc77d2ab874f89dfc16802dd5f0c",
+  "plan_hash": "71149c4085e833bc053b486c5c37c8e05ce6eb1a9d0594d7fadeb5f6651c3945",
   "verified": false,
   "tickets": {
     "126": {
@@ -9441,7 +9474,7 @@ fn tickets_pick_up_dry_run() {
       125
     ]
   },
-  "plan_hash": "c07b4af1aece0777958f74cedc3bfd3aea803bb4f349b713acc57a2d870daad7",
+  "plan_hash": "c1a2463070c61592c53b073003270dd90be7df46e194e5d3d3f478570ddf7647",
   "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
   "record_state": {
     "sends": 0,
@@ -9479,7 +9512,7 @@ fn tickets_pick_up_send() {
             "INC-125",
             "--yes",
             "--expect-plan",
-            "c07b4af1aece0777958f74cedc3bfd3aea803bb4f349b713acc57a2d870daad7",
+            "c1a2463070c61592c53b073003270dd90be7df46e194e5d3d3f478570ddf7647",
         ],
         None,
     );
@@ -9488,7 +9521,7 @@ fn tickets_pick_up_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "c07b4af1aece0777958f74cedc3bfd3aea803bb4f349b713acc57a2d870daad7",
+  "plan_hash": "c1a2463070c61592c53b073003270dd90be7df46e194e5d3d3f478570ddf7647",
   "verified": true,
   "tickets": {
     "124": {
@@ -11185,6 +11218,7 @@ fn problems_update_custom_field_dry_run() {
         &[
             "problems",
             "update",
+            "--no-review",
             "74",
             "--status",
             "Change Requested",
@@ -11218,7 +11252,11 @@ fn problems_update_custom_field_dry_run() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
 }
 
 #[test]
@@ -11228,6 +11266,7 @@ fn problems_update_custom_field_send() {
         &[
             "problems",
             "update",
+            "--no-review",
             "74",
             "--set",
             "Owner Note=Acme new owner",
@@ -11254,7 +11293,11 @@ fn problems_update_custom_field_send() {
 }
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+"#
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/74"]);
 }
 
@@ -11262,14 +11305,23 @@ fn problems_update_custom_field_send() {
 fn problems_update_deleted_refused() {
     let r = run_fixture(
         "problem_update",
-        &["problems", "update", "72", "--status", "Closed", "--yes"],
+        &[
+            "problems",
+            "update",
+            "--no-review",
+            "72",
+            "--status",
+            "Closed",
+            "--yes",
+        ],
         None,
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: PRB-72 is deleted (in trash); restore it before updating
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: PRB-72 is deleted (in trash); restore it before updating
 "#
     );
 }
@@ -11281,6 +11333,7 @@ fn problems_update_not_editable_405() {
         &[
             "problems",
             "update",
+            "--no-review",
             "73",
             "--set",
             "cf_owner_note=x",
@@ -11292,7 +11345,8 @@ fn problems_update_not_editable_405() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: HTTP 405 updating problem: PRB-73 is not editable (deleted or in trash?); nothing was changed
+        r#"warning: problems update --no-review is deprecated and will be removed in the next release: it sends a body-only update with no journal or readback; drop --no-review for the reviewed default
+error: HTTP 405 updating problem: PRB-73 is not editable (deleted or in trash?); nothing was changed
 "#
     );
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/73"]);

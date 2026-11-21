@@ -16,6 +16,10 @@ pub type CmdResult = Result<()>;
 
 /// `_err(msg, code)`: `msg` is markup and is not escaped.
 pub fn fail(msg: &str, code: i32) -> Error {
+    if code == 2 && fsv_api::schema::is_schema_refusal(msg) {
+        fsv_api::schema::record_refusal(msg);
+        return Error::exit(code, "");
+    }
     err().print(&format!("[red]error[/red]: {msg}"));
     Error::exit(code, "")
 }

@@ -396,6 +396,9 @@ fn cache_status_empty() {
 ┃ cache ┃ kind ┃ age ┃ state ┃ ttl ┃
 ┡━━━━━━━╇━━━━━━╇━━━━━╇━━━━━━━╇━━━━━┩
 └───────┴──────┴─────┴───────┴─────┘
+   clear: fsv cache clear schema    
+(module schemas) | forms (forms/*) |
+        views | groups | all        
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -1616,14 +1619,17 @@ fn cache_status_after_refresh() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"               cache status               
-┏━━━━━━━━━┳━━━━━━━━┳━━━━━━┳━━━━━━━┳━━━━━━┓
-┃ cache   ┃ kind   ┃ age  ┃ state ┃ ttl  ┃
-┡━━━━━━━━━╇━━━━━━━━╇━━━━━━╇━━━━━━━╇━━━━━━┩
-│ tickets │ schema │ 0.0h │ ok    │ 168h │
-│ tickets │ views  │ 0.0h │ ok    │ 15m  │
-│ groups  │ groups │ 0.0h │ ok    │ 6h   │
-└─────────┴────────┴──────┴───────┴──────┘
+        r#"              cache status              
+┏━━━━━━━━━┳━━━━━━━━┳━━━━━┳━━━━━━━┳━━━━━┓
+┃ cache   ┃ kind   ┃ age ┃ state ┃ ttl ┃
+┡━━━━━━━━━╇━━━━━━━━╇━━━━━╇━━━━━━━╇━━━━━┩
+│ tickets │ schema │ 0m  │ ok    │ 15m │
+│ tickets │ views  │ 0m  │ ok    │ 15m │
+│ groups  │ groups │ 0m  │ ok    │ 6h  │
+└─────────┴────────┴─────┴───────┴─────┘
+ clear: fsv cache clear schema (module  
+  schemas) | forms (forms/*) | views |  
+              groups | all              
 "#
     );
     assert_eq!(r.err, r#""#);

@@ -54,6 +54,11 @@ those stay identical.
   `0b`/`0x`/`0o`/leading-zero and base-60 ints, base-60 floats). Values a
   JSON draft cannot hold (`.nan`, `.inf`, timestamps, `!!binary`, `!!set`)
   are an error instead of a Python object.
+- `--refresh` (global) and the schema refetch scope are process state in
+  Rust (`fsv_core::runtime`, a thread-local retry scope in `fsv_api::schema`),
+  as the other root flags are; Python keeps them in module globals. Behavior is
+  the same. `fsv-cli`'s error helper `util::fail` withholds a schema refusal
+  inside `validate_with_refetch` (Python raises `SchemaRefusal` from `_err`).
 - A number filter proof (`filter_proof::number_matches`) compares finite
   ASCII decimals. Python's `Decimal` also reads non-ASCII digits, `_`
   separators, infinities and NaN; Rust treats those row values as
