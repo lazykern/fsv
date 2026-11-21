@@ -3463,7 +3463,7 @@ pub struct TicketsForwardArgs {
     )]
     pub to: Vec<String>,
     #[arg(
-        help = "configured support mailbox; not inferred",
+        help = "configured support mailbox (a tenant support email address); not inferred; any other address is rejected by the server with HTTP 400",
         long = "sender",
         allow_hyphen_values = true,
         value_name = "TEXT"

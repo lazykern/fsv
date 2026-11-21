@@ -610,6 +610,30 @@ pub fn build_plan_mail(
     })
 }
 
+/// `ticket_conversation.rejection_message`: the server's answer (sanitized:
+/// one line, tags stripped, bounded). A 400 on a send with an explicit sender
+/// usually means the address is not one of the tenant's configured support
+/// mailboxes; the tenant's list is not readable offline, so say what the
+/// sender must be.
+pub fn rejection_message(e: &fsv_core::ApiError, payload: &Value) -> String {
+    let reason = fsv_core::error::server_message(&e.body, 240);
+    let shown = if reason.is_empty() {
+        "empty response body"
+    } else {
+        &reason
+    };
+    let mut text = format!("conversation rejected (HTTP {}): {shown}", e.status);
+    if let Some(from) = payload.get("from_email").filter(|v| fsv_py::truthy(v))
+        && e.status == 400
+    {
+        text.push_str(&format!(
+            "; sender must be a configured support mailbox (one of the tenant's support email addresses) and {} may not be one",
+            fsv_py::py_repr(from)
+        ));
+    }
+    text + "; nothing was delivered, no retry"
+}
+
 /// `send`: one POST after review, public consent and a fresh status check,
 /// then a read-back by the returned conversation id.
 pub fn send(
@@ -707,11 +731,11 @@ pub fn send(
     ) {
         Ok(r) => r,
         Err(e) => {
-            if let Some(status) = definite_rejection(&e) {
+            if definite_rejection(&e).is_some()
+                && let Some(api) = e.as_api()
+            {
                 journal.record_plan("failed", &hash, &action, Some(&target), None);
-                return Err(refused(format!(
-                    "conversation rejected (HTTP {status}); no retry"
-                )));
+                return Err(refused(rejection_message(api, &payload)));
             }
             return Err(refused(UNKNOWN));
         }
@@ -1114,7 +1138,7 @@ mod tests {
         let c = FakeApi::new().on("POST tickets/123/notes", Reply::Status(422));
         assert_eq!(
             err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)),
-            "conversation rejected (HTTP 422); no retry"
+            "conversation rejected (HTTP 422): nope; nothing was delivered, no retry"
         );
         assert_eq!(j.events(), ["started", "failed"]);
         let c = FakeApi::new()
@@ -1663,6 +1687,24 @@ mod tests {
 
     /// `test_ticket_conversation_http.py::test_missing_or_wrong_conversation_readback_never_resends`
     /// and `::test_each_conversation_write_caller_leaves_ambiguity_guard`.
+    /// `test_forward_sender_error.py`.
+    #[test]
+    fn sender_rejection_names_server_answer_and_mailbox_hint() {
+        let e = fsv_core::ApiError::new(
+            400,
+            json!({"errors": [{"field": "from_email", "message": "<b>is invalid</b>"}]}),
+        );
+        let text = rejection_message(&e, &json!({"from_email": "someone@example.org"}));
+        assert!(text.contains("HTTP 400") && text.contains("from_email: is invalid"), "{text}");
+        assert!(!text.contains("<b>"), "{text}");
+        assert!(text.contains("sender must be a configured support mailbox"), "{text}");
+        assert!(text.contains("'someone@example.org'"), "{text}");
+        assert!(text.ends_with("; nothing was delivered, no retry"), "{text}");
+        let text = rejection_message(&fsv_core::ApiError::new(422, Value::Null), &json!({"body": "x"}));
+        assert!(text.contains("HTTP 422") && text.contains("empty response body"), "{text}");
+        assert!(!text.contains("sender"), "{text}");
+    }
+
     #[test]
     fn readback_gaps_and_ambiguous_failures_never_resend() {
         let cc = vec![CC.to_string()];

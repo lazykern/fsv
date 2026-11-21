@@ -16414,7 +16414,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "configured support mailbox; not inferred",
+       "help": "configured support mailbox (a tenant support email address); not inferred; any other address is rejected by the server with HTTP 400",
        "metavar": null,
        "envvar": null
       },

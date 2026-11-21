@@ -361,7 +361,7 @@
    ]
   },
   "reply_fail_422": {
-   "error": "conversation rejected (HTTP 422); no retry",
+   "error": "conversation rejected (HTTP 422): synthetic; nothing was delivered, no retry",
    "type": "ConversationError",
    "calls": [
     [

@@ -911,7 +911,7 @@ A	fsv tickets forward	<id_>
 A	fsv tickets forward	<body>	
 A	fsv tickets forward	--conversation	exact source conversation ID in this ticket
 A	fsv tickets forward	--to	plain recipient email (repeatable)
-A	fsv tickets forward	--sender	configured support mailbox; not inferred
+A	fsv tickets forward	--sender	configured support mailbox (a tenant support email address); not inferred; any other address is rejected by the server with HTTP 400
 A	fsv tickets forward	--output	output format (JSON only)
 A	fsv tickets forward	--json	alias for --output json
 A	fsv tickets forward	--dry-run	
